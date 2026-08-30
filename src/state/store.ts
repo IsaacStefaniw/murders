@@ -26,7 +26,16 @@ import {
   detectSlotMismatch,
   type ManualMove,
 } from '@/lib/scheduling/adaptation';
-import { addDays, newId, todayKey, toHHMM, toMinutes } from '@/lib/dates';
+import { buildSeededHistory } from '@/features/dev/seedHistory';
+import {
+  addDays,
+  newId,
+  nowDate,
+  setClockOffsetMs,
+  todayKey,
+  toHHMM,
+  toMinutes,
+} from '@/lib/dates';
 import type {
   BehaviourEvent,
   BehaviourIntention,
@@ -108,6 +117,13 @@ export interface AppState {
 
   resetAll: () => void;
   setHydrated: () => void;
+
+  /** Preview Lab — compress the learning loop for testing. */
+  clockOffsetMs: number;
+  advanceToNextMorning: () => void;
+  jumpToEvening: () => void;
+  resetClock: () => void;
+  seedDemoHistory: () => void;
 }
 
 const initialData = {
@@ -121,6 +137,7 @@ const initialData = {
   behaviourEvents: [] as BehaviourEvent[],
   reflections: [] as Reflection[],
   suggestions: [] as Suggestion[],
+  clockOffsetMs: 0,
 };
 
 /** How far back the adaptation engine looks. */
@@ -543,8 +560,55 @@ export const useAppStore = create<AppState>()(
           for (let i = 0; i <= 6; i++) get().regeneratePlan(addDays(today, i));
         },
 
-        resetAll: () => set({ ...initialData }),
-        setHydrated: () => set({ hydrated: true }),
+        resetAll: () => {
+          setClockOffsetMs(0);
+          set({ ...initialData });
+        },
+        setHydrated: () => {
+          setClockOffsetMs(get().clockOffsetMs);
+          set({ hydrated: true });
+        },
+
+        advanceToNextMorning: () => {
+          const sim = nowDate();
+          const target = new Date(sim);
+          target.setDate(target.getDate() + 1);
+          target.setHours(7, 30, 0, 0);
+          const offset = get().clockOffsetMs + (target.getTime() - sim.getTime());
+          setClockOffsetMs(offset);
+          set({ clockOffsetMs: offset });
+          get().ensurePlan(todayKey());
+          get().refreshSuggestions();
+        },
+
+        jumpToEvening: () => {
+          const sim = nowDate();
+          if (sim.getHours() >= 19) return;
+          const target = new Date(sim);
+          target.setHours(19, 0, 0, 0);
+          const offset = get().clockOffsetMs + (target.getTime() - sim.getTime());
+          setClockOffsetMs(offset);
+          set({ clockOffsetMs: offset });
+        },
+
+        resetClock: () => {
+          setClockOffsetMs(0);
+          set({ clockOffsetMs: 0 });
+          get().ensurePlan(todayKey());
+        },
+
+        seedDemoHistory: () => {
+          const { profile, routines, behaviourIntentions } = get();
+          if (!profile) return;
+          const seeded = buildSeededHistory(profile, routines, behaviourIntentions);
+          set({
+            plans: { ...get().plans, ...seeded.plans },
+            planEvents: [...get().planEvents, ...seeded.planEvents].slice(-MAX_PLAN_EVENTS),
+            behaviourEvents: [...get().behaviourEvents, ...seeded.behaviourEvents],
+            reflections: [...get().reflections, ...seeded.reflections],
+          });
+          get().refreshSuggestions();
+        },
       };
     },
     {

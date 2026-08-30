@@ -2,6 +2,26 @@
 
 import type { Weekday } from '@/types/domain';
 
+/**
+ * Simulated clock offset — the Preview Lab's time machine. All date/time
+ * reads that drive the product (todayKey, nowMinutes) flow through
+ * nowDate(), so advancing the clock lets a week of the learning loop run
+ * in minutes. Zero in normal use.
+ */
+let clockOffsetMs = 0;
+
+export function setClockOffsetMs(ms: number): void {
+  clockOffsetMs = ms;
+}
+
+export function getClockOffsetMs(): number {
+  return clockOffsetMs;
+}
+
+export function nowDate(): Date {
+  return new Date(Date.now() + clockOffsetMs);
+}
+
 /** "13:45" → 825. Accepts "H:MM" and "HH:MM". */
 export function toMinutes(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number);
@@ -28,7 +48,7 @@ export function toDateKey(date: Date): string {
 }
 
 export function todayKey(): string {
-  return toDateKey(new Date());
+  return toDateKey(nowDate());
 }
 
 export function dateKeyToDate(key: string): Date {
@@ -73,7 +93,7 @@ export function formatTime(hhmm: string): string {
 }
 
 export function nowMinutes(): number {
-  const n = new Date();
+  const n = nowDate();
   return n.getHours() * 60 + n.getMinutes();
 }
 
