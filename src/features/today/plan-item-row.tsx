@@ -61,6 +61,12 @@ export function PlanItemRow({ item, plan, profile, date, expanded, onToggle }: P
         ) : null}
       </View>
 
+      {item.focus && !done && !skipped ? (
+        <AppText variant="caption" color="textTertiary" style={styles.focus}>
+          Next step: {item.focus}
+        </AppText>
+      ) : null}
+
       {expanded ? (
         <View style={styles.actions}>
           <ItemActions item={item} plan={plan} profile={profile} date={date} onDone={onToggle} />
@@ -85,5 +91,6 @@ const styles = StyleSheet.create({
   },
   time: { width: 62, fontVariant: ['tabular-nums'] },
   title: { flex: 1, fontWeight: '500' },
+  focus: { paddingLeft: 62 + Spacing.md },
   actions: { paddingTop: Spacing.xs },
 });

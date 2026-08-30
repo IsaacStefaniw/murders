@@ -16,6 +16,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
+import { detectGoalUnderserved } from '@/features/goals/underserved';
 import { availableStartsFor, generateDailyPlan } from '@/features/planner/generate';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
@@ -222,9 +223,15 @@ export const useAppStore = create<AppState>()(
         },
 
         regeneratePlan: (date) => {
-          const { profile, routines, plans } = get();
+          const { profile, routines, plans, goals } = get();
           if (!profile) throw new Error('Cannot plan without a profile');
-          const { unplaced: _unplaced, ...plan } = generateDailyPlan(profile, routines, date);
+          const { unplaced: _unplaced, ...plan } = generateDailyPlan(
+            profile,
+            routines,
+            date,
+            [],
+            goals,
+          );
           const previous = plans[date];
           const next: DailyPlan = {
             ...plan,
@@ -517,18 +524,37 @@ export const useAppStore = create<AppState>()(
             const anticipation = detectAnticipationGap(today, plans, routines, profile);
             if (anticipation) fresh.push(anticipation);
           }
-          // Stalled goals: at most one nudge per goal per stall window,
-          // counting nudges already answered.
-          const stallCooldown = new Date(Date.now() - STALL_DAYS * 86400e3).toISOString();
+          // Goal direction: one nudge per goal at a time, proactive
+          // (underserved — the calendar stopped serving the goal) before
+          // the backstop (stalled — no milestone progress for 3 weeks),
+          // each with its own cooldown counting answered nudges.
           const goalIdOf = (s: Suggestion) => (s.payload as { goalId?: string })?.goalId;
-          const recentlyNudgedGoals = new Set(
-            suggestions
-              .filter((s) => s.kind === 'goal_stalled' && s.createdAt >= stallCooldown)
-              .map(goalIdOf),
-          );
-          for (const s of detectGoalStalled(today, goals)) {
-            if (!recentlyNudgedGoals.has(goalIdOf(s))) fresh.push(s);
+          const recentGoalNudges = (kind: Suggestion['kind'], days: number) => {
+            const cutoff = new Date(Date.now() - days * 86400e3).toISOString();
+            return new Set(
+              suggestions.filter((s) => s.kind === kind && s.createdAt >= cutoff).map(goalIdOf),
+            );
+          };
+          const recentUnderserved = recentGoalNudges('plan_adjustment', 14);
+          const recentStalled = recentGoalNudges('goal_stalled', STALL_DAYS);
+          const goalClaimed = new Set<string | undefined>();
+          const goalFresh: Suggestion[] = [];
+          for (const s of detectGoalUnderserved(today, goals, routines, history)) {
+            const gid = goalIdOf(s);
+            if (recentUnderserved.has(gid) || recentStalled.has(gid) || goalClaimed.has(gid))
+              continue;
+            goalClaimed.add(gid);
+            goalFresh.push(s);
           }
+          for (const s of detectGoalStalled(today, goals)) {
+            const gid = goalIdOf(s);
+            if (recentStalled.has(gid) || goalClaimed.has(gid)) continue;
+            goalClaimed.add(gid);
+            goalFresh.push(s);
+          }
+          // Goal-direction suggestions surface first: the point of the
+          // engine is movement toward what the user said matters.
+          fresh.unshift(...goalFresh);
 
           // Keep existing open suggestions; add only genuinely new ones.
           const open = suggestions.filter((s) => s.status === 'open');
@@ -544,8 +570,12 @@ export const useAppStore = create<AppState>()(
           const suggestion = suggestions.find((s) => s.id === id);
           if (!suggestion) return;
 
-          if (suggestion.kind === 'connection' || suggestion.kind === 'goal_stalled') {
-            // Both propose one concrete block; accepting puts it on the plan.
+          if (
+            suggestion.kind === 'connection' ||
+            suggestion.kind === 'goal_stalled' ||
+            suggestion.kind === 'plan_adjustment'
+          ) {
+            // Each proposes one concrete block; accepting puts it on the plan.
             const payload = suggestion.payload as {
               date: string;
               start: string;

@@ -12,7 +12,7 @@
 import { buildDailyPlan, computeFreeWindows } from '@/lib/scheduling/engine';
 import type { FixedCommitment } from '@/lib/scheduling/engine';
 import { toMinutes, toHHMM, weekdayOf } from '@/lib/dates';
-import type { DailyPlan, LifeProfile, PlanItem, Routine } from '@/types/domain';
+import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine } from '@/types/domain';
 
 const LUNCH_START = 12 * 60;
 const LUNCH_END = 13 * 60 + 30;
@@ -79,11 +79,23 @@ export function workBlocks(
   return blocks;
 }
 
+/** goalId → the goal's next step: the review-set lever, else the next milestone. */
+export function goalFocusMap(goals: Goal[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const g of goals) {
+    if (g.status !== 'active') continue;
+    const focus = g.nextFocus ?? g.milestones?.find((m) => !m.done)?.title;
+    if (focus) map[g.id] = focus;
+  }
+  return map;
+}
+
 export function generateDailyPlan(
   profile: LifeProfile,
   routines: Routine[],
   date: string,
   calendarEvents: FixedCommitment[] = [],
+  goals: Goal[] = [],
 ): DailyPlan & { unplaced: Routine[] } {
   // Real calendar events are truth; modelled work hours are the fallback
   // for work days the calendar knows nothing about.
@@ -98,6 +110,7 @@ export function generateDailyPlan(
     sleepTime: profile.sleepTime,
     fixed,
     reservedFreeFraction,
+    goalFocus: goalFocusMap(goals),
     // during-work routines are already in the fixed list — don't place twice.
     routines: routines.filter((r) => !r.duringWork),
   });

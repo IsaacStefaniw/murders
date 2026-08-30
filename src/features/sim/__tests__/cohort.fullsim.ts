@@ -15,9 +15,11 @@ import { aggregate, renderMarkdown } from '@/features/sim/report';
 const USERS = Number(process.env.SIM_USERS ?? 2000);
 const DAYS = Number(process.env.SIM_DAYS ?? 182);
 const OUT = process.env.SIM_OUT ?? '/tmp';
-// SIM_GOAL_RESCUE=0 ablates the goal-stalled detector for comparison runs.
+// SIM_GOAL_RESCUE=0 ablates the goal-stalled detector; SIM_GOAL_DIRECTION=0
+// ablates the proactive underserved-goal detector.
 const GOAL_RESCUE = process.env.SIM_GOAL_RESCUE !== '0';
-const SUFFIX = GOAL_RESCUE ? '' : '-no-rescue';
+const GOAL_DIRECTION = process.env.SIM_GOAL_DIRECTION !== '0';
+const SUFFIX = `${GOAL_RESCUE ? '' : '-no-rescue'}${GOAL_DIRECTION ? '' : '-no-direction'}`;
 
 jest.setTimeout(60 * 60 * 1000);
 
@@ -25,7 +27,12 @@ it(`simulates ${USERS} users × ${DAYS} days`, () => {
   const results: UserResult[] = [];
   const t0 = Date.now();
   for (let i = 0; i < USERS; i++) {
-    results.push(runUser(makeUser(i), DAYS, '2026-01-05', { goalRescue: GOAL_RESCUE }));
+    results.push(
+      runUser(makeUser(i), DAYS, '2026-01-05', {
+        goalRescue: GOAL_RESCUE,
+        goalDirection: GOAL_DIRECTION,
+      }),
+    );
     if (i % 200 === 199) {
        
       console.log(`  ${i + 1}/${USERS} users · ${((Date.now() - t0) / 1000).toFixed(0)}s`);

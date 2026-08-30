@@ -112,3 +112,44 @@ describe('availableStartsFor', () => {
     }
   });
 });
+
+describe('goal focus on the plan', () => {
+  it('stamps the linked goal\'s next step on goal-linked items, fixed carve-outs included', () => {
+    const goal = {
+      id: 'g1',
+      title: 'Grow the business',
+      area: 'work' as const,
+      domain: 'business' as const,
+      status: 'active' as const,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      routineIds: ['gb'],
+      milestones: [
+        { id: 'm1', title: 'Establish the current baseline', done: true },
+        { id: 'm2', title: 'Define the gap', done: false },
+      ],
+    };
+    const growth: Routine = { ...deepWork, id: 'gb', title: 'Growth block', goalId: 'g1' };
+    const plan = generateDailyPlan(profile, [growth], '2026-09-01', [], [goal]);
+    const block = plan.items.find((i) => i.title === 'Growth block')!;
+    expect(block.fixed).toBe(true);
+    expect(block.focus).toBe('Define the gap');
+  });
+
+  it('prefers the review-set lever over the raw milestone list', () => {
+    const goal = {
+      id: 'g1',
+      title: 'Grow the business',
+      area: 'work' as const,
+      status: 'active' as const,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      routineIds: ['gb'],
+      nextFocus: 'Call the two biggest clients',
+      milestones: [{ id: 'm1', title: 'Define the gap', done: false }],
+    };
+    const growth: Routine = { ...deepWork, id: 'gb', title: 'Growth block', goalId: 'g1' };
+    const plan = generateDailyPlan(profile, [growth], '2026-09-01', [], [goal]);
+    expect(plan.items.find((i) => i.title === 'Growth block')!.focus).toBe(
+      'Call the two biggest clients',
+    );
+  });
+});

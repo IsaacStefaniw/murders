@@ -163,6 +163,11 @@ export default function Today() {
               {nowGoal.title}
             </AppText>
           ) : null}
+          {nowItem.focus ? (
+            <AppText variant="caption" color="accent">
+              Next step: {nowItem.focus}
+            </AppText>
+          ) : null}
           <View style={styles.nowActions}>
             <ItemActions item={nowItem} plan={plan} profile={profile} date={date} />
           </View>

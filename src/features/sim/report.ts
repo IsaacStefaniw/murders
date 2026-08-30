@@ -72,6 +72,10 @@ export interface CohortReport {
     goalsFullyDonePct: number;
     goalsStalledAtEndPct: number;
     byDomain: Record<string, { done: number; total: number }>;
+    /** Of weeks that began with an open milestone goal, how many moved one. */
+    goalServingWeekPct: number;
+    /** Median weeks for a milestone-bearing goal to reach fully done. */
+    medianWeeksToGoalDone: number | null;
   };
 }
 
@@ -146,6 +150,14 @@ export function aggregate(results: UserResult[]): CohortReport {
   let goalsFullyDone = 0;
   let goalsStalled = 0;
   const usersWithMilestoneGoals = results.filter((r) => r.goalsWithMilestones > 0).length;
+  // Only weeks that began with an open milestone goal count — once every
+  // goal is finished there is nothing left for the week to move.
+  const goalHolderWeeks = results.flatMap((r) =>
+    r.weeks.filter((w) => w.openGoal).map((w) => (w.goalTouch ? 1 : 0)),
+  );
+  const doneWeeks = results
+    .flatMap((r) => r.goalDoneWeeks)
+    .sort((a, b) => a - b);
   for (const r of results) {
     goalsWithMilestones += r.goalsWithMilestones;
     goalsFullyDone += r.goalsFullyMilestoned;
@@ -205,6 +217,10 @@ export function aggregate(results: UserResult[]): CohortReport {
       goalsFullyDonePct: goalsWithMilestones ? (goalsFullyDone / goalsWithMilestones) * 100 : 0,
       goalsStalledAtEndPct: goalsWithMilestones ? (goalsStalled / goalsWithMilestones) * 100 : 0,
       byDomain,
+      goalServingWeekPct: mean(goalHolderWeeks) * 100,
+      medianWeeksToGoalDone: doneWeeks.length
+        ? doneWeeks[Math.floor(doneWeeks.length / 2)] + 1
+        : null,
     },
   };
 }
@@ -260,6 +276,7 @@ export function renderMarkdown(rep: CohortReport): string {
     '## Goal progression (milestones, by domain)',
     `- Users with milestone-bearing goals: ${rep.goalProgress.usersWithMilestoneGoals} · milestones done ${rep.goalProgress.milestonesDone.toLocaleString()}/${rep.goalProgress.milestonesTotal.toLocaleString()} (${rep.goalProgress.completionPct.toFixed(1)}%)`,
     `- Goals fully milestoned: ${rep.goalProgress.goalsFullyDonePct.toFixed(1)}% · still stalled at end: ${rep.goalProgress.goalsStalledAtEndPct.toFixed(1)}%`,
+    `- Goal-serving weeks (a goal actually moved): ${rep.goalProgress.goalServingWeekPct.toFixed(1)}% · median weeks to a finished goal: ${rep.goalProgress.medianWeeksToGoalDone ?? 'n/a'}`,
     ...Object.entries(rep.goalProgress.byDomain)
       .sort(([, a], [, b]) => b.total - a.total)
       .map(

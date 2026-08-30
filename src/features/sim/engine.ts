@@ -8,6 +8,7 @@
 
 import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
+import { detectGoalUnderserved } from '@/features/goals/underserved';
 import { generateDailyPlan } from '@/features/planner/generate';
 import { buildWeeklyChanges } from '@/features/review/weeklyChanges';
 import { runSessionForItem } from '@/features/sim/modalities';
@@ -61,6 +62,10 @@ export interface WeekMetrics {
   /** Real product code produced an invalid session. Must stay zero. */
   contractViolations: number;
   milestonesCompleted: number;
+  /** At least one goal-linked item actually happened this week. */
+  goalTouch: boolean;
+  /** The user still had an active goal with work left when the week began. */
+  openGoal: boolean;
 }
 
 export interface UserResult {
@@ -76,11 +81,15 @@ export interface UserResult {
   goalsFullyMilestoned: number;
   /** Goals still stalled (undone milestone, no progress ≥ STALL_DAYS) at the end. */
   goalsStalledAtEnd: number;
+  /** Week index at which each milestone-bearing goal became fully done. */
+  goalDoneWeeks: number[];
 }
 
 export interface SimOptions {
   /** Wire the goal-stalled detector into the loop (ablate with false). */
   goalRescue?: boolean;
+  /** Wire the proactive underserved-goal detector (ablate with false). */
+  goalDirection?: boolean;
 }
 
 function emptyWeek(): WeekMetrics {
@@ -101,6 +110,8 @@ function emptyWeek(): WeekMetrics {
     sessions: {},
     contractViolations: 0,
     milestonesCompleted: 0,
+    goalTouch: false,
+    openGoal: false,
   };
 }
 
@@ -121,9 +132,16 @@ export function runUser(
     milestones: g.milestones?.map((m) => ({ ...m })),
   }));
   const goalRescue = opts.goalRescue !== false;
+  const goalDirection = opts.goalDirection !== false;
   const lastStallNudgeDay: Record<string, number> = {};
+  const lastUnderservedDay: Record<string, number> = {};
+  const goalDoneWeeks: number[] = [];
+  const goalsDoneSeen = new Set<string>();
   const floorFor = (r: Routine): number =>
     (r.sessionType && MODALITIES[r.sessionType]?.shorteningFloorMin) || 10;
+  // "The week served a goal" means milestone-bearing goals, not any link.
+  const touchesMilestoneGoal = (goalId?: string): boolean =>
+    Boolean(goalId && goals.find((g) => g.id === goalId)?.milestones?.length);
   // Durations at signup, so shrink-relief compares against the original ask.
   const originalDuration = new Map(routines.map((r) => [r.id, r.durationMin]));
 
@@ -141,10 +159,15 @@ export function runUser(
   for (let d = 0; d < days; d++) {
     const date = addDays(startDate, d);
     const weekIndex = Math.floor(d / 7);
+    if (d % 7 === 0) {
+      week.openGoal = goals.some(
+        (g) => g.status === 'active' && g.milestones?.some((m) => !m.done),
+      );
+    }
 
     let plan: (DailyPlan & { unplaced: Routine[] }) | null = null;
     try {
-      plan = generateDailyPlan(profile, routines, date);
+      plan = generateDailyPlan(profile, routines, date, [], goals);
     } catch {
       errors += 1;
       continue;
@@ -183,6 +206,7 @@ export function runUser(
         ) {
           const attended: PlanItem = { ...item, status: 'completed' };
           recordSession(attended);
+          if (touchesMilestoneGoal(item.goalId)) week.goalTouch = true;
           return attended;
         }
         return item;
@@ -233,6 +257,7 @@ export function runUser(
       if (completed) {
         week.completed += 1;
         areaAcc.completed += 1;
+        if (touchesMilestoneGoal(item.goalId)) week.goalTouch = true;
         // The session behind the item actually runs — real registry, real
         // generators, milestone progression on the linked goal.
         recordSession({ ...item, start, end, status: 'completed' });
@@ -275,7 +300,7 @@ export function runUser(
       for (let i = 1; i <= 6; i++) {
         const future = addDays(date, i);
         try {
-          previewPlans[future] = generateDailyPlan(profile, routines, future);
+          previewPlans[future] = generateDailyPlan(profile, routines, future, [], goals);
         } catch {
           errors += 1;
         }
@@ -286,10 +311,24 @@ export function runUser(
         lastConnectionDay = d;
       }
     }
-    // Goal-stalled nudges — same per-goal cooldown as the store.
+    // Goal direction — proactive (calendar stopped serving the goal)
+    // before the backstop (milestones quiet 3 weeks); per-goal cooldowns
+    // mirroring the store, one nudge per goal per day.
+    const goalClaimedToday = new Set<string>();
+    if (goalDirection) {
+      for (const s of detectGoalUnderserved(date, goals, routines, history)) {
+        const gid = (s.payload as { goalId: string }).goalId;
+        if (d - (lastUnderservedDay[gid] ?? -14) < 14) continue;
+        if (d - (lastStallNudgeDay[gid] ?? -STALL_DAYS) < STALL_DAYS) continue;
+        lastUnderservedDay[gid] = d;
+        goalClaimedToday.add(gid);
+        fresh.push(s);
+      }
+    }
     if (goalRescue) {
       for (const s of detectGoalStalled(date, goals)) {
         const gid = (s.payload as { goalId: string }).goalId;
+        if (goalClaimedToday.has(gid)) continue;
         if (d - (lastStallNudgeDay[gid] ?? -STALL_DAYS) < STALL_DAYS) continue;
         lastStallNudgeDay[gid] = d;
         fresh.push(s);
@@ -321,9 +360,10 @@ export function runUser(
         }
         // connection: the moment gets planned; count as an enjoyment moment.
         if (s.kind === 'connection') week.hasFamilyMoment ||= true;
-        // goal_stalled: the rescue block lands tomorrow evening. If the
-        // user's evening actually absorbs it, the milestone gets done.
-        if (s.kind === 'goal_stalled') {
+        // Goal-direction acceptance: the proposed block lands tomorrow
+        // evening. If the user's evening actually absorbs it, the
+        // milestone gets done.
+        if (s.kind === 'goal_stalled' || s.kind === 'plan_adjustment') {
           const goal = goals.find((g) => g.id === (s.payload as { goalId: string }).goalId);
           const next = goal?.milestones?.find((m) => !m.done);
           const pDone = affinityFor(truth, goal?.area ?? 'growth', 'evening') * truth.adherence;
@@ -331,8 +371,18 @@ export function runUser(
             next.done = true;
             next.doneAt = `${addDays(date, 1)}T20:00:00.000Z`;
             week.milestonesCompleted += 1;
+            week.goalTouch = true;
           }
         }
+      }
+    }
+
+    // Record the week each goal crosses the line — goal velocity.
+    for (const g of goals) {
+      if (!g.milestones?.length || goalsDoneSeen.has(g.id)) continue;
+      if (g.milestones.every((m) => m.done)) {
+        goalsDoneSeen.add(g.id);
+        goalDoneWeeks.push(weekIndex);
       }
     }
 
@@ -392,5 +442,6 @@ export function runUser(
     goalsWithMilestones,
     goalsFullyMilestoned,
     goalsStalledAtEnd: detectGoalStalled(addDays(startDate, days - 1), goals).length,
+    goalDoneWeeks,
   };
 }

@@ -30,6 +30,9 @@ export interface DayContext {
   sleepTime: string;
   fixed: FixedCommitment[];
   routines: Routine[];
+  /** goalId → the goal's next step; stamped as `focus` on goal-linked items
+   * so every block on the plan knows what it is moving forward. */
+  goalFocus?: Record<string, string>;
   /** Minutes of breathing room enforced between scheduled items. */
   bufferMin?: number;
   /**
@@ -217,6 +220,7 @@ export function buildDailyPlan(ctx: DayContext): DailyPlan & { unplaced: Routine
         sessionType: f.sessionType,
         routineId: f.routineId,
         goalId: f.goalId,
+        focus: f.goalId ? ctx.goalFocus?.[f.goalId] : undefined,
       }),
     ),
     ...kept.map(
@@ -231,6 +235,7 @@ export function buildDailyPlan(ctx: DayContext): DailyPlan & { unplaced: Routine
         status: 'planned',
         routineId: p.routine.id,
         goalId: p.routine.goalId,
+        focus: p.routine.goalId ? ctx.goalFocus?.[p.routine.goalId] : undefined,
         fixed: false,
         sessionType: p.routine.sessionType,
       }),

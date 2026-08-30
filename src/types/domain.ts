@@ -173,6 +173,8 @@ export interface PlanItem {
   status: PlanItemStatus;
   routineId?: string;
   goalId?: string;
+  /** The linked goal's next step — a block always knows what it's moving. */
+  focus?: string;
   /** Fixed commitments (calendar events) cannot be moved by the engine. */
   fixed: boolean;
   /** Inherited from the routine: the modality session that runs this item. */

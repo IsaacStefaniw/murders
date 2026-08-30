@@ -140,6 +140,39 @@ days. One deliberate trade, stated plainly: absolute completions dip 2.6%
 failures is what the what-the-hell effect feeds on, and the report now
 tracks volume alongside rate so this trade stays visible.
 
+## v4 — goal direction: the engine optimises movement toward stated goals
+
+The loop's objective function changed from "was the schedule followed" to
+"did the week move the user's goals". Three engine changes, one
+measurement change:
+
+1. **Every goal-linked block knows its next step.** `generateDailyPlan`
+   now stamps `focus` (the review-set lever, else the next undone
+   milestone) onto goal-linked items — fixed carve-outs included — and
+   Today shows it ("Growth block · Next step: Define the gap"). Plans
+   don't just contain goal time; they point it.
+2. **Proactive underserved-goal detector** (`detectGoalUnderserved`,
+   producing the previously unproduced `plan_adjustment` kind). Fires on
+   the cause before the 21-day stall backstop catches the symptom: an
+   active goal whose calendar footprint collapsed (all linked routines
+   rested, or recent linked blocks all slipped) gets one concrete
+   30-minute block aimed at its next milestone. Deliberately narrow — 234
+   nudges across 2,000 users over six months (55% accepted) — because the
+   v3 mechanics (shrink-to-fit, recovery-first) already prevent most
+   calendar collapse. Ablation at 500 users: still-stalled goals
+   5.1% → 3.6%, fully-finished goals 94.4% → 96.1%.
+3. **Goal-direction suggestions surface first.** The store orders fresh
+   suggestions goal-serving kinds first; Today shows one suggestion, so
+   that one is the one that moves a goal.
+
+Measurement now scores the objective directly: **goal-serving weeks**
+(of weeks beginning with an open milestone goal, how many completed
+something that moved it — 52.5%) and **median weeks to a finished goal**
+(10). The 52.5% has a structural reading: most milestone goals run one
+linked block per week, so a single skipped block idles the goal for a
+week — raising cadence for behind-schedule goals is the next lever, and
+it now has a metric that will show whether it works.
+
 Simulation ≠ users: personas are hand-built and acceptance probabilities
 are guesses. The sim validates machinery and catches regressions; only the
 seven-real-days experiment validates the product.
