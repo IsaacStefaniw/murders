@@ -1,5 +1,9 @@
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+
+import { Chip } from '@/components/chip';
+import type { BehaviourEvent } from '@/types/domain';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
@@ -12,6 +16,18 @@ import { behaviourInfo } from '@/features/behaviours/catalog';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
+const TRIGGERS = ['Stress', 'Boredom', 'Social', 'After a meal', 'Work', 'Habit', 'Other'];
+
+/** The dominant trigger once there's enough signal (≥3 of the same). */
+function commonTrigger(events: BehaviourEvent[]): string | null {
+  const counts = new Map<string, number>();
+  for (const e of events) {
+    if (e.trigger) counts.set(e.trigger, (counts.get(e.trigger) ?? 0) + 1);
+  }
+  const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  return top && top[1] >= 3 ? top[0] : null;
+}
+
 /** Life: goals, behaviour intentions, people. The slower-moving layer. */
 export default function Life() {
   const router = useRouter();
@@ -22,6 +38,13 @@ export default function Life() {
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
   const logBehaviourEvent = useAppStore((s) => s.logBehaviourEvent);
+  const setBehaviourEventTrigger = useAppStore((s) => s.setBehaviourEventTrigger);
+
+  /** Event awaiting an optional one-tap trigger. */
+  const [pendingTrigger, setPendingTrigger] = useState<{
+    intentionId: string;
+    eventId: string;
+  } | null>(null);
 
   // Rolling 7-day window. The clock read is deliberate and the computation
   // trivial; a stable-per-render anchor would only make counts staler.
@@ -73,9 +96,9 @@ export default function Life() {
         <View style={styles.stack}>
           {activeIntentions.map((intention) => {
             const info = behaviourInfo(intention.behaviour);
-            const count = behaviourEvents.filter(
-              (e) => e.intentionId === intention.id && e.occurredAt >= weekAgo,
-            ).length;
+            const own = behaviourEvents.filter((e) => e.intentionId === intention.id);
+            const count = own.filter((e) => e.occurredAt >= weekAgo).length;
+            const topTrigger = commonTrigger(own);
             return (
               <Card key={intention.id}>
                 <View style={styles.intentionRow}>
@@ -83,14 +106,40 @@ export default function Life() {
                     <AppText variant="heading">{intention.intentionText}</AppText>
                     <AppText variant="caption" color="textTertiary">
                       {info.label} · {count === 0 ? 'clear this week' : `${count} this week`}
+                      {topTrigger ? ` · usually: ${topTrigger.toLowerCase()}` : ''}
                     </AppText>
                   </View>
                   <Button
                     title="It happened"
                     variant="ghost"
-                    onPress={() => logBehaviourEvent(intention.id)}
+                    onPress={() =>
+                      setPendingTrigger({
+                        intentionId: intention.id,
+                        eventId: logBehaviourEvent(intention.id),
+                      })
+                    }
                   />
                 </View>
+                {pendingTrigger?.intentionId === intention.id ? (
+                  <View style={styles.triggerArea}>
+                    <AppText variant="caption" color="textTertiary">
+                      Noted. What triggered it?
+                    </AppText>
+                    <View style={styles.triggerChips}>
+                      {TRIGGERS.map((t) => (
+                        <Chip
+                          key={t}
+                          label={t}
+                          onPress={() => {
+                            setBehaviourEventTrigger(pendingTrigger.eventId, t);
+                            setPendingTrigger(null);
+                          }}
+                        />
+                      ))}
+                      <Chip label="Skip" onPress={() => setPendingTrigger(null)} />
+                    </View>
+                  </View>
+                ) : null}
                 {info.safetyNote ? (
                   <AppText variant="caption" color="textTertiary" style={styles.safety}>
                     {info.safetyNote}
@@ -136,6 +185,8 @@ const styles = StyleSheet.create({
   },
   intentionInfo: { flexShrink: 1, gap: 2 },
   safety: { marginTop: Spacing.md },
+  triggerArea: { marginTop: Spacing.md, gap: Spacing.sm },
+  triggerChips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   note: { marginTop: Spacing.xs },
   settings: { marginTop: Spacing.xxl },
 });

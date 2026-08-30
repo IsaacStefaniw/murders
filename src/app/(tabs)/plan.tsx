@@ -6,7 +6,6 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { Spacing } from '@/constants/theme';
-import { availableStartsFor } from '@/features/planner/generate';
 import { PlanItemRow } from '@/features/today/plan-item-row';
 import { addDays, formatDateLong, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
@@ -20,8 +19,6 @@ export default function Plan() {
   const plans = useAppStore((s) => s.plans);
   const ensurePlan = useAppStore((s) => s.ensurePlan);
   const regeneratePlan = useAppStore((s) => s.regeneratePlan);
-  const setItemStatus = useAppStore((s) => s.setItemStatus);
-  const moveItem = useAppStore((s) => s.moveItem);
 
   const [openDate, setOpenDate] = useState(today);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -66,27 +63,19 @@ export default function Plan() {
                   {items.length === 0 ? (
                     <AppText variant="secondary">Nothing planned. A rest day is a plan too.</AppText>
                   ) : (
-                    items.map((item) => (
-                      <PlanItemRow
-                        key={item.id}
-                        item={item}
-                        expanded={expandedId === item.id}
-                        onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                        moveSlots={
-                          expandedId === item.id && plan
-                            ? availableStartsFor(item, plan, profile)
-                            : []
-                        }
-                        onMove={(slot) => {
-                          moveItem(date, item.id, slot);
-                          setExpandedId(null);
-                        }}
-                        onStatus={(status) => {
-                          setItemStatus(date, item.id, status);
-                          setExpandedId(null);
-                        }}
-                      />
-                    ))
+                    items.map((item) =>
+                      plan ? (
+                        <PlanItemRow
+                          key={item.id}
+                          item={item}
+                          plan={plan}
+                          profile={profile}
+                          date={date}
+                          expanded={expandedId === item.id}
+                          onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                        />
+                      ) : null,
+                    )
                   )}
                   <Button
                     title="Rebuild this day"

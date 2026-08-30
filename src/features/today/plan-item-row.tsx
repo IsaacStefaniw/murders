@@ -1,48 +1,32 @@
-import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
-import { Button } from '@/components/button';
-import { Chip } from '@/components/chip';
 import { Radius, Spacing } from '@/constants/theme';
+import { ItemActions } from '@/features/today/item-actions';
 import { formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
-import type { PlanItem, PlanItemStatus } from '@/types/domain';
+import type { DailyPlan, LifeProfile, PlanItem } from '@/types/domain';
 
 interface PlanItemRowProps {
   item: PlanItem;
+  plan: DailyPlan;
+  profile: LifeProfile;
+  date: string;
   expanded: boolean;
   onToggle: () => void;
-  onStatus: (status: PlanItemStatus) => void;
-  /** Valid alternative start times; enables the Move action when non-empty. */
-  moveSlots?: string[];
-  onMove?: (start: string) => void;
 }
 
-export function PlanItemRow({
-  item,
-  expanded,
-  onToggle,
-  onStatus,
-  moveSlots,
-  onMove,
-}: PlanItemRowProps) {
+/** A compact plan row. Tier is engine detail — the row shows time and title only. */
+export function PlanItemRow({ item, plan, profile, date, expanded, onToggle }: PlanItemRowProps) {
   const theme = useTheme();
-  const [showMove, setShowMove] = useState(false);
   const done = item.status === 'completed';
   const skipped = item.status === 'skipped';
-  const canMove = !item.fixed && onMove && (moveSlots?.length ?? 0) > 0;
-
-  const toggle = () => {
-    setShowMove(false);
-    onToggle();
-  };
 
   return (
     <Pressable
-      onPress={toggle}
+      onPress={onToggle}
       accessibilityRole="button"
-      accessibilityLabel={`${item.title}, ${formatTime(item.start)}${done ? ', completed' : ''}`}
+      accessibilityLabel={`${item.title}, ${formatTime(item.start)}${done ? ', done' : ''}`}
       style={({ pressed }) => [
         styles.row,
         {
@@ -64,6 +48,7 @@ export function PlanItemRow({
           ]}
         >
           {item.title}
+          {item.shortenedFromMin ? ' · shortened' : ''}
         </AppText>
         {done ? (
           <AppText variant="caption" color="success">
@@ -73,46 +58,12 @@ export function PlanItemRow({
           <AppText variant="caption" color="textTertiary">
             Skipped
           </AppText>
-        ) : (
-          <AppText variant="caption" color={item.tier}>
-            {item.tier}
-          </AppText>
-        )}
+        ) : null}
       </View>
 
-      {expanded && !showMove && item.status === 'planned' ? (
+      {expanded ? (
         <View style={styles.actions}>
-          <Button title="Done" onPress={() => onStatus('completed')} style={styles.grow} />
-          <Button title="Skip" variant="ghost" onPress={() => onStatus('skipped')} />
-          {canMove ? (
-            <Button title="Move" variant="secondary" onPress={() => setShowMove(true)} />
-          ) : null}
-        </View>
-      ) : null}
-
-      {expanded && showMove ? (
-        <View style={styles.moveArea}>
-          <AppText variant="caption" color="textTertiary">
-            Move to…
-          </AppText>
-          <View style={styles.slots}>
-            {moveSlots!.map((slot) => (
-              <Chip
-                key={slot}
-                label={formatTime(slot)}
-                onPress={() => {
-                  setShowMove(false);
-                  onMove!(slot);
-                }}
-              />
-            ))}
-          </View>
-        </View>
-      ) : null}
-
-      {expanded && !showMove && item.status !== 'planned' ? (
-        <View style={styles.actions}>
-          <Button title="Undo" variant="ghost" onPress={() => onStatus('planned')} />
+          <ItemActions item={item} plan={plan} profile={profile} date={date} onDone={onToggle} />
         </View>
       ) : null}
     </Pressable>
@@ -134,12 +85,5 @@ const styles = StyleSheet.create({
   },
   time: { width: 62, fontVariant: ['tabular-nums'] },
   title: { flex: 1, fontWeight: '500' },
-  actions: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    paddingTop: Spacing.xs,
-  },
-  grow: { flex: 1 },
-  moveArea: { gap: Spacing.sm, paddingTop: Spacing.xs },
-  slots: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  actions: { paddingTop: Spacing.xs },
 });

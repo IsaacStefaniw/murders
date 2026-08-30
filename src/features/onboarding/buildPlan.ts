@@ -233,6 +233,24 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     });
   }
 
+  // One-on-one time: each kid getting their own slice of you.
+  if (hasKids && profile.moreOf.includes('Time with the kids')) {
+    routines.push({
+      id: newId('r'),
+      title: 'One-on-one time with each kid',
+      area: 'family',
+      days: [0],
+      durationMin: 45,
+      preferredStart: '15:30',
+      preferredEnd: '16:30',
+      energy: 'any',
+      flexible: true,
+      protected: false,
+      tier: 'could',
+      active: true,
+    });
+  }
+
   // Friend connection: the lightest possible action — a message that makes a plan.
   const friendsGoal = goals.find((g) => g.title === 'Stay close to friends');
   if (friendsGoal) {

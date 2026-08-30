@@ -40,10 +40,20 @@ fallback otherwise). **Done.**
 
 ## Behavioural mechanics track (runs across slices)
 See [BEHAVIOUR_DESIGN.md](BEHAVIOUR_DESIGN.md) for the full ranked backlog.
-Shipped: peak-end reflections, fresh-start framing, don't-miss-twice nudge.
+Shipped: peak-end reflections, fresh-start framing, don't-miss-twice nudge,
+chief-of-staff Today (Now/Next/Tonight/Looking Ahead — tiers stay in the
+engine, out of the UI), move/shorten/skip as recorded behavioural events
+(`planEvents`) with recovery-first skip flows, anticipation engine v1
+(weekly look-forward check, gap invitations with interest-drawn ideas),
+domain-aware conversational goal wizard, behaviour trigger capture,
+evidence-source model (manual → healthkit/location/calendar later), and
+location provider interfaces for the native build.
 Next: implementation intentions (cue capture), HealthKit/calendar
 auto-completion, contextual bandit over nudge timing, geofenced context,
 widget + notification actions.
+The acceptance criterion is executable: `src/features/__tests__/acceptance.test.ts`
+asserts a stated life (partner, kids, job, business, training, behaviours,
+friends, fun) leaves visible evidence across the generated week.
 
 ## Later
 Notifications engine with fatigue protection, friends & connection, health

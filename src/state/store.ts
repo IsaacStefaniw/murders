@@ -5,13 +5,17 @@
  * fully usable offline and in demo mode. When Supabase is configured, the
  * sync layer (lib/storage) mirrors this state to the backend — see
  * docs/ARCHITECTURE.md and ADR-003.
+ *
+ * Every plan change flows through here and is recorded in `planEvents` —
+ * the behavioural event stream the adaptation engine learns from.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { generateDailyPlan } from '@/features/planner/generate';
+import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
+import { availableStartsFor, generateDailyPlan } from '@/features/planner/generate';
 import {
   applyMoveRoutine,
   applyProtectTime,
@@ -25,9 +29,12 @@ import type {
   BehaviourEvent,
   BehaviourIntention,
   BehaviourKey,
+  CompletionEvidence,
   DailyPlan,
   Goal,
   LifeProfile,
+  PlanActionEvent,
+  PlanItem,
   PlanItemStatus,
   Reflection,
   Routine,
@@ -41,11 +48,11 @@ export interface AppState {
   goals: Goal[];
   routines: Routine[];
   plans: Record<string, DailyPlan>;
+  planEvents: PlanActionEvent[];
   behaviourIntentions: BehaviourIntention[];
   behaviourEvents: BehaviourEvent[];
   reflections: Reflection[];
   suggestions: Suggestion[];
-  manualMoves: ManualMove[];
 
   completeOnboarding: (input: {
     profile: LifeProfile;
@@ -59,9 +66,23 @@ export interface AppState {
   ensurePlan: (date: string) => DailyPlan;
   regeneratePlan: (date: string) => DailyPlan;
   approvePlan: (date: string, intention?: string, protectBehaviour?: BehaviourKey) => void;
-  setItemStatus: (date: string, itemId: string, status: PlanItemStatus) => void;
-  /** Move a plan item to a new start time; records a preference signal. */
-  moveItem: (date: string, itemId: string, newStart: string) => void;
+  setItemStatus: (
+    date: string,
+    itemId: string,
+    status: PlanItemStatus,
+    evidence?: CompletionEvidence,
+  ) => void;
+  /** Move a plan item within its day. Recorded as a behavioural signal. */
+  moveItem: (date: string, itemId: string, newStart: string, initiatedBy?: 'user' | 'intent') => void;
+  /** Move a plan item to another day, at the first slot that actually fits. */
+  moveItemToDate: (date: string, itemId: string, targetDate: string) => void;
+  /** Shorten an item to fit the time that exists — recovery, not compliance. */
+  shortenItem: (date: string, itemId: string, newDurationMin: number) => void;
+  /** Add a one-off item (an anticipation plan, a spontaneous commitment). */
+  addPlanItem: (
+    date: string,
+    input: { title: string; area: PlanItem['area']; start: string; durationMin: number },
+  ) => void;
 
   addGoal: (goal: Goal, routines: Routine[]) => void;
   setGoalStatus: (goalId: string, status: Goal['status']) => void;
@@ -69,7 +90,9 @@ export interface AppState {
 
   addBehaviourIntention: (behaviour: BehaviourKey, intentionText: string) => void;
   setBehaviourIntentionActive: (id: string, active: boolean) => void;
-  logBehaviourEvent: (intentionId: string, trigger?: string, context?: string) => void;
+  /** Returns the event id so the UI can attach a trigger afterwards. */
+  logBehaviourEvent: (intentionId: string, trigger?: string, context?: string) => string;
+  setBehaviourEventTrigger: (eventId: string, trigger: string) => void;
 
   saveReflection: (reflection: Omit<Reflection, 'id' | 'createdAt'>) => void;
 
@@ -87,56 +110,45 @@ const initialData = {
   goals: [] as Goal[],
   routines: [] as Routine[],
   plans: {} as Record<string, DailyPlan>,
+  planEvents: [] as PlanActionEvent[],
   behaviourIntentions: [] as BehaviourIntention[],
   behaviourEvents: [] as BehaviourEvent[],
   reflections: [] as Reflection[],
   suggestions: [] as Suggestion[],
-  manualMoves: [] as ManualMove[],
 };
 
 /** How far back the adaptation engine looks. */
 const HISTORY_DAYS = 14;
+const MAX_PLAN_EVENTS = 500;
+
+function eventFor(
+  item: PlanItem,
+  date: string,
+  kind: PlanActionEvent['kind'],
+  extra: Partial<PlanActionEvent> = {},
+): PlanActionEvent {
+  return {
+    id: newId('pe'),
+    at: new Date().toISOString(),
+    date,
+    itemId: item.id,
+    routineId: item.routineId,
+    goalId: item.goalId,
+    area: item.area,
+    kind,
+    initiatedBy: 'user',
+    ...extra,
+  };
+}
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set, get) => ({
-      ...initialData,
-      hydrated: false,
+    (set, get) => {
+      const record = (event: PlanActionEvent) => {
+        set({ planEvents: [...get().planEvents, event].slice(-MAX_PLAN_EVENTS) });
+      };
 
-      completeOnboarding: ({ profile, goals, routines, behaviourIntentions }) => {
-        set({ onboarded: true, profile, goals, routines, behaviourIntentions });
-        get().regeneratePlan(todayKey());
-      },
-
-      updateProfile: (patch) => {
-        const profile = get().profile;
-        if (!profile) return;
-        set({ profile: { ...profile, ...patch, updatedAt: new Date().toISOString() } });
-      },
-
-      ensurePlan: (date) => {
-        const existing = get().plans[date];
-        if (existing) return existing;
-        return get().regeneratePlan(date);
-      },
-
-      regeneratePlan: (date) => {
-        const { profile, routines, plans } = get();
-        if (!profile) throw new Error('Cannot plan without a profile');
-        const { unplaced: _unplaced, ...plan } = generateDailyPlan(profile, routines, date);
-        const previous = plans[date];
-        const next: DailyPlan = {
-          ...plan,
-          intention: previous?.intention,
-          protectBehaviour: previous?.protectBehaviour,
-          lookForward: previous?.lookForward,
-          approvedAt: undefined,
-        };
-        set({ plans: { ...plans, [date]: next } });
-        return next;
-      },
-
-      approvePlan: (date, intention, protectBehaviour) => {
+      const updatePlanItems = (date: string, map: (items: PlanItem[]) => PlanItem[]) => {
         const plans = get().plans;
         const plan = plans[date];
         if (!plan) return;
@@ -145,185 +157,341 @@ export const useAppStore = create<AppState>()(
             ...plans,
             [date]: {
               ...plan,
-              intention: intention ?? plan.intention,
-              protectBehaviour: protectBehaviour ?? plan.protectBehaviour,
-              approvedAt: new Date().toISOString(),
+              items: map(plan.items).sort((a, b) => toMinutes(a.start) - toMinutes(b.start)),
             },
           },
         });
-      },
+      };
 
-      setItemStatus: (date, itemId, status) => {
-        const plans = get().plans;
-        const plan = plans[date];
-        if (!plan) return;
-        set({
-          plans: {
-            ...plans,
-            [date]: {
-              ...plan,
-              items: plan.items.map((i) => (i.id === itemId ? { ...i, status } : i)),
+      return {
+        ...initialData,
+        hydrated: false,
+
+        completeOnboarding: ({ profile, goals, routines, behaviourIntentions }) => {
+          set({ onboarded: true, profile, goals, routines, behaviourIntentions });
+          get().regeneratePlan(todayKey());
+        },
+
+        updateProfile: (patch) => {
+          const profile = get().profile;
+          if (!profile) return;
+          set({ profile: { ...profile, ...patch, updatedAt: new Date().toISOString() } });
+        },
+
+        ensurePlan: (date) => {
+          const existing = get().plans[date];
+          if (existing) return existing;
+          return get().regeneratePlan(date);
+        },
+
+        regeneratePlan: (date) => {
+          const { profile, routines, plans } = get();
+          if (!profile) throw new Error('Cannot plan without a profile');
+          const { unplaced: _unplaced, ...plan } = generateDailyPlan(profile, routines, date);
+          const previous = plans[date];
+          const next: DailyPlan = {
+            ...plan,
+            intention: previous?.intention,
+            protectBehaviour: previous?.protectBehaviour,
+            lookForward: previous?.lookForward,
+            approvedAt: undefined,
+          };
+          set({ plans: { ...plans, [date]: next } });
+          return next;
+        },
+
+        approvePlan: (date, intention, protectBehaviour) => {
+          const plans = get().plans;
+          const plan = plans[date];
+          if (!plan) return;
+          set({
+            plans: {
+              ...plans,
+              [date]: {
+                ...plan,
+                intention: intention ?? plan.intention,
+                protectBehaviour: protectBehaviour ?? plan.protectBehaviour,
+                approvedAt: new Date().toISOString(),
+              },
             },
-          },
-        });
-      },
+          });
+        },
 
-      moveItem: (date, itemId, newStart) => {
-        const plans = get().plans;
-        const plan = plans[date];
-        const item = plan?.items.find((i) => i.id === itemId);
-        if (!plan || !item || item.fixed) return;
-        const duration = toMinutes(item.end) - toMinutes(item.start);
-        const moved = { ...item, start: newStart, end: toHHMM(toMinutes(newStart) + duration) };
-        set({
-          plans: {
-            ...plans,
-            [date]: {
-              ...plan,
-              items: plan.items
-                .map((i) => (i.id === itemId ? moved : i))
-                .sort((a, b) => toMinutes(a.start) - toMinutes(b.start)),
-            },
-          },
-          manualMoves: item.routineId
-            ? [...get().manualMoves, { routineId: item.routineId, start: newStart, date }].slice(-50)
-            : get().manualMoves,
-        });
-        get().refreshSuggestions();
-      },
+        setItemStatus: (date, itemId, status, evidence) => {
+          const item = get().plans[date]?.items.find((i) => i.id === itemId);
+          if (!item) return;
+          const finalEvidence: CompletionEvidence | undefined =
+            status === 'completed'
+              ? (evidence ?? { source: 'manual', confidence: 1, at: new Date().toISOString() })
+              : undefined;
+          updatePlanItems(date, (items) =>
+            items.map((i) => (i.id === itemId ? { ...i, status, evidence: finalEvidence } : i)),
+          );
+          if (status === 'completed') {
+            record(eventFor(item, date, 'completed', { evidence: finalEvidence }));
+          } else if (status === 'skipped') {
+            record(eventFor(item, date, 'skipped'));
+          } else if (status === 'planned' && item.status !== 'planned') {
+            record(eventFor(item, date, 'reopened'));
+          }
+        },
 
-      addGoal: (goal, routines) => {
-        set({
-          goals: [...get().goals, goal],
-          routines: [...get().routines, ...routines],
-        });
-        get().regeneratePlan(todayKey());
-      },
+        moveItem: (date, itemId, newStart, initiatedBy = 'user') => {
+          const item = get().plans[date]?.items.find((i) => i.id === itemId);
+          if (!item || item.fixed) return;
+          const duration = toMinutes(item.end) - toMinutes(item.start);
+          updatePlanItems(date, (items) =>
+            items.map((i) =>
+              i.id === itemId
+                ? {
+                    ...i,
+                    start: newStart,
+                    end: toHHMM(toMinutes(newStart) + duration),
+                    movedFrom: i.movedFrom ?? i.start,
+                  }
+                : i,
+            ),
+          );
+          record(
+            eventFor(item, date, 'rescheduled', {
+              originalStart: item.start,
+              newStart,
+              initiatedBy,
+            }),
+          );
+          get().refreshSuggestions();
+        },
 
-      setGoalStatus: (goalId, status) => {
-        set({
-          goals: get().goals.map((g) => (g.id === goalId ? { ...g, status } : g)),
-          // Pausing or dropping a goal deactivates its routines.
-          routines: get().routines.map((r) =>
-            r.goalId === goalId ? { ...r, active: status === 'active' } : r,
-          ),
-        });
-      },
+        moveItemToDate: (date, itemId, targetDate) => {
+          const { profile } = get();
+          const item = get().plans[date]?.items.find((i) => i.id === itemId);
+          if (!item || item.fixed || !profile) return;
+          const targetPlan = get().ensurePlan(targetDate);
+          const slots = availableStartsFor({ ...item, id: '' }, targetPlan, profile, 12);
+          // Land as close to the original time as the target day allows.
+          const target = toMinutes(item.start);
+          const newStart =
+            [...slots].sort((a, b) => Math.abs(toMinutes(a) - target) - Math.abs(toMinutes(b) - target))[0] ??
+            item.start;
+          const duration = toMinutes(item.end) - toMinutes(item.start);
+          const movedItem: PlanItem = {
+            ...item,
+            id: newId('pi'),
+            date: targetDate,
+            start: newStart,
+            end: toHHMM(toMinutes(newStart) + duration),
+            movedFrom: item.movedFrom ?? item.start,
+            status: 'planned',
+          };
+          updatePlanItems(date, (items) => items.filter((i) => i.id !== itemId));
+          updatePlanItems(targetDate, (items) => [...items, movedItem]);
+          record(
+            eventFor(item, date, 'rescheduled', {
+              originalStart: item.start,
+              newStart,
+              newDate: targetDate,
+            }),
+          );
+          get().refreshSuggestions();
+        },
 
-      updateRoutine: (routineId, patch) => {
-        set({
-          routines: get().routines.map((r) => (r.id === routineId ? { ...r, ...patch } : r)),
-        });
-      },
+        shortenItem: (date, itemId, newDurationMin) => {
+          const item = get().plans[date]?.items.find((i) => i.id === itemId);
+          if (!item || item.fixed) return;
+          const originalDuration = toMinutes(item.end) - toMinutes(item.start);
+          if (newDurationMin >= originalDuration) return;
+          updatePlanItems(date, (items) =>
+            items.map((i) =>
+              i.id === itemId
+                ? {
+                    ...i,
+                    end: toHHMM(toMinutes(i.start) + newDurationMin),
+                    shortenedFromMin: i.shortenedFromMin ?? originalDuration,
+                  }
+                : i,
+            ),
+          );
+          record(
+            eventFor(item, date, 'shortened', {
+              originalDurationMin: originalDuration,
+              newDurationMin,
+            }),
+          );
+        },
 
-      addBehaviourIntention: (behaviour, intentionText) => {
-        set({
-          behaviourIntentions: [
-            ...get().behaviourIntentions,
-            {
-              id: newId('bi'),
-              behaviour,
-              intentionText,
-              createdAt: new Date().toISOString(),
-              active: true,
-            },
-          ],
-        });
-      },
+        addPlanItem: (date, input) => {
+          get().ensurePlan(date);
+          const item: PlanItem = {
+            id: newId('pi'),
+            date,
+            start: input.start,
+            end: toHHMM(toMinutes(input.start) + input.durationMin),
+            title: input.title,
+            area: input.area,
+            tier: 'should',
+            status: 'planned',
+            fixed: false,
+          };
+          updatePlanItems(date, (items) => [...items, item]);
+        },
 
-      setBehaviourIntentionActive: (id, active) => {
-        set({
-          behaviourIntentions: get().behaviourIntentions.map((b) =>
-            b.id === id ? { ...b, active } : b,
-          ),
-        });
-      },
+        addGoal: (goal, routines) => {
+          set({
+            goals: [...get().goals, goal],
+            routines: [...get().routines, ...routines],
+          });
+          get().regeneratePlan(todayKey());
+        },
 
-      logBehaviourEvent: (intentionId, trigger, context) => {
-        set({
-          behaviourEvents: [
-            ...get().behaviourEvents,
-            {
-              id: newId('be'),
-              intentionId,
-              occurredAt: new Date().toISOString(),
-              trigger,
-              context,
-            },
-          ],
-        });
-      },
+        setGoalStatus: (goalId, status) => {
+          set({
+            goals: get().goals.map((g) => (g.id === goalId ? { ...g, status } : g)),
+            // Pausing or dropping a goal deactivates its routines.
+            routines: get().routines.map((r) =>
+              r.goalId === goalId ? { ...r, active: status === 'active' } : r,
+            ),
+          });
+        },
 
-      saveReflection: (reflection) => {
-        const others = get().reflections.filter(
-          (r) => !(r.date === reflection.date && r.kind === reflection.kind),
-        );
-        set({
-          reflections: [
-            ...others,
-            { ...reflection, id: newId('ref'), createdAt: new Date().toISOString() },
-          ],
-        });
-      },
+        updateRoutine: (routineId, patch) => {
+          set({
+            routines: get().routines.map((r) => (r.id === routineId ? { ...r, ...patch } : r)),
+          });
+        },
 
-      refreshSuggestions: () => {
-        const { plans, routines, suggestions, manualMoves } = get();
-        const today = todayKey();
-        const history = Object.values(plans)
-          .filter((p) => p.date >= addDays(today, -HISTORY_DAYS) && p.date <= today)
-          .flatMap((p) => p.items);
-        const slotMismatch = [
-          ...detectSlotMismatch(history, routines),
-          ...detectMovePattern(manualMoves, routines),
-        ];
-        // A slot change is more informative than a protect nudge — when both
-        // fire for the same routine, keep only the slot change.
-        const mismatchRoutineIds = new Set(
-          slotMismatch.map((s) => (s.payload as { routineId?: string })?.routineId),
-        );
-        const missedTwice = detectMissedTwice(history, routines).filter(
-          (s) => !mismatchRoutineIds.has((s.payload as { routineId?: string })?.routineId),
-        );
-        const fresh = [...slotMismatch, ...missedTwice];
-        // Keep existing open suggestions; add only genuinely new ones.
-        const open = suggestions.filter((s) => s.status === 'open');
-        const existingKeys = new Set(
-          open.map((s) => `${s.kind}:${(s.payload as { routineId?: string })?.routineId}`),
-        );
-        const additions = fresh.filter(
-          (s) => !existingKeys.has(`${s.kind}:${(s.payload as { routineId?: string })?.routineId}`),
-        );
-        if (additions.length > 0) set({ suggestions: [...open, ...additions] });
-      },
+        addBehaviourIntention: (behaviour, intentionText) => {
+          set({
+            behaviourIntentions: [
+              ...get().behaviourIntentions,
+              {
+                id: newId('bi'),
+                behaviour,
+                intentionText,
+                createdAt: new Date().toISOString(),
+                active: true,
+              },
+            ],
+          });
+        },
 
-      acceptSuggestion: (id) => {
-        const { suggestions, routines } = get();
-        const suggestion = suggestions.find((s) => s.id === id);
-        if (!suggestion) return;
-        const nextRoutines =
-          suggestion.kind === 'protect_time'
-            ? applyProtectTime(routines, suggestion)
-            : applyMoveRoutine(routines, suggestion);
-        set({
-          routines: nextRoutines,
-          suggestions: suggestions.map((s) =>
-            s.id === id ? { ...s, status: 'accepted' as const } : s,
-          ),
-        });
-        get().regeneratePlan(todayKey());
-      },
+        setBehaviourIntentionActive: (id, active) => {
+          set({
+            behaviourIntentions: get().behaviourIntentions.map((b) =>
+              b.id === id ? { ...b, active } : b,
+            ),
+          });
+        },
 
-      dismissSuggestion: (id) => {
-        set({
-          suggestions: get().suggestions.map((s) =>
-            s.id === id ? { ...s, status: 'dismissed' as const } : s,
-          ),
-        });
-      },
+        logBehaviourEvent: (intentionId, trigger, context) => {
+          const id = newId('be');
+          set({
+            behaviourEvents: [
+              ...get().behaviourEvents,
+              { id, intentionId, occurredAt: new Date().toISOString(), trigger, context },
+            ],
+          });
+          return id;
+        },
 
-      resetAll: () => set({ ...initialData }),
-      setHydrated: () => set({ hydrated: true }),
-    }),
+        setBehaviourEventTrigger: (eventId, trigger) => {
+          set({
+            behaviourEvents: get().behaviourEvents.map((e) =>
+              e.id === eventId ? { ...e, trigger } : e,
+            ),
+          });
+        },
+
+        saveReflection: (reflection) => {
+          const others = get().reflections.filter(
+            (r) => !(r.date === reflection.date && r.kind === reflection.kind),
+          );
+          set({
+            reflections: [
+              ...others,
+              { ...reflection, id: newId('ref'), createdAt: new Date().toISOString() },
+            ],
+          });
+        },
+
+        refreshSuggestions: () => {
+          const { plans, routines, suggestions, planEvents, profile } = get();
+          const today = todayKey();
+          const history = Object.values(plans)
+            .filter((p) => p.date >= addDays(today, -HISTORY_DAYS) && p.date <= today)
+            .flatMap((p) => p.items);
+
+          // Manual moves come from the behavioural event stream.
+          const moves: ManualMove[] = planEvents
+            .filter((e) => e.kind === 'rescheduled' && e.initiatedBy === 'user' && e.routineId && e.newStart)
+            .map((e) => ({ routineId: e.routineId!, start: e.newStart!, date: e.date }));
+
+          const fresh: Suggestion[] = [
+            ...detectSlotMismatch(history, routines),
+            ...detectMovePattern(moves, routines),
+          ];
+          const claimed = new Set(
+            fresh.map((s) => (s.payload as { routineId?: string })?.routineId),
+          );
+          fresh.push(
+            ...detectMissedTwice(history, routines).filter(
+              (s) => !claimed.has((s.payload as { routineId?: string })?.routineId),
+            ),
+          );
+          if (profile) {
+            const anticipation = detectAnticipationGap(today, plans, routines, profile);
+            if (anticipation) fresh.push(anticipation);
+          }
+
+          // Keep existing open suggestions; add only genuinely new ones.
+          const open = suggestions.filter((s) => s.status === 'open');
+          const keyOf = (s: Suggestion) =>
+            `${s.kind}:${(s.payload as { routineId?: string; date?: string })?.routineId ?? (s.payload as { date?: string })?.date ?? ''}`;
+          const existingKeys = new Set(open.map(keyOf));
+          const additions = fresh.filter((s) => !existingKeys.has(keyOf(s)));
+          if (additions.length > 0) set({ suggestions: [...open, ...additions] });
+        },
+
+        acceptSuggestion: (id) => {
+          const { suggestions, routines } = get();
+          const suggestion = suggestions.find((s) => s.id === id);
+          if (!suggestion) return;
+
+          if (suggestion.kind === 'connection') {
+            const payload = suggestion.payload as {
+              date: string;
+              start: string;
+              durationMin: number;
+              title: string;
+              area: PlanItem['area'];
+            };
+            get().addPlanItem(payload.date, payload);
+          } else {
+            const nextRoutines =
+              suggestion.kind === 'protect_time'
+                ? applyProtectTime(routines, suggestion)
+                : applyMoveRoutine(routines, suggestion);
+            set({ routines: nextRoutines });
+            get().regeneratePlan(todayKey());
+          }
+          set({
+            suggestions: get().suggestions.map((s) =>
+              s.id === id ? { ...s, status: 'accepted' as const } : s,
+            ),
+          });
+        },
+
+        dismissSuggestion: (id) => {
+          set({
+            suggestions: get().suggestions.map((s) =>
+              s.id === id ? { ...s, status: 'dismissed' as const } : s,
+            ),
+          });
+        },
+
+        resetAll: () => set({ ...initialData }),
+        setHydrated: () => set({ hydrated: true }),
+      };
+    },
     {
       name: 'intent-os-store',
       storage: createJSONStorage(() => AsyncStorage),

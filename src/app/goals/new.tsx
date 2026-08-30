@@ -1,94 +1,29 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
+import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
-import { newId } from '@/lib/dates';
+import {
+  buildGoalPlan,
+  DOMAIN_LABELS,
+  parseGoal,
+} from '@/features/goals/goalPlanner';
+import { formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
-import type { Goal, LifeArea, Routine, Weekday } from '@/types/domain';
 
-const AREAS: { value: LifeArea; label: string }[] = [
-  { value: 'health', label: 'Health' },
-  { value: 'family', label: 'Family' },
-  { value: 'relationship', label: 'Relationship' },
-  { value: 'work', label: 'Work & business' },
-  { value: 'growth', label: 'Growth' },
-  { value: 'enjoyment', label: 'Enjoyment' },
-];
-
-const CADENCES = [1, 2, 3, 4, 5];
-const DEEP_WORK_OPTIONS = [1, 2, 3];
-
-const RITUALS: { key: string; label: string; build: (goalId: string) => Routine }[] = [
-  {
-    key: 'date_night',
-    label: 'Weekly date night',
-    build: (goalId) => ({
-      id: newId('r'),
-      title: 'Date night',
-      area: 'relationship',
-      goalId,
-      days: [5],
-      durationMin: 120,
-      preferredStart: '19:30',
-      preferredEnd: '20:15',
-      energy: 'evening',
-      flexible: true,
-      protected: false,
-      tier: 'should',
-      active: true,
-    }),
-  },
-  {
-    key: 'walk',
-    label: 'Evening walk together',
-    build: (goalId) => ({
-      id: newId('r'),
-      title: 'Evening walk together',
-      area: 'relationship',
-      goalId,
-      days: [2, 4],
-      durationMin: 30,
-      preferredStart: '19:15',
-      preferredEnd: '20:00',
-      energy: 'evening',
-      flexible: true,
-      protected: false,
-      tier: 'could',
-      active: true,
-    }),
-  },
-  {
-    key: 'checkin',
-    label: 'Sunday check-in chat',
-    build: (goalId) => ({
-      id: newId('r'),
-      title: 'Check-in chat',
-      area: 'relationship',
-      goalId,
-      days: [0],
-      durationMin: 30,
-      preferredStart: '20:00',
-      preferredEnd: '20:45',
-      energy: 'evening',
-      flexible: true,
-      protected: false,
-      tier: 'could',
-      active: true,
-    }),
-  },
-];
+const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 /**
- * Goal wizard. A goal is only real once it owns time: work goals claim
- * deep-work blocks inside work hours, relationship goals become rituals,
- * everything else becomes a weekly cadence the planner schedules.
+ * Conversational goal creation: the user writes one sentence, INTENT does
+ * the structuring — domain, milestones, the recurring behaviour — and asks
+ * only what it genuinely needs (the why). The user edits and approves.
  */
 export default function NewGoal() {
   const router = useRouter();
@@ -96,74 +31,25 @@ export default function NewGoal() {
   const addGoal = useAppStore((s) => s.addGoal);
   const profile = useAppStore((s) => s.profile);
 
-  const [title, setTitle] = useState('');
+  const [step, setStep] = useState<'describe' | 'why' | 'review'>('describe');
+  const [text, setText] = useState('');
   const [why, setWhy] = useState('');
-  const [area, setArea] = useState<LifeArea>('health');
-  const [cadence, setCadence] = useState<number | undefined>();
-  const [deepWork, setDeepWork] = useState<number | undefined>();
-  const [milestone, setMilestone] = useState('');
-  const [rituals, setRituals] = useState<Set<string>>(new Set());
+  const [droppedMilestones, setDroppedMilestones] = useState<Set<string>>(new Set());
 
-  const isWork = area === 'work' || area === 'growth';
-  const isRelationship = area === 'relationship';
+  const parsed = useMemo(() => (text.trim() ? parseGoal(text) : null), [text]);
+  const plan = useMemo(
+    () => (parsed && step === 'review' ? buildGoalPlan(parsed, profile, why) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [parsed, step],
+  );
 
   const save = () => {
-    const goalId = newId('g');
-    const routines: Routine[] = [];
-
-    if (isRelationship) {
-      for (const ritual of RITUALS) {
-        if (rituals.has(ritual.key)) routines.push(ritual.build(goalId));
-      }
-    } else if (isWork && deepWork) {
-      const workDays: Weekday[] = profile?.workDays?.length ? profile.workDays : [1, 2, 3, 4, 5];
-      routines.push({
-        id: newId('r'),
-        title: `Deep work: ${title.trim()}`,
-        area: 'work',
-        goalId,
-        days: workDays.slice(0, deepWork),
-        durationMin: 60,
-        preferredStart: '09:15',
-        preferredEnd: '10:15',
-        energy: 'morning',
-        flexible: false,
-        protected: false,
-        duringWork: true,
-        tier: 'must',
-        active: true,
-      });
-    } else if (!isRelationship && !isWork && cadence) {
-      const spread: Weekday[] = [1, 3, 5, 6, 2, 4, 0];
-      routines.push({
-        id: newId('r'),
-        title: title.trim(),
-        area,
-        goalId,
-        days: spread.slice(0, cadence).sort((a, b) => a - b),
-        durationMin: 45,
-        preferredStart: '12:05',
-        preferredEnd: '13:30',
-        energy: 'any',
-        flexible: true,
-        protected: false,
-        tier: 'should',
-        active: true,
-      });
-    }
-
-    const goal: Goal = {
-      id: goalId,
-      title: title.trim(),
-      area,
-      why: why.trim() || undefined,
-      cadencePerWeek: isRelationship || isWork ? undefined : cadence,
-      firstMilestone: milestone.trim() || undefined,
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      routineIds: routines.map((r) => r.id),
-    };
-    addGoal(goal, routines);
+    if (!plan) return;
+    const milestones = plan.goal.milestones?.filter((m) => !droppedMilestones.has(m.id));
+    addGoal(
+      { ...plan.goal, why: why.trim() || undefined, milestones: milestones?.length ? milestones : undefined },
+      plan.routines,
+    );
     router.back();
   };
 
@@ -172,78 +58,91 @@ export default function NewGoal() {
     { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
   ];
 
+  if (step === 'describe') {
+    return (
+      <Screen>
+        <AppText variant="title">What do you want?</AppText>
+        <AppText variant="secondary" style={styles.sub}>
+          One sentence. I&apos;ll do the structuring.
+        </AppText>
+        <TextInput
+          value={text}
+          onChangeText={setText}
+          placeholder="e.g. Grow the business to $2m revenue"
+          placeholderTextColor={theme.textTertiary}
+          autoFocus
+          multiline
+          style={[...inputStyle, styles.bigInput]}
+        />
+        {parsed ? (
+          <AppText variant="caption" color="textTertiary" style={styles.sub}>
+            Reading this as: {DOMAIN_LABELS[parsed.domain]}
+            {parsed.target ? ` · target ${parsed.target}` : ''}
+            {parsed.timeframe ? ` · ${parsed.timeframe}` : ''}
+          </AppText>
+        ) : null}
+        <View style={styles.footer}>
+          <Button title="Continue" disabled={text.trim().length < 4} onPress={() => setStep('why')} />
+          <Button title="Cancel" variant="ghost" onPress={() => router.back()} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (step === 'why') {
+    return (
+      <Screen>
+        <AppText variant="title">Why does this matter enough to make room for it?</AppText>
+        <AppText variant="secondary" style={styles.sub}>
+          Your words. When motivation dips, they&apos;ll do the arguing.
+        </AppText>
+        <TextInput
+          value={why}
+          onChangeText={setWhy}
+          placeholder="Optional — but the goals with a why are the ones that happen"
+          placeholderTextColor={theme.textTertiary}
+          autoFocus
+          multiline
+          style={[...inputStyle, styles.bigInput]}
+        />
+        <View style={styles.footer}>
+          <Button title={why.trim() ? 'Continue' : 'Skip'} onPress={() => setStep('review')} />
+          <Button title="Back" variant="ghost" onPress={() => setStep('describe')} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (!plan) return <Screen />;
+
   return (
     <Screen>
-      <AppText variant="title">New goal</AppText>
+      <AppText variant="label" color="accent">
+        {DOMAIN_LABELS[plan.goal.domain ?? 'personal']}
+      </AppText>
+      <AppText variant="title">{plan.goal.title}</AppText>
+      {why.trim() ? (
+        <AppText variant="secondary" style={styles.sub}>
+          Because: {why.trim()}
+        </AppText>
+      ) : null}
 
-      <SectionHeader title="What do you want?" />
-      <TextInput
-        value={title}
-        onChangeText={setTitle}
-        placeholder={isWork ? 'e.g. Launch the new offer' : 'e.g. Read 20 minutes a day'}
-        placeholderTextColor={theme.textTertiary}
-        autoFocus
-        style={inputStyle}
-      />
-
-      <SectionHeader title="Why does it matter?" />
-      <TextInput
-        value={why}
-        onChangeText={setWhy}
-        placeholder="Optional — INTENT uses this to keep the goal honest"
-        placeholderTextColor={theme.textTertiary}
-        style={inputStyle}
-      />
-
-      <SectionHeader title="Life area" />
-      <View style={styles.chips}>
-        {AREAS.map((a) => (
-          <Chip key={a.value} label={a.label} selected={area === a.value} onPress={() => setArea(a.value)} />
-        ))}
-      </View>
-
-      {isWork ? (
+      {plan.goal.milestones?.length ? (
         <View>
-          <SectionHeader title="Protected deep-work blocks" />
-          <View style={styles.chips}>
-            {DEEP_WORK_OPTIONS.map((n) => (
+          <SectionHeader title="Milestones" />
+          <View style={styles.stack}>
+            {plan.goal.milestones.map((m) => (
               <Chip
-                key={n}
-                label={`${n}× 60 min`}
-                selected={deepWork === n}
-                onPress={() => setDeepWork(deepWork === n ? undefined : n)}
-              />
-            ))}
-          </View>
-          <AppText variant="caption" color="textTertiary" style={styles.hint}>
-            Carved out of your work mornings as fixed blocks — the goal owns that time, meetings
-            don&apos;t.
-          </AppText>
-          <SectionHeader title="First milestone" />
-          <TextInput
-            value={milestone}
-            onChangeText={setMilestone}
-            placeholder="Optional — the first concrete step"
-            placeholderTextColor={theme.textTertiary}
-            style={inputStyle}
-          />
-        </View>
-      ) : isRelationship ? (
-        <View>
-          <SectionHeader title="Pick your rituals" />
-          <View style={styles.chips}>
-            {RITUALS.map((r) => (
-              <Chip
-                key={r.key}
-                label={r.label}
-                selected={rituals.has(r.key)}
+                key={m.id}
+                label={m.title}
+                selected={!droppedMilestones.has(m.id)}
                 onPress={() =>
-                  setRituals((prev) => {
+                  setDroppedMilestones((prev) => {
                     const next = new Set(prev);
-                    if (next.has(r.key)) {
-                      next.delete(r.key);
+                    if (next.has(m.id)) {
+                      next.delete(m.id);
                     } else {
-                      next.add(r.key);
+                      next.add(m.id);
                     }
                     return next;
                   })
@@ -251,40 +150,46 @@ export default function NewGoal() {
               />
             ))}
           </View>
-          <AppText variant="caption" color="textTertiary" style={styles.hint}>
-            Relationships grow on rhythm, not intention. Each ritual gets scheduled automatically.
+          <AppText variant="caption" color="textTertiary" style={styles.sub}>
+            Tap to drop any that don&apos;t fit.
           </AppText>
         </View>
-      ) : (
-        <View>
-          <SectionHeader title="Schedule it weekly?" />
-          <View style={styles.chips}>
-            {CADENCES.map((c) => (
-              <Chip
-                key={c}
-                label={`${c}×`}
-                selected={cadence === c}
-                onPress={() => setCadence(cadence === c ? undefined : c)}
-              />
-            ))}
-          </View>
-          <AppText variant="caption" color="textTertiary" style={styles.hint}>
-            {cadence
-              ? `INTENT will place ${cadence} session${cadence > 1 ? 's' : ''} into your week and adapt the timing to what you actually complete.`
-              : 'Without a cadence this stays an ambition — you can break it down later.'}
+      ) : null}
+
+      <SectionHeader title="The behaviour that makes it real" />
+      {plan.routines.length === 0 ? (
+        <Card>
+          <AppText variant="body">
+            This one runs through behaviour tracking rather than the calendar — add it under
+            Settings → behaviours, and INTENT will help you protect against it daily.
           </AppText>
+        </Card>
+      ) : (
+        <View style={styles.stack}>
+          {plan.routines.map((r) => (
+            <Card key={r.id}>
+              <AppText variant="heading">{r.title}</AppText>
+              <AppText variant="caption" color="textTertiary">
+                {r.days.length === 7 ? 'Every day' : r.days.map((d) => DAY_LETTERS[d]).join(' ')}
+                {' · around '}
+                {formatTime(r.preferredStart)} · {r.durationMin} min
+                {r.duringWork ? ' · carved out of work hours' : ''}
+              </AppText>
+            </Card>
+          ))}
         </View>
       )}
 
       <View style={styles.footer}>
-        <Button title="Add goal" onPress={save} disabled={title.trim().length < 3} />
-        <Button title="Cancel" variant="ghost" onPress={() => router.back()} />
+        <Button title="Make it real" onPress={save} />
+        <Button title="Back" variant="ghost" onPress={() => setStep('why')} />
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  sub: { marginTop: Spacing.sm },
   input: {
     borderWidth: 1,
     borderRadius: Radius.md,
@@ -292,7 +197,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     fontSize: 17,
   },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  hint: { marginTop: Spacing.md },
+  bigInput: { marginTop: Spacing.xl, minHeight: 76 },
+  stack: { flexDirection: 'column', gap: Spacing.sm },
   footer: { marginTop: Spacing.xxl, gap: Spacing.sm },
 });
