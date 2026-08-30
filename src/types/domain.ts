@@ -34,6 +34,13 @@ export interface LifeProfile {
   wakeTime: string;
   sleepTime: string;
   energyProfile: EnergyProfile;
+  /**
+   * Honest current capacity — the cohort simulation's clearest finding:
+   * overcommitted low-capacity users plateau no matter how well things are
+   * timed. 'minimal' generates fewer, smaller commitments and keeps more
+   * slack; 'push' allows a fuller week.
+   */
+  capacity?: 'minimal' | 'steady' | 'push';
   trainingDaysPerWeek: number;
   trainingDurationMin: number;
   trainingPreference: 'gym' | 'home' | 'outdoors' | 'mixed';

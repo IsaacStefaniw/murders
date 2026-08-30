@@ -48,14 +48,19 @@ capacity, family-first) · entrepreneur 16%.
    engine then nagged the hole it created, forever. Fixed: the last active
    routine serving a connection area is never offered for resting.
 
-## The honest limitation and the next lever
+## Capacity-aware planning (shipped from this finding)
 
 **health_rebuilder plateaus (~25% → 26%).** Their problem isn't slot choice
-— it's volume vs. capacity, and slot-moving can't fix that. The weekly
-review helps at the margin. Product implication for the roadmap:
-**capacity-aware planning** — when global adherence is low, generate fewer,
-smaller commitments rather than optimising the timing of too many. That is
-the next adaptation dimension after slots.
+— it's volume vs. capacity. This produced Interview v3's capacity question
+("Running on fumes / Full but functional / Room to push"): minimal capacity
+caps training days, shortens sessions, trims nice-to-haves to 2×/week and
+reserves 35% of free time. Re-run results: **new_parent's entire curve
+lifted** (early completion 38.9% → 42.1% before any adaptation — better
+initial plans, not just better learning) and **unplaced items fell 84%**
+(0.49 → 0.08/user-week — minimal weeks actually fit now). Note the honest
+metric nuance: per-item completion *rate* is capacity-invariant by
+construction in the sim; the real-world win volume buys is *fewer failures
+experienced per week*, which is what the what-the-hell effect feeds on.
 
 Simulation ≠ users: personas are hand-built and acceptance probabilities
 are guesses. The sim validates machinery and catches regressions; only the

@@ -101,6 +101,43 @@ describe('buildLifeOperatingPlan', () => {
     expect(read.preferredStart).toBe('21:25'); // 65 min before the 22:30 sleep target
   });
 
+  it('minimal capacity plans smaller: capped training, shorter sessions, trimmed extras', () => {
+    const tired = buildLifeOperatingPlan({
+      ...answers,
+      capacity: 'minimal',
+      trainingDays: '5',
+      mind: ['meditation'],
+      moreOf: ['Reading', 'Time with the kids'],
+    });
+    expect(tired.profile.capacity).toBe('minimal');
+    expect(tired.profile.trainingDaysPerWeek).toBe(3); // capped from 5
+    expect(tired.profile.trainingDurationMin).toBe(30);
+    for (const r of tired.routines.filter((x) => x.tier === 'could')) {
+      expect(r.days.length).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('sauna, cooking, adventure and money selections generate their modality footholds', () => {
+    const wide = buildLifeOperatingPlan({
+      ...answers,
+      mind: ['sauna'],
+      moreOf: ['Adventure & travel', 'Cooking real food'],
+      money: 'checkin',
+    });
+    expect(wide.routines.some((r) => r.title === 'Sauna & recover')).toBe(true);
+    expect(wide.routines.some((r) => r.title === 'Sunday meal sketch')).toBe(true);
+    expect(wide.routines.some((r) => r.title === 'Money check-in')).toBe(true);
+    const trip = wide.goals.find((g) => g.domain === 'experience')!;
+    expect(trip.milestones!.map((m) => m.title)).toContain('Book it');
+  });
+
+  it("'saving for something big' becomes a structured finance goal", () => {
+    const saver = buildLifeOperatingPlan({ ...answers, money: 'saving' });
+    const goal = saver.goals.find((g) => g.domain === 'finance')!;
+    expect(goal.milestones!.length).toBeGreaterThanOrEqual(2);
+    expect(saver.routines.some((r) => r.goalId === goal.id)).toBe(true);
+  });
+
   it('falls back to sensible defaults on an empty interview', () => {
     const fallback = buildLifeOperatingPlan({});
     expect(fallback.profile.workDays).toEqual([1, 2, 3, 4, 5]);

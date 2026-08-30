@@ -52,6 +52,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
       { value: 'work', label: 'Work & business' },
       { value: 'growth', label: 'Personal growth' },
       { value: 'enjoyment', label: 'Enjoyment' },
+      { value: 'admin', label: 'Money & security' },
     ],
   },
   {
@@ -73,6 +74,17 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     placeholder: 'Partner’s name — or skip',
   },
   {
+    id: 'capacity',
+    kind: 'single',
+    prompt: () =>
+      'Honestly — how full is life right now? INTENT plans to your real capacity, not your ambitions.',
+    options: [
+      { value: 'minimal', label: 'Running on fumes — keep it minimal' },
+      { value: 'steady', label: 'Full, but functional' },
+      { value: 'push', label: 'Room to push' },
+    ],
+  },
+  {
     id: 'workDays',
     kind: 'multi',
     prompt: () => 'Which days do you usually work?',
@@ -91,10 +103,12 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     kind: 'single',
     prompt: () => 'And roughly what hours?',
     options: [
+      { value: '07:00-15:00', label: '7 – 3' },
       { value: '08:00-16:00', label: '8 – 4' },
       { value: '09:00-17:30', label: '9 – 5:30' },
-      { value: '09:00-18:30', label: '9 – 6:30' },
-      { value: '07:00-15:00', label: 'Early start' },
+      { value: '09:30-18:30', label: '9:30 – 6:30' },
+      { value: '08:30-17:00', label: 'I set my own hours' },
+      { value: '10:00-18:00', label: 'Later start' },
     ],
   },
   {
@@ -122,10 +136,12 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     kind: 'single',
     prompt: () => 'How many days a week do you want to train? Be honest, not ambitious.',
     options: [
+      { value: '1', label: '1 — just starting' },
       { value: '2', label: '2' },
       { value: '3', label: '3' },
       { value: '4', label: '4' },
       { value: '5', label: '5' },
+      { value: '6', label: '6' },
     ],
   },
   {
@@ -147,6 +163,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     options: [
       { value: 'breathing', label: 'Quick breathing resets' },
       { value: 'meditation', label: 'Short meditations' },
+      { value: 'sauna', label: 'Sauna · heat & cold' },
     ],
   },
   {
@@ -160,6 +177,8 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
       { value: 'Reading', label: 'Reading' },
       { value: 'Time outdoors', label: 'Time outdoors' },
       { value: 'Deep work', label: 'Deep work' },
+      { value: 'Adventure & travel', label: 'Adventure & travel' },
+      { value: 'Cooking real food', label: 'Cooking real food' },
     ],
   },
   {
@@ -174,7 +193,19 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
       { value: 'vaping', label: 'Vaping' },
       { value: 'social_media', label: 'Social media' },
       { value: 'junk_food', label: 'Junk food' },
+      { value: 'shopping', label: 'Impulse shopping' },
       { value: 'late_nights', label: 'Late nights' },
+    ],
+  },
+  {
+    id: 'money',
+    kind: 'single',
+    optional: true,
+    prompt: () => 'Money — want INTENT in the loop?',
+    options: [
+      { value: 'checkin', label: 'A short monthly-style check-in' },
+      { value: 'saving', label: "We're saving for something big" },
+      { value: 'none', label: 'Not yet' },
     ],
   },
   {
@@ -182,7 +213,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     kind: 'text',
     optional: true,
     prompt: () => "Last one. What's one thing you're working toward this year?",
-    placeholder: 'e.g. Grow the business, book the family trip — or skip',
+    placeholder: 'e.g. Grow the business to $2m · Save $50k · Run a marathon · Japan with the kids',
   },
 ];
 

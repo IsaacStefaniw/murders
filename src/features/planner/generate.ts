@@ -87,11 +87,15 @@ export function generateDailyPlan(
   // for work days the calendar knows nothing about.
   const fixed =
     calendarEvents.length > 0 ? calendarEvents : workBlocks(profile, date, routines);
+  // Capacity governs slack: minimal keeps a third of free time untouched.
+  const reservedFreeFraction =
+    profile.capacity === 'minimal' ? 0.35 : profile.capacity === 'push' ? 0.2 : 0.25;
   return buildDailyPlan({
     date,
     wakeTime: profile.wakeTime,
     sleepTime: profile.sleepTime,
     fixed,
+    reservedFreeFraction,
     // during-work routines are already in the fixed list — don't place twice.
     routines: routines.filter((r) => !r.duringWork),
   });

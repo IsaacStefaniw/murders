@@ -79,7 +79,13 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   );
   const [wakeTime, sleepTime] = (str(answers, 'sleep', '06:30-22:30') || '06:30-22:30').split('-');
   const energyProfile = (str(answers, 'energy', 'morning') || 'morning') as EnergyProfile;
-  const trainingDaysPerWeek = Number(str(answers, 'trainingDays', '3')) || 3;
+  const capacity = (str(answers, 'capacity', 'steady') || 'steady') as NonNullable<
+    LifeProfile['capacity']
+  >;
+  // The simulation's clearest lesson: plan to real capacity, not ambition.
+  const requestedTraining = Number(str(answers, 'trainingDays', '3')) || 3;
+  const trainingDaysPerWeek =
+    capacity === 'minimal' ? Math.min(requestedTraining, 3) : requestedTraining;
   const lessOf = arr(answers, 'lessOf') as BehaviourKey[];
   const priorities = arr(answers, 'priorities') as LifeArea[];
 
@@ -93,8 +99,9 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     wakeTime,
     sleepTime,
     energyProfile,
+    capacity,
     trainingDaysPerWeek,
-    trainingDurationMin: 45,
+    trainingDurationMin: capacity === 'minimal' ? 30 : 45,
     trainingPreference:
       (str(answers, 'trainingSetup', 'mixed') as LifeProfile['trainingPreference']) || 'mixed',
     moreOf: arr(answers, 'moreOf'),
@@ -338,6 +345,76 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     const windDown = routines.find((r) => r.sessionType === 'breathe');
     if (windDown) windDown.days = [0, 1, 2, 3, 4, 5, 6];
   }
+  if (mind.includes('sauna')) {
+    routines.push({
+      id: newId('r'),
+      title: 'Sauna & recover',
+      area: 'health',
+      days: capacity === 'minimal' ? [6] : [3, 6],
+      durationMin: 30,
+      preferredStart: '18:45',
+      preferredEnd: '19:45',
+      energy: 'evening',
+      flexible: true,
+      protected: false,
+      tier: 'could',
+      active: true,
+    });
+  }
+
+  // Nutrition-lite: structure over logging — a ten-minute Sunday sketch.
+  if (profile.moreOf.includes('Cooking real food')) {
+    routines.push({
+      id: newId('r'),
+      title: 'Sunday meal sketch',
+      area: 'health',
+      days: [0],
+      durationMin: 15,
+      preferredStart: '16:00',
+      preferredEnd: '17:00',
+      energy: 'any',
+      flexible: true,
+      protected: false,
+      tier: 'could',
+      active: true,
+    });
+  }
+
+  // Adventure & travel: anticipation is a life ingredient, not a luxury.
+  if (profile.moreOf.includes('Adventure & travel')) {
+    const { goal: tripGoal, routines: tripRoutines } = buildGoalPlan(
+      parseGoal('Plan a real adventure trip'),
+      profile,
+    );
+    goals.push(tripGoal);
+    routines.push(...tripRoutines);
+  }
+
+  // Money: one tap puts the finance modality in the loop.
+  const money = str(answers, 'money');
+  if (money === 'saving') {
+    const { goal: savingGoal, routines: savingRoutines } = buildGoalPlan(
+      parseGoal('Save for the big goal'),
+      profile,
+    );
+    goals.push(savingGoal);
+    routines.push(...savingRoutines);
+  } else if (money === 'checkin') {
+    routines.push({
+      id: newId('r'),
+      title: 'Money check-in',
+      area: 'admin',
+      days: [0],
+      durationMin: 30,
+      preferredStart: '19:30',
+      preferredEnd: '20:30',
+      energy: 'evening',
+      flexible: true,
+      protected: false,
+      tier: 'could',
+      active: true,
+    });
+  }
 
   // The free-text ambition runs through the domain-aware goal planner —
   // "Grow the business to $2m" arrives with milestones and a growth block,
@@ -347,6 +424,14 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     const { goal, routines: goalRoutines } = buildGoalPlan(parseGoal(ambition), profile);
     goals.push(goal);
     routines.push(...goalRoutines);
+  }
+
+  // Minimal capacity: nice-to-haves run at most twice a week. Fewer plans,
+  // kept, beat more plans, missed.
+  if (capacity === 'minimal') {
+    for (const r of routines) {
+      if (r.tier === 'could' && r.days.length > 2) r.days = r.days.slice(0, 2);
+    }
   }
 
   const behaviourIntentions: BehaviourIntention[] = lessOf.map((key) => ({

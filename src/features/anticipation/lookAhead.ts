@@ -33,6 +33,7 @@ export function ideasFor(profile: LifeProfile): string[] {
   if (hasKids) ideas.push('A family adventure');
   if (hasPartner) ideas.push('Date night');
   if (profile.moreOf.includes('Seeing friends')) ideas.push('Catch up with a friend');
+  if (profile.moreOf.includes('Adventure & travel')) ideas.push('Plan the next adventure');
   if (profile.moreOf.includes('Time outdoors') || profile.trainingPreference === 'outdoors') {
     ideas.push('A morning outdoors');
   }
