@@ -48,6 +48,10 @@ export interface LifeProfile {
   moreOf: string[];
   /** Behaviour catalog keys the user wants less of. */
   lessOf: BehaviourKey[];
+  /** Optional personal numbers, asked only where the maths uses them
+   * (protein target, training guidance). Never required, never judged. */
+  age?: number;
+  weightKg?: number;
   createdAt: string;
   updatedAt: string;
 }

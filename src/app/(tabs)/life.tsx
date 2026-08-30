@@ -13,6 +13,7 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { behaviourInfo } from '@/features/behaviours/catalog';
+import { PATH_ORDER, PATHS } from '@/features/paths/definitions';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
@@ -35,6 +36,7 @@ export default function Life() {
 
   const profile = useAppStore((s) => s.profile);
   const goals = useAppStore((s) => s.goals);
+  const paths = useAppStore((s) => s.paths);
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
   const logBehaviourEvent = useAppStore((s) => s.logBehaviourEvent);
@@ -63,23 +65,53 @@ export default function Life() {
       </AppText>
       <AppText variant="title">What you&apos;re building</AppText>
 
-      <Card
-        onPress={() => router.push('/library' as never)}
-        style={{
-          backgroundColor: theme.accentSoft,
-          borderColor: theme.accent,
-          marginTop: Spacing.lg,
-        }}
-        accessibilityLabel="Open the evidence-based practice library"
-      >
-        <AppText variant="heading" color="accent">
-          Practice library
-        </AppText>
-        <AppText variant="secondary">
-          Evidence-based protocols — training, sleep, nutrition, longevity, wealth, leadership —
-          that INTENT plans into your week automatically.
-        </AppText>
-      </Card>
+      <SectionHeader title="Paths" />
+      <AppText variant="caption" color="textTertiary">
+        Guided programs. A few questions each — every answer changes what gets built.
+      </AppText>
+      <View style={styles.stack}>
+        {PATH_ORDER.map((pathId) => {
+          const def = PATHS[pathId];
+          const entry = paths[pathId];
+          const pathGoal = entry ? goals.find((g) => g.id === entry.goalId) : undefined;
+          const done = pathGoal?.milestones?.filter((m) => m.done).length ?? 0;
+          const total = pathGoal?.milestones?.length ?? 0;
+          return (
+            <Card
+              key={pathId}
+              onPress={() => router.push(`/path/${pathId}` as never)}
+              accessibilityLabel={`${def.title} path`}
+            >
+              <View style={styles.pathRow}>
+                <AppText variant="heading" style={styles.pathTitle}>
+                  {def.title}
+                </AppText>
+                <AppText variant="caption" color={entry ? 'success' : 'accent'}>
+                  {entry
+                    ? total > 0
+                      ? `Active · ${done}/${total} milestones`
+                      : 'Active'
+                    : `${def.questions.length} questions → your program`}
+                </AppText>
+              </View>
+              {!entry ? (
+                <AppText variant="caption" color="textTertiary">
+                  {def.promise}
+                </AppText>
+              ) : null}
+            </Card>
+          );
+        })}
+        <Card
+          onPress={() => router.push('/library' as never)}
+          accessibilityLabel="Open the evidence-based practice library"
+        >
+          <AppText variant="heading">Practice library</AppText>
+          <AppText variant="caption" color="textTertiary">
+            All the evidence-based protocols behind the paths, à la carte.
+          </AppText>
+        </Card>
+      </View>
 
       <SectionHeader title="Goals" />
       {activeGoals.length === 0 ? (
@@ -221,6 +253,8 @@ export default function Life() {
 
 const styles = StyleSheet.create({
   stack: { gap: Spacing.sm },
+  pathRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: Spacing.sm },
+  pathTitle: { flexShrink: 1 },
   intentionRow: {
     flexDirection: 'row',
     alignItems: 'center',

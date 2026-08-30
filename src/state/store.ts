@@ -18,6 +18,7 @@ import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { detectGoalUnderserved } from '@/features/goals/underserved';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
+import { PATHS, type PathId } from '@/features/paths/definitions';
 import { availableStartsFor, generateDailyPlan } from '@/features/planner/generate';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
@@ -110,6 +111,11 @@ export interface AppState {
   addGoal: (goal: Goal, routines: Routine[]) => void;
   /** Toggle a knowledge-base protocol on the plan. Returns true if now active. */
   toggleProtocol: (protocolId: string) => boolean;
+
+  /** Guided domain programs — see docs/PATHS_BRIEF.md. */
+  paths: Partial<Record<PathId, { startedAt: string; answers: Record<string, string>; goalId: string }>>;
+  /** (Re)start a path: builds its goal + routines from the intake answers. */
+  startPath: (id: PathId, answers: Record<string, string>) => void;
   setGoalStatus: (goalId: string, status: Goal['status']) => void;
   setMilestoneDone: (goalId: string, milestoneId: string, done: boolean) => void;
   setGoalNextFocus: (goalId: string, nextFocus: string | undefined) => void;
@@ -156,6 +162,9 @@ const initialData = {
   reflections: [] as Reflection[],
   suggestions: [] as Suggestion[],
   mealPlan: null as { weekStart: string; dinners: Record<number, string> } | null,
+  paths: {} as Partial<
+    Record<PathId, { startedAt: string; answers: Record<string, string>; goalId: string }>
+  >,
   clockOffsetMs: 0,
 };
 
@@ -394,6 +403,26 @@ export const useAppStore = create<AppState>()(
             routines: [...get().routines, ...routines],
           });
           get().regeneratePlan(todayKey());
+        },
+
+        startPath: (id, answers) => {
+          const def = PATHS[id];
+          const { paths, profile } = get();
+          // Retaking a path retires the old program cleanly first.
+          const previous = paths[id];
+          if (previous) get().setGoalStatus(previous.goalId, 'dropped');
+
+          const plan = def.build(answers, profile);
+          get().addGoal(plan.goal, plan.routines);
+          set({
+            paths: {
+              ...get().paths,
+              [id]: { startedAt: new Date().toISOString(), answers, goalId: plan.goal.id },
+            },
+          });
+          // The new program should be visible across the whole week now.
+          const today = todayKey();
+          for (let i = 1; i <= 6; i++) get().regeneratePlan(addDays(today, i));
         },
 
         toggleProtocol: (protocolId) => {
