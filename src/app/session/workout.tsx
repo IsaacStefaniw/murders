@@ -9,6 +9,7 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
 import { buildWorkout } from '@/features/modalities/gym/program';
+import { autoRegulate, weekOf } from '@/features/training/programme';
 import { dateKeyToDate, todayKey, toMinutes } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
@@ -30,15 +31,34 @@ export default function WorkoutSession() {
     ? toMinutes(item.end) - toMinutes(item.start)
     : (profile?.trainingDurationMin ?? 45);
 
-  const session = useMemo(
-    () =>
-      buildWorkout(
+  const programme = useAppStore((s) => s.trainingProgramme);
+
+  const session = useMemo(() => {
+    const weekday = dateKeyToDate(date ?? todayKey()).getDay();
+    // Training v2: when a block is active, today runs the PROGRAMME —
+    // your lifts, your loads — auto-regulated to the time that exists.
+    const week = programme ? weekOf(programme) : null;
+    if (programme && week) {
+      const wk = programme.weeks[week - 1];
+      const idx = Math.floor((weekday * wk.sessions.length) / 7) % wk.sessions.length;
+      const adjusted = autoRegulate(wk.sessions[idx], {
         availableMin,
-        profile?.trainingPreference ?? 'mixed',
-        dateKeyToDate(date ?? todayKey()).getDay(),
-      ),
-    [availableMin, profile?.trainingPreference, date],
-  );
+        age: programme.inputs.age,
+      });
+      return {
+        title: `Week ${week} · ${adjusted.title}`,
+        estimatedMin: adjusted.estimatedMin,
+        note: adjusted.note ?? wk.focus,
+        exercises: adjusted.exercises.map((e) => ({
+          name: e.name,
+          sets: e.sets,
+          reps: `${e.reps}${e.loadKg ? ` @ ${e.loadKg} kg` : e.rpe ? ` @ RPE ${e.rpe}` : ''}`,
+          restSec: e.restSec,
+        })),
+      };
+    }
+    return buildWorkout(availableMin, profile?.trainingPreference ?? 'mixed', weekday);
+  }, [availableMin, profile?.trainingPreference, date, programme]);
 
   const [doneSets, setDoneSets] = useState<Record<string, number>>({});
   const [restLeft, setRestLeft] = useState(0);

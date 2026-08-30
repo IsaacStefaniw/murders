@@ -11,6 +11,7 @@ import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
 import { protocolById } from '@/features/knowledge/protocols';
 import { PATHS, type PathId } from '@/features/paths/definitions';
+import { TrainingHub } from '@/features/training/TrainingHub';
 import { formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
@@ -166,6 +167,8 @@ export default function PathHub() {
           </AppText>
         </Card>
       ) : null}
+
+      {def.id === 'training' ? <TrainingHub /> : null}
 
       <SectionHeader title="Yours, specifically" />
       <View style={styles.stack}>

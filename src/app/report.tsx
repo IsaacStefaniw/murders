@@ -8,6 +8,7 @@ import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
+import { recentRecords } from '@/features/model/metrics';
 import { buildWeekReport } from '@/features/review/weekReport';
 import { formatDateLong, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
@@ -30,7 +31,9 @@ export default function WeekReportScreen() {
   const today = todayKey();
   const plans = useAppStore((s) => s.plans);
   const goals = useAppStore((s) => s.goals);
+  const metrics = useAppStore((s) => s.metrics);
   const report = useMemo(() => buildWeekReport(today, plans, goals), [today, plans, goals]);
+  const records = useMemo(() => recentRecords(metrics, 7), [metrics]);
   const close = () => (router.canGoBack() ? router.back() : router.replace('/intent' as never));
 
   const rate = report.planned > 0 ? Math.round((report.done / report.planned) * 100) : 0;
@@ -68,6 +71,21 @@ export default function WeekReportScreen() {
           </AppText>
         </Card>
       </View>
+
+      {records.length > 0 ? (
+        <View>
+          <SectionHeader title="Personal records 🏅" />
+          <View style={styles.stack}>
+            {records.map((r) => (
+              <Card key={r.def.key}>
+                <AppText variant="body">
+                  {r.def.label}: {r.value} {r.def.unit} — new best
+                </AppText>
+              </Card>
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       {report.milestonesMoved.length > 0 ? (
         <View>

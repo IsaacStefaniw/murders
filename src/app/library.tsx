@@ -8,6 +8,7 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import {
+  EVIDENCE_LABELS,
   PILLAR_LABELS,
   PROTOCOLS,
   type Pillar,
@@ -51,6 +52,9 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
       </AppText>
       <AppText variant="caption" color="textTertiary">
         From the public work of {protocol.attribution.join(' · ')}
+      </AppText>
+      <AppText variant="caption" color="textTertiary">
+        Evidence {protocol.evidenceLevel} · {EVIDENCE_LABELS[protocol.evidenceLevel]}
       </AppText>
       {protocol.safety ? (
         <AppText variant="caption" color="textTertiary" style={styles.safety}>

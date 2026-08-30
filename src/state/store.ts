@@ -19,7 +19,14 @@ import { behaviourInfo } from '@/features/behaviours/catalog';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { detectGoalUnderserved } from '@/features/goals/underserved';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
+import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
+import {
+  baselinesFrom,
+  buildProgramme,
+  type TrainingInputs,
+  type TrainingProgramme,
+} from '@/features/training/programme';
 import { availableStartsFor, generateDailyPlan } from '@/features/planner/generate';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
@@ -113,6 +120,17 @@ export interface AppState {
   /** Toggle a knowledge-base protocol on the plan. Returns true if now active. */
   toggleProtocol: (protocolId: string) => boolean;
 
+  /** Personal Performance Model — universal metric observations. */
+  metrics: MetricObservation[];
+  addMetric: (key: string, value: number, note?: string) => void;
+  /** questionId → ISO last asked/answered (the engine's memory). */
+  questionLog: Record<string, string>;
+  markQuestionAsked: (id: string) => void;
+
+  /** Training v2 — the current four-week block. */
+  trainingProgramme: TrainingProgramme | null;
+  buildTrainingBlock: () => void;
+
   /** Guided domain programs — see docs/PATHS_BRIEF.md. */
   paths: Partial<Record<PathId, { startedAt: string; answers: Record<string, string>; goalId: string }>>;
   /** (Re)start a path: builds its goal + routines from the intake answers. */
@@ -166,8 +184,54 @@ const initialData = {
   paths: {} as Partial<
     Record<PathId, { startedAt: string; answers: Record<string, string>; goalId: string }>
   >,
+  metrics: [] as MetricObservation[],
+  questionLog: {} as Record<string, string>,
+  trainingProgramme: null as TrainingProgramme | null,
   clockOffsetMs: 0,
 };
+
+/** Derive Training v2 inputs from everything INTENT already knows. */
+export function deriveTrainingInputs(
+  profile: LifeProfile,
+  pathAnswers: Record<string, string> | undefined,
+  goals: Goal[],
+): TrainingInputs {
+  const fitnessGoal = goals.find((g) => g.status === 'active' && g.domain === 'fitness');
+  const title = fitnessGoal?.title.toLowerCase() ?? '';
+  const goal: TrainingInputs['goal'] = /bench|squat|deadlift|strength|stronger|press/.test(title)
+    ? 'strength'
+    : /muscle|size|build/.test(title)
+      ? 'hypertrophy'
+      : /lose|fat|lean|kg|weight/.test(title)
+        ? 'fatloss'
+        : 'general';
+  const focusLift = title.includes('bench')
+    ? ('bench' as const)
+    : title.includes('squat')
+      ? ('squat' as const)
+      : title.includes('deadlift')
+        ? ('deadlift' as const)
+        : undefined;
+  const equipment: TrainingInputs['equipment'] =
+    profile.trainingPreference === 'gym'
+      ? 'gym'
+      : profile.trainingPreference === 'home'
+        ? 'home'
+        : profile.trainingPreference === 'outdoors'
+          ? 'bodyweight'
+          : 'gym';
+  return {
+    goal,
+    experience:
+      (pathAnswers?.experience as TrainingInputs['experience']) ??
+      (goal === 'strength' ? 'consistent' : 'returning'),
+    daysAvailable: profile.trainingDaysPerWeek,
+    sessionMin: profile.trainingDurationMin >= 45 ? 60 : 30,
+    equipment,
+    focusLift,
+    age: profile.age,
+  };
+}
 
 /** How far back the adaptation engine looks. */
 const HISTORY_DAYS = 14;
@@ -405,6 +469,21 @@ export const useAppStore = create<AppState>()(
           });
           // Pre-onboarding there is nothing to regenerate yet.
           if (get().profile) get().regeneratePlan(todayKey());
+        },
+
+        addMetric: (key, value, note) => {
+          set({ metrics: [...get().metrics, observe(key, value, 'user', note)].slice(-2000) });
+        },
+
+        markQuestionAsked: (id) => {
+          set({ questionLog: { ...get().questionLog, [id]: new Date().toISOString() } });
+        },
+
+        buildTrainingBlock: () => {
+          const { profile, paths, goals, metrics } = get();
+          if (!profile) return;
+          const inputs = deriveTrainingInputs(profile, paths.training?.answers, goals);
+          set({ trainingProgramme: buildProgramme(inputs, baselinesFrom(metrics)) });
         },
 
         startPath: (id, answers) => {

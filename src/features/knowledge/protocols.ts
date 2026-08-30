@@ -59,8 +59,24 @@ interface Anchor {
   windowMin: number;
 }
 
+/**
+ * Evidence quality — not all protocols are equally certain, and INTENT
+ * says so. Expert communicators are discovery sources; the level grades
+ * the underlying research, not the fame of the messenger.
+ */
+export type EvidenceLevel = 'A' | 'B' | 'C' | 'D' | 'E';
+
+export const EVIDENCE_LABELS: Record<EvidenceLevel, string> = {
+  A: 'Strong — meta-analyses / broad consensus',
+  B: 'Good — multiple controlled studies',
+  C: 'Moderate — observational evidence',
+  D: 'Emerging — expert practice',
+  E: 'Experimental — a heuristic worth testing on yourself',
+};
+
 export interface Protocol {
   id: string;
+  evidenceLevel: EvidenceLevel;
   title: string;
   pillar: Pillar;
   area: LifeArea;
@@ -87,6 +103,7 @@ export const PROTOCOLS: Protocol[] = [
   // ── Sleep & energy ────────────────────────────────────────────────────
   {
     id: 'morning-light',
+    evidenceLevel: 'B',
     title: 'Morning light',
     pillar: 'sleep',
     area: 'health',
@@ -103,6 +120,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'wind-down',
+    evidenceLevel: 'B',
     title: 'Wind-down breathing',
     pillar: 'sleep',
     area: 'health',
@@ -122,6 +140,7 @@ export const PROTOCOLS: Protocol[] = [
   // ── Training ──────────────────────────────────────────────────────────
   {
     id: 'strength',
+    evidenceLevel: 'A',
     title: 'Strength training',
     pillar: 'training',
     area: 'health',
@@ -139,6 +158,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'zone2',
+    evidenceLevel: 'B',
     title: 'Zone 2 cardio',
     pillar: 'training',
     area: 'health',
@@ -155,6 +175,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'vo2-intervals',
+    evidenceLevel: 'B',
     title: 'VO₂ intervals',
     pillar: 'training',
     area: 'health',
@@ -171,6 +192,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'daily-walk',
+    evidenceLevel: 'A',
     title: 'The daily walk',
     pillar: 'training',
     area: 'health',
@@ -187,6 +209,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'post-meal-walk',
+    evidenceLevel: 'B',
     title: 'Post-meal walk',
     pillar: 'nutrition',
     area: 'health',
@@ -203,6 +226,7 @@ export const PROTOCOLS: Protocol[] = [
 
   {
     id: 'mobility-10',
+    evidenceLevel: 'D',
     title: 'Ten-minute mobility',
     pillar: 'training',
     area: 'health',
@@ -219,6 +243,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'cold-finish',
+    evidenceLevel: 'C',
     title: 'Cold-shower finish',
     pillar: 'training',
     area: 'health',
@@ -237,6 +262,7 @@ export const PROTOCOLS: Protocol[] = [
   // ── Nutrition ─────────────────────────────────────────────────────────
   {
     id: 'protein-breakfast',
+    evidenceLevel: 'B',
     title: 'Protein-first breakfast',
     pillar: 'nutrition',
     area: 'health',
@@ -252,6 +278,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'caffeine-cutoff',
+    evidenceLevel: 'B',
     title: 'Caffeine cutoff',
     pillar: 'sleep',
     area: 'health',
@@ -267,6 +294,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'meal-sketch',
+    evidenceLevel: 'B',
     title: 'Weekly meal sketch',
     pillar: 'nutrition',
     area: 'health',
@@ -283,6 +311,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'kitchen-closed',
+    evidenceLevel: 'C',
     title: 'Kitchen closes',
     pillar: 'nutrition',
     area: 'health',
@@ -301,6 +330,7 @@ export const PROTOCOLS: Protocol[] = [
   // ── Longevity ─────────────────────────────────────────────────────────
   {
     id: 'sauna',
+    evidenceLevel: 'C',
     title: 'Sauna sessions',
     pillar: 'longevity',
     area: 'health',
@@ -319,6 +349,7 @@ export const PROTOCOLS: Protocol[] = [
   // ── Mind ──────────────────────────────────────────────────────────────
   {
     id: 'meditation-10',
+    evidenceLevel: 'B',
     title: 'Ten minutes of stillness',
     pillar: 'mind',
     area: 'health',
@@ -336,6 +367,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'nsdr',
+    evidenceLevel: 'D',
     title: 'NSDR reset',
     pillar: 'mind',
     area: 'health',
@@ -352,6 +384,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'evening-journal',
+    evidenceLevel: 'B',
     title: 'Five-minute journal',
     pillar: 'mind',
     area: 'growth',
@@ -369,6 +402,7 @@ export const PROTOCOLS: Protocol[] = [
 
   {
     id: 'creative-block',
+    evidenceLevel: 'D',
     title: 'Creative block',
     pillar: 'mind',
     area: 'growth',
@@ -386,6 +420,7 @@ export const PROTOCOLS: Protocol[] = [
   // ── Wealth ────────────────────────────────────────────────────────────
   {
     id: 'money-checkin',
+    evidenceLevel: 'D',
     title: 'Weekly money check-in',
     pillar: 'wealth',
     area: 'admin',
@@ -401,6 +436,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'fear-setting',
+    evidenceLevel: 'E',
     title: 'Fear-setting',
     pillar: 'wealth',
     area: 'growth',
@@ -418,6 +454,7 @@ export const PROTOCOLS: Protocol[] = [
   // ── Leadership & work ─────────────────────────────────────────────────
   {
     id: 'deep-work',
+    evidenceLevel: 'D',
     title: 'Deep work block',
     pillar: 'leadership',
     area: 'work',
@@ -434,6 +471,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'weekly-business-review',
+    evidenceLevel: 'D',
     title: 'Weekly business review',
     pillar: 'leadership',
     area: 'work',
@@ -451,6 +489,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'eighty-twenty-audit',
+    evidenceLevel: 'E',
     title: '80/20 audit',
     pillar: 'leadership',
     area: 'work',
@@ -468,6 +507,7 @@ export const PROTOCOLS: Protocol[] = [
 
   {
     id: 'week-preview',
+    evidenceLevel: 'E',
     title: 'Sunday week preview',
     pillar: 'leadership',
     area: 'growth',
@@ -485,6 +525,7 @@ export const PROTOCOLS: Protocol[] = [
   // ── Connection ────────────────────────────────────────────────────────
   {
     id: 'friend-reach-out',
+    evidenceLevel: 'C',
     title: 'Reach out, make a plan',
     pillar: 'connection',
     area: 'enjoyment',
