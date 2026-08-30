@@ -17,6 +17,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { detectGoalUnderserved } from '@/features/goals/underserved';
+import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { availableStartsFor, generateDailyPlan } from '@/features/planner/generate';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
@@ -107,6 +108,8 @@ export interface AppState {
   ) => void;
 
   addGoal: (goal: Goal, routines: Routine[]) => void;
+  /** Toggle a knowledge-base protocol on the plan. Returns true if now active. */
+  toggleProtocol: (protocolId: string) => boolean;
   setGoalStatus: (goalId: string, status: Goal['status']) => void;
   setMilestoneDone: (goalId: string, milestoneId: string, done: boolean) => void;
   setGoalNextFocus: (goalId: string, nextFocus: string | undefined) => void;
@@ -386,6 +389,29 @@ export const useAppStore = create<AppState>()(
             routines: [...get().routines, ...routines],
           });
           get().regeneratePlan(todayKey());
+        },
+
+        toggleProtocol: (protocolId) => {
+          const { routines, profile } = get();
+          const existing = routines.find((r) => r.protocolId === protocolId);
+          let nowActive: boolean;
+          if (existing) {
+            nowActive = !existing.active;
+            set({
+              routines: routines.map((r) =>
+                r.protocolId === protocolId ? { ...r, active: nowActive } : r,
+              ),
+            });
+          } else {
+            const protocol = protocolById(protocolId);
+            if (!protocol) return false;
+            set({ routines: [...routines, toRoutine(protocol, profile)] });
+            nowActive = true;
+          }
+          // Rebuild the coming week so the practice shows up immediately.
+          const today = todayKey();
+          for (let i = 0; i <= 6; i++) get().regeneratePlan(addDays(today, i));
+          return nowActive;
         },
 
         setGoalStatus: (goalId, status) => {

@@ -111,6 +111,15 @@ export default function Settings() {
         </AppText>
       </Card>
 
+      <SectionHeader title="Practice library" />
+      <Card onPress={() => router.push('/library' as never)}>
+        <AppText variant="heading">Evidence-based practices</AppText>
+        <AppText variant="caption" color="textTertiary">
+          Protocols from the public work of Ferriss, Huberman, Attia, Patrick, Peterson and
+          Sinclair — one tap adds them to your plan.
+        </AppText>
+      </Card>
+
       <SectionHeader title="Behaviours you're working on" />
       <View style={styles.chips}>
         {BEHAVIOUR_CATALOG.map((b) => (

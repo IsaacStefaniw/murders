@@ -116,6 +116,8 @@ export interface Routine {
   title: string;
   area: LifeArea;
   goalId?: string;
+  /** Links to the evidence-based knowledge base (features/knowledge). */
+  protocolId?: string;
   days: Weekday[];
   durationMin: number;
   /** Preferred start window. The engine tries this window first. */

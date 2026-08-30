@@ -8,6 +8,7 @@
  * available and is the fallback.
  */
 
+import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { newId } from '@/lib/dates';
 import type {
   Goal,
@@ -121,6 +122,7 @@ export function buildGoalPlan(parsed: ParsedGoal, profile: LifeProfile | null, w
         flexible: false,
         duringWork: true,
         sessionType: 'business_review',
+        protocolId: 'weekly-business-review',
         tier: 'must',
       });
       break;
@@ -138,7 +140,14 @@ export function buildGoalPlan(parsed: ParsedGoal, profile: LifeProfile | null, w
         preferredEnd: '13:15',
         energy: profile?.energyProfile ?? 'any',
         sessionType: 'workout',
+        protocolId: 'strength',
       });
+      // Knowledge base: the aerobic base matters as much as the lifting,
+      // and it's the piece people skip. Capacity-minimal weeks stay lean.
+      if (parsed.domain === 'fitness' && profile?.capacity !== 'minimal') {
+        const zone2 = protocolById('zone2');
+        if (zone2) routines.push(toRoutine(zone2, profile, goalId));
+      }
       break;
 
     case 'finance':
@@ -157,6 +166,7 @@ export function buildGoalPlan(parsed: ParsedGoal, profile: LifeProfile | null, w
         preferredEnd: '20:30',
         energy: 'evening',
         tier: 'could',
+        protocolId: 'money-checkin',
       });
       break;
 

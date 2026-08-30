@@ -63,6 +63,24 @@ export default function Life() {
       </AppText>
       <AppText variant="title">What you&apos;re building</AppText>
 
+      <Card
+        onPress={() => router.push('/library' as never)}
+        style={{
+          backgroundColor: theme.accentSoft,
+          borderColor: theme.accent,
+          marginTop: Spacing.lg,
+        }}
+        accessibilityLabel="Open the evidence-based practice library"
+      >
+        <AppText variant="heading" color="accent">
+          Practice library
+        </AppText>
+        <AppText variant="secondary">
+          Evidence-based protocols — training, sleep, nutrition, longevity, wealth, leadership —
+          that INTENT plans into your week automatically.
+        </AppText>
+      </Card>
+
       <SectionHeader title="Goals" />
       {activeGoals.length === 0 ? (
         <EmptyState

@@ -8,6 +8,8 @@
  * results flow back through explicit user-approved actions.
  */
 
+import { knowledgeContext } from '@/features/knowledge/protocols';
+
 import { getAiProvider } from './provider';
 import { runStructured } from './run';
 import {
@@ -24,6 +26,16 @@ const TONE =
   'You are INTENT, a calm personal operating system. Be specific, concise and practical. ' +
   'Never use motivational clichés. Never moralise about behaviour. Never give medical advice.';
 
+/**
+ * Suggestions stay anchored to the same evidence-based library the
+ * deterministic engine plans from — the model recommends from this list,
+ * it does not invent protocols.
+ */
+const GROUNDING =
+  'When suggesting practices, draw ONLY from this evidence-based library ' +
+  '(never invent protocols, supplements or medical interventions):\n' +
+  knowledgeContext();
+
 /** Minimised plan representation — titles, tiers and times only. */
 function minifyPlan(plan: DailyPlan): string {
   return plan.items
@@ -35,7 +47,7 @@ export async function plannerAdvice(plan: DailyPlan): Promise<PlannerAdvice> {
   return (
     await runStructured({
       provider: getAiProvider(),
-      system: `${TONE} Review today's plan. Identify at most 3 real priorities, at most 3 useful suggestions and at most 2 warnings (overload, missing recovery, neglected areas). Schema: {"summary": string, "priorities": string[], "suggestions": string[], "warnings": string[], "confidence": number}`,
+      system: `${TONE} Review today's plan. Identify at most 3 real priorities, at most 3 useful suggestions and at most 2 warnings (overload, missing recovery, neglected areas). ${GROUNDING} Schema: {"summary": string, "priorities": string[], "suggestions": string[], "warnings": string[], "confidence": number}`,
       input: `Today's plan:\n${minifyPlan(plan)}`,
       schema: PlannerAdviceSchema,
       fallback: (): PlannerAdvice => ({
@@ -92,7 +104,7 @@ export async function weeklyNarrative(
   return (
     await runStructured({
       provider: getAiProvider(),
-      system: `${TONE} Write a short, useful weekly review. No scores, no grades. Identify what repeatedly worked, what repeatedly failed, and propose at most 3 specific changes to next week. Schema: {"narrative": string, "wentWell": string[], "struggled": string[], "proposedChanges": string[], "confidence": number}`,
+      system: `${TONE} Write a short, useful weekly review. No scores, no grades. Identify what repeatedly worked, what repeatedly failed, and propose at most 3 specific changes to next week. ${GROUNDING} Schema: {"narrative": string, "wentWell": string[], "struggled": string[], "proposedChanges": string[], "confidence": number}`,
       input: `Completion rate: ${Math.round(stats.completionRate * 100)}%\nBy area: ${JSON.stringify(stats.completionByArea)}\nBehaviour events: ${JSON.stringify(stats.behaviourEventCounts)}\nCheck-ins completed: ${stats.checkInsCompleted}\nNotable: ${highlights.join('; ') || 'none'}`,
       schema: WeeklyNarrativeSchema,
       maxTokens: 1200,
