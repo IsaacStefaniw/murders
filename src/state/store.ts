@@ -402,7 +402,8 @@ export const useAppStore = create<AppState>()(
             goals: [...get().goals, goal],
             routines: [...get().routines, ...routines],
           });
-          get().regeneratePlan(todayKey());
+          // Pre-onboarding there is nothing to regenerate yet.
+          if (get().profile) get().regeneratePlan(todayKey());
         },
 
         startPath: (id, answers) => {
@@ -421,8 +422,10 @@ export const useAppStore = create<AppState>()(
             },
           });
           // The new program should be visible across the whole week now.
-          const today = todayKey();
-          for (let i = 1; i <= 6; i++) get().regeneratePlan(addDays(today, i));
+          if (get().profile) {
+            const today = todayKey();
+            for (let i = 1; i <= 6; i++) get().regeneratePlan(addDays(today, i));
+          }
         },
 
         toggleProtocol: (protocolId) => {
