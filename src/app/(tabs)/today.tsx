@@ -88,9 +88,17 @@ export default function Today() {
   // is a real, deliberate state.
   const nowItem =
     pending.find((i) => toMinutes(i.start) <= now && toMinutes(i.end) > now) ?? null;
-  // Items whose window passed unresolved: surface them for an honest answer
-  // (the adaptation engine needs the skip data as much as the user needs closure).
-  const overdueItems = pending.filter((i) => toMinutes(i.end) <= now);
+  // The day's ledger: items whose window has passed, resolved or not.
+  // Unresolved ones need an honest answer (the adaptation engine needs the
+  // skip data as much as the user needs closure); resolved ones stay put so
+  // follow-ups — like the milestone write-back — have somewhere to live.
+  const overdueItems = plan.items.filter(
+    (i) =>
+      meaningful(i) &&
+      i.id !== nowItem?.id &&
+      toMinutes(i.end) <= now &&
+      toMinutes(i.start) < EVENING_START,
+  );
   const upcoming = pending.filter((i) => i.id !== nowItem?.id && toMinutes(i.start) > now);
   const nextItems = upcoming.filter((i) => toMinutes(i.start) < EVENING_START).slice(0, 3);
   const tonightItems = plan.items.filter(

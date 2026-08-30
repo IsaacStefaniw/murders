@@ -22,57 +22,62 @@ export function PlanItemRow({ item, plan, profile, date, expanded, onToggle }: P
   const done = item.status === 'completed';
   const skipped = item.status === 'skipped';
 
+  // Only the main line toggles — a fully-pressable row would swallow taps
+  // meant for the action buttons inside it (and collapse mid-flow).
   return (
-    <Pressable
-      onPress={onToggle}
-      accessibilityRole="button"
-      accessibilityLabel={`${item.title}, ${formatTime(item.start)}${done ? ', done' : ''}`}
-      style={({ pressed }) => [
+    <View
+      style={[
         styles.row,
         {
-          backgroundColor: pressed || expanded ? theme.surfacePressed : theme.surface,
+          backgroundColor: expanded ? theme.surfacePressed : theme.surface,
           borderColor: theme.border,
         },
       ]}
     >
-      <View style={styles.main}>
-        <AppText variant="caption" color="textTertiary" style={styles.time}>
-          {formatTime(item.start)}
-        </AppText>
-        <AppText
-          variant="body"
-          style={[
-            styles.title,
-            done && { color: theme.textTertiary, textDecorationLine: 'line-through' },
-            skipped && { color: theme.textTertiary },
-          ]}
-        >
-          {item.title}
-          {item.shortenedFromMin ? ' · shortened' : ''}
-        </AppText>
-        {done ? (
-          <AppText variant="caption" color="success">
-            Done
+      <Pressable
+        onPress={onToggle}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.title}, ${formatTime(item.start)}${done ? ', done' : ''}`}
+      >
+        <View style={styles.main}>
+          <AppText variant="caption" color="textTertiary" style={styles.time}>
+            {formatTime(item.start)}
           </AppText>
-        ) : skipped ? (
-          <AppText variant="caption" color="textTertiary">
-            Skipped
+          <AppText
+            variant="body"
+            style={[
+              styles.title,
+              done && { color: theme.textTertiary, textDecorationLine: 'line-through' },
+              skipped && { color: theme.textTertiary },
+            ]}
+          >
+            {item.title}
+            {item.shortenedFromMin ? ' · shortened' : ''}
+          </AppText>
+          {done ? (
+            <AppText variant="caption" color="success">
+              Done
+            </AppText>
+          ) : skipped ? (
+            <AppText variant="caption" color="textTertiary">
+              Skipped
+            </AppText>
+          ) : null}
+        </View>
+
+        {item.focus && !done && !skipped ? (
+          <AppText variant="caption" color="textTertiary" style={styles.focus}>
+            Next step: {item.focus}
           </AppText>
         ) : null}
-      </View>
-
-      {item.focus && !done && !skipped ? (
-        <AppText variant="caption" color="textTertiary" style={styles.focus}>
-          Next step: {item.focus}
-        </AppText>
-      ) : null}
+      </Pressable>
 
       {expanded ? (
         <View style={styles.actions}>
           <ItemActions item={item} plan={plan} profile={profile} date={date} onDone={onToggle} />
         </View>
       ) : null}
-    </Pressable>
+    </View>
   );
 }
 
