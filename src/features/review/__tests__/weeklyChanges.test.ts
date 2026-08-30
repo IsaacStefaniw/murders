@@ -37,7 +37,7 @@ function planFor(date: string, status: 'completed' | 'skipped'): DailyPlan {
 }
 
 describe('buildWeeklyChanges', () => {
-  it('offers to rest a routine that kept not happening, with an applyable change', () => {
+  it('recovery-first: offers to shrink a struggling routine before resting it', () => {
     const plans = {
       '2026-09-07': planFor('2026-09-07', 'skipped'),
       '2026-09-08': planFor('2026-09-08', 'skipped'),
@@ -46,8 +46,23 @@ describe('buildWeeklyChanges', () => {
     const proposal = buildWeeklyChanges({ weekStart: '2026-09-07', plans, routines: [reading] });
     expect(proposal.noticed.join(' ')).toContain('0 of 3');
     expect(proposal.changes).toHaveLength(1);
-    expect(proposal.changes[0]).toMatchObject({ kind: 'deactivate_routine', routineId: 'read' });
+    expect(proposal.changes[0]).toMatchObject({
+      kind: 'shorten_routine',
+      routineId: 'read',
+      payload: { newDurationMin: 15 },
+    });
     expect(proposal.changes[0].description).not.toMatch(/fail|should have/i);
+  });
+
+  it('rests a struggling routine only once it is already at its floor', () => {
+    const tiny: Routine = { ...reading, durationMin: 10 };
+    const plans = {
+      '2026-09-07': planFor('2026-09-07', 'skipped'),
+      '2026-09-08': planFor('2026-09-08', 'skipped'),
+      '2026-09-09': planFor('2026-09-09', 'skipped'),
+    };
+    const proposal = buildWeeklyChanges({ weekStart: '2026-09-07', plans, routines: [tiny] });
+    expect(proposal.changes[0]).toMatchObject({ kind: 'deactivate_routine', routineId: 'read' });
   });
 
   it('proposes nothing when the week actually happened', () => {

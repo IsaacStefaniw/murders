@@ -103,6 +103,43 @@ of milestone-bearing goals fully done; only 6.7% still stalled at week 26.
    (career +15 pts, fitness +12 pts). Acceptance 60% at ~2 nudges per
    goal-holding user over six months — help, not nagging.
 
+## v3 — the iterative engine loop (run → learn → improve → re-run)
+
+Three measured iterations, each fixing the weakest thing the previous run
+exposed, validated at 2,000 users × 26 weeks:
+
+1. **Anticipation fidelity.** v2 fed the gap detector only lived days, so
+   every week looked empty and it fired at max cadence for everyone
+   (26,000 nudges). The app actually generates the week ahead (Today
+   ensures 7 days), so the sim now does too. Honest economics: **26,000 →
+   1,664** — the detector is a true safety net, firing roughly once per
+   user per six months, only when the generated week genuinely holds
+   nothing enjoyable.
+2. **Shrink-to-fit detector** (`detectShrinkToFit`). The `shorten_workout`
+   suggestion kind existed with no producer — same gap class as
+   `goal_stalled`. When a routine keeps slipping and *no better slot
+   exists* (the move detectors claim those first), INTENT now offers a
+   smaller version (⅔ duration, never below the modality floor).
+   health_rebuilder — flat at +0.1 pts for three runs — moved to **+1.7**
+   in isolation; cohort completion lift **+1.9 → +3.5 pts**. Caveat: the
+   gain rides on a modelled assumption (smaller ask → up to +15% start
+   probability); the seven-real-days experiment is the real test.
+3. **Recovery-first weekly review.** The review was resting routines on
+   the same trigger (skip ≥ 60%) the shrink detector uses — amputating
+   what adaptation would rather shrink; 10% of users lost 3+ routines.
+   Now it proposes shrinking first and rests only routines already at
+   their floor: routines rested **2,164 → 1,438**, over-pruned users
+   **160 → 115**, goals stalled at end **6.7% → 3.2%** (smaller kept
+   sessions keep feeding milestones).
+
+Final state: completion 49.9% → 53.4% (+3.5 pts), alignment +8.4 pts,
+milestones 98.5% done, 0 errors / 0 contract violations across 364,000
+days. One deliberate trade, stated plainly: absolute completions dip 2.6%
+(resting failing routines removes their occasional wins) while
+*experienced failures* per user-week fall ~16% (8.5 → 7.2) — fewer
+failures is what the what-the-hell effect feeds on, and the report now
+tracks volume alongside rate so this trade stays visible.
+
 Simulation ≠ users: personas are hand-built and acceptance probabilities
 are guesses. The sim validates machinery and catches regressions; only the
 seven-real-days experiment validates the product.

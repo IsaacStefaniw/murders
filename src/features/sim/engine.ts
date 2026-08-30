@@ -11,12 +11,15 @@ import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { generateDailyPlan } from '@/features/planner/generate';
 import { buildWeeklyChanges } from '@/features/review/weeklyChanges';
 import { runSessionForItem } from '@/features/sim/modalities';
+import { MODALITIES } from '@/features/modalities/registry';
 import {
   applyMoveRoutine,
   applyProtectTime,
+  applyShorten,
   detectMissedTwice,
   detectMoveOutcome,
   detectMovePattern,
+  detectShrinkToFit,
   detectSlotMismatch,
   type ManualMove,
 } from '@/lib/scheduling/adaptation';
@@ -119,6 +122,10 @@ export function runUser(
   }));
   const goalRescue = opts.goalRescue !== false;
   const lastStallNudgeDay: Record<string, number> = {};
+  const floorFor = (r: Routine): number =>
+    (r.sessionType && MODALITIES[r.sessionType]?.shorteningFloorMin) || 10;
+  // Durations at signup, so shrink-relief compares against the original ask.
+  const originalDuration = new Map(routines.map((r) => [r.id, r.durationMin]));
 
   const plans: Record<string, DailyPlan> = {};
   const moves: ManualMove[] = [];
@@ -204,7 +211,17 @@ export function runUser(
         week.userMoves += 1;
       }
 
-      const p = affinityFor(truth, area, slot) * truth.adherence;
+      let p = affinityFor(truth, area, slot) * truth.adherence;
+      // Activation-cost relief for a shrunk routine: smaller asks are easier
+      // to start. A modelling assumption (documented in docs/SIMULATION.md),
+      // capped at +15% relative.
+      if (item.routineId) {
+        const orig = originalDuration.get(item.routineId);
+        const dur = toMinutes(end) - toMinutes(start);
+        if (orig && dur < orig) {
+          p = Math.min(0.95, p * Math.min(1.15, 1 + 0.25 * (1 - dur / orig)));
+        }
+      }
       const completed = rng() < p;
 
       const duration = toMinutes(end) - toMinutes(start);
@@ -239,6 +256,7 @@ export function runUser(
       detectMoveOutcome(moves, plans, routines),
       detectMovePattern(moves, routines),
       detectSlotMismatch(history, routines),
+      detectShrinkToFit(history, routines, floorFor),
       detectMissedTwice(history, routines),
     ]) {
       for (const s of detected) {
@@ -247,9 +265,22 @@ export function runUser(
         fresh.push(s);
       }
     }
-    // Mirror the store's 14-day anticipation cooldown.
-    if (d - lastConnectionDay >= 14) {
-      const gap = detectAnticipationGap(date, plans, routines, profile);
+    // Mirror the store's 14-day anticipation cooldown — and the app's
+    // reality that the week ahead is always generated (Today ensures 7
+    // days), so the detector sees planned future moments. v2 fidelity fix:
+    // v1 fed it only lived days, making every week look empty and the
+    // detector fire at max cadence for everyone. Weekly check, on Sundays.
+    if (d - lastConnectionDay >= 14 && (d + 1) % 7 === 0) {
+      const previewPlans: Record<string, DailyPlan> = { ...plans };
+      for (let i = 1; i <= 6; i++) {
+        const future = addDays(date, i);
+        try {
+          previewPlans[future] = generateDailyPlan(profile, routines, future);
+        } catch {
+          errors += 1;
+        }
+      }
+      const gap = detectAnticipationGap(date, previewPlans, routines, profile);
       if (gap) {
         fresh.push(gap);
         lastConnectionDay = d;
@@ -284,6 +315,9 @@ export function runUser(
         } else if (s.kind === 'protect_time') {
           routines = applyProtectTime(routines, s);
           firstAnyAdaptationWeek ??= weekIndex;
+        } else if (s.kind === 'shorten_workout') {
+          routines = applyShorten(routines, s);
+          firstAnyAdaptationWeek ??= weekIndex;
         }
         // connection: the moment gets planned; count as an enjoyment moment.
         if (s.kind === 'connection') week.hasFamilyMoment ||= true;
@@ -310,11 +344,20 @@ export function runUser(
           if (change.kind === 'deactivate_routine') {
             routines = routines.map((r) => (r.id === change.routineId ? { ...r, active: false } : r));
             week.routinesDeactivated += 1;
-          } else if (change.kind === 'move_routine' && change.payload) {
+          } else if (
+            change.kind === 'move_routine' &&
+            change.payload?.preferredStart &&
+            change.payload.preferredEnd
+          ) {
+            const { preferredStart, preferredEnd } = change.payload;
             routines = routines.map((r) =>
-              r.id === change.routineId
-                ? { ...r, preferredStart: change.payload!.preferredStart, preferredEnd: change.payload!.preferredEnd }
-                : r,
+              r.id === change.routineId ? { ...r, preferredStart, preferredEnd } : r,
+            );
+            firstAnyAdaptationWeek ??= weekIndex;
+          } else if (change.kind === 'shorten_routine' && change.payload?.newDurationMin) {
+            const { newDurationMin } = change.payload;
+            routines = routines.map((r) =>
+              r.id === change.routineId ? { ...r, durationMin: newDurationMin } : r,
             );
             firstAnyAdaptationWeek ??= weekIndex;
           }

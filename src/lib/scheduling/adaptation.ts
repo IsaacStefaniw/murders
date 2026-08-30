@@ -240,6 +240,57 @@ export function detectMovePattern(moves: ManualMove[], routines: Routine[]): Sug
   return suggestions;
 }
 
+/**
+ * Shrink-to-fit — for routines that keep slipping when *no better slot
+ * exists* (the move detectors claim those first in the hierarchy). A
+ * 30-minute session that happens beats a 45-minute one that doesn't; the
+ * modality's shortening floor is respected via `floorFor`, and the user
+ * can always grow it back.
+ */
+export function detectShrinkToFit(
+  history: PlanItem[],
+  routines: Routine[],
+  floorFor: (r: Routine) => number,
+): Suggestion[] {
+  const suggestions: Suggestion[] = [];
+  const resolved = history.filter((i) => i.status === 'completed' || i.status === 'skipped');
+
+  for (const routine of routines) {
+    if (!routine.active) continue;
+    const items = resolved.filter((i) => i.routineId === routine.id);
+    if (items.length < 4) continue;
+
+    const skipped = items.filter((i) => i.status === 'skipped').length;
+    const skipRate = skipped / items.length;
+    if (skipRate < SKIP_RATE_THRESHOLD) continue;
+
+    const floor = floorFor(routine);
+    const newDurationMin = Math.max(floor, Math.round((routine.durationMin * 2) / 3 / 5) * 5);
+    if (newDurationMin >= routine.durationMin) continue;
+
+    suggestions.push({
+      id: newId('sug'),
+      kind: 'shorten_workout',
+      message: `${routine.title} keeps slipping at ${routine.durationMin} minutes. A ${newDurationMin}-minute version that happens beats a ${routine.durationMin}-minute one that doesn't. Shrink it?`,
+      reason: `You completed ${items.length - skipped} of the last ${items.length}. Smaller asks survive real weeks — and you can grow it back any time.`,
+      payload: { routineId: routine.id, newDurationMin },
+      confidence: 0.65,
+      status: 'open',
+      createdAt: new Date().toISOString(),
+    });
+  }
+  return suggestions;
+}
+
+/** Apply an accepted shorten suggestion: shrink the routine's duration. */
+export function applyShorten(routines: Routine[], suggestion: Suggestion): Routine[] {
+  const payload = suggestion.payload as { routineId: string; newDurationMin: number } | undefined;
+  if (suggestion.kind !== 'shorten_workout' || !payload) return routines;
+  return routines.map((r) =>
+    r.id === payload.routineId ? { ...r, durationMin: payload.newDurationMin } : r,
+  );
+}
+
 /** Apply an accepted protect_time suggestion: raise the routine to Must. */
 export function applyProtectTime(routines: Routine[], suggestion: Suggestion): Routine[] {
   const payload = suggestion.payload as { routineId: string } | undefined;

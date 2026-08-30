@@ -1,9 +1,11 @@
 import {
   applyMoveRoutine,
   applyProtectTime,
+  applyShorten,
   detectMissedTwice,
   detectMoveOutcome,
   detectMovePattern,
+  detectShrinkToFit,
   detectSlotMismatch,
 } from '@/lib/scheduling/adaptation';
 import type { PlanItem, Routine } from '@/types/domain';
@@ -229,5 +231,40 @@ describe('applyMoveRoutine', () => {
     const updated = applyMoveRoutine([gym], suggestion);
     expect(updated[0].preferredStart).toBe('11:30');
     expect(updated[0].preferredEnd).toBe('14:00');
+  });
+});
+
+describe('detectShrinkToFit', () => {
+  const floorFor = () => 15;
+  const skippedLots = [
+    item({ id: 's1', status: 'skipped' }),
+    item({ id: 's2', status: 'skipped' }),
+    item({ id: 's3', status: 'skipped' }),
+    item({ id: 's4', status: 'completed' }),
+  ];
+
+  it('offers a smaller version of a chronically slipping routine', () => {
+    const [s] = detectShrinkToFit(skippedLots, [gym], floorFor);
+    expect(s.kind).toBe('shorten_workout');
+    expect(s.payload).toMatchObject({ routineId: 'gym', newDurationMin: 30 });
+    expect(s.message).toContain('30-minute');
+    const updated = applyShorten([gym], s);
+    expect(updated[0].durationMin).toBe(30);
+  });
+
+  it('never shrinks below the modality floor', () => {
+    const short = { ...gym, durationMin: 15 };
+    expect(detectShrinkToFit(skippedLots, [short], floorFor)).toHaveLength(0);
+  });
+
+  it('stays quiet for routines that mostly happen or lack observations', () => {
+    const mostlyDone = [
+      item({ id: 'c1', status: 'completed' }),
+      item({ id: 'c2', status: 'completed' }),
+      item({ id: 'c3', status: 'completed' }),
+      item({ id: 'c4', status: 'skipped' }),
+    ];
+    expect(detectShrinkToFit(mostlyDone, [gym], floorFor)).toHaveLength(0);
+    expect(detectShrinkToFit(skippedLots.slice(0, 3), [gym], floorFor)).toHaveLength(0);
   });
 });

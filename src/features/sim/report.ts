@@ -43,6 +43,9 @@ export interface CohortReport {
   errors: number;
   overlapViolations: number;
   completion: { early: number; mid: number; late: number; liftPts: number };
+  /** Absolute things-done volume — the rate's honest counterpart: keeping a
+   * shrunk routine alive lowers the rate but raises what actually happens. */
+  completionsPerUserWeek: { early: number; late: number };
   alignment: { early: number; late: number; liftPts: number };
   completionByPersona: Record<string, { early: number; late: number; liftPts: number }>;
   adopters: {
@@ -159,6 +162,8 @@ export function aggregate(results: UserResult[]): CohortReport {
   const early = meanWeekRate(results, 0, 1);
   const mid = meanWeekRate(results, Math.floor(weeksCount / 2) - 1, Math.floor(weeksCount / 2));
   const late = meanWeekRate(results, lastQ.from, lastQ.to);
+  const volume = (from: number, to: number) =>
+    mean(results.flatMap((r) => r.weeks.slice(from, to + 1).map((w) => w.completed)));
   const alignEarly = meanAlignment(results, 0, 1);
   const alignLate = meanAlignment(results, lastQ.from, lastQ.to);
 
@@ -169,6 +174,7 @@ export function aggregate(results: UserResult[]): CohortReport {
     errors: results.reduce((s, r) => s + r.errors, 0),
     overlapViolations: results.reduce((s, r) => s + r.overlapViolations, 0),
     completion: { early, mid, late, liftPts: (late - early) * 100 },
+    completionsPerUserWeek: { early: volume(0, 1), late: volume(lastQ.from, lastQ.to) },
     alignment: { early: alignEarly, late: alignLate, liftPts: (alignLate - alignEarly) * 100 },
     completionByPersona,
     adopters: {
@@ -216,9 +222,12 @@ export function renderMarkdown(rep: CohortReport): string {
     '',
     '## Does INTENT learn?',
     `- Weekly completion: ${pct(rep.completion.early)} (wk 1–2) → ${pct(rep.completion.mid)} (mid) → ${pct(rep.completion.late)} (final month) — **${rep.completion.liftPts >= 0 ? '+' : ''}${rep.completion.liftPts.toFixed(1)} pts**`,
+    `- Things actually done: ${rep.completionsPerUserWeek.early.toFixed(1)} → ${rep.completionsPerUserWeek.late.toFixed(1)} per user-week (${rep.completionsPerUserWeek.late >= rep.completionsPerUserWeek.early ? '+' : ''}${(((rep.completionsPerUserWeek.late - rep.completionsPerUserWeek.early) / rep.completionsPerUserWeek.early) * 100).toFixed(1)}%)`,
     `- Schedule↔life alignment (flexible minutes in the user's true best slot): ${pct(rep.alignment.early)} → ${pct(rep.alignment.late)} — **${rep.alignment.liftPts >= 0 ? '+' : ''}${rep.alignment.liftPts.toFixed(1)} pts**`,
     `- Median weeks to first accepted adaptation: ${rep.medianWeekToFirstAdaptation ?? 'n/a'}`,
-    `- Adopters (accepted an adaptation by week 8, n=${rep.adopters.count}) finish at ${pct(rep.adopters.adopterLate)} vs never-adapted (n=${rep.adopters.nonCount}) at ${pct(rep.adopters.nonAdopterLate)} — **Δ ${rep.adopters.deltaPts.toFixed(1)} pts**`,
+    rep.adopters.nonCount > 0
+      ? `- Adopters (accepted an adaptation by week 8, n=${rep.adopters.count}) finish at ${pct(rep.adopters.adopterLate)} vs never-adapted (n=${rep.adopters.nonCount}) at ${pct(rep.adopters.nonAdopterLate)} — **Δ ${rep.adopters.deltaPts.toFixed(1)} pts**`
+      : `- Every user accepted at least one adaptation — the never-adapted comparison group is empty.`,
     '',
     '## By persona (completion, early → late)',
     ...Object.entries(rep.completionByPersona).map(

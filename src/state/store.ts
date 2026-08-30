@@ -21,12 +21,15 @@ import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
   applyMoveRoutine,
   applyProtectTime,
+  applyShorten,
   detectMissedTwice,
   detectMoveOutcome,
   detectMovePattern,
+  detectShrinkToFit,
   detectSlotMismatch,
   type ManualMove,
 } from '@/lib/scheduling/adaptation';
+import { MODALITIES } from '@/features/modalities/registry';
 import { buildSeededHistory } from '@/features/dev/seedHistory';
 import {
   addDays,
@@ -149,6 +152,10 @@ const initialData = {
 
 /** How far back the adaptation engine looks. */
 const HISTORY_DAYS = 14;
+
+/** Shortest meaningful duration for a routine — its modality's floor. */
+const routineFloorMin = (r: Routine): number =>
+  (r.sessionType && MODALITIES[r.sessionType]?.shorteningFloorMin) || 10;
 const MAX_PLAN_EVENTS = 500;
 
 function eventFor(
@@ -490,6 +497,8 @@ export const useAppStore = create<AppState>()(
             detectMoveOutcome(moves, plans, routines),
             detectMovePattern(moves, routines),
             detectSlotMismatch(history, routines),
+            // No better slot exists → shrink the ask before protecting it.
+            detectShrinkToFit(history, routines, routineFloorMin),
             detectMissedTwice(history, routines),
           ]) {
             for (const s of detected) {
@@ -550,7 +559,9 @@ export const useAppStore = create<AppState>()(
             const nextRoutines =
               suggestion.kind === 'protect_time'
                 ? applyProtectTime(routines, suggestion)
-                : applyMoveRoutine(routines, suggestion);
+                : suggestion.kind === 'shorten_workout'
+                  ? applyShorten(routines, suggestion)
+                  : applyMoveRoutine(routines, suggestion);
             set({ routines: nextRoutines });
             get().regeneratePlan(todayKey());
           }
@@ -575,12 +586,19 @@ export const useAppStore = create<AppState>()(
               const change = changes.find((c) => c.routineId === r.id);
               if (!change) return r;
               if (change.kind === 'deactivate_routine') return { ...r, active: false };
-              if (change.kind === 'move_routine' && change.payload) {
+              if (
+                change.kind === 'move_routine' &&
+                change.payload?.preferredStart &&
+                change.payload.preferredEnd
+              ) {
                 return {
                   ...r,
                   preferredStart: change.payload.preferredStart,
                   preferredEnd: change.payload.preferredEnd,
                 };
+              }
+              if (change.kind === 'shorten_routine' && change.payload?.newDurationMin) {
+                return { ...r, durationMin: change.payload.newDurationMin };
               }
               return r;
             }),

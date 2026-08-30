@@ -4,6 +4,7 @@
  * Deterministic, derived from what actually happened.
  */
 
+import { MODALITIES } from '@/features/modalities/registry';
 import { detectSlotMismatch } from '@/lib/scheduling/adaptation';
 import { addDays } from '@/lib/dates';
 import type { DailyPlan, PlanItem, Routine } from '@/types/domain';
@@ -11,9 +12,9 @@ import type { DailyPlan, PlanItem, Routine } from '@/types/domain';
 export interface WeeklyChange {
   id: string;
   description: string;
-  kind: 'deactivate_routine' | 'move_routine';
+  kind: 'deactivate_routine' | 'move_routine' | 'shorten_routine';
   routineId: string;
-  payload?: { preferredStart: string; preferredEnd: string };
+  payload?: { preferredStart?: string; preferredEnd?: string; newDurationMin?: number };
 }
 
 export interface WeeklyReviewProposal {
@@ -64,12 +65,29 @@ export function buildWeeklyChanges(input: {
   if (droppable.length > 0) {
     const worst = droppable[0].routine;
     noticed.push(`${worst.title} kept not happening.`);
-    changes.push({
-      id: `drop-${worst.id}`,
-      kind: 'deactivate_routine',
-      routineId: worst.id,
-      description: `Rest ${worst.title.toLowerCase()} for now — fewer plans, kept, beat more plans, missed.`,
-    });
+    // Recovery-first: shrink before resting. Resting is the last resort,
+    // taken only when the routine is already at its modality's floor.
+    // (Cohort simulation: the review was amputating routines the
+    // adaptation layer would rather have shrunk — 10% of users lost 3+.)
+    const floor =
+      (worst.sessionType && MODALITIES[worst.sessionType]?.shorteningFloorMin) || 10;
+    const newDurationMin = Math.max(floor, Math.round((worst.durationMin * 2) / 3 / 5) * 5);
+    if (newDurationMin < worst.durationMin) {
+      changes.push({
+        id: `shrink-${worst.id}`,
+        kind: 'shorten_routine',
+        routineId: worst.id,
+        payload: { newDurationMin },
+        description: `Shrink ${worst.title.toLowerCase()} to ${newDurationMin} minutes — a smaller version that happens beats a longer one that doesn't.`,
+      });
+    } else {
+      changes.push({
+        id: `drop-${worst.id}`,
+        kind: 'deactivate_routine',
+        routineId: worst.id,
+        description: `Rest ${worst.title.toLowerCase()} for now — fewer plans, kept, beat more plans, missed.`,
+      });
+    }
   }
 
   // Slot mismatches become move changes (second droppable candidate is
