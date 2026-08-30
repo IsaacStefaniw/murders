@@ -52,6 +52,11 @@ export interface LifeProfile {
    * (protein target, training guidance). Never required, never judged. */
   age?: number;
   weightKg?: number;
+  kidsCount?: number;
+  /** What the workday mostly demands — shapes the work path. */
+  workStyle?: 'maker' | 'manager' | 'mixed' | 'physical';
+  /** The user's own three-year picture, in their words. */
+  lifeVision?: string;
   createdAt: string;
   updatedAt: string;
 }

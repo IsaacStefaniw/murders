@@ -9,6 +9,7 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
+import { PATHS } from '@/features/paths/definitions';
 import { useOnboardingStore } from '@/features/onboarding/state';
 import { formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
@@ -33,17 +34,23 @@ export default function PlanReview() {
   const answers = useOnboardingStore((s) => s.answers);
   const resetOnboarding = useOnboardingStore((s) => s.reset);
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
+  const startPath = useAppStore((s) => s.startPath);
 
   const plan = useMemo(() => buildLifeOperatingPlan(answers), [answers]);
   const [disabledRoutines, setDisabledRoutines] = useState<Set<string>>(new Set());
 
   const approve = () => {
     completeOnboarding({
-      ...plan,
+      profile: plan.profile,
+      goals: plan.goals,
+      behaviourIntentions: plan.behaviourIntentions,
       routines: plan.routines.map((r) =>
         disabledRoutines.has(r.id) ? { ...r, active: false } : r,
       ),
     });
+    // The answers already justify these paths — start them now so day one
+    // carries tailored milestones, check-ins and advice, not just blocks.
+    for (const start of plan.pathStarts) startPath(start.id, start.answers);
     resetOnboarding();
     router.replace('/(tabs)/today');
   };
@@ -80,6 +87,23 @@ export default function PlanReview() {
           </Card>
         ))}
       </View>
+
+      {plan.pathStarts.length > 0 ? (
+        <View>
+          <SectionHeader title="Paths starting today" />
+          <View style={styles.stack}>
+            {plan.pathStarts.map((p) => (
+              <Card key={p.id}>
+                <AppText variant="heading">{PATHS[p.id].title}</AppText>
+                <AppText variant="caption" color="textTertiary">
+                  Built from your answers — milestones, check-ins and guidance from day one. Tune
+                  it any time under Life → Paths.
+                </AppText>
+              </Card>
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       <SectionHeader title="Starting goals" />
       <View style={styles.stack}>

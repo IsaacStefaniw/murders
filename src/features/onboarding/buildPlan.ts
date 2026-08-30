@@ -6,6 +6,8 @@
 
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import { buildGoalPlan, parseGoal } from '@/features/goals/goalPlanner';
+import { protocolById, toRoutine } from '@/features/knowledge/protocols';
+import type { PathId } from '@/features/paths/definitions';
 import { newId } from '@/lib/dates';
 import type {
   BehaviourIntention,
@@ -25,6 +27,9 @@ export interface LifeOperatingPlan {
   goals: Goal[];
   routines: Routine[];
   behaviourIntentions: BehaviourIntention[];
+  /** Paths the interview answers already justify — started at approval so
+   * day one carries tailored protocols, milestones and advice. */
+  pathStarts: { id: PathId; answers: Record<string, string> }[];
 }
 
 const TRAINING_WINDOWS: Record<EnergyProfile, { start: string; end: string }> = {
@@ -89,6 +94,14 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   const lessOf = arr(answers, 'lessOf') as BehaviourKey[];
   const priorities = arr(answers, 'priorities') as LifeArea[];
 
+  const age = Number(str(answers, 'age')) || undefined;
+  const weightKg = Number(str(answers, 'weight')) || undefined;
+  const kidsCount = Number(str(answers, 'kidsCount')) || (hasKids ? 1 : undefined);
+  const workStyle =
+    (str(answers, 'workStyle') as LifeProfile['workStyle']) || undefined;
+  const lifeVision = str(answers, 'vision') || undefined;
+  const walking = str(answers, 'trainingSetup') === 'walking';
+
   const profile: LifeProfile = {
     firstName: str(answers, 'name', 'there') || 'there',
     priorities: priorities.length > 0 ? priorities : ['family', 'health', 'work'],
@@ -102,10 +115,16 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     capacity,
     trainingDaysPerWeek,
     trainingDurationMin: capacity === 'minimal' ? 30 : 45,
-    trainingPreference:
-      (str(answers, 'trainingSetup', 'mixed') as LifeProfile['trainingPreference']) || 'mixed',
+    trainingPreference: walking
+      ? 'outdoors'
+      : (str(answers, 'trainingSetup', 'mixed') as LifeProfile['trainingPreference']) || 'mixed',
     moreOf: arr(answers, 'moreOf'),
     lessOf,
+    age,
+    weightKg,
+    kidsCount,
+    workStyle,
+    lifeVision,
     createdAt: now,
     updatedAt: now,
   };
@@ -114,37 +133,48 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   const goals: Goal[] = [];
   const routines: Routine[] = [];
 
-  // Training goal → training routines.
+  // Training goal → training routines. Walking is real training: it gets
+  // the daily-walk protocol at the asked-for cadence, not a gym program.
   const trainingWindow = TRAINING_WINDOWS[energyProfile];
   const trainingGoal: Goal = {
     id: newId('g'),
-    title: `Train ${trainingDaysPerWeek}× a week`,
+    title: walking ? `Walk ${trainingDaysPerWeek}× a week` : `Train ${trainingDaysPerWeek}× a week`,
     area: 'health',
     cadencePerWeek: trainingDaysPerWeek,
     status: 'active',
     createdAt: now,
     routineIds: [],
   };
-  const trainingRoutine: Routine = {
-    id: newId('r'),
-    title: 'Strength workout',
-    area: 'health',
-    protocolId: 'strength',
-    goalId: trainingGoal.id,
-    days: pickTrainingDays(trainingDaysPerWeek, profile.workDays),
-    durationMin: profile.trainingDurationMin,
-    preferredStart: trainingWindow.start,
-    preferredEnd: trainingWindow.end,
-    energy: energyProfile,
-    flexible: true,
-    protected: false,
-    sessionType: 'workout',
-    tier: 'should',
-    active: true,
-  };
-  trainingGoal.routineIds.push(trainingRoutine.id);
+  if (walking) {
+    const walk = protocolById('daily-walk');
+    if (walk) {
+      const walkRoutine = toRoutine(walk, profile, trainingGoal.id);
+      walkRoutine.days = pickTrainingDays(Math.max(trainingDaysPerWeek, 3), profile.workDays);
+      trainingGoal.routineIds.push(walkRoutine.id);
+      routines.push(walkRoutine);
+    }
+  } else {
+    const trainingRoutine: Routine = {
+      id: newId('r'),
+      title: 'Strength workout',
+      area: 'health',
+      protocolId: 'strength',
+      goalId: trainingGoal.id,
+      days: pickTrainingDays(trainingDaysPerWeek, profile.workDays),
+      durationMin: profile.trainingDurationMin,
+      preferredStart: trainingWindow.start,
+      preferredEnd: trainingWindow.end,
+      energy: energyProfile,
+      flexible: true,
+      protected: false,
+      sessionType: 'workout',
+      tier: 'should',
+      active: true,
+    };
+    trainingGoal.routineIds.push(trainingRoutine.id);
+    routines.push(trainingRoutine);
+  }
   goals.push(trainingGoal);
-  routines.push(trainingRoutine);
 
   // Family dinner: protected daily anchor when family is present.
   if (hasKids || hasPartner) {
@@ -245,13 +275,14 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     });
   }
 
-  // One-on-one time: each kid getting their own slice of you.
+  // One-on-one time: each kid getting their own slice of you. With two or
+  // more kids one Sunday slot can't rotate fairly — it runs both weekend days.
   if (hasKids && profile.moreOf.includes('Time with the kids')) {
     routines.push({
       id: newId('r'),
       title: 'One-on-one time with each kid',
       area: 'family',
-      days: [0],
+      days: (kidsCount ?? 1) >= 2 ? [0, 6] : [0],
       durationMin: 45,
       preferredStart: '15:30',
       preferredEnd: '16:30',
@@ -302,6 +333,12 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
       tier: 'could',
       active: true,
     });
+  }
+
+  // Creative time: making, not consuming — defended evenings.
+  if (profile.moreOf.includes('Creative time')) {
+    const creative = protocolById('creative-block');
+    if (creative) routines.push(toRoutine(creative, profile));
   }
 
   // Deep work happens inside work hours, carved out as a fixed block.
@@ -368,8 +405,12 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     });
   }
 
+  const foodAim = str(answers, 'foodAim');
+  const startsNutritionPath = Boolean(foodAim && foodAim !== 'none');
+
   // Nutrition-lite: structure over logging — a ten-minute Sunday sketch.
-  if (profile.moreOf.includes('Cooking real food')) {
+  // (When the nutrition path starts, it owns the meal sketch instead.)
+  if (profile.moreOf.includes('Cooking real food') && !startsNutritionPath) {
     routines.push({
       id: newId('r'),
       title: 'Sunday meal sketch',
@@ -398,39 +439,31 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     routines.push(...tripRoutines);
   }
 
-  // Money: one tap puts the finance modality in the loop.
+  // Money: the money path owns this now — started at approval with the
+  // interview's mode and automation answers, so day one carries the
+  // milestones and the check-in, not just a block.
   const money = str(answers, 'money');
-  if (money === 'saving') {
-    const { goal: savingGoal, routines: savingRoutines } = buildGoalPlan(
-      parseGoal('Save for the big goal'),
-      profile,
-    );
-    goals.push(savingGoal);
-    routines.push(...savingRoutines);
-  } else if (money === 'checkin') {
-    routines.push({
-      id: newId('r'),
-      title: 'Money check-in',
-      area: 'admin',
-      protocolId: 'money-checkin',
-      days: [0],
-      durationMin: 30,
-      preferredStart: '19:30',
-      preferredEnd: '20:30',
-      energy: 'evening',
-      flexible: true,
-      protected: false,
-      tier: 'could',
-      active: true,
-    });
-  }
+  const startsMoneyPath = Boolean(money && money !== 'none');
 
   // The free-text ambition runs through the domain-aware goal planner —
   // "Grow the business to $2m" arrives with milestones and a growth block,
   // not as a flat wish.
   const ambition = str(answers, 'ambition');
   if (ambition) {
-    const { goal, routines: goalRoutines } = buildGoalPlan(parseGoal(ambition), profile);
+    const parsedAmbition = parseGoal(ambition);
+    // The work-style answer tailors a business ambition immediately:
+    // makers get the thinking time carved out alongside the growth block.
+    const ambitionAnswers: Record<string, string> =
+      (parsedAmbition.domain === 'business' || parsedAmbition.domain === 'career') &&
+      (workStyle === 'maker' || workStyle === 'mixed')
+        ? { bottleneck: 'focus' }
+        : {};
+    const { goal, routines: goalRoutines } = buildGoalPlan(
+      parsedAmbition,
+      profile,
+      undefined,
+      ambitionAnswers,
+    );
     goals.push(goal);
     routines.push(...goalRoutines);
   }
@@ -451,7 +484,49 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     active: true,
   }));
 
-  return { profile, goals, routines, behaviourIntentions };
+  // A deep-work block can arrive from two doors (moreOf + a business
+  // ambition); keep one of each protocol.
+  const seenProtocol = new Set<string>();
+  const dedupedRoutines = routines.filter((r) => {
+    if (!r.protocolId) return true;
+    if (seenProtocol.has(r.protocolId)) return false;
+    seenProtocol.add(r.protocolId);
+    return true;
+  });
+
+  // Paths the answers already justify — started at approval, so the first
+  // day carries tailored milestones, check-ins and advice, not just blocks.
+  const pathStarts: LifeOperatingPlan['pathStarts'] = [];
+  if (startsNutritionPath) {
+    pathStarts.push({
+      id: 'nutrition',
+      answers: {
+        aim: foodAim,
+        cooking: profile.moreOf.includes('Cooking real food') ? 'enjoy' : 'normal',
+      },
+    });
+  }
+  if (startsMoneyPath) {
+    pathStarts.push({
+      id: 'money',
+      answers: {
+        mode: money === 'checkin' ? 'clarity' : money,
+        automation: str(answers, 'moneyAutomation', 'partial') || 'partial',
+      },
+    });
+  }
+  if (lessOf.length > 0) {
+    pathStarts.push({
+      id: 'recovery',
+      answers: {
+        behaviour: lessOf[0],
+        trigger: 'unsure',
+        replacement: arr(answers, 'mind').includes('breathing') ? 'breathe' : 'unsure',
+      },
+    });
+  }
+
+  return { profile, goals, routines: dedupedRoutines, behaviourIntentions, pathStarts };
 }
 
 function minusMinutes(hhmm: string, minutes: number): string {

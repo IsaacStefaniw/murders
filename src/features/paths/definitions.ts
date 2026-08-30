@@ -8,12 +8,17 @@
  * real routines — adapted, learned-on, and reviewed like everything else.
  */
 
+import { behaviourInfo } from '@/features/behaviours/catalog';
 import { buildGoalPlan, type GoalPlan, type ParsedGoal } from '@/features/goals/goalPlanner';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { DOMAIN_QUESTIONS, type DomainQuestion } from '@/features/knowledge/questionBank';
-import type { LifeProfile } from '@/types/domain';
+import { newId } from '@/lib/dates';
+import type { BehaviourKey, LifeProfile, Routine } from '@/types/domain';
 
-export type PathId = 'training' | 'nutrition' | 'money' | 'work';
+export type PathId = 'training' | 'nutrition' | 'money' | 'work' | 'recovery';
+
+/** A path build is a goal plan, plus optionally the behaviour it protects. */
+export type PathBuild = GoalPlan & { behaviour?: BehaviourKey };
 
 export interface PersonalNumberAsk {
   key: 'age' | 'weightKg';
@@ -29,7 +34,7 @@ export interface PathDefinition {
   promise: string;
   questions: DomainQuestion[];
   personalNumbers?: PersonalNumberAsk[];
-  build: (answers: Record<string, string>, profile: LifeProfile | null) => GoalPlan;
+  build: (answers: Record<string, string>, profile: LifeProfile | null) => PathBuild;
   /** Personal, concrete hub lines — "your number", not platitudes. */
   insights: (answers: Record<string, string>, profile: LifeProfile | null) => string[];
   /** The runnable session this path centres on (work resolves per-goal). */
@@ -170,6 +175,12 @@ export const PATHS: Record<PathId, PathDefinition> = {
       buildGoalPlan(parsed('Money, running itself', 'finance', 'admin'), profile, undefined, answers),
     insights: (answers) => {
       const lines: string[] = [];
+      if (answers.mode !== 'debt') {
+        lines.push(
+          'Investing, the boring way that works: automate it, keep costs low, spread wide, and let time compound. Picking winners is a hobby, not a plan. (Education, never financial advice.)',
+        );
+        lines.push('Order of operations: emergency buffer → expensive debt → then investing.');
+      }
       if (answers.automation === 'no') {
         lines.push('First move, this week: automate one transfer on payday. Everything after that is observation, not discipline.');
       } else if (answers.automation === 'partial') {
@@ -236,6 +247,128 @@ export const PATHS: Record<PathId, PathDefinition> = {
       return lines;
     },
   },
+
+  recovery: {
+    id: 'recovery',
+    title: 'Habits & urges',
+    promise:
+      'Not willpower — engineering. Name the moment the urge usually wins, put a rehearsed answer in that exact window, and let INTENT learn your real triggers from what you log.',
+    questions: [
+      {
+        key: 'behaviour',
+        question: 'Which habit are we working on first?',
+        options: [
+          { value: 'doomscrolling', label: 'Doom scrolling' },
+          { value: 'alcohol', label: 'Alcohol' },
+          { value: 'vaping', label: 'Vaping' },
+          { value: 'social_media', label: 'Social media' },
+          { value: 'junk_food', label: 'Junk food' },
+          { value: 'late_nights', label: 'Late nights' },
+        ],
+      },
+      {
+        key: 'trigger',
+        question: 'When does it usually win?',
+        options: [
+          { value: 'stress', label: 'Stress' },
+          { value: 'boredom', label: 'Boredom' },
+          { value: 'social', label: 'Social settings' },
+          { value: 'evening', label: 'Evenings, at home' },
+          { value: 'unsure', label: 'Honestly not sure' },
+        ],
+      },
+      {
+        key: 'replacement',
+        question: 'What could stand in its place?',
+        options: [
+          { value: 'breathe', label: 'A two-minute breath reset' },
+          { value: 'walk', label: 'A short walk' },
+          { value: 'read', label: 'Reading' },
+          { value: 'message', label: 'Messaging someone real' },
+          { value: 'unsure', label: 'Help me pick' },
+        ],
+      },
+    ],
+    build: (answers, profile): PathBuild => {
+      const behaviour = (answers.behaviour ?? 'doomscrolling') as BehaviourKey;
+      const info = behaviourInfo(behaviour);
+      const now = new Date().toISOString();
+      const goalId = newId('g');
+
+      // The rehearsed answer lives in the actual risk window.
+      const start =
+        answers.trigger === 'stress'
+          ? '12:45'
+          : answers.trigger === 'social'
+            ? '17:30'
+            : answers.trigger === 'boredom'
+              ? '19:45'
+              : '20:30';
+      const replacement = answers.replacement === 'unsure' ? 'breathe' : (answers.replacement ?? 'breathe');
+      const routineByReplacement: Record<string, Partial<Routine> & { title: string }> = {
+        breathe: { title: 'The urge answer: two-minute reset', durationMin: 5, sessionType: 'breathe' },
+        walk: { title: 'The urge answer: walk it off', durationMin: 20 },
+        read: { title: 'The urge answer: read instead', durationMin: 20 },
+        message: { title: 'The urge answer: message someone real', durationMin: 10 },
+      };
+      const base = routineByReplacement[replacement] ?? routineByReplacement.breathe;
+      const routine: Routine = {
+        id: newId('r'),
+        title: base.title,
+        area: 'health',
+        goalId,
+        days: [0, 1, 2, 3, 4, 5, 6],
+        durationMin: base.durationMin ?? 10,
+        preferredStart: start,
+        preferredEnd: start,
+        energy: 'any',
+        flexible: true,
+        protected: false,
+        sessionType: base.sessionType,
+        tier: profile?.capacity === 'minimal' ? 'could' : 'should',
+        active: true,
+      };
+
+      return {
+        goal: {
+          id: goalId,
+          title: info.intentionTemplate,
+          area: 'health',
+          domain: 'behaviour',
+          milestones: [
+            { id: newId('ms'), title: 'Name the moment it usually starts', done: answers.trigger !== 'unsure' },
+            { id: newId('ms'), title: 'Choose the replacement and make it easy', done: answers.replacement !== 'unsure' },
+            { id: newId('ms'), title: 'Seven days with the urge answered', done: false },
+            { id: newId('ms'), title: 'Four steady weeks', done: false },
+          ],
+          status: 'active',
+          createdAt: now,
+          routineIds: [routine.id],
+        },
+        routines: [routine],
+        behaviour,
+      };
+    },
+    insights: (answers) => {
+      const lines: string[] = [];
+      const triggerLine: Record<string, string> = {
+        stress: 'Stress is the trigger, so the answer sits mid-workday — a rehearsed reset before the evening arrives already depleted.',
+        boredom: 'Boredom urges want stimulation, not sedation — the replacement gives your hands and mind something real.',
+        social: 'Social triggers are decided in advance: know your drink, your line, and your exit before you arrive.',
+        evening: 'Evening at home is the classic window. The replacement is scheduled right into it — same time, every night.',
+        unsure: 'Not sure of the trigger? Log each urge with one tap and INTENT will find the pattern within two weeks.',
+      };
+      lines.push(triggerLine[answers.trigger ?? 'unsure']);
+      lines.push('One miss is noise. Two in a row is the fork — that’s when INTENT steps in, not with shame, with a plan.');
+      lines.push('Urges crest and fall in about 10 minutes. The replacement doesn’t have to beat the habit — it has to outlast the wave.');
+      if (answers.behaviour === 'alcohol') {
+        lines.push('Honest scope: this is structure for cutting down. If drinking feels out of control, talk to someone qualified — that’s strength, not failure.');
+      }
+      return lines;
+    },
+    sessionLabel: 'Breathe through an urge',
+    sessionRoute: '/session/breathe',
+  },
 };
 
-export const PATH_ORDER: PathId[] = ['training', 'nutrition', 'money', 'work'];
+export const PATH_ORDER: PathId[] = ['training', 'nutrition', 'money', 'work', 'recovery'];

@@ -19,6 +19,37 @@ import { useAppStore } from '@/state/store';
 
 const TRIGGERS = ['Stress', 'Boredom', 'Social', 'After a meal', 'Work', 'Habit', 'Other'];
 
+/** Trigger-appropriate next move — not always "breathe". */
+const TRIGGER_INTERVENTIONS: Record<string, { text: string; label?: string; route?: string }> = {
+  Stress: {
+    text: 'Stress urges fall fastest to a physiological sigh — two minutes, right now.',
+    label: 'Breathe it through',
+    route: '/session/breathe',
+  },
+  Boredom: {
+    text: 'Boredom wants stimulation, not sedation. Ten minutes of your replacement — a walk, a page, a message.',
+    label: 'Journal one line instead',
+    route: '/session/journal',
+  },
+  Social: {
+    text: 'Social triggers are won in advance: decide your drink, your line, and your exit before the next one.',
+  },
+  'After a meal': {
+    text: 'Pair the moment with a 10-minute walk — same cue, better payoff.',
+  },
+  Work: {
+    text: 'Work spikes pass. Two minutes of slow exhales, then one small next action.',
+    label: 'Breathe it through',
+    route: '/session/breathe',
+  },
+  Habit: {
+    text: 'Pure habit runs on cues — change the scene for two minutes and the loop loses its footing.',
+    label: 'Breathe it through',
+    route: '/session/breathe',
+  },
+  Other: { text: 'Noted. The pattern will show itself — keep logging, one tap at a time.' },
+};
+
 /** The dominant trigger once there's enough signal (≥3 of the same). */
 function commonTrigger(events: BehaviourEvent[]): string | null {
   const counts = new Map<string, number>();
@@ -47,6 +78,10 @@ export default function Life() {
     intentionId: string;
     eventId: string;
   } | null>(null);
+  /** After a trigger is named, offer the move that fits it. */
+  const [intervention, setIntervention] = useState<{ intentionId: string; trigger: string } | null>(
+    null,
+  );
 
   // Rolling 7-day window. The clock read is deliberate and the computation
   // trivial; a stable-per-render anchor would only make counts staler.
@@ -64,6 +99,11 @@ export default function Life() {
         Life
       </AppText>
       <AppText variant="title">What you&apos;re building</AppText>
+      {profile.lifeVision ? (
+        <AppText variant="secondary" style={styles.vision}>
+          “{profile.lifeVision}”
+        </AppText>
+      ) : null}
 
       <SectionHeader title="Paths" />
       <AppText variant="caption" color="textTertiary">
@@ -209,10 +249,32 @@ export default function Life() {
                           onPress={() => {
                             setBehaviourEventTrigger(pendingTrigger.eventId, t);
                             setPendingTrigger(null);
+                            setIntervention({ intentionId: intention.id, trigger: t });
                           }}
                         />
                       ))}
                       <Chip label="Skip" onPress={() => setPendingTrigger(null)} />
+                    </View>
+                  </View>
+                ) : null}
+                {intervention?.intentionId === intention.id ? (
+                  <View style={styles.triggerArea}>
+                    <AppText variant="secondary">
+                      {TRIGGER_INTERVENTIONS[intervention.trigger]?.text}
+                    </AppText>
+                    <View style={styles.triggerChips}>
+                      {TRIGGER_INTERVENTIONS[intervention.trigger]?.route ? (
+                        <Chip
+                          label={TRIGGER_INTERVENTIONS[intervention.trigger].label!}
+                          selected
+                          onPress={() => {
+                            const route = TRIGGER_INTERVENTIONS[intervention.trigger].route!;
+                            setIntervention(null);
+                            router.push(route as never);
+                          }}
+                        />
+                      ) : null}
+                      <Chip label="Got it" onPress={() => setIntervention(null)} />
                     </View>
                   </View>
                 ) : null}
@@ -253,6 +315,7 @@ export default function Life() {
 
 const styles = StyleSheet.create({
   stack: { gap: Spacing.sm },
+  vision: { marginTop: Spacing.sm, fontStyle: 'italic' },
   pathRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: Spacing.sm },
   pathTitle: { flexShrink: 1 },
   intentionRow: {

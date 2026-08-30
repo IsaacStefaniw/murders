@@ -78,3 +78,45 @@ describe('path definitions', () => {
     expect(plan.goal.milestones!.map((m) => m.title)).toContain('List every debt with its rate');
   });
 });
+
+describe('recovery path', () => {
+  it('places the rehearsed answer in the actual risk window', () => {
+    const evening = PATHS.recovery.build(
+      { behaviour: 'doomscrolling', trigger: 'evening', replacement: 'read' },
+      profile,
+    );
+    expect(evening.behaviour).toBe('doomscrolling');
+    expect(evening.routines[0].title).toContain('read instead');
+    expect(evening.routines[0].preferredStart).toBe('20:30');
+
+    const stress = PATHS.recovery.build(
+      { behaviour: 'vaping', trigger: 'stress', replacement: 'breathe' },
+      profile,
+    );
+    expect(stress.routines[0].preferredStart).toBe('12:45');
+    expect(stress.routines[0].sessionType).toBe('breathe');
+  });
+
+  it('known trigger and replacement pre-complete their milestones', () => {
+    const known = PATHS.recovery.build(
+      { behaviour: 'alcohol', trigger: 'social', replacement: 'message' },
+      profile,
+    );
+    const done = known.goal.milestones!.filter((m) => m.done).length;
+    expect(done).toBe(2);
+    const unsure = PATHS.recovery.build(
+      { behaviour: 'alcohol', trigger: 'unsure', replacement: 'unsure' },
+      profile,
+    );
+    expect(unsure.goal.milestones!.filter((m) => m.done)).toHaveLength(0);
+  });
+
+  it('alcohol carries the honest-scope line; money education is never advice', () => {
+    const lines = PATHS.recovery
+      .insights({ behaviour: 'alcohol', trigger: 'social' }, profile)
+      .join(' ');
+    expect(lines).toContain('someone qualified');
+    const money = PATHS.money.insights({ mode: 'saving', automation: 'yes' }, profile).join(' ');
+    expect(money).toContain('never financial advice');
+  });
+});

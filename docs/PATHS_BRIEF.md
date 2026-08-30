@@ -58,6 +58,44 @@ sent anywhere in demo mode.
 - Behavioural learning (moves/skips/completions) keeps reducing the need
   to ask: the app infers what it can and asks only what it can't.
 
+## Round 2 (shipped): recovery, auto-start, Interview v4
+
+- **Recovery path** (habits & urges): behaviour → trigger → replacement.
+  The build places a rehearsed "urge answer" routine in the actual risk
+  window (stress → midday reset; evening-at-home → the nightly slot),
+  pre-completes the milestones the answers already settle, activates the
+  behaviour intention, and the Life tab now offers *trigger-appropriate*
+  interventions after each logged urge (stress → breathe, boredom →
+  journal/replacement, social → decide-in-advance) instead of one-size
+  breathwork. Alcohol carries an honest-scope line: structure for cutting
+  down, not treatment.
+- **Interview v4** deliberately raises the question gate — commitment
+  through effort — but every new question triggers something on day one:
+  vision (shown on Life, feeds the AI), age decade (training guidance),
+  weight (protein target), kids count (one-on-one cadence), work style
+  (deep-work carve-outs for makers with business ambitions), walking as a
+  first-class training answer (a walking program, not a guilt-gym one),
+  creative time (a defended block), food aim and money mode + automation.
+- **Paths auto-start at approval.** Nutrition, money and recovery paths
+  the answers justify are started the moment the plan is approved — day
+  one carries tailored milestones, check-ins and advice, and the review
+  screen says so ("Paths starting today"). Training stays tailored via
+  the profile; its path intake remains the retune surface.
+- **Money education**: index-style principles (automate, low-cost, spread
+  wide, time in market; buffer → expensive debt → investing) as education
+  with an explicit never-advice line.
+
+## Positioning vs. the field (why this can be #1)
+
+Competitors each own a slice: Whoop/Oura measure but don't schedule;
+Headspace/Calm run sessions but know nothing of your calendar; Noom
+coaches one domain; YNAB knows money only; Fabulous/Atoms build habits
+but don't plan a real week around a real job and real kids. INTENT's
+wedge is the seam none of them hold: **one evidence base + one calendar +
+one learning loop across every domain** — the app synthesises what the
+user can't (protocols, sequencing, trade-offs) and turns it into a week
+that already fits their life, then adapts from what actually happens.
+
 ## Success test
 
 A user who finishes one path intake should be able to answer, from the

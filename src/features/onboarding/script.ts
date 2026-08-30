@@ -56,6 +56,14 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     ],
   },
   {
+    id: 'vision',
+    kind: 'text',
+    optional: true,
+    prompt: () =>
+      'If life is genuinely working three years from now — what does it look like? One or two lines, your words.',
+    placeholder: 'e.g. Business runs without me, fit at 50, present with the kids…',
+  },
+  {
     id: 'household',
     kind: 'multi',
     prompt: () => "Who's at home with you?",
@@ -63,6 +71,18 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
       { value: 'partner', label: 'Partner' },
       { value: 'kids', label: 'Kids' },
       { value: 'solo', label: 'Just me' },
+    ],
+  },
+  {
+    id: 'kidsCount',
+    kind: 'single',
+    skipIf: (a) => !(a.household as string[] | undefined)?.includes('kids'),
+    prompt: () => 'How many kids?',
+    options: [
+      { value: '1', label: '1' },
+      { value: '2', label: '2' },
+      { value: '3', label: '3' },
+      { value: '4', label: '4+' },
     ],
   },
   {
@@ -82,6 +102,31 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
       { value: 'minimal', label: 'Running on fumes — keep it minimal' },
       { value: 'steady', label: 'Full, but functional' },
       { value: 'push', label: 'Room to push' },
+    ],
+  },
+  {
+    id: 'age',
+    kind: 'single',
+    optional: true,
+    prompt: () =>
+      'Roughly which decade are you in? (Training and recovery guidance changes with it.)',
+    options: [
+      { value: '25', label: '20s' },
+      { value: '35', label: '30s' },
+      { value: '45', label: '40s' },
+      { value: '55', label: '50s' },
+      { value: '65', label: '60s+' },
+    ],
+  },
+  {
+    id: 'workStyle',
+    kind: 'single',
+    prompt: () => 'What does your workday mostly demand?',
+    options: [
+      { value: 'maker', label: 'Deep, focused work' },
+      { value: 'manager', label: 'People and meetings' },
+      { value: 'mixed', label: 'Both, constantly' },
+      { value: 'physical', label: 'On my feet, hands-on' },
     ],
   },
   {
@@ -152,7 +197,39 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
       { value: 'gym', label: 'Gym' },
       { value: 'home', label: 'Home' },
       { value: 'outdoors', label: 'Outdoors' },
+      { value: 'walking', label: 'Walking is my training' },
       { value: 'mixed', label: 'Mix of these' },
+    ],
+  },
+  {
+    id: 'trainingExperience',
+    kind: 'single',
+    skipIf: (a) => a.trainingSetup === 'walking',
+    prompt: () => 'And where are you starting from?',
+    options: [
+      { value: 'new', label: 'Basically starting fresh' },
+      { value: 'returning', label: 'Coming back after a break' },
+      { value: 'consistent', label: 'Already training, want more' },
+    ],
+  },
+  {
+    id: 'weight',
+    kind: 'text',
+    optional: true,
+    prompt: () =>
+      'Weight in kg? Optional — it sets your personal protein target, nothing else. Never judged, never shared.',
+    placeholder: 'e.g. 90 — or skip',
+  },
+  {
+    id: 'foodAim',
+    kind: 'single',
+    optional: true,
+    prompt: () => 'Food — want the nutrition coach in the loop?',
+    options: [
+      { value: 'energy', label: 'Steadier energy' },
+      { value: 'weight', label: 'Lose some weight' },
+      { value: 'muscle', label: 'Support training' },
+      { value: 'none', label: 'Not yet' },
     ],
   },
   {
@@ -179,6 +256,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
       { value: 'Deep work', label: 'Deep work' },
       { value: 'Adventure & travel', label: 'Adventure & travel' },
       { value: 'Cooking real food', label: 'Cooking real food' },
+      { value: 'Creative time', label: 'Creative time' },
     ],
   },
   {
@@ -203,9 +281,21 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     optional: true,
     prompt: () => 'Money — want INTENT in the loop?',
     options: [
-      { value: 'checkin', label: 'A short monthly-style check-in' },
+      { value: 'checkin', label: 'A short weekly check-in' },
       { value: 'saving', label: "We're saving for something big" },
+      { value: 'debt', label: 'Getting out of debt' },
       { value: 'none', label: 'Not yet' },
+    ],
+  },
+  {
+    id: 'moneyAutomation',
+    kind: 'single',
+    skipIf: (a) => !a.money || a.money === 'none',
+    prompt: () => 'Is any of it automated today?',
+    options: [
+      { value: 'yes', label: 'Transfers run themselves' },
+      { value: 'partial', label: 'Some of it' },
+      { value: 'no', label: 'All manual' },
     ],
   },
   {
@@ -213,7 +303,8 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     kind: 'text',
     optional: true,
     prompt: () => "Last one. What's one thing you're working toward this year?",
-    placeholder: 'e.g. Grow the business to $2m · Save $50k · Run a marathon · Japan with the kids',
+    placeholder:
+      'e.g. Grow the business to $2m · Save $50k · Run a marathon · Write the book · Japan with the kids',
   },
 ];
 

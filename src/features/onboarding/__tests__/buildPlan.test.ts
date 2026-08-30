@@ -126,16 +126,63 @@ describe('buildLifeOperatingPlan', () => {
     });
     expect(wide.routines.some((r) => r.title === 'Sauna & recover')).toBe(true);
     expect(wide.routines.some((r) => r.title === 'Sunday meal sketch')).toBe(true);
-    expect(wide.routines.some((r) => r.title === 'Money check-in')).toBe(true);
+    // Money now arrives as an auto-started path, not a lone block.
+    expect(wide.pathStarts.find((p) => p.id === 'money')?.answers.mode).toBe('clarity');
     const trip = wide.goals.find((g) => g.domain === 'experience')!;
     expect(trip.milestones!.map((m) => m.title)).toContain('Book it');
   });
 
-  it("'saving for something big' becomes a structured finance goal", () => {
-    const saver = buildLifeOperatingPlan({ ...answers, money: 'saving' });
-    const goal = saver.goals.find((g) => g.domain === 'finance')!;
-    expect(goal.milestones!.length).toBeGreaterThanOrEqual(2);
-    expect(saver.routines.some((r) => r.goalId === goal.id)).toBe(true);
+  it("'saving for something big' auto-starts the money path in saving mode", () => {
+    const saver = buildLifeOperatingPlan({
+      ...answers,
+      money: 'saving',
+      moneyAutomation: 'no',
+    });
+    const start = saver.pathStarts.find((p) => p.id === 'money')!;
+    expect(start.answers).toEqual({ mode: 'saving', automation: 'no' });
+  });
+
+  it('interview v4 answers flow to the profile and start the right paths', () => {
+    const v4 = buildLifeOperatingPlan({
+      ...answers,
+      vision: 'Fit at 50, business runs without me',
+      age: '45',
+      weight: '92',
+      kidsCount: '2',
+      workStyle: 'maker',
+      foodAim: 'weight',
+      lessOf: ['alcohol', 'doomscrolling'],
+    });
+    expect(v4.profile.age).toBe(45);
+    expect(v4.profile.weightKg).toBe(92);
+    expect(v4.profile.kidsCount).toBe(2);
+    expect(v4.profile.workStyle).toBe('maker');
+    expect(v4.profile.lifeVision).toContain('Fit at 50');
+    const ids = v4.pathStarts.map((p) => p.id);
+    expect(ids).toContain('nutrition');
+    expect(ids).toContain('recovery');
+    const recovery = v4.pathStarts.find((p) => p.id === 'recovery')!;
+    expect(recovery.answers.behaviour).toBe('alcohol');
+    // Nutrition path owns the meal sketch — no duplicate local one.
+    expect(v4.routines.filter((r) => r.protocolId === 'meal-sketch')).toHaveLength(0);
+  });
+
+  it('walking as training builds a walking program, not a gym one', () => {
+    const walker = buildLifeOperatingPlan({
+      ...answers,
+      trainingSetup: 'walking',
+      trainingDays: '4',
+    });
+    expect(walker.routines.some((r) => r.sessionType === 'workout')).toBe(false);
+    const walk = walker.routines.find((r) => r.protocolId === 'daily-walk')!;
+    expect(walk.days.length).toBeGreaterThanOrEqual(4);
+    expect(walker.goals.some((g) => g.title.startsWith('Walk'))).toBe(true);
+    expect(walker.profile.trainingPreference).toBe('outdoors');
+  });
+
+  it('creative time gets a defended block', () => {
+    const creative = buildLifeOperatingPlan({ ...answers, moreOf: ['Creative time'] });
+    expect(creative.routines.some((r) => r.protocolId === 'creative-block')).toBe(true);
   });
 
   it('falls back to sensible defaults on an empty interview', () => {

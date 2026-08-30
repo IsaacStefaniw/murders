@@ -15,6 +15,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
+import { behaviourInfo } from '@/features/behaviours/catalog';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { detectGoalUnderserved } from '@/features/goals/underserved';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
@@ -415,6 +416,19 @@ export const useAppStore = create<AppState>()(
 
           const plan = def.build(answers, profile);
           get().addGoal(plan.goal, plan.routines);
+          // The recovery path protects a behaviour — make sure its
+          // intention (and urge logging) is live too.
+          if (plan.behaviour) {
+            const active = get().behaviourIntentions.some(
+              (b) => b.behaviour === plan.behaviour && b.active,
+            );
+            if (!active) {
+              get().addBehaviourIntention(
+                plan.behaviour,
+                behaviourInfo(plan.behaviour).intentionTemplate,
+              );
+            }
+          }
           set({
             paths: {
               ...get().paths,
