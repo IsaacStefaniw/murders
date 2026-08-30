@@ -129,6 +129,7 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     energy: energyProfile,
     flexible: true,
     protected: false,
+    sessionType: 'workout',
     tier: 'should',
     active: true,
   };
@@ -190,6 +191,7 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     id: newId('r'),
     title: 'Wind down, screens away',
     area: 'health',
+    sessionType: 'breathe' as const,
     days: [0, 1, 2, 3, 4],
     durationMin: 20,
     preferredStart: minusMinutes(sleepTime, 35),

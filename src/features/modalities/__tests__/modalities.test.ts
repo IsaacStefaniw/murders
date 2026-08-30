@@ -57,7 +57,19 @@ describe('buildWorkout', () => {
 });
 
 describe('sessionForItem', () => {
-  it('maps workouts to the workout player', () => {
+  it('resolves through the explicit sessionType first — titles are irrelevant', () => {
+    const launch = sessionForItem(item({ title: 'Anything at all', sessionType: 'breathe' }));
+    expect(launch!.route).toBe('/session/breathe');
+  });
+
+  it('routes business_review sessions to the goal-scoped review', () => {
+    const launch = sessionForItem(
+      item({ sessionType: 'business_review', goalId: 'g9', title: 'Growth block' }),
+    );
+    expect(launch!.route).toBe('/session/review/g9');
+  });
+
+  it('falls back to legacy title inference only for items without a sessionType', () => {
     expect(sessionForItem(item({}))!.route).toBe('/session/workout');
   });
 

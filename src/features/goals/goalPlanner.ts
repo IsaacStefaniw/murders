@@ -120,6 +120,7 @@ export function buildGoalPlan(parsed: ParsedGoal, profile: LifeProfile | null, w
         energy: 'morning',
         flexible: false,
         duringWork: true,
+        sessionType: 'business_review',
         tier: 'must',
       });
       break;
@@ -136,6 +137,7 @@ export function buildGoalPlan(parsed: ParsedGoal, profile: LifeProfile | null, w
         preferredStart: '12:05',
         preferredEnd: '13:15',
         energy: profile?.energyProfile ?? 'any',
+        sessionType: 'workout',
       });
       break;
 

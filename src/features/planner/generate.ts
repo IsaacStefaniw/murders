@@ -43,7 +43,13 @@ export function workBlocks(
     carves.push({
       start,
       end,
-      commitment: { title: r.title, start: toHHMM(start), end: toHHMM(end), area: r.area },
+      commitment: {
+        title: r.title,
+        start: toHHMM(start),
+        end: toHHMM(end),
+        area: r.area,
+        sessionType: r.sessionType,
+      },
     });
   }
   carves.sort((a, b) => a.start - b.start);

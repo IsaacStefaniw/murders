@@ -17,6 +17,7 @@ export interface FixedCommitment {
   start: string;
   end: string;
   area?: PlanItem['area'];
+  sessionType?: PlanItem['sessionType'];
 }
 
 export interface DayContext {
@@ -209,6 +210,7 @@ export function buildDailyPlan(ctx: DayContext): DailyPlan & { unplaced: Routine
         tier: 'must',
         status: 'planned',
         fixed: true,
+        sessionType: f.sessionType,
       }),
     ),
     ...kept.map(
@@ -224,6 +226,7 @@ export function buildDailyPlan(ctx: DayContext): DailyPlan & { unplaced: Routine
         routineId: p.routine.id,
         goalId: p.routine.goalId,
         fixed: false,
+        sessionType: p.routine.sessionType,
       }),
     ),
   ].sort((a, b) => toMinutes(a.start) - toMinutes(b.start));

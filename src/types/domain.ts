@@ -47,6 +47,12 @@ export interface LifeProfile {
 
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6; // Sunday = 0, matches Date.getDay()
 
+/**
+ * Runnable session kinds — the explicit link from a routine/plan item to
+ * the modality that can run it. Never inferred from titles.
+ */
+export type SessionType = 'breathe' | 'meditate' | 'workout' | 'business_review';
+
 export type GoalStatus = 'active' | 'paused' | 'achieved' | 'dropped';
 
 /**
@@ -115,6 +121,8 @@ export interface Routine {
    * carve-out of the work day instead of being placed into free time.
    */
   duringWork?: boolean;
+  /** The modality session that runs this routine, if one exists. */
+  sessionType?: SessionType;
   tier: PlanTier;
   active: boolean;
 }
@@ -158,6 +166,8 @@ export interface PlanItem {
   goalId?: string;
   /** Fixed commitments (calendar events) cannot be moved by the engine. */
   fixed: boolean;
+  /** Inherited from the routine: the modality session that runs this item. */
+  sessionType?: SessionType;
   /** Original scheduled start, set on first move — distinguishes COMPLETED_AFTER_MOVE. */
   movedFrom?: string;
   /** Original duration before a shorten-to-fit, in minutes. */

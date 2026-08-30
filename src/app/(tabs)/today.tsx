@@ -60,10 +60,12 @@ export default function Today() {
 
   const plan = plans[date];
   const openSuggestion = useMemo(() => suggestions.find((s) => s.status === 'open'), [suggestions]);
-  const lookingAhead = useMemo(
-    () => (profile ? buildLookingAhead(date, plans, routines, profile) : []),
-    [date, plans, routines, profile],
-  );
+  // Today leaks exactly one future moment; the Plan tab owns the week.
+  const lookAheadHighlight = useMemo(() => {
+    if (!profile) return null;
+    const entries = buildLookingAhead(date, plans, routines, profile);
+    return entries.find((e) => e.kind === 'moment') ?? entries[0] ?? null;
+  }, [date, plans, routines, profile]);
 
   const now = nowMinutes();
   const isEvening = now >= EVENING_START;
@@ -236,47 +238,40 @@ export default function Today() {
         </Card>
       </View>
 
-      {lookingAhead.length > 0 ? (
-        <View>
-          <SectionHeader title="Looking ahead" />
-          <Card>
-            {lookingAhead.map((entry) => (
-              <View key={entry.key}>
-                <Pressable
-                  accessibilityRole={entry.kind === 'gap' ? 'button' : undefined}
-                  onPress={
-                    entry.kind === 'gap'
-                      ? () => setPlanningGap(planningGap === entry.date ? null : entry.date)
-                      : undefined
-                  }
-                  style={styles.aheadRow}
-                >
-                  <AppText variant="secondary" color="textTertiary" style={styles.aheadDay}>
-                    {entry.when}
-                  </AppText>
-                  <AppText
-                    variant="body"
-                    style={[styles.grow, entry.kind === 'gap' && { color: theme.textSecondary }]}
-                  >
-                    {entry.kind === 'gap' ? `${entry.title} — plan something?` : entry.title}
-                  </AppText>
-                  {entry.start ? (
-                    <AppText variant="caption" color="textTertiary">
-                      {formatTime(entry.start)}
-                    </AppText>
-                  ) : null}
-                </Pressable>
-                {planningGap === entry.date ? (
-                  <View style={styles.ideaChips}>
-                    {ideasFor(profile).map((idea) => (
-                      <Chip key={idea} label={idea} onPress={() => scheduleGapIdea(entry.date, idea)} />
-                    ))}
-                  </View>
-                ) : null}
-              </View>
-            ))}
-          </Card>
-        </View>
+      {lookAheadHighlight ? (
+        /* One emotionally useful future moment — Plan owns the full week. */
+        <Pressable
+          accessibilityRole={lookAheadHighlight.kind === 'gap' ? 'button' : undefined}
+          onPress={
+            lookAheadHighlight.kind === 'gap'
+              ? () =>
+                  setPlanningGap(
+                    planningGap === lookAheadHighlight.date ? null : lookAheadHighlight.date,
+                  )
+              : undefined
+          }
+          style={styles.aheadLine}
+        >
+          <AppText variant="label" color={lookAheadHighlight.kind === 'gap' ? 'textTertiary' : 'accent'}>
+            {lookAheadHighlight.when} · {lookAheadHighlight.kind === 'gap' ? 'wide open' : 'something to look forward to'}
+          </AppText>
+          <AppText variant="heading" style={styles.aheadTitle}>
+            {lookAheadHighlight.kind === 'gap'
+              ? 'Nothing planned yet — want something to look forward to?'
+              : `${lookAheadHighlight.title}${lookAheadHighlight.start ? ` · ${formatTime(lookAheadHighlight.start)}` : ''}`}
+          </AppText>
+          {planningGap === lookAheadHighlight.date ? (
+            <View style={styles.ideaChips}>
+              {ideasFor(profile).map((idea) => (
+                <Chip
+                  key={idea}
+                  label={idea}
+                  onPress={() => scheduleGapIdea(lookAheadHighlight.date, idea)}
+                />
+              ))}
+            </View>
+          ) : null}
+        </Pressable>
       ) : null}
     </Screen>
   );
@@ -290,14 +285,8 @@ const styles = StyleSheet.create({
   nowTitle: { fontSize: 28, lineHeight: 34, marginTop: 2 },
   nowActions: { marginTop: Spacing.lg },
   tonightLine: { marginBottom: Spacing.xs },
-  aheadRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-  aheadDay: { width: 96 },
-  grow: { flex: 1 },
+  aheadLine: { marginTop: Spacing.xl, gap: Spacing.xs },
+  aheadTitle: { fontWeight: '600' },
   ideaChips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
