@@ -15,6 +15,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
+import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { availableStartsFor, generateDailyPlan } from '@/features/planner/generate';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
@@ -92,7 +93,13 @@ export interface AppState {
   /** Add a one-off item (an anticipation plan, a spontaneous commitment). */
   addPlanItem: (
     date: string,
-    input: { title: string; area: PlanItem['area']; start: string; durationMin: number },
+    input: {
+      title: string;
+      area: PlanItem['area'];
+      start: string;
+      durationMin: number;
+      goalId?: string;
+    },
   ) => void;
 
   addGoal: (goal: Goal, routines: Routine[]) => void;
@@ -351,6 +358,7 @@ export const useAppStore = create<AppState>()(
             end: toHHMM(toMinutes(input.start) + input.durationMin),
             title: input.title,
             area: input.area,
+            goalId: input.goalId,
             tier: 'should',
             status: 'planned',
             fixed: false,
@@ -383,7 +391,9 @@ export const useAppStore = create<AppState>()(
                 ? {
                     ...g,
                     milestones: g.milestones?.map((m) =>
-                      m.id === milestoneId ? { ...m, done } : m,
+                      m.id === milestoneId
+                        ? { ...m, done, doneAt: done ? nowDate().toISOString() : undefined }
+                        : m,
                     ),
                   }
                 : g,
@@ -458,7 +468,7 @@ export const useAppStore = create<AppState>()(
         },
 
         refreshSuggestions: () => {
-          const { plans, routines, suggestions, planEvents, profile } = get();
+          const { plans, routines, suggestions, planEvents, profile, goals } = get();
           const today = todayKey();
           const history = Object.values(plans)
             .filter((p) => p.date >= addDays(today, -HISTORY_DAYS) && p.date <= today)
@@ -498,11 +508,23 @@ export const useAppStore = create<AppState>()(
             const anticipation = detectAnticipationGap(today, plans, routines, profile);
             if (anticipation) fresh.push(anticipation);
           }
+          // Stalled goals: at most one nudge per goal per stall window,
+          // counting nudges already answered.
+          const stallCooldown = new Date(Date.now() - STALL_DAYS * 86400e3).toISOString();
+          const goalIdOf = (s: Suggestion) => (s.payload as { goalId?: string })?.goalId;
+          const recentlyNudgedGoals = new Set(
+            suggestions
+              .filter((s) => s.kind === 'goal_stalled' && s.createdAt >= stallCooldown)
+              .map(goalIdOf),
+          );
+          for (const s of detectGoalStalled(today, goals)) {
+            if (!recentlyNudgedGoals.has(goalIdOf(s))) fresh.push(s);
+          }
 
           // Keep existing open suggestions; add only genuinely new ones.
           const open = suggestions.filter((s) => s.status === 'open');
           const keyOf = (s: Suggestion) =>
-            `${s.kind}:${(s.payload as { routineId?: string; date?: string })?.routineId ?? (s.payload as { date?: string })?.date ?? ''}`;
+            `${s.kind}:${(s.payload as { routineId?: string; goalId?: string; date?: string })?.routineId ?? (s.payload as { goalId?: string })?.goalId ?? (s.payload as { date?: string })?.date ?? ''}`;
           const existingKeys = new Set(open.map(keyOf));
           const additions = fresh.filter((s) => !existingKeys.has(keyOf(s)));
           if (additions.length > 0) set({ suggestions: [...open, ...additions] });
@@ -513,13 +535,15 @@ export const useAppStore = create<AppState>()(
           const suggestion = suggestions.find((s) => s.id === id);
           if (!suggestion) return;
 
-          if (suggestion.kind === 'connection') {
+          if (suggestion.kind === 'connection' || suggestion.kind === 'goal_stalled') {
+            // Both propose one concrete block; accepting puts it on the plan.
             const payload = suggestion.payload as {
               date: string;
               start: string;
               durationMin: number;
               title: string;
               area: PlanItem['area'];
+              goalId?: string;
             };
             get().addPlanItem(payload.date, payload);
           } else {

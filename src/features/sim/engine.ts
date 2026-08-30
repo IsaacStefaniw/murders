@@ -7,8 +7,10 @@
  */
 
 import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
+import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { generateDailyPlan } from '@/features/planner/generate';
 import { buildWeeklyChanges } from '@/features/review/weeklyChanges';
+import { runSessionForItem } from '@/features/sim/modalities';
 import {
   applyMoveRoutine,
   applyProtectTime,
@@ -19,7 +21,7 @@ import {
   type ManualMove,
 } from '@/lib/scheduling/adaptation';
 import { addDays, toHHMM, toMinutes } from '@/lib/dates';
-import type { DailyPlan, LifeArea, PlanItem, Routine, Suggestion } from '@/types/domain';
+import type { DailyPlan, Goal, LifeArea, PlanItem, Routine, Suggestion } from '@/types/domain';
 import type { GroundTruth, SimUser, Slot } from './personas';
 
 const SLOT_STARTS: Record<Slot, string> = { morning: '06:45', midday: '12:15', evening: '17:45' };
@@ -51,6 +53,11 @@ export interface WeekMetrics {
   hasFamilyMoment: boolean;
   weeklyChangesApplied: number;
   routinesDeactivated: number;
+  /** Modality sessions actually executed through the real generators. */
+  sessions: Record<string, { run: number; shortened: number }>;
+  /** Real product code produced an invalid session. Must stay zero. */
+  contractViolations: number;
+  milestonesCompleted: number;
 }
 
 export interface UserResult {
@@ -60,6 +67,17 @@ export interface UserResult {
   firstAnyAdaptationWeek: number | null;
   overlapViolations: number;
   errors: number;
+  /** Milestone progress by goal domain at the end of the run. */
+  milestonesByDomain: Record<string, { done: number; total: number }>;
+  goalsWithMilestones: number;
+  goalsFullyMilestoned: number;
+  /** Goals still stalled (undone milestone, no progress ≥ STALL_DAYS) at the end. */
+  goalsStalledAtEnd: number;
+}
+
+export interface SimOptions {
+  /** Wire the goal-stalled detector into the loop (ablate with false). */
+  goalRescue?: boolean;
 }
 
 function emptyWeek(): WeekMetrics {
@@ -77,13 +95,30 @@ function emptyWeek(): WeekMetrics {
     hasFamilyMoment: false,
     weeklyChangesApplied: 0,
     routinesDeactivated: 0,
+    sessions: {},
+    contractViolations: 0,
+    milestonesCompleted: 0,
   };
 }
 
-export function runUser(user: SimUser, days: number, startDate = '2026-01-05'): UserResult {
+export function runUser(
+  user: SimUser,
+  days: number,
+  startDate = '2026-01-05',
+  opts: SimOptions = {},
+): UserResult {
   const { truth, rng } = user;
   let routines: Routine[] = user.plan.routines.map((r) => ({ ...r }));
   const profile = user.plan.profile;
+  // Goals are live state now: sessions tick milestones. createdAt is pinned
+  // to the simulated signup day so stall windows measure simulated time.
+  const goals: Goal[] = user.plan.goals.map((g) => ({
+    ...g,
+    createdAt: `${startDate}T08:00:00.000Z`,
+    milestones: g.milestones?.map((m) => ({ ...m })),
+  }));
+  const goalRescue = opts.goalRescue !== false;
+  const lastStallNudgeDay: Record<string, number> = {};
 
   const plans: Record<string, DailyPlan> = {};
   const moves: ManualMove[] = [];
@@ -116,8 +151,35 @@ export function runUser(user: SimUser, days: number, startDate = '2026-01-05'): 
     }
 
     // The synthetic human lives the day.
+    const recordSession = (item: PlanItem) => {
+      const outcome = runSessionForItem(item, goals, {
+        date,
+        dayIndex: d,
+        trainingSetting: profile.trainingPreference,
+        rng,
+      });
+      if (!outcome) return;
+      const acc = (week.sessions[outcome.type] ??= { run: 0, shortened: 0 });
+      acc.run += 1;
+      if (outcome.shortened) acc.shortened += 1;
+      week.contractViolations += outcome.contractViolations;
+      if (outcome.milestoneAdvanced) week.milestonesCompleted += 1;
+    };
+
     plan.items = plan.items.map((item): PlanItem => {
-      if (item.fixed) return item;
+      if (item.fixed) {
+        // A carved-out session (the growth block) is still attended and
+        // run — being fixed on the calendar doesn't mean it didn't happen.
+        if (
+          item.sessionType &&
+          rng() < affinityFor(truth, item.area, slotOfStart(item.start)) * truth.adherence
+        ) {
+          const attended: PlanItem = { ...item, status: 'completed' };
+          recordSession(attended);
+          return attended;
+        }
+        return item;
+      }
       const area = item.area;
       const currentSlot = slotOfStart(item.start);
       let start = item.start;
@@ -154,6 +216,9 @@ export function runUser(user: SimUser, days: number, startDate = '2026-01-05'): 
       if (completed) {
         week.completed += 1;
         areaAcc.completed += 1;
+        // The session behind the item actually runs — real registry, real
+        // generators, milestone progression on the linked goal.
+        recordSession({ ...item, start, end, status: 'completed' });
       }
       if (area === 'relationship') week.hasRelationshipMoment ||= true;
       if (area === 'family' && item.title !== 'Family dinner') week.hasFamilyMoment ||= true;
@@ -190,11 +255,24 @@ export function runUser(user: SimUser, days: number, startDate = '2026-01-05'): 
         lastConnectionDay = d;
       }
     }
+    // Goal-stalled nudges — same per-goal cooldown as the store.
+    if (goalRescue) {
+      for (const s of detectGoalStalled(date, goals)) {
+        const gid = (s.payload as { goalId: string }).goalId;
+        if (d - (lastStallNudgeDay[gid] ?? -STALL_DAYS) < STALL_DAYS) continue;
+        lastStallNudgeDay[gid] = d;
+        fresh.push(s);
+      }
+    }
 
     for (const s of fresh) {
-      const key = `${s.kind}:${routineIdOf(s) ?? (s.payload as { date?: string })?.date ?? ''}`;
-      if (seenSuggestionKeys.has(key)) continue;
-      seenSuggestionKeys.add(key);
+      const key = `${s.kind}:${routineIdOf(s) ?? (s.payload as { goalId?: string })?.goalId ?? (s.payload as { date?: string })?.date ?? ''}`;
+      // goal_stalled re-nudges after its own cooldown, like the store
+      // (which only remembers 21 days); everything else fires once.
+      if (s.kind !== 'goal_stalled') {
+        if (seenSuggestionKeys.has(key)) continue;
+        seenSuggestionKeys.add(key);
+      }
       week.suggestionsShown[s.kind] = (week.suggestionsShown[s.kind] ?? 0) + 1;
 
       if (rng() < truth.acceptProb) {
@@ -209,6 +287,18 @@ export function runUser(user: SimUser, days: number, startDate = '2026-01-05'): 
         }
         // connection: the moment gets planned; count as an enjoyment moment.
         if (s.kind === 'connection') week.hasFamilyMoment ||= true;
+        // goal_stalled: the rescue block lands tomorrow evening. If the
+        // user's evening actually absorbs it, the milestone gets done.
+        if (s.kind === 'goal_stalled') {
+          const goal = goals.find((g) => g.id === (s.payload as { goalId: string }).goalId);
+          const next = goal?.milestones?.find((m) => !m.done);
+          const pDone = affinityFor(truth, goal?.area ?? 'growth', 'evening') * truth.adherence;
+          if (next && rng() < pDone) {
+            next.done = true;
+            next.doneAt = `${addDays(date, 1)}T20:00:00.000Z`;
+            week.milestonesCompleted += 1;
+          }
+        }
       }
     }
 
@@ -236,6 +326,18 @@ export function runUser(user: SimUser, days: number, startDate = '2026-01-05'): 
     }
   }
 
+  const milestonesByDomain: UserResult['milestonesByDomain'] = {};
+  let goalsWithMilestones = 0;
+  let goalsFullyMilestoned = 0;
+  for (const g of goals) {
+    if (!g.milestones?.length) continue;
+    goalsWithMilestones += 1;
+    const acc = (milestonesByDomain[g.domain ?? 'personal'] ??= { done: 0, total: 0 });
+    acc.total += g.milestones.length;
+    acc.done += g.milestones.filter((m) => m.done).length;
+    if (g.milestones.every((m) => m.done)) goalsFullyMilestoned += 1;
+  }
+
   return {
     persona: user.persona,
     weeks,
@@ -243,5 +345,9 @@ export function runUser(user: SimUser, days: number, startDate = '2026-01-05'): 
     firstAnyAdaptationWeek,
     overlapViolations,
     errors,
+    milestonesByDomain,
+    goalsWithMilestones,
+    goalsFullyMilestoned,
+    goalsStalledAtEnd: detectGoalStalled(addDays(startDate, days - 1), goals).length,
   };
 }

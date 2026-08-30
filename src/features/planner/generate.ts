@@ -49,6 +49,8 @@ export function workBlocks(
         end: toHHMM(end),
         area: r.area,
         sessionType: r.sessionType,
+        routineId: r.id,
+        goalId: r.goalId,
       },
     });
   }

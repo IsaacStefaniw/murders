@@ -7,6 +7,15 @@ mocked. Each user has a *stated* profile (what they told the interview) and
 a *hidden ground truth* (when they actually complete things), so we can
 measure whether INTENT converges on truth it was never told.
 
+**v2 adds the modality-session and goal-progression layer**
+(`sim/modalities.ts`): completed plan items resolve through the real
+registry (`sessionForItem`) and *execute* — `buildWorkout` under simulated
+time pressure, the breath protocol table, the meditation floor, and
+milestone ticking for the business review and goal-linked blocks. Any
+invalid session from product code (unresolvable stamped `sessionType`, a
+workout overrunning its window, a session below its shortening floor)
+counts as a **contract violation**, asserted zero.
+
 Run: `SIM_USERS=2000 SIM_DAYS=182 npx jest --testMatch "<rootDir>/src/features/sim/__tests__/cohort.fullsim.ts"`
 (deterministic; ~105 s). A 12-user smoke lives in the normal suite.
 
@@ -61,6 +70,38 @@ initial plans, not just better learning) and **unplaced items fell 84%**
 metric nuance: per-item completion *rate* is capacity-invariant by
 construction in the sim; the real-world win volume buys is *fewer failures
 experienced per week*, which is what the what-the-hell effect feeds on.
+
+## v2 run — modalities executed, goals progressed (post-fix)
+
+Sessions actually run through the real generators across 364,000 simulated
+days with **0 contract violations**: ~104k breath sessions, ~58k workouts
+(34% intelligently shortened when time compressed — main work kept, never
+abandoned), ~15k business reviews, ~8k meditations, ~30k goal-linked
+blocks (money check-ins, trip planning). Goal milestones: **97.1%
+completed** (business 100%, finance 97%, career 94%, fitness 87%); 92.6%
+of milestone-bearing goals fully done; only 6.7% still stalled at week 26.
+
+### What the v2 layer caught (all fixed)
+
+1. **Real product bug — the business coach was unreachable.** During-work
+   routines carved into work blocks (`workBlocks`) dropped `routineId`/
+   `goalId`, so the Growth block's plan item couldn't launch
+   `/session/review/:goalId` — the flagship business-coach session was
+   dead on arrival from Today, and its completions fed no learning. First
+   run showed business milestones at **6.8%** and zero `business_review`
+   sessions. Fixed: `FixedCommitment` carries both ids through the engine.
+2. **Parser gap:** "Lose 10 kg and keep it off" (a core target-user
+   ambition) fell through to `personal` — no milestones, no gym-coach
+   link. Fixed: weight phrasing (`kg/kilos/lbs`) routes to fitness.
+3. **Goals stalled silently.** The `goal_stalled` suggestion kind existed
+   in the type system but *nothing produced it* — 88% of milestone-bearing
+   goals were stalled at week 26 and INTENT never said a word. Shipped
+   `detectGoalStalled` (21 quiet days → one nudge proposing a concrete
+   30-minute block; per-goal 21-day cooldown; accepting schedules it).
+   Ablation at 2,000 users: the detector alone cuts still-stalled goals
+   **15.0% → 6.7%** and lifts fully-completed goals **82.8% → 92.6%**
+   (career +15 pts, fitness +12 pts). Acceptance 60% at ~2 nudges per
+   goal-holding user over six months — help, not nagging.
 
 Simulation ≠ users: personas are hand-built and acceptance probabilities
 are guesses. The sim validates machinery and catches regressions; only the

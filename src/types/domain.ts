@@ -85,6 +85,8 @@ export interface GoalMilestone {
   id: string;
   title: string;
   done: boolean;
+  /** When it was completed — the goal-stalled detector reads this. */
+  doneAt?: string;
 }
 
 export interface Goal {

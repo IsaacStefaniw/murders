@@ -18,6 +18,10 @@ export interface FixedCommitment {
   end: string;
   area?: PlanItem['area'];
   sessionType?: PlanItem['sessionType'];
+  /** Carried when the commitment is a carved-out routine (a growth block):
+   * without these the plan item can't launch its session or feed learning. */
+  routineId?: string;
+  goalId?: string;
 }
 
 export interface DayContext {
@@ -211,6 +215,8 @@ export function buildDailyPlan(ctx: DayContext): DailyPlan & { unplaced: Routine
         status: 'planned',
         fixed: true,
         sessionType: f.sessionType,
+        routineId: f.routineId,
+        goalId: f.goalId,
       }),
     ),
     ...kept.map(

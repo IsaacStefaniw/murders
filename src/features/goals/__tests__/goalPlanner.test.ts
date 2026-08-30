@@ -14,6 +14,9 @@ describe('parseGoal', () => {
     expect(parseGoal('Book a family trip to Japan').domain).toBe('family'); // family beats travel when kids named
     expect(parseGoal('A weekend away with my wife').domain).toBe('relationship');
     expect(parseGoal('Drink less on weeknights').domain).toBe('behaviour');
+    // Cohort sim caught this falling through to 'personal' (no milestones,
+    // no workout modality) — weight phrasing must reach the gym coach.
+    expect(parseGoal('Lose 10 kg and keep it off').domain).toBe('fitness');
   });
 
   it('extracts timeframes when stated', () => {

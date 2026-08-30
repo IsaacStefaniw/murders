@@ -58,6 +58,18 @@ export interface CohortReport {
   pruning: { totalDeactivations: number; usersOverPruned: number };
   avgUnplacedPerWeek: number;
   avgMovesPerUserPerWeek: number;
+  /** Modality sessions executed through the real generators. */
+  modalities: Record<string, { sessions: number; shortened: number }>;
+  contractViolations: number;
+  goalProgress: {
+    usersWithMilestoneGoals: number;
+    milestonesDone: number;
+    milestonesTotal: number;
+    completionPct: number;
+    goalsFullyDonePct: number;
+    goalsStalledAtEndPct: number;
+    byDomain: Record<string, { done: number; total: number }>;
+  };
 }
 
 export function aggregate(results: UserResult[]): CohortReport {
@@ -111,6 +123,39 @@ export function aggregate(results: UserResult[]): CohortReport {
     (r) => r.weeks.reduce((a, w) => a + w.routinesDeactivated, 0) > 2,
   ).length;
 
+  const modalities: CohortReport['modalities'] = {};
+  let contractViolations = 0;
+  for (const r of results) {
+    for (const w of r.weeks) {
+      contractViolations += w.contractViolations;
+      for (const [type, acc] of Object.entries(w.sessions)) {
+        const m = (modalities[type] ??= { sessions: 0, shortened: 0 });
+        m.sessions += acc.run;
+        m.shortened += acc.shortened;
+      }
+    }
+  }
+
+  const byDomain: CohortReport['goalProgress']['byDomain'] = {};
+  let milestonesDone = 0;
+  let milestonesTotal = 0;
+  let goalsWithMilestones = 0;
+  let goalsFullyDone = 0;
+  let goalsStalled = 0;
+  const usersWithMilestoneGoals = results.filter((r) => r.goalsWithMilestones > 0).length;
+  for (const r of results) {
+    goalsWithMilestones += r.goalsWithMilestones;
+    goalsFullyDone += r.goalsFullyMilestoned;
+    goalsStalled += r.goalsStalledAtEnd;
+    for (const [domain, acc] of Object.entries(r.milestonesByDomain)) {
+      const d = (byDomain[domain] ??= { done: 0, total: 0 });
+      d.done += acc.done;
+      d.total += acc.total;
+      milestonesDone += acc.done;
+      milestonesTotal += acc.total;
+    }
+  }
+
   const early = meanWeekRate(results, 0, 1);
   const mid = meanWeekRate(results, Math.floor(weeksCount / 2) - 1, Math.floor(weeksCount / 2));
   const late = meanWeekRate(results, lastQ.from, lastQ.to);
@@ -144,6 +189,17 @@ export function aggregate(results: UserResult[]): CohortReport {
     pruning: { totalDeactivations: totalDeact, usersOverPruned },
     avgUnplacedPerWeek: mean(results.flatMap((r) => r.weeks.map((w) => w.unplaced))),
     avgMovesPerUserPerWeek: mean(results.flatMap((r) => r.weeks.map((w) => w.userMoves))),
+    modalities,
+    contractViolations,
+    goalProgress: {
+      usersWithMilestoneGoals,
+      milestonesDone,
+      milestonesTotal,
+      completionPct: milestonesTotal ? (milestonesDone / milestonesTotal) * 100 : 0,
+      goalsFullyDonePct: goalsWithMilestones ? (goalsFullyDone / goalsWithMilestones) * 100 : 0,
+      goalsStalledAtEndPct: goalsWithMilestones ? (goalsStalled / goalsWithMilestones) * 100 : 0,
+      byDomain,
+    },
   };
 }
 
@@ -182,6 +238,25 @@ export function renderMarkdown(rep: CohortReport): string {
     '## Weekly-review pruning',
     `- Total routines rested: ${rep.pruning.totalDeactivations} · users over-pruned (>2): ${rep.pruning.usersOverPruned}`,
     `- User moves: ${rep.avgMovesPerUserPerWeek.toFixed(2)} per user-week`,
+    '',
+    '## Modalities executed (real generators, not just scheduling)',
+    `- Contract violations (invalid session from product code): **${rep.contractViolations}**`,
+    ...Object.entries(rep.modalities)
+      .sort(([, a], [, b]) => b.sessions - a.sessions)
+      .map(
+        ([type, m]) =>
+          `- ${type}: ${m.sessions.toLocaleString()} sessions run${m.shortened ? ` · ${m.shortened.toLocaleString()} intelligently shortened (${pct(m.shortened / m.sessions)})` : ''}`,
+      ),
+    '',
+    '## Goal progression (milestones, by domain)',
+    `- Users with milestone-bearing goals: ${rep.goalProgress.usersWithMilestoneGoals} · milestones done ${rep.goalProgress.milestonesDone.toLocaleString()}/${rep.goalProgress.milestonesTotal.toLocaleString()} (${rep.goalProgress.completionPct.toFixed(1)}%)`,
+    `- Goals fully milestoned: ${rep.goalProgress.goalsFullyDonePct.toFixed(1)}% · still stalled at end: ${rep.goalProgress.goalsStalledAtEndPct.toFixed(1)}%`,
+    ...Object.entries(rep.goalProgress.byDomain)
+      .sort(([, a], [, b]) => b.total - a.total)
+      .map(
+        ([domain, d]) =>
+          `- ${domain}: ${d.done.toLocaleString()}/${d.total.toLocaleString()} (${d.total ? ((d.done / d.total) * 100).toFixed(1) : '0'}%)`,
+      ),
   ];
   return lines.join('\n');
 }

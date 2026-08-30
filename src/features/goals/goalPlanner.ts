@@ -51,7 +51,7 @@ const DOMAIN_MATCHERS: [GoalDomain, RegExp][] = [
   ['business', /\b(business|revenue|clients?|sales|launch|startup|company|customers?)\b/i],
   ['career', /\b(promotion|career|new job|role|salary)\b/i],
   ['finance', /\b(save|savings|debt|invest|mortgage|deposit|budget)\b/i],
-  ['fitness', /\b(train|gym|run|marathon|5k|10k|strength|muscle|weight|fitness)\b/i],
+  ['fitness', /\b(train|gym|run|marathon|5k|10k|strength|muscle|weight|fitness|kg|kilos?|lbs)\b/i],
   ['health', /\b(sleep|meditat|stress|energy|health|blood pressure)\b/i],
   ['relationship', /\b(wife|husband|partner|marriage|date night|relationship|couple)\b/i],
   ['family', /\b(kids?|family|son|daughter|children|dad|mum|parent)\b/i],
