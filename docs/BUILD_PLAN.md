@@ -18,6 +18,21 @@ Morning approval, evening reflection, behaviour logging, adaptation engine
 Deterministic weekly stats + narrative (AI when backend configured, template
 fallback otherwise). **Done.**
 
+## The next milestone — calendar reality (external review, round 2)
+
+Before more behavioural features or modalities: **calendar → planner →
+Today → Move → calendar update**. The critical test: *a meeting lands at
+12:00 → the workout no longer fits → INTENT notices → proposes 4:30 → the
+user accepts → both plan and calendar reflect it.* The `CalendarProvider`
+seam exists (`lib/calendar/provider.ts`) and `generateDailyPlan` already
+consumes real events over modelled work hours; the native build supplies
+the EventKit implementation.
+
+And the success bar for TestFlight is not "it installs": **seven real days
+without manually constructing the week**, real calendar connected, moves
+and skips happening naturally — then on Sunday, does Monday's INTENT
+plan differently because it learned how the week was actually lived?
+
 ## Slice 5 — Backend & accounts 🔜
 - Deploy `supabase/` (migrations + ai-proxy function).
 - Email auth screens; store↔Supabase sync mirror behind the existing store

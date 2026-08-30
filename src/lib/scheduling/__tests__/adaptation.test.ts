@@ -2,6 +2,7 @@ import {
   applyMoveRoutine,
   applyProtectTime,
   detectMissedTwice,
+  detectMoveOutcome,
   detectMovePattern,
   detectSlotMismatch,
 } from '@/lib/scheduling/adaptation';
@@ -160,6 +161,41 @@ describe('detectMovePattern', () => {
       { routineId: 'gym', start: '07:00', date: '2026-09-03' },
     ];
     expect(detectMovePattern(moves, [morningGym])).toHaveLength(0);
+  });
+});
+
+describe('detectMoveOutcome — moved-then-completed learning', () => {
+  const movesTo = (start: string, dates: string[]) =>
+    dates.map((date) => ({ routineId: 'gym', start, date }));
+  const planWith = (dates: string[], status: 'completed' | 'skipped') =>
+    Object.fromEntries(
+      dates.map((date) => [
+        date,
+        { items: [item({ id: `x${date}`, date, start: '17:45', end: '18:30', status })] },
+      ]),
+    );
+
+  it('fires with the strong copy when moved sessions were actually completed', () => {
+    const dates = ['2026-09-01', '2026-09-03', '2026-09-05', '2026-09-08'];
+    const suggestions = detectMoveOutcome(movesTo('17:45', dates), planWith(dates, 'completed'), [gym]);
+    expect(suggestions).toHaveLength(1);
+    expect(suggestions[0].message).toMatch(/moved 4 of your last 4 .* completed 4/);
+    expect(suggestions[0].payload).toMatchObject({ routineId: 'gym', preferredStart: '17:30' });
+    expect(suggestions[0].confidence).toBeGreaterThanOrEqual(0.9);
+  });
+
+  it('stays quiet when moved sessions were then skipped — a move that fails is not a preference', () => {
+    const dates = ['2026-09-01', '2026-09-03', '2026-09-05'];
+    expect(
+      detectMoveOutcome(movesTo('17:45', dates), planWith(dates, 'skipped'), [gym]),
+    ).toHaveLength(0);
+  });
+
+  it('stays quiet below three moves to the same slot', () => {
+    const dates = ['2026-09-01', '2026-09-03'];
+    expect(
+      detectMoveOutcome(movesTo('17:45', dates), planWith(dates, 'completed'), [gym]),
+    ).toHaveLength(0);
   });
 });
 

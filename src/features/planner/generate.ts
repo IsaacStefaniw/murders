@@ -73,12 +73,17 @@ export function generateDailyPlan(
   profile: LifeProfile,
   routines: Routine[],
   date: string,
+  calendarEvents: FixedCommitment[] = [],
 ): DailyPlan & { unplaced: Routine[] } {
+  // Real calendar events are truth; modelled work hours are the fallback
+  // for work days the calendar knows nothing about.
+  const fixed =
+    calendarEvents.length > 0 ? calendarEvents : workBlocks(profile, date, routines);
   return buildDailyPlan({
     date,
     wakeTime: profile.wakeTime,
     sleepTime: profile.sleepTime,
-    fixed: workBlocks(profile, date, routines),
+    fixed,
     // during-work routines are already in the fixed list — don't place twice.
     routines: routines.filter((r) => !r.duringWork),
   });

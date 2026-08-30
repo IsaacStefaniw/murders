@@ -9,6 +9,7 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
 import { behaviourInfo } from '@/features/behaviours/catalog';
+import { proposeIntention } from '@/features/checkins/propose';
 import { formatTime, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
@@ -25,10 +26,19 @@ export default function MorningCheckIn() {
   const approvePlan = useAppStore((s) => s.approvePlan);
   const saveReflection = useAppStore((s) => s.saveReflection);
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
+  const behaviourEvents = useAppStore((s) => s.behaviourEvents);
+  const goals = useAppStore((s) => s.goals);
 
+  // INTENT proposes the intention; the user approves or overrides.
+  const [proposal] = useState(() =>
+    plan
+      ? proposeIntention({ plan, behaviourIntentions, behaviourEvents, goals })
+      : { text: 'One thing at a time today.' },
+  );
+  const [editing, setEditing] = useState(false);
   const [intention, setIntention] = useState('');
   const [protect, setProtect] = useState<BehaviourKey | undefined>(
-    behaviourIntentions.find((b) => b.active)?.behaviour,
+    proposal.protect ?? behaviourIntentions.find((b) => b.active)?.behaviour,
   );
 
   if (!profile || !plan) return <Screen />;
@@ -38,7 +48,8 @@ export default function MorningCheckIn() {
   const activeIntentions = behaviourIntentions.filter((b) => b.active);
 
   const approve = () => {
-    approvePlan(date, intention.trim() || undefined, protect);
+    const chosen = editing ? intention.trim() : proposal.text;
+    approvePlan(date, chosen || undefined, protect);
     saveReflection({ date, kind: 'morning' });
     router.back();
   };
@@ -82,17 +93,27 @@ export default function MorningCheckIn() {
         </View>
       ) : null}
 
-      <SectionHeader title="One intention for today" />
-      <TextInput
-        value={intention}
-        onChangeText={setIntention}
-        placeholder="e.g. No social media before lunch"
-        placeholderTextColor={theme.textTertiary}
-        style={[
-          styles.input,
-          { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-        ]}
-      />
+      <SectionHeader title="One intention" />
+      {!editing ? (
+        <View>
+          <AppText variant="heading">{proposal.text}</AppText>
+          <View style={styles.intentionActions}>
+            <Button title="Change" variant="ghost" onPress={() => setEditing(true)} />
+          </View>
+        </View>
+      ) : (
+        <TextInput
+          value={intention}
+          onChangeText={setIntention}
+          placeholder={proposal.text}
+          placeholderTextColor={theme.textTertiary}
+          autoFocus
+          style={[
+            styles.input,
+            { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
+          ]}
+        />
+      )}
 
       {activeIntentions.length > 0 ? (
         <View>
@@ -138,5 +159,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  intentionActions: { flexDirection: 'row', marginTop: Spacing.xs },
   footer: { marginTop: Spacing.xxl, gap: Spacing.sm },
 });

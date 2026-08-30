@@ -144,6 +144,70 @@ export interface ManualMove {
 }
 
 /**
+ * Moved-then-completed learning — the strongest evidence in the hierarchy:
+ *   same routine, user-moved, then completed
+ *   > same routine completion by time
+ *   > general completion behaviour by time.
+ *
+ * "You moved 6 of your last 8 workouts to the evening — and completed 5 of
+ * them. Make evenings the default?" This is INTENT working.
+ */
+export function detectMoveOutcome(
+  moves: ManualMove[],
+  plansByDate: Record<string, { items: PlanItem[] }>,
+  routines: Routine[],
+): Suggestion[] {
+  const suggestions: Suggestion[] = [];
+  const RECENT = 8;
+
+  for (const routine of routines) {
+    if (!routine.active) continue;
+    const own = moves.filter((m) => m.routineId === routine.id).slice(-RECENT);
+    if (own.length < 3) continue;
+
+    // Dominant destination slot among the recent moves.
+    const bySlot = new Map<Slot, ManualMove[]>();
+    for (const m of own) {
+      const slot = slotOf(m.start);
+      bySlot.set(slot, [...(bySlot.get(slot) ?? []), m]);
+    }
+    const [slot, slotMoves] = [...bySlot.entries()].sort((a, b) => b[1].length - a[1].length)[0];
+    if (slotMoves.length < 3 || slotOf(routine.preferredStart) === slot) continue;
+
+    // Did the moved sessions actually happen?
+    let completed = 0;
+    let resolved = 0;
+    for (const m of slotMoves) {
+      const item = plansByDate[m.date]?.items.find(
+        (i) => i.routineId === routine.id && i.status !== 'planned',
+      );
+      if (!item) continue;
+      resolved += 1;
+      if (item.status === 'completed') completed += 1;
+    }
+    if (resolved < 2 || completed / resolved < 0.6) continue;
+
+    const target = SLOT_WINDOWS[slot];
+    suggestions.push({
+      id: newId('sug'),
+      kind: 'move_routine',
+      message: `You've moved ${slotMoves.length} of your last ${own.length} ${routine.title.toLowerCase()} sessions to the ${target.label} — and completed ${completed} of them. Make the ${target.label} the default?`,
+      reason:
+        'Your own moves, followed through, are the strongest evidence there is. The plan should follow what you actually do.',
+      payload: {
+        routineId: routine.id,
+        preferredStart: target.start,
+        preferredEnd: target.end,
+      },
+      confidence: 0.9,
+      status: 'open',
+      createdAt: new Date().toISOString(),
+    });
+  }
+  return suggestions;
+}
+
+/**
  * Two manual moves of the same routine into the same part of the day mean
  * the schedule is wrong, not the user. Offer to make that slot the default.
  */

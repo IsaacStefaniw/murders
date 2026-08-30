@@ -74,10 +74,16 @@ export default function Today() {
   if (!profile || !plan) return <Screen tabbed />;
 
   const pending = plan.items.filter((i) => i.status === 'planned' && meaningful(i));
-  const nowItem = pending.find((i) => toMinutes(i.end) > now) ?? null;
-  const nextItems = pending
-    .filter((i) => i.id !== nowItem?.id && toMinutes(i.start) < EVENING_START && toMinutes(i.start) >= now)
-    .slice(0, 3);
+  // NOW means now: only an item whose window contains this minute. A future
+  // item is never manufactured into urgency — "nothing needs you right now"
+  // is a real, deliberate state.
+  const nowItem =
+    pending.find((i) => toMinutes(i.start) <= now && toMinutes(i.end) > now) ?? null;
+  // Items whose window passed unresolved: surface them for an honest answer
+  // (the adaptation engine needs the skip data as much as the user needs closure).
+  const overdueItems = pending.filter((i) => toMinutes(i.end) <= now);
+  const upcoming = pending.filter((i) => i.id !== nowItem?.id && toMinutes(i.start) > now);
+  const nextItems = upcoming.filter((i) => toMinutes(i.start) < EVENING_START).slice(0, 3);
   const tonightItems = plan.items.filter(
     (i) => meaningful(i) && i.id !== nowItem?.id && toMinutes(i.start) >= EVENING_START,
   );
@@ -86,14 +92,8 @@ export default function Today() {
   const needsApproval = !plan.approvedAt && !isEvening;
 
   const nowGoal = nowItem?.goalId ? goals.find((g) => g.id === nowItem.goalId) : undefined;
-  const nowStarted = nowItem ? toMinutes(nowItem.start) <= now : false;
-  const nowTimeLabel = nowItem
-    ? nowStarted
-      ? `${toMinutes(nowItem.end) - now} min left`
-      : toMinutes(nowItem.start) - now <= 120
-        ? `in ${toMinutes(nowItem.start) - now} min`
-        : `${formatTime(nowItem.start)} – ${formatTime(nowItem.end)}`
-    : '';
+  const nextUp = upcoming[0] ?? null;
+  const nowTimeLabel = nowItem ? `${toMinutes(nowItem.end) - now} min left` : '';
 
   const scheduleGapIdea = (gapDate: string, idea: string) => {
     const target = plans[gapDate] ?? ensurePlan(gapDate);
@@ -167,6 +167,14 @@ export default function Today() {
             <ItemActions item={nowItem} plan={plan} profile={profile} date={date} />
           </View>
         </Card>
+      ) : nextUp ? (
+        /* Permission to be free — a good chief of staff doesn't manufacture urgency. */
+        <Card>
+          <AppText variant="heading">Nothing needs you right now.</AppText>
+          <AppText variant="secondary">
+            {nextUp.title} at {formatTime(nextUp.start)}.
+          </AppText>
+        </Card>
       ) : (
         <Card>
           <AppText variant="heading">
@@ -179,6 +187,25 @@ export default function Today() {
           ) : null}
         </Card>
       )}
+
+      {overdueItems.length > 0 ? (
+        <View>
+          <SectionHeader title="Earlier — did it happen?" />
+          <View style={styles.stack}>
+            {overdueItems.map((item) => (
+              <PlanItemRow
+                key={item.id}
+                item={item}
+                plan={plan}
+                profile={profile}
+                date={date}
+                expanded={expandedId === item.id}
+                onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+              />
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       {nextItems.length > 0 ? (
         <View>

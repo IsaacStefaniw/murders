@@ -10,6 +10,7 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { BEHAVIOUR_CATALOG } from '@/features/behaviours/catalog';
+import { isSupabaseConfigured } from '@/lib/supabase';
 import { useAppStore } from '@/state/store';
 
 export default function Settings() {
@@ -79,8 +80,9 @@ export default function Settings() {
 
       <SectionHeader title="Data" />
       <AppText variant="caption" color="textTertiary">
-        In demo mode everything lives on this device only. Nothing is shared with anyone —
-        including partners — unless you explicitly choose to share it.
+        {isSupabaseConfigured()
+          ? 'Connected — data syncs to your account.'
+          : 'Demo mode — everything lives on this device only. Nothing is shared with anyone, including partners, unless you explicitly choose to share it.'}
       </AppText>
       {confirmingReset ? (
         <Card style={styles.resetCard}>

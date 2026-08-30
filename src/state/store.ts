@@ -16,10 +16,12 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
 import { availableStartsFor, generateDailyPlan } from '@/features/planner/generate';
+import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
   applyMoveRoutine,
   applyProtectTime,
   detectMissedTwice,
+  detectMoveOutcome,
   detectMovePattern,
   detectSlotMismatch,
   type ManualMove,
@@ -101,6 +103,8 @@ export interface AppState {
   refreshSuggestions: () => void;
   acceptSuggestion: (id: string) => void;
   dismissSuggestion: (id: string) => void;
+  /** Apply weekly-review changes and rebuild the coming week around them. */
+  applyWeeklyChanges: (changes: WeeklyChange[]) => void;
 
   resetAll: () => void;
   setHydrated: () => void;
@@ -443,23 +447,30 @@ export const useAppStore = create<AppState>()(
             .filter((p) => p.date >= addDays(today, -HISTORY_DAYS) && p.date <= today)
             .flatMap((p) => p.items);
 
-          // Manual moves come from the behavioural event stream.
+          // Manual moves come from the behavioural event stream. For cross-day
+          // moves the destination date is where the outcome lives.
           const moves: ManualMove[] = planEvents
             .filter((e) => e.kind === 'rescheduled' && e.initiatedBy === 'user' && e.routineId && e.newStart)
-            .map((e) => ({ routineId: e.routineId!, start: e.newStart!, date: e.date }));
+            .map((e) => ({ routineId: e.routineId!, start: e.newStart!, date: e.newDate ?? e.date }));
 
-          const fresh: Suggestion[] = [
-            ...detectSlotMismatch(history, routines),
-            ...detectMovePattern(moves, routines),
-          ];
-          const claimed = new Set(
-            fresh.map((s) => (s.payload as { routineId?: string })?.routineId),
-          );
-          fresh.push(
-            ...detectMissedTwice(history, routines).filter(
-              (s) => !claimed.has((s.payload as { routineId?: string })?.routineId),
-            ),
-          );
+          // Evidence hierarchy: moved-then-completed beats move patterns beats
+          // slot statistics beats miss streaks. More specific evidence wins;
+          // a routine claimed by a stronger detector is left alone by weaker ones.
+          const routineIdOf = (s: Suggestion) => (s.payload as { routineId?: string })?.routineId;
+          const claimed = new Set<string | undefined>();
+          const fresh: Suggestion[] = [];
+          for (const detected of [
+            detectMoveOutcome(moves, plans, routines),
+            detectMovePattern(moves, routines),
+            detectSlotMismatch(history, routines),
+            detectMissedTwice(history, routines),
+          ]) {
+            for (const s of detected) {
+              if (claimed.has(routineIdOf(s))) continue;
+              claimed.add(routineIdOf(s));
+              fresh.push(s);
+            }
+          }
           if (profile) {
             const anticipation = detectAnticipationGap(today, plans, routines, profile);
             if (anticipation) fresh.push(anticipation);
@@ -509,6 +520,27 @@ export const useAppStore = create<AppState>()(
               s.id === id ? { ...s, status: 'dismissed' as const } : s,
             ),
           });
+        },
+
+        applyWeeklyChanges: (changes) => {
+          set({
+            routines: get().routines.map((r) => {
+              const change = changes.find((c) => c.routineId === r.id);
+              if (!change) return r;
+              if (change.kind === 'deactivate_routine') return { ...r, active: false };
+              if (change.kind === 'move_routine' && change.payload) {
+                return {
+                  ...r,
+                  preferredStart: change.payload.preferredStart,
+                  preferredEnd: change.payload.preferredEnd,
+                };
+              }
+              return r;
+            }),
+          });
+          // Rebuild the coming week so the change is visible immediately.
+          const today = todayKey();
+          for (let i = 0; i <= 6; i++) get().regeneratePlan(addDays(today, i));
         },
 
         resetAll: () => set({ ...initialData }),

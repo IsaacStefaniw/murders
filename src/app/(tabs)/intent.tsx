@@ -10,8 +10,8 @@ import { SectionHeader } from '@/components/section-header';
 import { SuggestionCard } from '@/components/suggestion-card';
 import { Spacing } from '@/constants/theme';
 import { computeWeeklyStats } from '@/features/review/computeWeekly';
+import { buildWeeklyChanges } from '@/features/review/weeklyChanges';
 import { weeklyNarrative } from '@/lib/ai/agents';
-import { isSupabaseConfigured } from '@/lib/supabase';
 import { todayKey, weekStartOf } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 
@@ -25,7 +25,11 @@ export default function Intent() {
   const acceptSuggestion = useAppStore((s) => s.acceptSuggestion);
   const dismissSuggestion = useAppStore((s) => s.dismissSuggestion);
 
+  const applyWeeklyChanges = useAppStore((s) => s.applyWeeklyChanges);
+  const routines = useAppStore((s) => s.routines);
+
   const [reviewRequested, setReviewRequested] = useState(false);
+  const [applied, setApplied] = useState(false);
   const weekStart = weekStartOf(todayKey());
 
   const review = useQuery({
@@ -40,7 +44,8 @@ export default function Intent() {
         reflections,
       });
       const narrative = await weeklyNarrative(stats, highlights);
-      return { stats, narrative };
+      const proposal = buildWeeklyChanges({ weekStart, plans, routines });
+      return { stats, narrative, proposal };
     },
   });
 
@@ -121,6 +126,46 @@ export default function Intent() {
             {Math.round(review.data.stats.completionRate * 100)}% of planned activities happened ·{' '}
             {review.data.stats.checkInsCompleted} check-ins
           </AppText>
+
+          {review.data.proposal.changes.length > 0 ? (
+            <View style={styles.reviewSection}>
+              {review.data.proposal.noticed.length > 0 ? (
+                <View style={styles.reviewBlock}>
+                  <AppText variant="label" color="textTertiary">
+                    I noticed
+                  </AppText>
+                  {review.data.proposal.noticed.map((line) => (
+                    <AppText key={line} variant="secondary">
+                      {line}
+                    </AppText>
+                  ))}
+                </View>
+              ) : null}
+              <View style={styles.reviewBlock}>
+                <AppText variant="label" color="accent">
+                  I&apos;d change
+                </AppText>
+                {review.data.proposal.changes.map((change) => (
+                  <AppText key={change.id} variant="secondary">
+                    · {change.description}
+                  </AppText>
+                ))}
+              </View>
+              {applied ? (
+                <AppText variant="caption" color="success">
+                  Done — next week is rebuilt around it.
+                </AppText>
+              ) : (
+                <Button
+                  title="Apply to next week"
+                  onPress={() => {
+                    applyWeeklyChanges(review.data.proposal.changes);
+                    setApplied(true);
+                  }}
+                />
+              )}
+            </View>
+          ) : null}
         </Card>
       ) : (
         <Card>
@@ -128,12 +173,6 @@ export default function Intent() {
         </Card>
       )}
 
-      <SectionHeader title="System" />
-      <AppText variant="caption" color="textTertiary">
-        {isSupabaseConfigured()
-          ? 'Connected — data syncs to your account, AI insights enabled.'
-          : 'Demo mode — everything runs on this device. Planning and adaptation are fully local; connect a backend to enable account sync and richer AI insights.'}
-      </AppText>
     </Screen>
   );
 }
@@ -141,5 +180,6 @@ export default function Intent() {
 const styles = StyleSheet.create({
   stack: { gap: Spacing.sm },
   reviewButton: { marginTop: Spacing.md },
-  reviewSection: { marginTop: Spacing.lg, gap: Spacing.xs },
+  reviewSection: { marginTop: Spacing.lg, gap: Spacing.sm },
+  reviewBlock: { gap: Spacing.xs },
 });
