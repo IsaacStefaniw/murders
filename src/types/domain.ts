@@ -58,7 +58,13 @@ export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6; // Sunday = 0, matches Date.get
  * Runnable session kinds — the explicit link from a routine/plan item to
  * the modality that can run it. Never inferred from titles.
  */
-export type SessionType = 'breathe' | 'meditate' | 'workout' | 'business_review';
+export type SessionType =
+  | 'breathe'
+  | 'meditate'
+  | 'workout'
+  | 'business_review'
+  | 'journal'
+  | 'meal_plan';
 
 export type GoalStatus = 'active' | 'paused' | 'achieved' | 'dropped';
 
@@ -261,10 +267,12 @@ export type ReflectionMood = 1 | 2 | 3 | 4 | 5;
 export interface Reflection {
   id: string;
   date: string;
-  kind: 'morning' | 'evening';
+  kind: 'morning' | 'evening' | 'journal';
   mood?: ReflectionMood;
   wentWell?: string;
   gotInTheWay?: string;
+  /** Journal entries: gratitude gets its own line. */
+  gratefulFor?: string;
   adjustTomorrow?: string;
   createdAt: string;
 }

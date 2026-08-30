@@ -375,6 +375,7 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
       title: 'Sunday meal sketch',
       area: 'health',
       protocolId: 'meal-sketch',
+      sessionType: 'meal_plan' as const,
       days: [0],
       durationMin: 15,
       preferredStart: '16:00',

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
@@ -22,6 +22,7 @@ export default function Plan() {
 
   const [openDate, setOpenDate] = useState(today);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [rebuiltDate, setRebuiltDate] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -44,19 +45,23 @@ export default function Plan() {
           const items = plan?.items ?? [];
           const open = openDate === date;
           return (
-            <Card
-              key={date}
-              onPress={() => setOpenDate(open ? '' : date)}
-              accessibilityLabel={formatDateLong(date)}
-            >
-              <View style={styles.dayHeader}>
-                <AppText variant="heading">
-                  {date === today ? 'Today' : formatDateLong(date)}
-                </AppText>
-                <AppText variant="caption" color="textTertiary">
-                  {items.length} planned
-                </AppText>
-              </View>
+            // Only the header toggles the day — a pressable card would
+            // swallow taps meant for the item rows and buttons inside it.
+            <Card key={date}>
+              <Pressable
+                onPress={() => setOpenDate(open ? '' : date)}
+                accessibilityRole="button"
+                accessibilityLabel={formatDateLong(date)}
+              >
+                <View style={styles.dayHeader}>
+                  <AppText variant="heading">
+                    {date === today ? 'Today' : formatDateLong(date)}
+                  </AppText>
+                  <AppText variant="caption" color="textTertiary">
+                    {items.length} planned
+                  </AppText>
+                </View>
+              </Pressable>
 
               {open ? (
                 <View style={styles.items}>
@@ -80,9 +85,17 @@ export default function Plan() {
                   <Button
                     title="Rebuild this day"
                     variant="secondary"
-                    onPress={() => regeneratePlan(date)}
+                    onPress={() => {
+                      regeneratePlan(date);
+                      setRebuiltDate(date);
+                    }}
                     style={styles.rebuild}
                   />
+                  {rebuiltDate === date ? (
+                    <AppText variant="caption" color="success">
+                      Rebuilt from your current routines — statuses reset.
+                    </AppText>
+                  ) : null}
                 </View>
               ) : null}
             </Card>

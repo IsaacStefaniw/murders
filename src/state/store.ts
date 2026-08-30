@@ -123,6 +123,10 @@ export interface AppState {
 
   saveReflection: (reflection: Omit<Reflection, 'id' | 'createdAt'>) => void;
 
+  /** The nutrition coach's decided week — dinners by weekday. */
+  mealPlan: { weekStart: string; dinners: Record<number, string> } | null;
+  saveMealPlan: (weekStart: string, dinners: Record<number, string>) => void;
+
   refreshSuggestions: () => void;
   acceptSuggestion: (id: string) => void;
   dismissSuggestion: (id: string) => void;
@@ -151,6 +155,7 @@ const initialData = {
   behaviourEvents: [] as BehaviourEvent[],
   reflections: [] as Reflection[],
   suggestions: [] as Suggestion[],
+  mealPlan: null as { weekStart: string; dinners: Record<number, string> } | null,
   clockOffsetMs: 0,
 };
 
@@ -505,6 +510,10 @@ export const useAppStore = create<AppState>()(
               { ...reflection, id: newId('ref'), createdAt: new Date().toISOString() },
             ],
           });
+        },
+
+        saveMealPlan: (weekStart, dinners) => {
+          set({ mealPlan: { weekStart, dinners } });
         },
 
         refreshSuggestions: () => {

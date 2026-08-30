@@ -14,6 +14,7 @@ import {
   DOMAIN_LABELS,
   parseGoal,
 } from '@/features/goals/goalPlanner';
+import { DOMAIN_QUESTIONS } from '@/features/knowledge/questionBank';
 import { formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
@@ -31,17 +32,20 @@ export default function NewGoal() {
   const addGoal = useAppStore((s) => s.addGoal);
   const profile = useAppStore((s) => s.profile);
 
-  const [step, setStep] = useState<'describe' | 'why' | 'review'>('describe');
+  const [step, setStep] = useState<'describe' | 'why' | 'tailor' | 'review'>('describe');
   const [text, setText] = useState('');
   const [why, setWhy] = useState('');
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [droppedMilestones, setDroppedMilestones] = useState<Set<string>>(new Set());
 
   const parsed = useMemo(() => (text.trim() ? parseGoal(text) : null), [text]);
+  const questions = parsed ? (DOMAIN_QUESTIONS[parsed.domain] ?? []) : [];
   const plan = useMemo(
-    () => (parsed && step === 'review' ? buildGoalPlan(parsed, profile, why) : null),
+    () => (parsed && step === 'review' ? buildGoalPlan(parsed, profile, why, answers) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [parsed, step],
   );
+  const afterWhy = () => setStep(questions.length > 0 ? 'tailor' : 'review');
 
   const save = () => {
     if (!plan) return;
@@ -106,8 +110,42 @@ export default function NewGoal() {
           style={[...inputStyle, styles.bigInput]}
         />
         <View style={styles.footer}>
-          <Button title={why.trim() ? 'Continue' : 'Skip'} onPress={() => setStep('review')} />
+          <Button title={why.trim() ? 'Continue' : 'Skip'} onPress={afterWhy} />
           <Button title="Back" variant="ghost" onPress={() => setStep('describe')} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (step === 'tailor') {
+    // Evidence-based intake: every answer changes the plan that gets built.
+    return (
+      <Screen>
+        <AppText variant="label" color="accent">
+          {parsed ? DOMAIN_LABELS[parsed.domain] : ''}
+        </AppText>
+        <AppText variant="title">A couple of questions, then the plan.</AppText>
+        {questions.map((q) => (
+          <View key={q.key}>
+            <SectionHeader title={q.question} />
+            <View style={styles.chipsRow}>
+              {q.options.map((o) => (
+                <Chip
+                  key={o.value}
+                  label={o.label}
+                  selected={answers[q.key] === o.value}
+                  onPress={() => setAnswers((prev) => ({ ...prev, [q.key]: o.value }))}
+                />
+              ))}
+            </View>
+          </View>
+        ))}
+        <View style={styles.footer}>
+          <Button
+            title={questions.every((q) => answers[q.key]) ? 'Build my plan' : 'Skip — use defaults'}
+            onPress={() => setStep('review')}
+          />
+          <Button title="Back" variant="ghost" onPress={() => setStep('why')} />
         </View>
       </Screen>
     );
@@ -182,7 +220,11 @@ export default function NewGoal() {
 
       <View style={styles.footer}>
         <Button title="Make it real" onPress={save} />
-        <Button title="Back" variant="ghost" onPress={() => setStep('why')} />
+        <Button
+          title="Back"
+          variant="ghost"
+          onPress={() => setStep(questions.length > 0 ? 'tailor' : 'why')}
+        />
       </View>
     </Screen>
   );
@@ -199,5 +241,6 @@ const styles = StyleSheet.create({
   },
   bigInput: { marginTop: Spacing.xl, minHeight: 76 },
   stack: { flexDirection: 'column', gap: Spacing.sm },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   footer: { marginTop: Spacing.xxl, gap: Spacing.sm },
 });

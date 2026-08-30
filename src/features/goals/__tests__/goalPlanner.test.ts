@@ -55,3 +55,47 @@ describe('buildGoalPlan', () => {
     expect(goal.milestones!.map((m) => m.title)).toContain('Name the usual trigger');
   });
 });
+
+describe('evidence-based intake tailoring', () => {
+  it('a fresh starter gets two short sessions and no Zone 2 yet', () => {
+    const plan = buildGoalPlan(parseGoal('Get back to the gym'), null, undefined, {
+      experience: 'new',
+    });
+    const main = plan.routines.find((r) => r.sessionType === 'workout')!;
+    expect(main.days).toEqual([1, 4]);
+    expect(main.durationMin).toBe(30);
+    expect(plan.routines.some((r) => r.protocolId === 'zone2')).toBe(false);
+    expect(plan.goal.milestones![0].title).toContain('any two');
+  });
+
+  it('a consistent trainer keeps full volume plus the aerobic base', () => {
+    const plan = buildGoalPlan(parseGoal('Build muscle'), null, undefined, {
+      experience: 'consistent',
+    });
+    expect(plan.routines.find((r) => r.sessionType === 'workout')!.days).toHaveLength(3);
+    expect(plan.routines.some((r) => r.protocolId === 'zone2')).toBe(true);
+  });
+
+  it('a sleep-anchored health goal plans light and wind-down, not workouts', () => {
+    const plan = buildGoalPlan(parseGoal('More energy and better health'), null, undefined, {
+      anchor: 'sleep',
+    });
+    const ids = plan.routines.map((r) => r.protocolId);
+    expect(ids).toEqual(expect.arrayContaining(['morning-light', 'wind-down']));
+    expect(plan.routines.some((r) => r.sessionType === 'workout')).toBe(false);
+  });
+
+  it('a debt-mode finance goal gets debt milestones', () => {
+    const plan = buildGoalPlan(parseGoal('Save my way out of debt'), null, undefined, {
+      mode: 'debt',
+    });
+    expect(plan.goal.milestones!.map((m) => m.title)).toContain('List every debt with its rate');
+  });
+
+  it('a focus-bottleneck business goal carves out deep work', () => {
+    const plan = buildGoalPlan(parseGoal('Grow the business'), null, undefined, {
+      bottleneck: 'focus',
+    });
+    expect(plan.routines.some((r) => r.protocolId === 'deep-work')).toBe(true);
+  });
+});

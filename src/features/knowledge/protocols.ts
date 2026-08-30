@@ -200,6 +200,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '16:00', windowMin: 60 },
     energy: 'any',
     tier: 'could',
+    sessionType: 'meal_plan',
   },
   {
     id: 'kitchen-closed',
@@ -284,6 +285,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'sleep', offsetMin: 60, windowMin: 30 },
     energy: 'evening',
     tier: 'could',
+    sessionType: 'journal',
   },
 
   // ── Wealth ────────────────────────────────────────────────────────────

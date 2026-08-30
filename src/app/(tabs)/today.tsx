@@ -21,6 +21,7 @@ import {
   nowMinutes,
   todayKey,
   toMinutes,
+  weekdayOf,
 } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
@@ -67,8 +68,10 @@ export default function Today() {
     return entries.find((e) => e.kind === 'moment') ?? entries[0] ?? null;
   }, [date, plans, routines, profile]);
 
+  const mealPlan = useAppStore((s) => s.mealPlan);
   const now = nowMinutes();
   const isEvening = now >= EVENING_START;
+  const tonightDinner = mealPlan?.dinners?.[weekdayOf(date)];
   const hasEveningReflection = reflections.some((r) => r.date === date && r.kind === 'evening');
 
   if (!profile || !plan) return <Screen tabbed />;
@@ -232,6 +235,11 @@ export default function Today() {
       ) : null}
 
       <SectionHeader title="Tonight" />
+      {tonightDinner ? (
+        <AppText variant="caption" color="textTertiary">
+          Dinner is decided: {tonightDinner}
+        </AppText>
+      ) : null}
       <View style={styles.stack}>
         {tonightItems.map((item) => (
           <PlanItemRow
@@ -268,6 +276,16 @@ export default function Today() {
             </AppText>
           ) : null}
         </Card>
+      </View>
+
+      {/* Always something to do — sessions run on demand, not only when scheduled. */}
+      <SectionHeader title="Any time" />
+      <View style={styles.chipsRow}>
+        <Chip label="Breathe" onPress={() => router.push('/session/breathe' as never)} />
+        <Chip label="Journal" onPress={() => router.push('/session/journal' as never)} />
+        <Chip label="Plan meals" onPress={() => router.push('/session/meals' as never)} />
+        <Chip label="Meditate" onPress={() => router.push('/session/meditate' as never)} />
+        <Chip label="Train" onPress={() => router.push('/session/workout' as never)} />
       </View>
 
       {lookAheadHighlight ? (
@@ -310,6 +328,7 @@ export default function Today() {
 }
 
 const styles = StyleSheet.create({
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   summary: { marginTop: Spacing.xs },
   suggestion: { marginTop: Spacing.lg },
   stack: { gap: Spacing.sm },

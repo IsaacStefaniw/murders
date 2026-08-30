@@ -100,6 +100,30 @@ export const MODALITIES: Record<SessionType, ModalityDefinition> = {
     safetyEnvelope: 'Coaching questions and structure; never fiduciary or legal advice.',
     canHandle: () => false, // resolved via goal domain below, never by title
   },
+  journal: {
+    id: 'journal',
+    name: 'Journal',
+    domains: ['personal'],
+    route: '/session/journal',
+    evidenceNote: 'journal entry',
+    evidencePolicy: { completion: 'strong', passiveSources: [] },
+    adaptationSignals: ['entry_saved'],
+    safetyEnvelope: 'Private reflection; never analysed without the user asking.',
+    shorteningFloorMin: 3,
+    canHandle: () => false,
+  },
+  meal_plan: {
+    id: 'meal_plan',
+    name: 'Nutrition coach',
+    domains: ['health', 'fitness'],
+    route: '/session/meals',
+    evidenceNote: 'meal plan',
+    evidencePolicy: { completion: 'strong', passiveSources: [] },
+    adaptationSignals: ['week_planned'],
+    safetyEnvelope: 'Structure over restriction; no calorie targets, no diet claims, no advice for medical conditions.',
+    shorteningFloorMin: 5,
+    canHandle: () => false,
+  },
 };
 
 export interface SessionLaunch {

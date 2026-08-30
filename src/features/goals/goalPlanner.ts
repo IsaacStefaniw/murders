@@ -93,8 +93,17 @@ function routineBase(goalId: string, area: LifeArea): Omit<Routine, 'id' | 'titl
   };
 }
 
-/** Domain-shaped milestones + recurring behaviour. Deterministic; AI refines. */
-export function buildGoalPlan(parsed: ParsedGoal, profile: LifeProfile | null, why?: string): GoalPlan {
+/**
+ * Domain-shaped milestones + recurring behaviour. Deterministic; AI refines.
+ * `answers` are the evidence-based intake answers (knowledge/questionBank) —
+ * every answer changes the plan, or the question wouldn't be asked.
+ */
+export function buildGoalPlan(
+  parsed: ParsedGoal,
+  profile: LifeProfile | null,
+  why?: string,
+  answers: Record<string, string> = {},
+): GoalPlan {
   const goalId = newId('g');
   const workDays: Weekday[] = profile?.workDays?.length ? profile.workDays : [1, 2, 3, 4, 5];
   const shortTitle = parsed.title.length > 30 ? `${parsed.title.slice(0, 27)}…` : parsed.title;
@@ -107,9 +116,24 @@ export function buildGoalPlan(parsed: ParsedGoal, profile: LifeProfile | null, w
       milestones = [
         milestone('Establish the current baseline'),
         milestone(parsed.target ? `Define the gap to ${parsed.target}` : 'Define the gap'),
-        milestone('Identify the two biggest growth levers'),
+        milestone(
+          answers.bottleneck === 'sales'
+            ? 'Name the two biggest sales levers'
+            : answers.bottleneck === 'delivery'
+              ? 'Fix the biggest delivery bottleneck'
+              : answers.bottleneck === 'visibility'
+                ? 'Make the work visible: share one win a week'
+                : answers.bottleneck === 'skills'
+                  ? 'Pick the one skill and book the learning time'
+                  : 'Identify the two biggest growth levers',
+        ),
         milestone('Set the monthly target'),
       ];
+      // "No time to think" is a calendar problem — carve the thinking time.
+      if (answers.bottleneck === 'focus') {
+        const deepWork = protocolById('deep-work');
+        if (deepWork) routines.push(toRoutine(deepWork, profile, goalId));
+      }
       routines.push({
         ...routineBase(goalId, 'work'),
         id: newId('r'),
@@ -128,14 +152,45 @@ export function buildGoalPlan(parsed: ParsedGoal, profile: LifeProfile | null, w
       break;
 
     case 'fitness':
-    case 'health':
-      milestones = [milestone('First week done'), milestone('Four consistent weeks')];
+    case 'health': {
+      // Health goals route by the user's own leverage answer: the plan for
+      // "better sleep" is light and wind-down, not a workout.
+      if (parsed.domain === 'health' && answers.anchor === 'sleep') {
+        milestones = [
+          milestone('A week of morning light'),
+          milestone('Wind-down five nights in a row'),
+        ];
+        for (const id of ['morning-light', 'wind-down']) {
+          const p = protocolById(id);
+          if (p) routines.push(toRoutine(p, profile, goalId));
+        }
+        break;
+      }
+      if (parsed.domain === 'health' && answers.anchor === 'food') {
+        milestones = [
+          milestone('First week of dinners decided on Sunday'),
+          milestone('Post-meal walks four days in one week'),
+        ];
+        for (const id of ['meal-sketch', 'post-meal-walk']) {
+          const p = protocolById(id);
+          if (p) routines.push(toRoutine(p, profile, goalId));
+        }
+        break;
+      }
+
+      // Starting fresh: two short sessions that survive a real week beat
+      // three aspirational ones. Time-limited: cap the session length.
+      const fresh = answers.experience === 'new';
+      const shortOnTime = answers.limiter === 'time';
+      milestones = fresh
+        ? [milestone('Two sessions done — any two'), milestone('Four consistent weeks')]
+        : [milestone('First week done'), milestone('Four consistent weeks')];
       routines.push({
         ...routineBase(goalId, 'health'),
         id: newId('r'),
         title: shortTitle,
-        days: [1, 3, 5],
-        durationMin: 45,
+        days: fresh ? [1, 4] : [1, 3, 5],
+        durationMin: fresh || shortOnTime ? 30 : 45,
         preferredStart: '12:05',
         preferredEnd: '13:15',
         energy: profile?.energyProfile ?? 'any',
@@ -143,19 +198,34 @@ export function buildGoalPlan(parsed: ParsedGoal, profile: LifeProfile | null, w
         protocolId: 'strength',
       });
       // Knowledge base: the aerobic base matters as much as the lifting,
-      // and it's the piece people skip. Capacity-minimal weeks stay lean.
-      if (parsed.domain === 'fitness' && profile?.capacity !== 'minimal') {
+      // and it's the piece people skip. Beginners and minimal-capacity
+      // weeks stay lean — one thing at a time.
+      if (parsed.domain === 'fitness' && !fresh && profile?.capacity !== 'minimal') {
         const zone2 = protocolById('zone2');
         if (zone2) routines.push(toRoutine(zone2, profile, goalId));
       }
       break;
+    }
 
     case 'finance':
-      milestones = [
-        milestone(parsed.target ? `Set the number: ${parsed.target}` : 'Set the number'),
-        milestone('Know the current baseline'),
-        milestone('Automate the transfer'),
-      ];
+      milestones =
+        answers.mode === 'debt'
+          ? [
+              milestone('List every debt with its rate'),
+              milestone('Pick the payoff order and stick to it'),
+              milestone('Automate the extra payment'),
+            ]
+          : answers.mode === 'clarity'
+            ? [
+                milestone('Every account in one place'),
+                milestone('Know the monthly number'),
+                milestone('Automate the transfer'),
+              ]
+            : [
+                milestone(parsed.target ? `Set the number: ${parsed.target}` : 'Set the number'),
+                milestone('Know the current baseline'),
+                milestone('Automate the transfer'),
+              ];
       routines.push({
         ...routineBase(goalId, 'admin'),
         id: newId('r'),
