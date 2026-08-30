@@ -140,6 +140,16 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     ],
   },
   {
+    id: 'mind',
+    kind: 'multi',
+    optional: true,
+    prompt: () => 'And your headspace — anything you want in the toolkit?',
+    options: [
+      { value: 'breathing', label: 'Quick breathing resets' },
+      { value: 'meditation', label: 'Short meditations' },
+    ],
+  },
+  {
     id: 'moreOf',
     kind: 'multi',
     prompt: () => 'What do you want more of in your weeks?',

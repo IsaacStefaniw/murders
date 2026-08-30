@@ -5,6 +5,7 @@
  */
 
 import { behaviourInfo } from '@/features/behaviours/catalog';
+import { buildGoalPlan, parseGoal } from '@/features/goals/goalPlanner';
 import { newId } from '@/lib/dates';
 import type {
   BehaviourIntention,
@@ -312,17 +313,40 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     });
   }
 
-  // Free-text ambition becomes a goal seed.
+  // Headspace toolkit: chosen modalities get a place in the week.
+  const mind = arr(answers, 'mind');
+  if (mind.includes('meditation')) {
+    routines.push({
+      id: newId('r'),
+      title: 'Sit for ten',
+      area: 'health',
+      days: [0, 2, 4],
+      durationMin: 10,
+      preferredStart: '13:00',
+      preferredEnd: '13:45',
+      energy: 'midday',
+      flexible: true,
+      protected: false,
+      sessionType: 'meditate',
+      tier: 'could',
+      active: true,
+    });
+  }
+  if (mind.includes('breathing')) {
+    // Breathing lives at the moments that need it (urges, wind-down) —
+    // extend the guided wind-down to every night rather than adding blocks.
+    const windDown = routines.find((r) => r.sessionType === 'breathe');
+    if (windDown) windDown.days = [0, 1, 2, 3, 4, 5, 6];
+  }
+
+  // The free-text ambition runs through the domain-aware goal planner —
+  // "Grow the business to $2m" arrives with milestones and a growth block,
+  // not as a flat wish.
   const ambition = str(answers, 'ambition');
   if (ambition) {
-    goals.push({
-      id: newId('g'),
-      title: ambition,
-      area: 'growth',
-      status: 'active',
-      createdAt: now,
-      routineIds: [],
-    });
+    const { goal, routines: goalRoutines } = buildGoalPlan(parseGoal(ambition), profile);
+    goals.push(goal);
+    routines.push(...goalRoutines);
   }
 
   const behaviourIntentions: BehaviourIntention[] = lessOf.map((key) => ({

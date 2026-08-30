@@ -89,6 +89,7 @@ export default function PlanReview() {
             <AppText variant="caption" color="textTertiary">
               {AREA_LABELS[goal.area]}
               {goal.cadencePerWeek ? ` · ${goal.cadencePerWeek}× a week` : ''}
+              {goal.milestones?.length ? ` · ${goal.milestones.length} milestones mapped` : ''}
             </AppText>
           </Card>
         ))}
@@ -121,6 +122,11 @@ export default function PlanReview() {
         ))}
       </View>
 
+      <AppText variant="caption" color="textTertiary" style={styles.progressive}>
+        This is a starting point, not a questionnaire's worth of homework — INTENT asks the rest
+        one question at a time, at the moments the answers matter.
+      </AppText>
+
       <View style={styles.footer}>
         <Button title="This is my plan" onPress={approve} />
         <Button
@@ -146,5 +152,6 @@ const styles = StyleSheet.create({
   },
   routineInfo: { flexShrink: 1, gap: 2 },
   routineTitle: { fontWeight: '600' },
+  progressive: { marginTop: Spacing.xl },
   footer: { marginTop: Spacing.xxl, gap: Spacing.sm },
 });

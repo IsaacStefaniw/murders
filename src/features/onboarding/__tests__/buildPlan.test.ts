@@ -58,8 +58,21 @@ describe('buildLifeOperatingPlan', () => {
     expect(plan.behaviourIntentions[0].intentionText).not.toMatch(/quit|stop|never/i);
   });
 
-  it('turns the free-text ambition into a goal', () => {
-    expect(plan.goals.some((g) => g.title === 'Grow the business')).toBe(true);
+  it('routes the free-text ambition through the domain-aware goal planner', () => {
+    const business = plan.goals.find((g) => g.title === 'Grow the business')!;
+    expect(business.domain).toBe('business');
+    expect(business.milestones!.length).toBeGreaterThanOrEqual(3);
+    const block = plan.routines.find((r) => r.goalId === business.id)!;
+    expect(block.duringWork).toBe(true);
+    expect(block.title).toContain('Growth block');
+  });
+
+  it('the headspace step creates a meditation routine and a nightly breathing wind-down', () => {
+    const withMind = buildLifeOperatingPlan({ ...answers, mind: ['meditation', 'breathing'] });
+    const sit = withMind.routines.find((r) => r.sessionType === 'meditate')!;
+    expect(sit.title).toBe('Sit for ten');
+    const windDown = withMind.routines.find((r) => r.sessionType === 'breathe')!;
+    expect(windDown.days).toHaveLength(7);
   });
 
   it('creates a weekend family adventure block for households with kids', () => {

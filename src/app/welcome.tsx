@@ -22,8 +22,8 @@ export default function Welcome() {
           Build a life you actually follow.
         </AppText>
         <AppText variant="secondary" style={{ color: theme.textSecondary }}>
-          Ten questions. Then INTENT plans your days around what you say matters — and adapts to
-          what actually happens.
+          Three minutes of questions. Then INTENT plans your days around what you say matters —
+          and keeps learning as you live them.
         </AppText>
       </View>
       <Button title="Continue" onPress={() => router.push('/interview')} />
