@@ -73,16 +73,35 @@ export default function Life() {
         />
       ) : (
         <View style={styles.stack}>
-          {activeGoals.map((goal) => (
-            <Card key={goal.id}>
-              <AppText variant="heading">{goal.title}</AppText>
-              <AppText variant="caption" color="textTertiary">
-                {goal.cadencePerWeek
-                  ? `${goal.cadencePerWeek}× a week · ${goal.routineIds.length > 0 ? 'scheduled automatically' : 'not scheduled yet'}`
-                  : 'Ambition — break it down when ready'}
-              </AppText>
-            </Card>
-          ))}
+          {activeGoals.map((goal) => {
+            const reviewable = goal.domain === 'business' || goal.domain === 'career';
+            const milestonesDone = goal.milestones?.filter((m) => m.done).length ?? 0;
+            return (
+              <Card key={goal.id}>
+                <AppText variant="heading">{goal.title}</AppText>
+                <AppText variant="caption" color="textTertiary">
+                  {goal.milestones?.length
+                    ? `${milestonesDone} of ${goal.milestones.length} milestones`
+                    : goal.cadencePerWeek
+                      ? `${goal.cadencePerWeek}× a week · ${goal.routineIds.length > 0 ? 'scheduled automatically' : 'not scheduled yet'}`
+                      : 'Ambition — break it down when ready'}
+                </AppText>
+                {goal.nextFocus ? (
+                  <AppText variant="secondary" style={styles.nextFocus}>
+                    This week: {goal.nextFocus}
+                  </AppText>
+                ) : null}
+                {reviewable ? (
+                  <Button
+                    title="Weekly review"
+                    variant="secondary"
+                    onPress={() => router.push(`/session/review/${goal.id}` as never)}
+                    style={styles.reviewButton}
+                  />
+                ) : null}
+              </Card>
+            );
+          })}
           <Button title="Add a goal" variant="secondary" onPress={() => router.push('/goals/new')} />
         </View>
       )}
@@ -109,16 +128,23 @@ export default function Life() {
                       {topTrigger ? ` · usually: ${topTrigger.toLowerCase()}` : ''}
                     </AppText>
                   </View>
-                  <Button
-                    title="It happened"
-                    variant="ghost"
-                    onPress={() =>
-                      setPendingTrigger({
-                        intentionId: intention.id,
-                        eventId: logBehaviourEvent(intention.id),
-                      })
-                    }
-                  />
+                  <View style={styles.intentionActions}>
+                    <Button
+                      title="Urge? Breathe"
+                      variant="secondary"
+                      onPress={() => router.push('/session/breathe')}
+                    />
+                    <Button
+                      title="It happened"
+                      variant="ghost"
+                      onPress={() =>
+                        setPendingTrigger({
+                          intentionId: intention.id,
+                          eventId: logBehaviourEvent(intention.id),
+                        })
+                      }
+                    />
+                  </View>
                 </View>
                 {pendingTrigger?.intentionId === intention.id ? (
                   <View style={styles.triggerArea}>
@@ -184,6 +210,9 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   intentionInfo: { flexShrink: 1, gap: 2 },
+  intentionActions: { gap: Spacing.xs, alignItems: 'flex-end' },
+  nextFocus: { marginTop: Spacing.sm, fontWeight: '600' },
+  reviewButton: { marginTop: Spacing.md, alignSelf: 'flex-start' },
   safety: { marginTop: Spacing.md },
   triggerArea: { marginTop: Spacing.md, gap: Spacing.sm },
   triggerChips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },

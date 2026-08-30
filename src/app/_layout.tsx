@@ -50,6 +50,10 @@ export default function RootLayout() {
           <Stack.Screen name="check-in/morning" options={{ presentation: 'modal' }} />
           <Stack.Screen name="check-in/evening" options={{ presentation: 'modal' }} />
           <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="session/breathe" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="session/meditate" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="session/workout" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="session/review/[goalId]" options={{ presentation: 'modal' }} />
           <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
         </Stack>
       </ThemeProvider>

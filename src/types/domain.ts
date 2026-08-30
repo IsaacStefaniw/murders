@@ -84,6 +84,8 @@ export interface Goal {
   /** e.g. "4x per week" for behavioural goals. */
   cadencePerWeek?: number;
   milestones?: GoalMilestone[];
+  /** The one lever for next week, set by the weekly review session. */
+  nextFocus?: string;
   status: GoalStatus;
   createdAt: string;
   /** Routines generated from this goal. */

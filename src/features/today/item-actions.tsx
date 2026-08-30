@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -5,6 +6,7 @@ import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
 import { Spacing } from '@/constants/theme';
+import { sessionForItem } from '@/features/modalities/registry';
 import { smartMoveOptions } from '@/features/planner/moveOptions';
 import { addDays, formatTime, nowMinutes, toMinutes } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
@@ -24,12 +26,15 @@ interface ItemActionsProps {
  * surrender. Optimises for recovery, never guilt.
  */
 export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsProps) {
+  const router = useRouter();
   const setItemStatus = useAppStore((s) => s.setItemStatus);
   const moveItem = useAppStore((s) => s.moveItem);
   const moveItemToDate = useAppStore((s) => s.moveItemToDate);
   const shortenItem = useAppStore((s) => s.shortenItem);
+  const goals = useAppStore((s) => s.goals);
 
   const [mode, setMode] = useState<'idle' | 'move' | 'choose' | 'skip'>('idle');
+  const session = item.status === 'planned' ? sessionForItem(item, goals) : null;
 
   const duration = toMinutes(item.end) - toMinutes(item.start);
   const isEffort = item.area === 'health' && duration >= 40;
@@ -131,15 +136,29 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
 
   return (
     <View style={styles.row}>
+      {session ? (
+        <Button
+          title="Start"
+          onPress={() => {
+            const query = new URLSearchParams(session.params).toString();
+            router.push((query ? `${session.route}?${query}` : session.route) as never);
+            onDone?.();
+          }}
+          style={styles.grow}
+        />
+      ) : null}
       <Button
         title="Done"
+        variant={session ? 'secondary' : 'primary'}
         onPress={() => {
           setItemStatus(date, item.id, 'completed');
           finish();
         }}
-        style={styles.grow}
+        style={session ? undefined : styles.grow}
       />
-      {!item.fixed ? <Button title="Move" variant="secondary" onPress={() => setMode('move')} /> : null}
+      {!item.fixed ? (
+        <Button title="Move" variant={session ? 'ghost' : 'secondary'} onPress={() => setMode('move')} />
+      ) : null}
       {!item.fixed ? <Button title="Skip" variant="ghost" onPress={() => setMode('skip')} /> : null}
     </View>
   );

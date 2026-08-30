@@ -86,6 +86,8 @@ export interface AppState {
 
   addGoal: (goal: Goal, routines: Routine[]) => void;
   setGoalStatus: (goalId: string, status: Goal['status']) => void;
+  setMilestoneDone: (goalId: string, milestoneId: string, done: boolean) => void;
+  setGoalNextFocus: (goalId: string, nextFocus: string | undefined) => void;
   updateRoutine: (routineId: string, patch: Partial<Routine>) => void;
 
   addBehaviourIntention: (behaviour: BehaviourKey, intentionText: string) => void;
@@ -350,6 +352,27 @@ export const useAppStore = create<AppState>()(
             routines: get().routines.map((r) =>
               r.goalId === goalId ? { ...r, active: status === 'active' } : r,
             ),
+          });
+        },
+
+        setMilestoneDone: (goalId, milestoneId, done) => {
+          set({
+            goals: get().goals.map((g) =>
+              g.id === goalId
+                ? {
+                    ...g,
+                    milestones: g.milestones?.map((m) =>
+                      m.id === milestoneId ? { ...m, done } : m,
+                    ),
+                  }
+                : g,
+            ),
+          });
+        },
+
+        setGoalNextFocus: (goalId, nextFocus) => {
+          set({
+            goals: get().goals.map((g) => (g.id === goalId ? { ...g, nextFocus } : g)),
           });
         },
 
