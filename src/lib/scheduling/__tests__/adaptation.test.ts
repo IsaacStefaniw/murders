@@ -2,6 +2,7 @@ import {
   applyMoveRoutine,
   applyProtectTime,
   detectMissedTwice,
+  detectMovePattern,
   detectSlotMismatch,
 } from '@/lib/scheduling/adaptation';
 import type { PlanItem, Routine } from '@/types/domain';
@@ -123,6 +124,42 @@ describe('detectMissedTwice', () => {
       item({ id: '2', date: '2026-09-02', status: 'skipped' }),
     ];
     expect(detectMissedTwice(history, [mustGym])).toHaveLength(0);
+  });
+});
+
+describe('detectMovePattern', () => {
+  it('suggests a new default after two manual moves into the same slot', () => {
+    const moves = [
+      { routineId: 'gym', start: '18:10', date: '2026-09-01' },
+      { routineId: 'gym', start: '17:45', date: '2026-09-03' },
+    ];
+    const suggestions = detectMovePattern(moves, [gym]); // gym prefers 05:30 (morning)
+    expect(suggestions).toHaveLength(1);
+    expect(suggestions[0].kind).toBe('move_routine');
+    expect(suggestions[0].payload).toMatchObject({ routineId: 'gym', preferredStart: '17:30' });
+  });
+
+  it('stays quiet after a single move', () => {
+    expect(
+      detectMovePattern([{ routineId: 'gym', start: '18:10', date: '2026-09-01' }], [gym]),
+    ).toHaveLength(0);
+  });
+
+  it('stays quiet when moves land in different slots', () => {
+    const moves = [
+      { routineId: 'gym', start: '18:10', date: '2026-09-01' },
+      { routineId: 'gym', start: '12:30', date: '2026-09-03' },
+    ];
+    expect(detectMovePattern(moves, [gym])).toHaveLength(0);
+  });
+
+  it('stays quiet when the moves match the current preferred slot', () => {
+    const morningGym = { ...gym, preferredStart: '06:00', preferredEnd: '07:00' };
+    const moves = [
+      { routineId: 'gym', start: '06:30', date: '2026-09-01' },
+      { routineId: 'gym', start: '07:00', date: '2026-09-03' },
+    ];
+    expect(detectMovePattern(moves, [morningGym])).toHaveLength(0);
   });
 });
 

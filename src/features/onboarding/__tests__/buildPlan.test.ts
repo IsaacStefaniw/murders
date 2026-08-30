@@ -62,6 +62,32 @@ describe('buildLifeOperatingPlan', () => {
     expect(plan.goals.some((g) => g.title === 'Grow the business')).toBe(true);
   });
 
+  it('creates a weekend family adventure block for households with kids', () => {
+    const adventure = plan.routines.find((r) => r.title === 'Family adventure')!;
+    expect(adventure.days).toEqual([6]);
+    expect(adventure.area).toBe('family');
+  });
+
+  it('gives the friends goal a concrete low-friction routine', () => {
+    const friendsGoal = plan.goals.find((g) => g.title === 'Stay close to friends')!;
+    expect(friendsGoal.routineIds).toHaveLength(1);
+    const reachOut = plan.routines.find((r) => r.goalId === friendsGoal.id)!;
+    expect(reachOut.title).toBe('Message a friend, make a plan');
+  });
+
+  it('creates during-work deep-work blocks when deep work is asked for', () => {
+    const withDeepWork = buildLifeOperatingPlan({ ...answers, moreOf: ['Deep work'] });
+    const block = withDeepWork.routines.find((r) => r.title === 'Deep work block')!;
+    expect(block.duringWork).toBe(true);
+    expect(block.days).toEqual([1, 2]);
+  });
+
+  it('creates an evening reading routine in place of the scroll window', () => {
+    const withReading = buildLifeOperatingPlan({ ...answers, moreOf: ['Reading'] });
+    const read = withReading.routines.find((r) => r.title === 'Read')!;
+    expect(read.preferredStart).toBe('21:25'); // 65 min before the 22:30 sleep target
+  });
+
   it('falls back to sensible defaults on an empty interview', () => {
     const fallback = buildLifeOperatingPlan({});
     expect(fallback.profile.workDays).toEqual([1, 2, 3, 4, 5]);

@@ -56,6 +56,8 @@ export interface Goal {
   why?: string;
   /** e.g. "4x per week" for behavioural goals. */
   cadencePerWeek?: number;
+  /** The first concrete milestone, when the user named one. */
+  firstMilestone?: string;
   status: GoalStatus;
   createdAt: string;
   /** Routines generated from this goal. */
@@ -80,6 +82,11 @@ export interface Routine {
   flexible: boolean;
   /** Protected routines (family dinner, wind-down) are never displaced. */
   protected: boolean;
+  /**
+   * Happens during work hours (deep-work blocks): scheduled as a fixed
+   * carve-out of the work day instead of being placed into free time.
+   */
+  duringWork?: boolean;
   tier: PlanTier;
   active: boolean;
 }

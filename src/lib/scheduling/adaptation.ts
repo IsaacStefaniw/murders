@@ -136,6 +136,46 @@ export function detectMissedTwice(history: PlanItem[], routines: Routine[]): Sug
   return suggestions;
 }
 
+/** A user manually moving a plan item — the strongest preference signal we get. */
+export interface ManualMove {
+  routineId: string;
+  start: string; // where the user moved it to
+  date: string;
+}
+
+/**
+ * Two manual moves of the same routine into the same part of the day mean
+ * the schedule is wrong, not the user. Offer to make that slot the default.
+ */
+export function detectMovePattern(moves: ManualMove[], routines: Routine[]): Suggestion[] {
+  const suggestions: Suggestion[] = [];
+  for (const routine of routines) {
+    if (!routine.active) continue;
+    const own = moves.filter((m) => m.routineId === routine.id).slice(-2);
+    if (own.length < 2) continue;
+    const [a, b] = own;
+    const slot = slotOf(a.start);
+    if (slotOf(b.start) !== slot || slotOf(routine.preferredStart) === slot) continue;
+
+    const target = SLOT_WINDOWS[slot];
+    suggestions.push({
+      id: newId('sug'),
+      kind: 'move_routine',
+      message: `You keep moving ${routine.title.toLowerCase()} to the ${target.label}. Make that the default?`,
+      reason: `You've manually moved it there twice — the plan should follow you, not the other way round.`,
+      payload: {
+        routineId: routine.id,
+        preferredStart: target.start,
+        preferredEnd: target.end,
+      },
+      confidence: 0.8,
+      status: 'open',
+      createdAt: new Date().toISOString(),
+    });
+  }
+  return suggestions;
+}
+
 /** Apply an accepted protect_time suggestion: raise the routine to Must. */
 export function applyProtectTime(routines: Routine[], suggestion: Suggestion): Routine[] {
   const payload = suggestion.payload as { routineId: string } | undefined;

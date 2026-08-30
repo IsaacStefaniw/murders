@@ -214,6 +214,84 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     });
   }
 
+  // Weekend family block: unstructured time is what kids remember.
+  if (hasKids) {
+    const wantsMoreKidTime = profile.moreOf.includes('Time with the kids');
+    routines.push({
+      id: newId('r'),
+      title: 'Family adventure',
+      area: 'family',
+      days: wantsMoreKidTime ? [0, 6] : [6],
+      durationMin: 90,
+      preferredStart: '09:30',
+      preferredEnd: '10:30',
+      energy: 'morning',
+      flexible: true,
+      protected: false,
+      tier: 'should',
+      active: true,
+    });
+  }
+
+  // Friend connection: the lightest possible action — a message that makes a plan.
+  const friendsGoal = goals.find((g) => g.title === 'Stay close to friends');
+  if (friendsGoal) {
+    const reachOut: Routine = {
+      id: newId('r'),
+      title: 'Message a friend, make a plan',
+      area: 'enjoyment',
+      goalId: friendsGoal.id,
+      days: [3],
+      durationMin: 15,
+      preferredStart: '12:45',
+      preferredEnd: '13:15',
+      energy: 'midday',
+      flexible: true,
+      protected: false,
+      tier: 'could',
+      active: true,
+    };
+    friendsGoal.routineIds.push(reachOut.id);
+    routines.push(reachOut);
+  }
+
+  // Reading replaces the evening scroll window — a want in place of a regret.
+  if (profile.moreOf.includes('Reading')) {
+    routines.push({
+      id: newId('r'),
+      title: 'Read',
+      area: 'growth',
+      days: [0, 1, 2, 3, 4],
+      durationMin: 20,
+      preferredStart: minusMinutes(sleepTime, 65),
+      preferredEnd: minusMinutes(sleepTime, 45),
+      energy: 'evening',
+      flexible: true,
+      protected: false,
+      tier: 'could',
+      active: true,
+    });
+  }
+
+  // Deep work happens inside work hours, carved out as a fixed block.
+  if (profile.moreOf.includes('Deep work')) {
+    routines.push({
+      id: newId('r'),
+      title: 'Deep work block',
+      area: 'work',
+      days: profile.workDays.slice(0, 2),
+      durationMin: 60,
+      preferredStart: '09:15',
+      preferredEnd: '10:15',
+      energy: 'morning',
+      flexible: false,
+      protected: false,
+      duringWork: true,
+      tier: 'must',
+      active: true,
+    });
+  }
+
   // Free-text ambition becomes a goal seed.
   const ambition = str(answers, 'ambition');
   if (ambition) {

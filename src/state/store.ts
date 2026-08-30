@@ -16,9 +16,11 @@ import {
   applyMoveRoutine,
   applyProtectTime,
   detectMissedTwice,
+  detectMovePattern,
   detectSlotMismatch,
+  type ManualMove,
 } from '@/lib/scheduling/adaptation';
-import { addDays, newId, todayKey } from '@/lib/dates';
+import { addDays, newId, todayKey, toHHMM, toMinutes } from '@/lib/dates';
 import type {
   BehaviourEvent,
   BehaviourIntention,
@@ -43,6 +45,7 @@ export interface AppState {
   behaviourEvents: BehaviourEvent[];
   reflections: Reflection[];
   suggestions: Suggestion[];
+  manualMoves: ManualMove[];
 
   completeOnboarding: (input: {
     profile: LifeProfile;
@@ -57,6 +60,8 @@ export interface AppState {
   regeneratePlan: (date: string) => DailyPlan;
   approvePlan: (date: string, intention?: string, protectBehaviour?: BehaviourKey) => void;
   setItemStatus: (date: string, itemId: string, status: PlanItemStatus) => void;
+  /** Move a plan item to a new start time; records a preference signal. */
+  moveItem: (date: string, itemId: string, newStart: string) => void;
 
   addGoal: (goal: Goal, routines: Routine[]) => void;
   setGoalStatus: (goalId: string, status: Goal['status']) => void;
@@ -86,6 +91,7 @@ const initialData = {
   behaviourEvents: [] as BehaviourEvent[],
   reflections: [] as Reflection[],
   suggestions: [] as Suggestion[],
+  manualMoves: [] as ManualMove[],
 };
 
 /** How far back the adaptation engine looks. */
@@ -160,6 +166,30 @@ export const useAppStore = create<AppState>()(
             },
           },
         });
+      },
+
+      moveItem: (date, itemId, newStart) => {
+        const plans = get().plans;
+        const plan = plans[date];
+        const item = plan?.items.find((i) => i.id === itemId);
+        if (!plan || !item || item.fixed) return;
+        const duration = toMinutes(item.end) - toMinutes(item.start);
+        const moved = { ...item, start: newStart, end: toHHMM(toMinutes(newStart) + duration) };
+        set({
+          plans: {
+            ...plans,
+            [date]: {
+              ...plan,
+              items: plan.items
+                .map((i) => (i.id === itemId ? moved : i))
+                .sort((a, b) => toMinutes(a.start) - toMinutes(b.start)),
+            },
+          },
+          manualMoves: item.routineId
+            ? [...get().manualMoves, { routineId: item.routineId, start: newStart, date }].slice(-50)
+            : get().manualMoves,
+        });
+        get().refreshSuggestions();
       },
 
       addGoal: (goal, routines) => {
@@ -237,12 +267,15 @@ export const useAppStore = create<AppState>()(
       },
 
       refreshSuggestions: () => {
-        const { plans, routines, suggestions } = get();
+        const { plans, routines, suggestions, manualMoves } = get();
         const today = todayKey();
         const history = Object.values(plans)
           .filter((p) => p.date >= addDays(today, -HISTORY_DAYS) && p.date <= today)
           .flatMap((p) => p.items);
-        const slotMismatch = detectSlotMismatch(history, routines);
+        const slotMismatch = [
+          ...detectSlotMismatch(history, routines),
+          ...detectMovePattern(manualMoves, routines),
+        ];
         // A slot change is more informative than a protect nudge — when both
         // fire for the same routine, keep only the slot change.
         const mismatchRoutineIds = new Set(
