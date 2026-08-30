@@ -123,8 +123,8 @@ export default function PlanReview() {
       </View>
 
       <AppText variant="caption" color="textTertiary" style={styles.progressive}>
-        This is a starting point, not a questionnaire's worth of homework — INTENT asks the rest
-        one question at a time, at the moments the answers matter.
+        This is a starting point, not a questionnaire&apos;s worth of homework — INTENT asks the
+        rest one question at a time, at the moments the answers matter.
       </AppText>
 
       <View style={styles.footer}>
