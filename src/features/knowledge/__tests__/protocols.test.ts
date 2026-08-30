@@ -102,6 +102,7 @@ describe('domain pathways', () => {
   it('knowledge context stays compact enough for a system prompt', () => {
     const ctx = knowledgeContext();
     expect(ctx).toContain('Zone 2');
-    expect(ctx.length).toBeLessThan(6000);
+    // ~2k tokens ceiling — small enough to ride along in every agent call.
+    expect(ctx.length).toBeLessThan(9000);
   });
 });

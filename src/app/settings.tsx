@@ -120,6 +120,14 @@ export default function Settings() {
         </AppText>
       </Card>
 
+      <SectionHeader title="INTENT Plus" />
+      <Card onPress={() => router.push('/upgrade' as never)}>
+        <AppText variant="heading">Your whole life, one co-pilot</AppText>
+        <AppText variant="caption" color="textTertiary">
+          Preview what Plus will include — and what stays free forever.
+        </AppText>
+      </Card>
+
       <SectionHeader title="Practice library" />
       <Card onPress={() => router.push('/library' as never)}>
         <AppText variant="heading">Evidence-based practices</AppText>

@@ -11,6 +11,7 @@ import { SuggestionCard } from '@/components/suggestion-card';
 import { Spacing } from '@/constants/theme';
 import { buildLookingAhead, ideasFor } from '@/features/anticipation/lookAhead';
 import { behaviourInfo } from '@/features/behaviours/catalog';
+import { coachNote, weekMomentum } from '@/features/today/coach';
 import { availableStartsFor } from '@/features/planner/generate';
 import { ItemActions } from '@/features/today/item-actions';
 import { PlanItemRow } from '@/features/today/plan-item-row';
@@ -69,6 +70,11 @@ export default function Today() {
   }, [date, plans, routines, profile]);
 
   const mealPlan = useAppStore((s) => s.mealPlan);
+  const momentum = useMemo(() => weekMomentum(date, plans, goals), [date, plans, goals]);
+  const todayNote = useMemo(
+    () => (plans[date] ? coachNote(date, plans[date].items, routines) : null),
+    [date, plans, routines],
+  );
   const now = nowMinutes();
   const isEvening = now >= EVENING_START;
   const tonightDinner = mealPlan?.dinners?.[weekdayOf(date)];
@@ -122,6 +128,14 @@ export default function Today() {
         Today
       </AppText>
       <AppText variant="title">{formatDateLong(date)}</AppText>
+      {momentum.done > 0 || momentum.milestonesMoved > 0 ? (
+        <AppText variant="caption" color="success" style={styles.summary}>
+          This week: {momentum.done} done
+          {momentum.milestonesMoved > 0
+            ? ` · ${momentum.milestonesMoved} milestone${momentum.milestonesMoved > 1 ? 's' : ''} moved`
+            : ''}
+        </AppText>
+      ) : null}
       {plan.summary ? (
         <AppText variant="secondary" style={styles.summary}>
           {plan.summary}
@@ -278,6 +292,21 @@ export default function Today() {
         </Card>
       </View>
 
+      {todayNote ? (
+        <View style={styles.coach}>
+          <AppText variant="label" color="textTertiary">
+            From the coach
+          </AppText>
+          <AppText variant="secondary" style={styles.coachWhy}>
+            {todayNote.why}
+          </AppText>
+          <AppText variant="caption" color="textTertiary">
+            Behind today&apos;s {todayNote.protocolTitle.toLowerCase()} · after the public work of{' '}
+            {todayNote.attribution}
+          </AppText>
+        </View>
+      ) : null}
+
       {/* Always something to do — sessions run on demand, not only when scheduled. */}
       <SectionHeader title="Any time" />
       <View style={styles.chipsRow}>
@@ -329,6 +358,8 @@ export default function Today() {
 
 const styles = StyleSheet.create({
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  coach: { marginTop: Spacing.xl, gap: Spacing.xs },
+  coachWhy: { fontStyle: 'italic' },
   summary: { marginTop: Spacing.xs },
   suggestion: { marginTop: Spacing.lg },
   stack: { gap: Spacing.sm },
