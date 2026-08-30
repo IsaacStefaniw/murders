@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -17,6 +18,7 @@ import { useAppStore } from '@/state/store';
 
 /** INTENT's own surface: suggestions, the weekly review, system status. */
 export default function Intent() {
+  const router = useRouter();
   const plans = useAppStore((s) => s.plans);
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
@@ -173,6 +175,12 @@ export default function Intent() {
         </Card>
       )}
 
+      <Button
+        title="Settings"
+        variant="ghost"
+        onPress={() => router.push('/settings')}
+        style={styles.settings}
+      />
     </Screen>
   );
 }
@@ -182,4 +190,5 @@ const styles = StyleSheet.create({
   reviewButton: { marginTop: Spacing.md },
   reviewSection: { marginTop: Spacing.lg, gap: Spacing.sm },
   reviewBlock: { gap: Spacing.xs },
+  settings: { marginTop: Spacing.xxl },
 });

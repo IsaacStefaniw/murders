@@ -55,6 +55,22 @@ describe('workBlocks', () => {
   it('skips during-work routines on non-work days', () => {
     expect(workBlocks(profile, '2026-09-05', [deepWork])).toEqual([]); // Saturday
   });
+
+  it('two carve-outs preferring the same start are serialised, never overlapped', () => {
+    const growth: Routine = {
+      ...deepWork,
+      id: 'growth',
+      title: 'Growth block',
+      durationMin: 90,
+      preferredStart: '09:15',
+    };
+    const blocks = workBlocks(profile, '2026-09-01', [deepWork, growth]);
+    for (let i = 1; i < blocks.length; i++) {
+      expect(blocks[i].start >= blocks[i - 1].end).toBe(true);
+    }
+    expect(blocks.some((b) => b.title === 'Deep work block')).toBe(true);
+    expect(blocks.some((b) => b.title === 'Growth block')).toBe(true);
+  });
 });
 
 describe('generateDailyPlan', () => {

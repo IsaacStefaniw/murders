@@ -42,8 +42,17 @@ export function buildWeeklyChanges(input: {
 
   // Routines that repeatedly didn't happen: offer to drop the least
   // essential one rather than let the whole plan feel like failure.
+  // Never the last routine serving a connection area — resting "date
+  // night" because it slipped twice defeats the whole product. (Cohort
+  // simulation: pruning these fed a permanent anticipation-gap loop.)
+  const connectionAreas = new Set(['relationship', 'family', 'enjoyment']);
+  const activeByArea = new Map<string, number>();
+  for (const r of input.routines) {
+    if (r.active) activeByArea.set(r.area, (activeByArea.get(r.area) ?? 0) + 1);
+  }
   const droppable = input.routines
     .filter((r) => r.active && !r.protected && r.tier !== 'must')
+    .filter((r) => !(connectionAreas.has(r.area) && (activeByArea.get(r.area) ?? 0) <= 1))
     .map((r) => {
       const own = resolved.filter((i) => i.routineId === r.id);
       const skips = own.filter((i) => i.status === 'skipped').length;

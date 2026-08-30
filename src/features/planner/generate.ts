@@ -57,11 +57,19 @@ export function workBlocks(
   const blocks: FixedCommitment[] = [];
   let cursor = workStart;
   for (const carve of carves) {
-    if (carve.start > cursor) {
-      blocks.push({ title: 'Work', start: toHHMM(cursor), end: toHHMM(carve.start), area: 'work' });
+    // Two carve-outs can prefer the same start (deep work + a growth
+    // block); the later one shifts to follow the earlier, never overlaps.
+    const duration = carve.end - carve.start;
+    const start = Math.max(carve.start, cursor);
+    const end = start + duration;
+    if (end > workEnd) continue;
+    if (start > cursor) {
+      blocks.push({ title: 'Work', start: toHHMM(cursor), end: toHHMM(start), area: 'work' });
     }
-    if (carve.commitment) blocks.push(carve.commitment);
-    cursor = Math.max(cursor, carve.end);
+    if (carve.commitment) {
+      blocks.push({ ...carve.commitment, start: toHHMM(start), end: toHHMM(end) });
+    }
+    cursor = end;
   }
   if (cursor < workEnd) {
     blocks.push({ title: 'Work', start: toHHMM(cursor), end: toHHMM(workEnd), area: 'work' });

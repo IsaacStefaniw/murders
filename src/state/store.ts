@@ -488,7 +488,13 @@ export const useAppStore = create<AppState>()(
               fresh.push(s);
             }
           }
-          if (profile) {
+          // Anticipation nudges are precious: at most one per 14 days,
+          // counting the ones already answered. (Cohort simulation showed
+          // the uncapped version nagging twice a week.)
+          const recentConnection = suggestions.some(
+            (s) => s.kind === 'connection' && s.createdAt >= new Date(Date.now() - 14 * 86400e3).toISOString(),
+          );
+          if (profile && !recentConnection) {
             const anticipation = detectAnticipationGap(today, plans, routines, profile);
             if (anticipation) fresh.push(anticipation);
           }
