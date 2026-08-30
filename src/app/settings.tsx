@@ -100,7 +100,16 @@ export default function Settings() {
 
   return (
     <Screen>
-      <AppText variant="title">Settings</AppText>
+      <View style={styles.topRow}>
+        <AppText variant="title" style={styles.grow}>
+          Settings
+        </AppText>
+        <Button
+          title="Done"
+          variant="ghost"
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/today'))}
+        />
+      </View>
 
       <SectionHeader title="Profile" />
       <Card>
@@ -215,6 +224,7 @@ export default function Settings() {
 }
 
 const styles = StyleSheet.create({
+  topRow: { flexDirection: 'row', alignItems: 'center' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   note: { marginTop: Spacing.md },
   resetCard: { marginTop: Spacing.md, gap: Spacing.md },

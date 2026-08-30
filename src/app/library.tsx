@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
@@ -75,11 +76,16 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
  * engine can put straight onto the calendar. */
 export default function Library() {
   const theme = useTheme();
+  const router = useRouter();
+  const close = () => (router.canGoBack() ? router.back() : router.replace('/life' as never));
   return (
     <Screen>
-      <AppText variant="label" color="textTertiary">
-        Library
-      </AppText>
+      <View style={styles.topRow}>
+        <AppText variant="label" color="textTertiary" style={styles.grow}>
+          Library
+        </AppText>
+        <Button title="Done" variant="ghost" onPress={close} />
+      </View>
       <AppText variant="title">Evidence-based practices</AppText>
       <AppText variant="secondary" style={styles.intro}>
         Practices distilled, in INTENT&apos;s own words, from the public evidence-based teaching
@@ -104,12 +110,15 @@ export default function Library() {
           </View>
         );
       })}
+      <Button title="Done" variant="secondary" onPress={close} style={styles.doneBottom} />
       <View style={{ height: Spacing.xl, backgroundColor: theme.background }} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  topRow: { flexDirection: 'row', alignItems: 'center' },
+  doneBottom: { marginTop: Spacing.lg },
   intro: { marginTop: Spacing.sm },
   disclaimer: { marginTop: Spacing.sm },
   card: { marginBottom: Spacing.md, gap: Spacing.sm },
