@@ -38,6 +38,13 @@ fallback otherwise). **Done.**
   starting with Apple EventKit via expo-calendar; sync architecture;
   replace profile-derived work blocks.
 
+## Behavioural mechanics track (runs across slices)
+See [BEHAVIOUR_DESIGN.md](BEHAVIOUR_DESIGN.md) for the full ranked backlog.
+Shipped: peak-end reflections, fresh-start framing, don't-miss-twice nudge.
+Next: implementation intentions (cue capture), HealthKit/calendar
+auto-completion, contextual bandit over nudge timing, geofenced context,
+widget + notification actions.
+
 ## Later
 Notifications engine with fatigue protection, friends & connection, health
 integrations (Apple Health, WHOOP, Oura, Garmin, Strava), travel, supplements

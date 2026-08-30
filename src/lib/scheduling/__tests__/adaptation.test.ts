@@ -1,4 +1,9 @@
-import { applyMoveRoutine, detectSlotMismatch } from '@/lib/scheduling/adaptation';
+import {
+  applyMoveRoutine,
+  applyProtectTime,
+  detectMissedTwice,
+  detectSlotMismatch,
+} from '@/lib/scheduling/adaptation';
 import type { PlanItem, Routine } from '@/types/domain';
 
 function item(overrides: Partial<PlanItem>): PlanItem {
@@ -76,6 +81,62 @@ describe('detectSlotMismatch', () => {
       item({ id: '3', status: 'skipped' }),
     ];
     expect(detectSlotMismatch(history, [gym])).toHaveLength(0);
+  });
+});
+
+describe('detectMissedTwice', () => {
+  it('offers to protect the next session after two consecutive skips', () => {
+    const history = [
+      item({ id: '1', date: '2026-09-01', status: 'completed' }),
+      item({ id: '2', date: '2026-09-02', status: 'skipped' }),
+      item({ id: '3', date: '2026-09-03', status: 'skipped' }),
+    ];
+    const suggestions = detectMissedTwice(history, [gym]);
+    expect(suggestions).toHaveLength(1);
+    expect(suggestions[0].kind).toBe('protect_time');
+    expect(suggestions[0].payload).toMatchObject({ routineId: 'gym' });
+    // Supportive framing: nothing is "broken".
+    expect(suggestions[0].reason).toContain('nothing is broken');
+  });
+
+  it('treats a single miss as noise', () => {
+    const history = [
+      item({ id: '1', date: '2026-09-01', status: 'completed' }),
+      item({ id: '2', date: '2026-09-02', status: 'skipped' }),
+    ];
+    expect(detectMissedTwice(history, [gym])).toHaveLength(0);
+  });
+
+  it('stays quiet when a completion sits between the misses', () => {
+    const history = [
+      item({ id: '1', date: '2026-09-01', status: 'skipped' }),
+      item({ id: '2', date: '2026-09-02', status: 'completed' }),
+      item({ id: '3', date: '2026-09-03', status: 'skipped' }),
+    ];
+    expect(detectMissedTwice(history, [gym])).toHaveLength(0);
+  });
+
+  it('never fires for routines that are already must-tier', () => {
+    const mustGym = { ...gym, tier: 'must' as const };
+    const history = [
+      item({ id: '1', date: '2026-09-01', status: 'skipped' }),
+      item({ id: '2', date: '2026-09-02', status: 'skipped' }),
+    ];
+    expect(detectMissedTwice(history, [mustGym])).toHaveLength(0);
+  });
+});
+
+describe('applyProtectTime', () => {
+  it('raises the routine to must-tier on acceptance', () => {
+    const [suggestion] = detectMissedTwice(
+      [
+        item({ id: '1', date: '2026-09-01', status: 'skipped' }),
+        item({ id: '2', date: '2026-09-02', status: 'skipped' }),
+      ],
+      [gym],
+    );
+    const updated = applyProtectTime([gym], suggestion);
+    expect(updated[0].tier).toBe('must');
   });
 });
 

@@ -12,7 +12,12 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { generateDailyPlan } from '@/features/planner/generate';
-import { applyMoveRoutine, detectSlotMismatch } from '@/lib/scheduling/adaptation';
+import {
+  applyMoveRoutine,
+  applyProtectTime,
+  detectMissedTwice,
+  detectSlotMismatch,
+} from '@/lib/scheduling/adaptation';
 import { addDays, newId, todayKey } from '@/lib/dates';
 import type {
   BehaviourEvent,
@@ -237,7 +242,16 @@ export const useAppStore = create<AppState>()(
         const history = Object.values(plans)
           .filter((p) => p.date >= addDays(today, -HISTORY_DAYS) && p.date <= today)
           .flatMap((p) => p.items);
-        const fresh = detectSlotMismatch(history, routines);
+        const slotMismatch = detectSlotMismatch(history, routines);
+        // A slot change is more informative than a protect nudge — when both
+        // fire for the same routine, keep only the slot change.
+        const mismatchRoutineIds = new Set(
+          slotMismatch.map((s) => (s.payload as { routineId?: string })?.routineId),
+        );
+        const missedTwice = detectMissedTwice(history, routines).filter(
+          (s) => !mismatchRoutineIds.has((s.payload as { routineId?: string })?.routineId),
+        );
+        const fresh = [...slotMismatch, ...missedTwice];
         // Keep existing open suggestions; add only genuinely new ones.
         const open = suggestions.filter((s) => s.status === 'open');
         const existingKeys = new Set(
@@ -253,8 +267,12 @@ export const useAppStore = create<AppState>()(
         const { suggestions, routines } = get();
         const suggestion = suggestions.find((s) => s.id === id);
         if (!suggestion) return;
+        const nextRoutines =
+          suggestion.kind === 'protect_time'
+            ? applyProtectTime(routines, suggestion)
+            : applyMoveRoutine(routines, suggestion);
         set({
-          routines: applyMoveRoutine(routines, suggestion),
+          routines: nextRoutines,
           suggestions: suggestions.map((s) =>
             s.id === id ? { ...s, status: 'accepted' as const } : s,
           ),

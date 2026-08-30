@@ -73,21 +73,23 @@ export default function EveningCheckIn() {
         ))}
       </View>
 
-      <SectionHeader title="What went well?" />
-      <TextInput
-        value={wentWell}
-        onChangeText={setWentWell}
-        placeholder="Optional — a line is plenty"
-        placeholderTextColor={theme.textTertiary}
-        multiline
-        style={inputStyle}
-      />
-
       <SectionHeader title="What got in the way?" />
       <TextInput
         value={gotInTheWay}
         onChangeText={setGotInTheWay}
         placeholder="Optional"
+        placeholderTextColor={theme.textTertiary}
+        multiline
+        style={inputStyle}
+      />
+
+      {/* Deliberately last (peak-end rule): the day's final cognitive act is
+          retrieving something good, which lifts tomorrow's starting mood. */}
+      <SectionHeader title="What went well?" />
+      <TextInput
+        value={wentWell}
+        onChangeText={setWentWell}
+        placeholder="End on a good note — one moment is plenty"
         placeholderTextColor={theme.textTertiary}
         multiline
         style={inputStyle}

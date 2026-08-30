@@ -225,6 +225,27 @@ describe('buildDailyPlan', () => {
   });
 });
 
+describe('fresh-start framing', () => {
+  it('frames Mondays as a fresh week', () => {
+    const plan = buildDailyPlan({ ...baseCtxFor('2026-09-07'), routines: [] }); // a Monday
+    expect(plan.summary).toMatch(/^Fresh week\./);
+  });
+
+  it('frames the first of the month as a new month', () => {
+    const plan = buildDailyPlan({ ...baseCtxFor('2026-10-01'), routines: [] });
+    expect(plan.summary).toMatch(/^A new month\./);
+  });
+
+  it('leaves ordinary days unframed', () => {
+    const plan = buildDailyPlan({ ...baseCtxFor('2026-09-09'), routines: [] }); // a Wednesday
+    expect(plan.summary).not.toMatch(/Fresh week|new month/);
+  });
+
+  function baseCtxFor(date: string): DayContext {
+    return { date, wakeTime: '06:00', sleepTime: '22:15', fixed: [], routines: [] };
+  }
+});
+
 describe('shortenWorkout', () => {
   it('keeps the full session when time allows', () => {
     expect(shortenWorkout(60, 90)).toEqual({ durationMin: 60, note: 'Full session.' });

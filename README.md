@@ -7,10 +7,10 @@ INTENT plans your days around what you say matters — schedule, training,
 family, relationships, behaviour change — then watches what actually happens
 and adapts. Minimum screen time, maximum real-world action.
 
-**Docs:** [Product](docs/PRODUCT.md) · [Architecture](docs/ARCHITECTURE.md) ·
-[Data model](docs/DATA_MODEL.md) · [AI system](docs/AI_SYSTEM.md) ·
-[Privacy](docs/PRIVACY.md) · [Build plan](docs/BUILD_PLAN.md) ·
-[Decisions](docs/DECISIONS.md)
+**Docs:** [Product](docs/PRODUCT.md) · [Behaviour design](docs/BEHAVIOUR_DESIGN.md) ·
+[Architecture](docs/ARCHITECTURE.md) · [Data model](docs/DATA_MODEL.md) ·
+[AI system](docs/AI_SYSTEM.md) · [Privacy](docs/PRIVACY.md) ·
+[Build plan](docs/BUILD_PLAN.md) · [Decisions](docs/DECISIONS.md)
 
 > **Note on the repo name:** this repository predates the project and is still
 > named `murders` on GitHub. Renaming it to `intent-os` is a 10-second owner

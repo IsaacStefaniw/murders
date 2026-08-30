@@ -9,7 +9,7 @@
  * placements, but can never invent an invalid schedule.
  */
 
-import { toHHMM, toMinutes, newId, weekdayOf } from '@/lib/dates';
+import { dateKeyToDate, toHHMM, toMinutes, newId, weekdayOf } from '@/lib/dates';
 import type { DailyPlan, PlanItem, PlanTier, Routine } from '@/types/domain';
 
 export interface FixedCommitment {
@@ -231,12 +231,24 @@ export function buildDailyPlan(ctx: DayContext): DailyPlan & { unplaced: Routine
   return {
     date: ctx.date,
     items,
-    summary: summarise(items, totalFree),
+    summary: summarise(items, totalFree, ctx.date),
     unplaced,
   };
 }
 
-function summarise(items: PlanItem[], totalFreeMin: number): string {
+function summarise(items: PlanItem[], totalFreeMin: number, date?: string): string {
+  const base = summariseLoad(items, totalFreeMin);
+  // Fresh-start effect (Milkman & Dai): temporal landmarks — Mondays, month
+  // starts — are when people are most ready to act on aspirations. Frame them.
+  if (date) {
+    const day = dateKeyToDate(date);
+    if (day.getDate() === 1) return `A new month. ${base}`;
+    if (day.getDay() === 1) return `Fresh week. ${base}`;
+  }
+  return base;
+}
+
+function summariseLoad(items: PlanItem[], totalFreeMin: number): string {
   const musts = items.filter((i) => i.tier === 'must');
   const morningLoad = items.filter((i) => toMinutes(i.start) < 12 * 60).length;
   const afternoonLoad = items.filter((i) => toMinutes(i.start) >= 12 * 60).length;

@@ -98,3 +98,49 @@ export function applyMoveRoutine(routines: Routine[], suggestion: Suggestion): R
       : r,
   );
 }
+
+/**
+ * "Don't miss twice" — the anti-fragile alternative to streaks.
+ *
+ * A single miss is noise and is never surfaced. Two consecutive misses are
+ * the fork where habits tend to unravel, so INTENT offers to protect the
+ * next session (raising it to Must). There is deliberately nothing to
+ * "break": misses carry no loss, only a pattern worth resetting.
+ */
+export function detectMissedTwice(history: PlanItem[], routines: Routine[]): Suggestion[] {
+  const suggestions: Suggestion[] = [];
+  const resolved = history
+    .filter((i) => i.status === 'completed' || i.status === 'skipped')
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  for (const routine of routines) {
+    if (!routine.active || routine.tier === 'must') continue;
+    const items = resolved.filter((i) => i.routineId === routine.id);
+    if (items.length < 2) continue;
+    const [prev, last] = items.slice(-2);
+    if (prev.status !== 'skipped' || last.status !== 'skipped') continue;
+
+    suggestions.push({
+      id: newId('sug'),
+      kind: 'protect_time',
+      message: `Two ${routine.title.toLowerCase()} sessions slipped. Protect the next one?`,
+      reason:
+        'One miss is noise — two in a row is where routines tend to unravel. ' +
+        'Protecting the next session resets the pattern; nothing is broken.',
+      payload: { routineId: routine.id },
+      confidence: 0.7,
+      status: 'open',
+      createdAt: new Date().toISOString(),
+    });
+  }
+  return suggestions;
+}
+
+/** Apply an accepted protect_time suggestion: raise the routine to Must. */
+export function applyProtectTime(routines: Routine[], suggestion: Suggestion): Routine[] {
+  const payload = suggestion.payload as { routineId: string } | undefined;
+  if (suggestion.kind !== 'protect_time' || !payload) return routines;
+  return routines.map((r) =>
+    r.id === payload.routineId ? { ...r, tier: 'must' as const } : r,
+  );
+}
