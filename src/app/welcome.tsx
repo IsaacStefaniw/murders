@@ -5,6 +5,7 @@ import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Screen } from '@/components/screen';
 import { Spacing } from '@/constants/theme';
+import { BUILD_TAG } from '@/lib/build';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function Welcome() {
@@ -29,6 +30,9 @@ export default function Welcome() {
       <AppText variant="caption" style={styles.footnote}>
         Your answers stay on this device until you connect an account.
       </AppText>
+      <AppText variant="caption" color="textTertiary" style={styles.build}>
+        Build {BUILD_TAG}
+      </AppText>
     </Screen>
   );
 }
@@ -41,4 +45,5 @@ const styles = StyleSheet.create({
   },
   headline: { fontSize: 40, lineHeight: 46 },
   footnote: { textAlign: 'center', marginTop: Spacing.md },
+  build: { textAlign: 'center', marginTop: Spacing.sm },
 });

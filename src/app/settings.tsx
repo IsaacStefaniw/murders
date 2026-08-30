@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, StyleSheet, TextInput, View } from 'react-native';
 
+import { BUILD_TAG } from '@/lib/build';
 import { nowDate } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -196,6 +197,9 @@ export default function Settings() {
         </View>
       </View>
 
+      <AppText variant="caption" color="textTertiary" style={styles.note}>
+        Build {BUILD_TAG}
+      </AppText>
       <Button title="Done" variant="secondary" onPress={() => router.back()} style={styles.done} />
     </Screen>
   );
