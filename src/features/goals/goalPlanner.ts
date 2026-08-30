@@ -180,8 +180,11 @@ export function buildGoalPlan(
 
       // Starting fresh: two short sessions that survive a real week beat
       // three aspirational ones. Time-limited: cap the session length.
+      // Cadence honours what the user actually asked for in the interview.
       const fresh = answers.experience === 'new';
       const shortOnTime = answers.limiter === 'time';
+      const cadence = fresh ? 2 : Math.min(Math.max(profile?.trainingDaysPerWeek ?? 3, 2), 6);
+      const spread: Weekday[] = [1, 3, 5, 6, 2, 4, 0];
       milestones = fresh
         ? [milestone('Two sessions done — any two'), milestone('Four consistent weeks')]
         : [milestone('First week done'), milestone('Four consistent weeks')];
@@ -189,8 +192,8 @@ export function buildGoalPlan(
         ...routineBase(goalId, 'health'),
         id: newId('r'),
         title: shortTitle,
-        days: fresh ? [1, 4] : [1, 3, 5],
-        durationMin: fresh || shortOnTime ? 30 : 45,
+        days: fresh ? [1, 4] : spread.slice(0, cadence).sort((a, b) => a - b),
+        durationMin: fresh || shortOnTime ? 30 : (profile?.trainingDurationMin ?? 45),
         preferredStart: '12:05',
         preferredEnd: '13:15',
         energy: profile?.energyProfile ?? 'any',

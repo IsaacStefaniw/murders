@@ -60,6 +60,17 @@ export default function Intent() {
       </AppText>
       <AppText variant="title">Working for you</AppText>
 
+      <Card
+        onPress={() => router.push('/report' as never)}
+        style={{ marginTop: Spacing.lg }}
+        accessibilityLabel="Open this week's report"
+      >
+        <AppText variant="heading">This week, in evidence</AppText>
+        <AppText variant="caption" color="textTertiary">
+          What happened, which goals moved, and what carried the week.
+        </AppText>
+      </Card>
+
       <SectionHeader title="Suggestions" />
       {open.length === 0 ? (
         <AppText variant="secondary">

@@ -133,6 +133,13 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   const goals: Goal[] = [];
   const routines: Routine[] = [];
 
+  // A fitness-domain ambition OWNS the training program (its goal carries
+  // the milestones the calendar must serve) — building a second generic
+  // training routine would only duplicate or, worse, orphan it.
+  const ambition = str(answers, 'ambition');
+  const parsedAmbition = ambition ? parseGoal(ambition) : null;
+  const ambitionOwnsTraining = !walking && parsedAmbition?.domain === 'fitness';
+
   // Training goal → training routines. Walking is real training: it gets
   // the daily-walk protocol at the asked-for cadence, not a gym program.
   const trainingWindow = TRAINING_WINDOWS[energyProfile];
@@ -153,6 +160,8 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
       trainingGoal.routineIds.push(walkRoutine.id);
       routines.push(walkRoutine);
     }
+  } else if (ambitionOwnsTraining) {
+    // The ambition's goal will carry the workout routine — no generic twin.
   } else {
     const trainingRoutine: Routine = {
       id: newId('r'),
@@ -174,7 +183,7 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     trainingGoal.routineIds.push(trainingRoutine.id);
     routines.push(trainingRoutine);
   }
-  goals.push(trainingGoal);
+  if (!ambitionOwnsTraining) goals.push(trainingGoal);
 
   // Family dinner: protected daily anchor when family is present.
   if (hasKids || hasPartner) {
@@ -448,9 +457,7 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   // The free-text ambition runs through the domain-aware goal planner —
   // "Grow the business to $2m" arrives with milestones and a growth block,
   // not as a flat wish.
-  const ambition = str(answers, 'ambition');
-  if (ambition) {
-    const parsedAmbition = parseGoal(ambition);
+  if (parsedAmbition) {
     // The work-style answer tailors a business ambition immediately:
     // makers get the thinking time carved out alongside the growth block.
     const ambitionAnswers: Record<string, string> =
@@ -458,6 +465,10 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
       (workStyle === 'maker' || workStyle === 'mixed')
         ? { bottleneck: 'focus' }
         : {};
+    const trainingExperience = str(answers, 'trainingExperience');
+    if (ambitionOwnsTraining && trainingExperience) {
+      ambitionAnswers.experience = trainingExperience;
+    }
     const { goal, routines: goalRoutines } = buildGoalPlan(
       parsedAmbition,
       profile,

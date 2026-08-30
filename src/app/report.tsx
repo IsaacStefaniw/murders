@@ -1,0 +1,139 @@
+import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
+
+import { AppText } from '@/components/text';
+import { Button } from '@/components/button';
+import { Card } from '@/components/card';
+import { Screen } from '@/components/screen';
+import { SectionHeader } from '@/components/section-header';
+import { Spacing } from '@/constants/theme';
+import { buildWeekReport } from '@/features/review/weekReport';
+import { formatDateLong, todayKey } from '@/lib/dates';
+import { useTheme } from '@/hooks/use-theme';
+import { useAppStore } from '@/state/store';
+
+const AREA_LABELS: Record<string, string> = {
+  family: 'Family',
+  relationship: 'Relationship',
+  health: 'Health',
+  work: 'Work',
+  growth: 'Growth',
+  enjoyment: 'Enjoyment',
+  admin: 'Money & admin',
+};
+
+/** The week's evidence: what happened, what moved, what carried it. */
+export default function WeekReportScreen() {
+  const router = useRouter();
+  const theme = useTheme();
+  const today = todayKey();
+  const plans = useAppStore((s) => s.plans);
+  const goals = useAppStore((s) => s.goals);
+  const report = useMemo(() => buildWeekReport(today, plans, goals), [today, plans, goals]);
+  const close = () => (router.canGoBack() ? router.back() : router.replace('/intent' as never));
+
+  const rate = report.planned > 0 ? Math.round((report.done / report.planned) * 100) : 0;
+
+  return (
+    <Screen>
+      <View style={styles.topRow}>
+        <AppText variant="label" color="textTertiary" style={styles.grow}>
+          Weekly report
+        </AppText>
+        <Button title="Done" variant="ghost" onPress={close} />
+      </View>
+      <AppText variant="title">Your week, in evidence</AppText>
+      <AppText variant="secondary" style={styles.sub}>
+        Rolling seven days to {formatDateLong(report.to)}. No grades — just what happened.
+      </AppText>
+
+      <View style={styles.statRow}>
+        <Card style={styles.stat}>
+          <AppText variant="title">{report.done}</AppText>
+          <AppText variant="caption" color="textTertiary">
+            things done
+          </AppText>
+        </Card>
+        <Card style={styles.stat}>
+          <AppText variant="title">{report.milestonesMoved.length}</AppText>
+          <AppText variant="caption" color="textTertiary">
+            milestones moved
+          </AppText>
+        </Card>
+        <Card style={styles.stat}>
+          <AppText variant="title">{report.planned > 0 ? `${rate}%` : '—'}</AppText>
+          <AppText variant="caption" color="textTertiary">
+            of plans kept
+          </AppText>
+        </Card>
+      </View>
+
+      {report.milestonesMoved.length > 0 ? (
+        <View>
+          <SectionHeader title="Goals that moved" />
+          <View style={styles.stack}>
+            {report.milestonesMoved.map((m, i) => (
+              <Card key={i}>
+                <AppText variant="body">✓ {m.milestone}</AppText>
+                <AppText variant="caption" color="textTertiary">
+                  {m.goalTitle}
+                </AppText>
+              </Card>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {report.topWins.length > 0 ? (
+        <View>
+          <SectionHeader title="What carried the week" />
+          <View style={styles.stack}>
+            {report.topWins.map((w) => (
+              <Card key={w.title}>
+                <AppText variant="body">
+                  {w.title} · {w.count}×
+                </AppText>
+              </Card>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {report.byArea.length > 0 ? (
+        <View>
+          <SectionHeader title="Where the week went" />
+          <Card>
+            {report.byArea.map((a) => (
+              <AppText key={a.area} variant="secondary">
+                {AREA_LABELS[a.area] ?? a.area}: {a.done}
+              </AppText>
+            ))}
+            {report.bestDay ? (
+              <AppText variant="caption" color="success" style={styles.best}>
+                Best day: {formatDateLong(report.bestDay.date)} — {report.bestDay.done} done
+              </AppText>
+            ) : null}
+          </Card>
+        </View>
+      ) : (
+        <Card style={{ marginTop: Spacing.lg, borderColor: theme.border }}>
+          <AppText variant="secondary">
+            Nothing recorded yet this week. Live a few days with the plan and this page starts
+            earning its place.
+          </AppText>
+        </Card>
+      )}
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  topRow: { flexDirection: 'row', alignItems: 'center' },
+  grow: { flexGrow: 1 },
+  sub: { marginTop: Spacing.sm },
+  statRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.lg },
+  stat: { flex: 1, alignItems: 'center' },
+  stack: { gap: Spacing.sm },
+  best: { marginTop: Spacing.sm },
+});

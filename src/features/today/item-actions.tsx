@@ -33,8 +33,14 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
   const shortenItem = useAppStore((s) => s.shortenItem);
   const goals = useAppStore((s) => s.goals);
 
-  const [mode, setMode] = useState<'idle' | 'move' | 'choose' | 'skip'>('idle');
+  const setMilestoneDone = useAppStore((s) => s.setMilestoneDone);
+  const [mode, setMode] = useState<'idle' | 'move' | 'choose' | 'skip' | 'milestone'>('idle');
   const session = item.status === 'planned' ? sessionForItem(item, goals) : null;
+
+  // Doing → progressing: completing a goal-linked block asks, once, whether
+  // it moved the goal's next milestone. One tap writes real progress back.
+  const goal = item.goalId ? goals.find((g) => g.id === item.goalId) : undefined;
+  const nextMilestone = goal?.milestones?.find((m) => !m.done);
 
   const duration = toMinutes(item.end) - toMinutes(item.start);
   const isEffort = item.area === 'health' && duration >= 40;
@@ -44,6 +50,27 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
     setMode('idle');
     onDone?.();
   };
+
+  if (mode === 'milestone' && goal && nextMilestone) {
+    return (
+      <View style={styles.column}>
+        <AppText variant="caption" color="textTertiary">
+          Did that move “{nextMilestone.title}”?
+        </AppText>
+        <View style={styles.chips}>
+          <Chip
+            label="Yes — done ✓"
+            selected
+            onPress={() => {
+              setMilestoneDone(goal.id, nextMilestone.id, true);
+              finish();
+            }}
+          />
+          <Chip label="Not yet" onPress={finish} />
+        </View>
+      </View>
+    );
+  }
 
   if (item.status !== 'planned') {
     return (
@@ -152,7 +179,11 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
         variant={session ? 'secondary' : 'primary'}
         onPress={() => {
           setItemStatus(date, item.id, 'completed');
-          finish();
+          if (goal && nextMilestone) {
+            setMode('milestone');
+          } else {
+            finish();
+          }
         }}
         style={session ? undefined : styles.grow}
       />
