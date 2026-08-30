@@ -1,0 +1,118 @@
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+
+import { AppText } from '@/components/text';
+import { Button } from '@/components/button';
+import { Card } from '@/components/card';
+import { Screen } from '@/components/screen';
+import { Spacing } from '@/constants/theme';
+import { formatTime, addDays, formatDateLong, todayKey } from '@/lib/dates';
+import { useTheme } from '@/hooks/use-theme';
+import { useAppStore } from '@/state/store';
+
+/** The week ahead. Deterministic plans for the next seven days. */
+export default function Plan() {
+  const theme = useTheme();
+  const today = todayKey();
+  const dates = Array.from({ length: 7 }, (_, i) => addDays(today, i));
+
+  const profile = useAppStore((s) => s.profile);
+  const plans = useAppStore((s) => s.plans);
+  const ensurePlan = useAppStore((s) => s.ensurePlan);
+  const regeneratePlan = useAppStore((s) => s.regeneratePlan);
+
+  const [openDate, setOpenDate] = useState(today);
+
+  useEffect(() => {
+    if (!profile) return;
+    for (const date of dates) ensurePlan(date);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, today]);
+
+  if (!profile) return <Screen tabbed />;
+
+  return (
+    <Screen tabbed>
+      <AppText variant="label" color="textTertiary">
+        Plan
+      </AppText>
+      <AppText variant="title">The week ahead</AppText>
+
+      <View style={styles.stack}>
+        {dates.map((date) => {
+          const plan = plans[date];
+          const items = plan?.items ?? [];
+          const open = openDate === date;
+          return (
+            <Card
+              key={date}
+              onPress={() => setOpenDate(open ? '' : date)}
+              accessibilityLabel={formatDateLong(date)}
+            >
+              <View style={styles.dayHeader}>
+                <AppText variant="heading">
+                  {date === today ? 'Today' : formatDateLong(date)}
+                </AppText>
+                <AppText variant="caption" color="textTertiary">
+                  {items.length} planned
+                </AppText>
+              </View>
+
+              {open ? (
+                <View style={styles.items}>
+                  {items.length === 0 ? (
+                    <AppText variant="secondary">Nothing planned. A rest day is a plan too.</AppText>
+                  ) : (
+                    items.map((item) => (
+                      <View key={item.id} style={styles.itemRow}>
+                        <AppText variant="caption" color="textTertiary" style={styles.time}>
+                          {formatTime(item.start)}
+                        </AppText>
+                        <AppText
+                          variant="secondary"
+                          style={[
+                            styles.itemTitle,
+                            { color: theme.text },
+                            item.status === 'completed' && {
+                              color: theme.textTertiary,
+                              textDecorationLine: 'line-through',
+                            },
+                          ]}
+                        >
+                          {item.title}
+                        </AppText>
+                        <AppText variant="caption" color={item.tier}>
+                          {item.tier}
+                        </AppText>
+                      </View>
+                    ))
+                  )}
+                  <Button
+                    title="Rebuild this day"
+                    variant="secondary"
+                    onPress={() => regeneratePlan(date)}
+                    style={styles.rebuild}
+                  />
+                </View>
+              ) : null}
+            </Card>
+          );
+        })}
+      </View>
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  stack: { gap: Spacing.sm, marginTop: Spacing.lg },
+  dayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  items: { marginTop: Spacing.md, gap: Spacing.sm },
+  itemRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  time: { width: 56, fontVariant: ['tabular-nums'] },
+  itemTitle: { flex: 1 },
+  rebuild: { marginTop: Spacing.sm },
+});

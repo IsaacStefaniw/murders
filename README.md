@@ -1,58 +1,61 @@
-# Intently (working title)
+# INTENT
 
-> A personal operating system for living with intention — routine, health, connection, and freedom from the habits that pull you off course.
+> An AI-powered Personal Operating System. Reduce the distance between
+> intention and action.
 
-## Why this exists
+INTENT plans your days around what you say matters — schedule, training,
+family, relationships, behaviour change — then watches what actually happens
+and adapts. Minimum screen time, maximum real-world action.
 
-Modern life makes it easy to drift: picking up the phone to doom-scroll, one drink becoming three, the vape you keep meaning to quit. This app is built for people who thrive on routine and stimulation but are stretched to capacity — career, business, family — and want a system that keeps them on track automatically instead of relying on willpower alone.
+**Docs:** [Product](docs/PRODUCT.md) · [Architecture](docs/ARCHITECTURE.md) ·
+[Data model](docs/DATA_MODEL.md) · [AI system](docs/AI_SYSTEM.md) ·
+[Privacy](docs/PRIVACY.md) · [Build plan](docs/BUILD_PLAN.md) ·
+[Decisions](docs/DECISIONS.md)
 
-## Core pillars
+> **Note on the repo name:** this repository predates the project and is still
+> named `murders` on GitHub. Renaming it to `intent-os` is a 10-second owner
+> action (GitHub → Settings → Repository name); see ADR-001. Nothing in the
+> code references the old name.
 
-### 1. Routine & schedule automation
-- Builds and manages a daily/weekly routine automatically around your calendar
-- Balances work, workouts, family time, and downtime
-- Alarms and reminders that adapt to your actual day, not a static template
+## Quick start
 
-### 2. Addiction & habit management
-- Track streaks and slip-ups for drinking, vaping, doom-scrolling — without shame
-- Intervention nudges at high-risk moments (e.g. evening phone pickup)
-- Replacement-behavior suggestions when a craving window hits
+```bash
+npm install
+npm run ios        # or: npm start, then press i
+```
 
-### 3. Fitness, sleep & supplements
-- Suggested workout routines matched to your schedule and energy
-- Sleep tracking and wind-down prompts
-- Supplement recommendations with automatic reordering and refill-date tracking
+That's it — the app runs in **local demo mode** with no backend: onboarding,
+daily planning, check-ins, goals, behaviour tracking and adaptation all work
+on-device.
 
-### 4. Journal & planning
-- Guided journal prompts: business questions, goal planning, financial check-ins, holiday planning
-- Weekly review that connects journal entries back to your goals
+## Development
 
-### 5. Partner & family
-- Add your partner to a shared space
-- Schedule date nights automatically
-- Automated babysitter messages when a date night is booked
-- Shared family calendar awareness (kids' activities, school events)
+```bash
+npm run typecheck   # strict TypeScript
+npm test            # jest — scheduling, adaptation, onboarding, AI parsing
+npm run lint        # eslint (expo config)
+npm run format      # prettier
+```
 
-### 6. Connection
-- Link with friends for accountability and shared challenges
-- Well-being is social — the app should enable real connection, not replace it
+## Backend (optional, enables sync + AI narratives)
 
-## Guiding principles
+1. Create a Supabase project, then:
+   ```bash
+   supabase link --project-ref <ref>
+   supabase db push                 # applies supabase/migrations
+   supabase db reset                # local dev: migrations + seed.sql
+   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+   supabase functions deploy ai-proxy
+   ```
+2. `cp .env.example .env` and fill in `EXPO_PUBLIC_SUPABASE_URL` and
+   `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
 
-- **Automate the logistics, protect the intention.** The app does the scheduling, ordering, and reminding so your energy goes to living, not managing.
-- **Routine with excitement mixed in.** Structure shouldn't mean monotony — the system should inject novelty (new workouts, date-night ideas, challenges).
-- **No shame loops.** Slip-ups are data, not failures. The app helps you get back on track, it doesn't punish you.
+Model API keys live only in edge-function secrets — never in the app.
 
-## Suggested MVP (v0.1)
+## Project shape
 
-Start small and prove the loop before building everything:
-
-1. Daily routine builder + smart reminders
-2. Habit tracker (drink / vape / phone pickups) with streaks
-3. Guided evening journal (3 prompts: today, tomorrow, one business question)
-
-Everything else — partner features, supplement ordering, social — layers on once the daily loop sticks.
-
-## Status
-
-🌱 Early ideation. Nothing built yet — this README is the product brief.
+```
+src/app         screens (Expo Router)     src/lib/scheduling  deterministic engine
+src/features    feature logic (tested)    src/lib/ai          Zod-validated agents
+src/components  design system             supabase/           schema, RLS, ai-proxy
+```
