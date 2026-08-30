@@ -293,13 +293,17 @@ export default function Life() {
       )}
 
       <SectionHeader title="People" />
-      <Card style={{ borderStyle: 'dashed', borderWidth: 1, borderColor: theme.border }}>
+      <Card
+        onPress={() => router.push('/household' as never)}
+        accessibilityLabel="Open your household"
+        style={{ borderColor: theme.border }}
+      >
         <AppText variant="heading">
           {profile.people.find((p) => p.relation === 'partner')?.name ?? 'Your household'}
         </AppText>
         <AppText variant="secondary">
-          Shared calendars, date-night planning and babysitter messages arrive with accounts.
-          Everything stays private unless you explicitly share it.
+          The week you share — date nights, family time, babysitter logistics, and a copy-ready
+          plan to send them.
         </AppText>
       </Card>
 
