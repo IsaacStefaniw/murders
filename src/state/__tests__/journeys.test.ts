@@ -15,7 +15,8 @@
 import { behaviourPattern, momentNote } from '@/features/behaviours/patterns';
 import { composeFromText } from '@/features/goals/composer';
 import { computeWeeklyStats } from '@/features/review/computeWeekly';
-import { personalBest } from '@/features/model/metrics';
+import { observe, personalBest } from '@/features/model/metrics';
+import { goalTrajectory } from '@/features/model/trajectory';
 import { makeSet, newLog } from '@/features/training/log';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
@@ -528,5 +529,79 @@ describe('journey: the gym feeds the model', () => {
     expect(
       useAppStore.getState().metrics.filter((m) => m.key.startsWith('strength.')),
     ).toHaveLength(0);
+  });
+});
+
+describe('journey: knowing whether you will make it', () => {
+  /**
+   * The sentence the app could not previously say. `assessGoals` ticks a
+   * rung once evidence satisfies it and the stall detector notices silence;
+   * neither can tell someone their current rate misses the date they set.
+   */
+  it('a run of readings against a dated goal produces a verdict and a required rate', () => {
+    onboard();
+    const store = useAppStore.getState();
+    const goalId = 'g-weight';
+    store.addGoal(
+      {
+        id: goalId,
+        title: 'Down to 86 kg',
+        area: 'health',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        routineIds: [],
+        targetDate: addDays(todayKey(), 60),
+        milestones: [
+          {
+            id: 'm1',
+            title: '86 kg',
+            done: false,
+            doneWhen: { kind: 'metric', metricKey: 'body.weight', op: 'lte', value: 86 },
+          },
+        ],
+      },
+      [],
+    );
+
+    // Ten weeks of readings drifting down slowly — real, but not fast
+    // enough for sixty days.
+    const observations = Array.from({ length: 11 }, (_, i) => ({
+      ...observe('body.weight', 92 - i * 0.2),
+      at: new Date(Date.now() - (10 - i) * 7 * 86400e3).toISOString(),
+    }));
+    useAppStore.setState({ metrics: [...useAppStore.getState().metrics, ...observations] });
+
+    const goal = useAppStore.getState().goals.find((g) => g.id === goalId)!;
+    const t = goalTrajectory(goal, useAppStore.getState().metrics)!;
+    expect(t.verdict).toBe('behind');
+    expect(t.requiredRatePerWeek).toBeLessThan(0);
+    expect(t.gapNote).toBeTruthy();
+  });
+
+  it('says nothing at all until there are enough readings to mean it', () => {
+    onboard();
+    useAppStore.getState().addGoal(
+      {
+        id: 'g-thin',
+        title: 'Down to 86 kg',
+        area: 'health',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        routineIds: [],
+        milestones: [
+          {
+            id: 'm1',
+            title: '86 kg',
+            done: false,
+            doneWhen: { kind: 'metric', metricKey: 'body.weight', op: 'lte', value: 86 },
+          },
+        ],
+      },
+      [],
+    );
+    useAppStore.getState().addMetric('body.weight', 91);
+
+    const goal = useAppStore.getState().goals.find((g) => g.id === 'g-thin')!;
+    expect(goalTrajectory(goal, useAppStore.getState().metrics)!.verdict).toBe('not-enough-data');
   });
 });

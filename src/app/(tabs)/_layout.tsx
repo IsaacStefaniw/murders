@@ -10,6 +10,7 @@ const TAB_TITLES: Record<string, string> = {
   today: 'Today',
   plan: 'Plan',
   life: 'Life',
+  data: 'Data',
   intent: 'Intent',
 };
 
@@ -20,7 +21,7 @@ interface MinimalTabBarProps {
   navigation: { navigate: (name: string) => void };
 }
 
-/** Minimal text tab bar — four quiet words, no icon noise. */
+/** Minimal text tab bar — five quiet words, no icon noise. */
 function MinimalTabBar({ state, navigation }: MinimalTabBarProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -78,6 +79,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="today" />
       <Tabs.Screen name="plan" />
       <Tabs.Screen name="life" />
+      <Tabs.Screen name="data" />
       <Tabs.Screen name="intent" />
     </Tabs>
   );

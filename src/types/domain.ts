@@ -168,6 +168,13 @@ export interface Goal {
   nextFocus?: string;
   /** How progress is measured — the goal composer drafts these. */
   checkins?: CheckinSpec[];
+  /**
+   * When it is meant to be true by. Optional on purpose: plenty of goals are
+   * directions rather than deadlines, and inventing a date for those would
+   * manufacture a failure the person never signed up for. Where one exists,
+   * the trajectory engine can say whether the current rate arrives in time.
+   */
+  targetDate?: string;
   status: GoalStatus;
   createdAt: string;
   /** Routines generated from this goal. */

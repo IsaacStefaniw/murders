@@ -15,6 +15,7 @@ import { Spacing } from '@/constants/theme';
 import { BehaviourLog } from '@/features/behaviours/BehaviourLog';
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import { behaviourPattern, weekNote } from '@/features/behaviours/patterns';
+import { goalTrajectory } from '@/features/model/trajectory';
 import { GoalProgress } from '@/features/goals/GoalProgress';
 import { PATH_ORDER, PATHS } from '@/features/paths/definitions';
 import { useTheme } from '@/hooks/use-theme';
@@ -178,6 +179,8 @@ export default function Life() {
           {activeGoals.map((goal) => {
             const reviewable = goal.domain === 'business' || goal.domain === 'career';
             const milestonesDone = goal.milestones?.filter((m) => m.done).length ?? 0;
+            // Where this is actually heading, when there is enough to say.
+            const trajectory = goalTrajectory(goal, metrics);
             return (
               <Card key={goal.id}>
                 <AppText variant="heading">{goal.title}</AppText>
@@ -191,6 +194,19 @@ export default function Life() {
                 {goal.nextFocus ? (
                   <AppText variant="secondary" style={styles.nextFocus}>
                     This week: {goal.nextFocus}
+                  </AppText>
+                ) : null}
+                {trajectory && trajectory.verdict !== 'not-enough-data' ? (
+                  <AppText
+                    variant="secondary"
+                    color={
+                      trajectory.verdict === 'behind' || trajectory.verdict === 'wrong-way'
+                        ? 'accent'
+                        : 'textSecondary'
+                    }
+                    style={styles.nextFocus}
+                  >
+                    {trajectory.headline}
                   </AppText>
                 ) : null}
                 <GoalProgress goal={goal} />

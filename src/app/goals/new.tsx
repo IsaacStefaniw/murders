@@ -16,7 +16,7 @@ import {
 } from '@/features/goals/composer';
 import { DOMAIN_LABELS, parseGoal } from '@/features/goals/goalPlanner';
 import { DOMAIN_QUESTIONS } from '@/features/knowledge/questionBank';
-import { formatTime } from '@/lib/dates';
+import { addDays, formatTime, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
@@ -38,6 +38,14 @@ export default function NewGoal() {
   const [why, setWhy] = useState('');
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [droppedMilestones, setDroppedMilestones] = useState<Set<string>>(new Set());
+  /**
+   * Optional, and offered as a horizon rather than a date field. Plenty of
+   * goals are directions rather than deadlines, and a required date would
+   * manufacture a failure nobody signed up for — but where one exists, the
+   * app can say whether the current rate arrives in time, which is the most
+   * useful sentence it knows how to produce.
+   */
+  const [horizonMonths, setHorizonMonths] = useState<number | null>(null);
 
   const parsed = useMemo(() => (text.trim() ? parseGoal(text) : null), [text]);
   const questions = parsed ? (DOMAIN_QUESTIONS[parsed.domain] ?? []) : [];
@@ -51,8 +59,16 @@ export default function NewGoal() {
   const save = () => {
     if (!plan) return;
     const milestones = plan.goal.milestones?.filter((m) => !droppedMilestones.has(m.id));
+    const targetDate = horizonMonths
+      ? addDays(todayKey(), Math.round(horizonMonths * 30.44))
+      : undefined;
     addGoal(
-      { ...plan.goal, why: why.trim() || undefined, milestones: milestones?.length ? milestones : undefined },
+      {
+        ...plan.goal,
+        why: why.trim() || undefined,
+        milestones: milestones?.length ? milestones : undefined,
+        targetDate,
+      },
       plan.routines,
     );
     router.back();
@@ -245,6 +261,32 @@ export default function NewGoal() {
         </View>
       )}
 
+      <SectionHeader title="By when?" />
+      <AppText variant="caption" color="textTertiary">
+        Optional. With a date, INTENT can tell you whether your current rate actually arrives in
+        time — without one it still tracks everything, it just has no date to measure
+        against.
+      </AppText>
+      <View style={styles.horizons}>
+        {[
+          { label: '3 months', months: 3 },
+          { label: '6 months', months: 6 },
+          { label: '12 months', months: 12 },
+        ].map((h) => (
+          <Chip
+            key={h.months}
+            label={h.label}
+            selected={horizonMonths === h.months}
+            onPress={() => setHorizonMonths(horizonMonths === h.months ? null : h.months)}
+          />
+        ))}
+        <Chip
+          label="No date"
+          selected={horizonMonths === null}
+          onPress={() => setHorizonMonths(null)}
+        />
+      </View>
+
       <View style={styles.footer}>
         <Button title="Make it real" onPress={save} />
         <Button
@@ -270,5 +312,6 @@ const styles = StyleSheet.create({
   stack: { flexDirection: 'column', gap: Spacing.sm },
   doneWhenList: { marginTop: Spacing.md, gap: Spacing.xs },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  horizons: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm },
   footer: { marginTop: Spacing.xxl, gap: Spacing.sm },
 });
