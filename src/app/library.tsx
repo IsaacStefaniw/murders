@@ -26,6 +26,8 @@ const PILLAR_ORDER: Pillar[] = [
   'wealth',
   'leadership',
   'connection',
+  // A pillar missing from this array silently renders no section.
+  'skill',
 ];
 
 const DAY_LABEL = (p: Protocol) =>

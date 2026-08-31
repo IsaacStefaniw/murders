@@ -1,10 +1,13 @@
 import {
   EVIDENCE_LABELS,
   knowledgeContext,
+  PILLAR_LABELS,
   PROTOCOLS,
   protocolById,
   protocolsForDomain,
+  spreadDays,
   toRoutine,
+  type Pillar,
 } from '@/features/knowledge/protocols';
 import { MODALITIES } from '@/features/modalities/registry';
 import { toMinutes } from '@/lib/dates';
@@ -44,8 +47,11 @@ describe('knowledge base integrity', () => {
   });
 
   it('health-adjacent protocols carry a plain-words safety note', () => {
-    for (const p of PROTOCOLS.filter((x) =>
-      ['training', 'longevity'].includes(x.pillar),
+    for (const p of PROTOCOLS.filter(
+      (x) =>
+        ['training', 'longevity'].includes(x.pillar) ||
+        // Sport practice is physical training under another name.
+        (x.pillar === 'skill' && x.area === 'health'),
     )) {
       if (p.id === 'post-meal-walk') continue; // walking needs no caution
       expect(p.safety).toBeTruthy();
@@ -171,5 +177,52 @@ describe('domain pathways', () => {
     for (const p of PROTOCOLS) {
       expect(EVIDENCE_LABELS[p.evidenceLevel]).toBeTruthy();
     }
+  });
+
+  it('every pillar the library declares actually has protocols behind it', () => {
+    const covered = new Set(PROTOCOLS.map((p) => p.pillar));
+    for (const pillar of Object.keys(PILLAR_LABELS) as Pillar[]) {
+      expect(covered.has(pillar)).toBe(true);
+    }
+  });
+
+  /**
+   * A deadline may be brought earlier and must never be pushed later. If it
+   * were flexible, the scheduler's placement pass would relocate it — which
+   * is how the caffeine cutoff came to read 16:30 against a 22:30 bedtime.
+   */
+  it('deadline protocols are never flexible', () => {
+    const deadlines = PROTOCOLS.filter((p) => p.anchor.deadline);
+    expect(deadlines.length).toBeGreaterThan(0);
+    for (const p of deadlines) {
+      expect(toRoutine(p, null).flexible).toBe(false);
+    }
+  });
+});
+
+describe('spreadDays', () => {
+  /**
+   * Trimming used to take the first N days, collapsing a spaced practice
+   * into adjacent ones — a trim that makes a protocol false rather than
+   * merely smaller.
+   */
+  it('keeps the days spread rather than taking the first few', () => {
+    expect(spreadDays([0, 1, 2, 3, 4, 5, 6], 2)).toEqual([0, 6]);
+    expect(spreadDays([1, 2, 3, 4, 5], 3)).toEqual([1, 3, 5]);
+  });
+
+  it('never invents days or exceeds what it was given', () => {
+    const out = spreadDays([1, 3, 5], 2);
+    expect(out.length).toBeLessThanOrEqual(2);
+    for (const d of out) expect([1, 3, 5]).toContain(d);
+    expect(spreadDays([2], 3)).toEqual([2]);
+  });
+
+  it('a daily spaced practice trimmed to two days lands a week apart', () => {
+    const daily = PROTOCOLS.find((p) => p.id === 'spaced-review')!;
+    // It ships as 'should' precisely so trimming cannot touch it, but the
+    // spread must hold for any daily protocol that is trimmed.
+    const trimmed = spreadDays(daily.days, 2);
+    expect(trimmed[1] - trimmed[0]).toBeGreaterThan(1);
   });
 });

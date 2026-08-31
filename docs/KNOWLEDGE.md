@@ -46,11 +46,38 @@ for exactly this reason.
 **Grade honestly or not at all.** A round where everything comes back A or
 B has failed. The first round (August 2026) added 27 protocols across
 relationships, family and adventure, money, leadership and mind, and
-produced exactly two A grades — automated payday saving and implementation
-intentions. Connection protocols are graded C to E throughout, and an
-integrity test now forbids an A in that pillar: nothing about couple or
-family behaviour has support at the level of morning light or strength
-training, and the library should say so.
+produced exactly two A grades. Connection protocols are graded C to E
+throughout, and an integrity test now forbids an A in that pillar: nothing
+about couple or family behaviour has support at the level of morning light
+or strength training, and the library should say so.
+
+Round two added 66 more across twelve pillars — sport and skill
+acquisition, mobility, injury prevention, sleep depth, endurance,
+longevity, focus and digital hygiene, learning, stress and burnout,
+career, creative practice, and friendship. Across 119 protocols the
+spread is A 6, B 43, C 40, D 23, E 7: strong evidence is 41% of the
+library, and the integrity test holds it under half.
+
+**Grade in both directions.** Round two also graded *up* where it was
+deserved — retrieval practice and spaced review are genuinely A, among
+the best-replicated findings in any pillar — and graded *down* on review:
+`daily-walk` moved A to B, because it rested on the same observational
+walking literature that had earned `step-floor` a B.
+
+**Say what does not work.** A library that only ever adds practices never
+tells anyone what to stop doing. Rounds are asked to name popular
+practices the evidence contradicts, and several now appear in the
+protocols' own copy: the ten-thousand-hours framing, blocked repetition,
+internal body-part cueing, foam rolling and movement screens, the 10%
+running rule, the "23 minutes to refocus" statistic, and the claim that
+micro-breaks raise output. `LEARNING_ANTIPATTERNS` carries highlighting,
+rereading and learning styles as a first-class piece of content.
+
+**A grade taxonomy that fits reality.** Round two exposed a mismatch: very
+large, consistent, meta-analysed cohort evidence (VO2 max and mortality,
+say) is stronger than "moderate observational" but is not a controlled
+trial. B and C were reworded rather than quietly mis-grading the
+protocols.
 
 Money protocols carry an extra constraint enforced by test: anything
 touching debt, investing or a position number must name a licensed
