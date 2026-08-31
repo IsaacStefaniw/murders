@@ -59,6 +59,8 @@ export function SetLogger({
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
+  const [draftWeight, setDraftWeight] = useState('');
+  const [draftReps, setDraftReps] = useState('');
 
   const fallbackReps = suggestedReps ?? defaultRepsFrom(prescribedReps);
   const lastSet = sets[sets.length - 1];
@@ -128,19 +130,30 @@ export function SetLogger({
           {sets.map((s) =>
             editing === s.id ? (
               <View key={s.id} style={styles.editRow}>
-                {numberField(
-                  String(s.weightKg ?? ''),
-                  (v) => onEditSet(s.id, { weightKg: v === '' ? undefined : Number(v) }),
-                  'kg',
-                  `Set ${s.index} weight`,
-                )}
-                {numberField(
-                  String(s.reps),
-                  (v) => onEditSet(s.id, { reps: Number(v) || s.reps }),
-                  'reps',
-                  `Set ${s.index} reps`,
-                )}
-                <Chip label="Done" selected onPress={() => setEditing(null)} />
+                {/*
+                  Edits are held locally and committed on Done rather than
+                  written per keystroke. Every write re-derives the session's
+                  e1RM and re-runs the whole evidence pass, so typing "125"
+                  used to do that three times — and the field's value coming
+                  back from the store mid-keystroke is how cursors jump.
+                */}
+                {numberField(draftWeight, setDraftWeight, 'kg', `Set ${s.index} weight`)}
+                {numberField(draftReps, setDraftReps, 'reps', `Set ${s.index} reps`)}
+                <Chip
+                  label="Done"
+                  selected
+                  onPress={() => {
+                    const r = Number(draftReps);
+                    const w = Number(draftWeight);
+                    onEditSet(s.id, {
+                      reps: Number.isFinite(r) && r > 0 ? r : s.reps,
+                      weightKg: draftWeight.trim() === '' || !Number.isFinite(w) || w <= 0
+                        ? undefined
+                        : w,
+                    });
+                    setEditing(null);
+                  }}
+                />
                 <Chip label="Delete" onPress={() => onRemoveSet(s.id)} />
               </View>
             ) : (
@@ -148,7 +161,11 @@ export function SetLogger({
                 key={s.id}
                 accessibilityRole="button"
                 accessibilityLabel={`Edit set ${s.index}`}
-                onPress={() => setEditing(s.id)}
+                onPress={() => {
+                  setDraftWeight(String(s.weightKg ?? ''));
+                  setDraftReps(String(s.reps));
+                  setEditing(s.id);
+                }}
                 style={styles.setRow}
               >
                 <AppText variant="caption" color="textTertiary">

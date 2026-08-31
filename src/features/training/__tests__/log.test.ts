@@ -6,6 +6,7 @@ import {
   makeSet,
   newLog,
   observationsFrom,
+  recentLogs,
   suggestNext,
   volumeOf,
   weeklyVolume,
@@ -198,5 +199,30 @@ describe('bestE1rm', () => {
     const best = bestE1rm(logs, 'Bench press')!;
     expect(best.date).toBe('2026-03-09');
     expect(best.value).toBe(115.5);
+  });
+});
+
+describe('date handling', () => {
+  /**
+   * `log.date` is a LOCAL date key. Slicing an ISO string to build a cutoff
+   * compares a UTC date against a local one, which east of Greenwich is a
+   * different day for most of the working morning — every week boundary off
+   * by one, silently, on exactly the timezone this app is being built in.
+   */
+  it('buckets by local dates, not UTC ones', () => {
+    // 09:00 in a UTC+11 zone is the previous day in UTC.
+    const morning = new Date('2026-03-16T09:00:00+11:00');
+    const todayLocal = `${morning.getFullYear()}-${String(morning.getMonth() + 1).padStart(2, '0')}-${String(morning.getDate()).padStart(2, '0')}`;
+    const logs = [log(todayLocal, [set('Squat', 1, 5, 100)])];
+
+    // Today's session belongs to the newest week and to a 7-day window.
+    const weeks = weeklyVolume(logs, 2, morning);
+    expect(weeks[weeks.length - 1].sessions).toBe(1);
+    expect(recentLogs(logs, 7, morning)).toHaveLength(1);
+  });
+
+  it('excludes a session that really is outside the window', () => {
+    const now = new Date('2026-03-16T09:00:00');
+    expect(recentLogs([log('2026-01-01', [set('Squat', 1, 5, 100)])], 7, now)).toHaveLength(0);
   });
 });

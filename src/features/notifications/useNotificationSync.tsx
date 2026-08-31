@@ -1,14 +1,14 @@
 /**
  * Keeps the operating system's queue in step with what the app intends.
  *
- * Runs on mount and whenever the inputs that could change the answer
- * change. The planned list is derived deterministically from state, so the
- * strategy is cancel-and-replace rather than diffing: recomputing is cheap,
- * reconciling is not, and a person who turns something off gets silence
- * immediately instead of at the end of whatever was already queued.
+ * Re-syncs when the PLANNED LIST changes, not when the state behind it
+ * does. Within a sync the strategy is cancel-and-replace rather than
+ * diffing: recomputing is cheap, reconciling is not, and someone who turns
+ * a category off gets silence immediately instead of at the end of whatever
+ * was already queued.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { plannedAcross } from '@/features/notifications/schedule';
 import { cancelAllNotifications, syncScheduledNotifications } from '@/lib/notifications';
@@ -27,7 +27,30 @@ export function useNotificationSync(): void {
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
   const metrics = useAppStore((s) => s.metrics);
 
+  /**
+   * The planned list, not the state it came from, is what decides whether
+   * the OS queue needs touching. `metrics` gets a new array identity on
+   * every reading, so keying the effect on the inputs meant a cancel-and-
+   * reschedule of everything each time someone logged a set — ten writes
+   * for a single workout, none of which changed a single notification.
+   */
+  const planned = useMemo(() => {
+    if (!settings.enabled) return [];
+    const today = todayKey();
+    const dates = Array.from({ length: HORIZON_DAYS }, (_, i) => addDays(today, i));
+    return plannedAcross(
+      dates,
+      { profile, routines, behaviourIntentions, behaviourEvents, metrics, settings },
+      plans,
+    );
+  }, [settings, profile, plans, routines, behaviourIntentions, behaviourEvents, metrics]);
+
+  const signature = JSON.stringify(planned.map((n) => [n.id, n.at, n.body]));
+  const lastSynced = useRef<string | null>(null);
+
   useEffect(() => {
+    if (lastSynced.current === signature) return;
+    lastSynced.current = signature;
     let cancelled = false;
 
     const run = async () => {
@@ -35,13 +58,6 @@ export function useNotificationSync(): void {
         await cancelAllNotifications();
         return;
       }
-      const today = todayKey();
-      const dates = Array.from({ length: HORIZON_DAYS }, (_, i) => addDays(today, i));
-      const planned = plannedAcross(
-        dates,
-        { profile, routines, behaviourIntentions, behaviourEvents, metrics, settings },
-        plans,
-      );
       if (cancelled) return;
       await syncScheduledNotifications(planned);
     };
@@ -50,5 +66,7 @@ export function useNotificationSync(): void {
     return () => {
       cancelled = true;
     };
-  }, [settings, profile, plans, routines, behaviourIntentions, behaviourEvents, metrics]);
+    // `signature` is the whole point: identical plans do not re-sync.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature]);
 }

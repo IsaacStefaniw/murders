@@ -693,9 +693,15 @@ export const useAppStore = create<AppState>()(
           const others = get().workoutLogs.filter((l) => l.id !== log.id);
           const noteTag = `workout:${log.id}`;
           const keptMetrics = get().metrics.filter((m) => m.note !== noteTag);
+          // Noon LOCAL on the session's date, not noon UTC: east of
+          // Greenwich the latter can land on the following calendar day,
+          // which would file a Monday session under Tuesday in every
+          // date-keyed view that reads the metric stream.
+          const [ly, lm, ld] = log.date.split('-').map(Number);
+          const at = new Date(ly, lm - 1, ld, 12, 0, 0, 0).toISOString();
           const fresh = observationsFrom(stamped).map((o) => ({
             ...observe(o.key, o.value, 'user', noteTag),
-            at: `${log.date}T12:00:00.000Z`,
+            at,
           }));
           set({
             workoutLogs: [...others, stamped].sort((a, b) => a.date.localeCompare(b.date)),

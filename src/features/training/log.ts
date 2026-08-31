@@ -22,7 +22,7 @@
  */
 
 import { estimate1Rm, type MetricObservation } from '@/features/model/metrics';
-import { newId } from '@/lib/dates';
+import { newId, toDateKey } from '@/lib/dates';
 import type { LoggedSet, WorkoutLog } from '@/types/domain';
 
 export type MainLift = 'bench' | 'squat' | 'deadlift' | 'ohp';
@@ -224,9 +224,16 @@ export function observationsFrom(log: WorkoutLog): { key: string; value: number;
   }));
 }
 
-/** Sessions in a rolling window, newest first. */
-export function recentLogs(logs: WorkoutLog[], days = 56): WorkoutLog[] {
-  const cutoff = new Date(Date.now() - days * 86400e3).toISOString().slice(0, 10);
+/**
+ * Sessions in a rolling window, newest first.
+ *
+ * Cutoffs are LOCAL date keys, matching how `log.date` is written. Slicing
+ * an ISO string here instead would compare a UTC date against a local one,
+ * which east of Greenwich is a different day for most of the working
+ * morning — every week boundary off by one, silently.
+ */
+export function recentLogs(logs: WorkoutLog[], days = 56, now = new Date()): WorkoutLog[] {
+  const cutoff = toDateKey(new Date(now.getTime() - days * 86400e3));
   return logs.filter((l) => l.date >= cutoff).sort(byDateDesc);
 }
 
@@ -240,8 +247,8 @@ export function weeklyVolume(
   for (let i = weeks - 1; i >= 0; i -= 1) {
     const end = new Date(now.getTime() - i * 7 * 86400e3);
     const start = new Date(end.getTime() - 6 * 86400e3);
-    const startKey = start.toISOString().slice(0, 10);
-    const endKey = end.toISOString().slice(0, 10);
+    const startKey = toDateKey(start);
+    const endKey = toDateKey(end);
     const inWeek = logs.filter((l) => l.date >= startKey && l.date <= endKey);
     out.push({
       weekStart: startKey,
