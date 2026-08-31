@@ -10,10 +10,11 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
 import {
-  buildGoalPlan,
-  DOMAIN_LABELS,
-  parseGoal,
-} from '@/features/goals/goalPlanner';
+  composeGoalDraft,
+  describeCheckin,
+  describeDoneWhen,
+} from '@/features/goals/composer';
+import { DOMAIN_LABELS, parseGoal } from '@/features/goals/goalPlanner';
 import { DOMAIN_QUESTIONS } from '@/features/knowledge/questionBank';
 import { formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
@@ -41,7 +42,7 @@ export default function NewGoal() {
   const parsed = useMemo(() => (text.trim() ? parseGoal(text) : null), [text]);
   const questions = parsed ? (DOMAIN_QUESTIONS[parsed.domain] ?? []) : [];
   const plan = useMemo(
-    () => (parsed && step === 'review' ? buildGoalPlan(parsed, profile, why, answers) : null),
+    () => (parsed && step === 'review' ? composeGoalDraft(parsed, profile, why, answers) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [parsed, step],
   );
@@ -191,6 +192,32 @@ export default function NewGoal() {
           <AppText variant="caption" color="textTertiary" style={styles.sub}>
             Tap to drop any that don&apos;t fit.
           </AppText>
+          <View style={styles.doneWhenList}>
+            {plan.goal.milestones
+              .filter((m) => !droppedMilestones.has(m.id))
+              .map((m) => (
+                <AppText key={m.id} variant="caption" color="textTertiary">
+                  {m.title} — done when {describeDoneWhen(m.doneWhen)}
+                </AppText>
+              ))}
+          </View>
+        </View>
+      ) : null}
+
+      {plan.goal.checkins?.length ? (
+        <View>
+          <SectionHeader title="How I’ll track it" />
+          <Card>
+            {plan.goal.checkins.map((c) => (
+              <AppText key={c.id} variant="body">
+                {describeCheckin(c)}
+              </AppText>
+            ))}
+            <AppText variant="caption" color="textTertiary" style={styles.sub}>
+              Rungs backed by a number get checked off automatically — you only confirm what a
+              number can&apos;t see.
+            </AppText>
+          </Card>
         </View>
       ) : null}
 
@@ -241,6 +268,7 @@ const styles = StyleSheet.create({
   },
   bigInput: { marginTop: Spacing.xl, minHeight: 76 },
   stack: { flexDirection: 'column', gap: Spacing.sm },
+  doneWhenList: { marginTop: Spacing.md, gap: Spacing.xs },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   footer: { marginTop: Spacing.xxl, gap: Spacing.sm },
 });

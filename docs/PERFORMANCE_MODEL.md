@@ -140,6 +140,40 @@ session (stimulus kept, accessories cut, reason stated). Sleep →
 training is the first edge; sleep → nutrition and calendar-load →
 work-target ride the same metrics.
 
+## Goal composer v1 (`features/goals/composer.ts`)
+
+The universal loop (docs/VISION.md) applied to arbitrary goals. The goal
+planner already turns one sentence into domain-shaped milestones and a
+recurring behaviour; the composer is the layer above it:
+
+- **Measurable rungs.** Where a numeric target can be read from the goal
+  ("Save $40k", "Bench 120kg", "Get to 80kg"), milestones become rungs
+  with explicit `doneWhen` conditions — a metric threshold, a completed-
+  session count, or a consistency streak. `confirm` rungs remain the
+  honest fallback for what a number can't see (finishing the book,
+  running the race).
+- **Check-in schema.** Every composed goal declares how progress is
+  measured, at what cadence, and at whose effort: `health` (arrives from
+  Apple Health), `plan` (counted from completed sessions, no logging),
+  or `ask` (one question at the stated cadence — a savings goal asks
+  weekly, a revenue goal monthly). Never a form.
+- **Evidence pass.** `assessGoal` checks rungs off from metrics and the
+  plan-event stream and states the verdict with its reason ("At $12,000 —
+  $8,000 from Halfway"). The store runs it after every metric, health
+  sync and completed session, so a check-in's effect is visible the
+  moment it lands. States: on-track / stalled (reuses the 21-day stall
+  window) / need-data / done.
+- **Approval.** The wizard's review step shows each rung's done-when and
+  the tracking plan before "Make it real" — the draft is legible, and
+  the user edits it, not the engine.
+
+Archetypes v1: savings ladder (fractional rungs at 10/25/50/100%),
+strength target (consistency streaks, then the e1RM the workouts already
+produce), endurance event, body-weight target (read-only via Health),
+revenue target, sessions-of-real-work for creative goals. Everything
+else keeps the planner's ladder as confirm rungs. Deterministic
+throughout, so the simulation lab can gate future archetypes.
+
 ## Evidence quality
 
 Protocols now carry `evidenceLevel` A–E (meta-analytic → heuristic),

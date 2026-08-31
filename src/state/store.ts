@@ -16,6 +16,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
 import { behaviourInfo } from '@/features/behaviours/catalog';
+import { assessGoal } from '@/features/goals/composer';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { detectGoalUnderserved } from '@/features/goals/underserved';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
@@ -151,6 +152,9 @@ export interface AppState {
   updatePathAnswers: (id: PathId, patch: Record<string, string>) => void;
   setGoalStatus: (goalId: string, status: Goal['status']) => void;
   setMilestoneDone: (goalId: string, milestoneId: string, done: boolean) => void;
+  /** Evidence pass: milestones whose doneWhen is satisfied by metrics or
+   * completed sessions get checked off automatically (goal composer). */
+  assessGoals: () => void;
   setGoalNextFocus: (goalId: string, nextFocus: string | undefined) => void;
   updateRoutine: (routineId: string, patch: Partial<Routine>) => void;
 
@@ -394,6 +398,8 @@ export const useAppStore = create<AppState>()(
           );
           if (status === 'completed') {
             record(eventFor(item, date, 'completed', { evidence: finalEvidence }));
+            // A completed session can finish a count or streak rung.
+            get().assessGoals();
           } else if (status === 'skipped') {
             record(eventFor(item, date, 'skipped'));
           } else if (status === 'planned' && item.status !== 'planned') {
@@ -512,6 +518,28 @@ export const useAppStore = create<AppState>()(
 
         addMetric: (key, value, note) => {
           set({ metrics: [...get().metrics, observe(key, value, 'user', note)].slice(-2000) });
+          // A new reading can satisfy a milestone rung — check immediately,
+          // so the check-in's effect is visible the moment it lands.
+          get().assessGoals();
+        },
+
+        assessGoals: () => {
+          const { goals, metrics, planEvents } = get();
+          const now = new Date().toISOString();
+          let changed = false;
+          const next = goals.map((g) => {
+            if (g.status !== 'active' || !g.milestones?.length) return g;
+            const { autoDone } = assessGoal(g, { metrics, planEvents });
+            if (autoDone.length === 0) return g;
+            changed = true;
+            return {
+              ...g,
+              milestones: g.milestones.map((m) =>
+                autoDone.includes(m.id) ? { ...m, done: true, doneAt: now } : m,
+              ),
+            };
+          });
+          if (changed) set({ goals: next });
         },
 
         markQuestionAsked: (id) => {
@@ -527,6 +555,8 @@ export const useAppStore = create<AppState>()(
             metrics: [...get().metrics, ...observations].slice(-2000),
             healthLastSyncAt: new Date().toISOString(),
           });
+          // A weight or sleep reading from Health can satisfy a rung too.
+          if (observations.length > 0) get().assessGoals();
         },
 
         buildTrainingBlock: () => {

@@ -115,12 +115,43 @@ export type GoalDomain =
   | 'experience'
   | 'behaviour';
 
+/**
+ * A measurable completion condition for a milestone rung. Where one can be
+ * stated, the system checks it off from evidence — a metric observation, a
+ * count of completed sessions, a consistency streak — instead of asking.
+ * 'confirm' rungs stay the honest fallback: only the user can say "done".
+ */
+export type DoneWhen =
+  | { kind: 'metric'; metricKey: string; op: 'gte' | 'lte'; value: number; unit?: string }
+  | { kind: 'count'; target: number }
+  | { kind: 'streak'; weeks: number; minPerWeek: number }
+  | { kind: 'confirm' };
+
+/**
+ * One recurring measurement a goal needs. Observations land in the shared
+ * metrics stream. 'health' arrives from Apple Health, 'plan' is derived
+ * from completed sessions (no user effort), 'ask' is one question at the
+ * stated cadence — never a form.
+ */
+export interface CheckinSpec {
+  id: string;
+  metricKey: string;
+  label: string;
+  unit?: string;
+  cadenceDays: number;
+  source: 'health' | 'plan' | 'ask';
+  /** The one-line ask, for 'ask' check-ins. */
+  prompt?: string;
+}
+
 export interface GoalMilestone {
   id: string;
   title: string;
   done: boolean;
   /** When it was completed — the goal-stalled detector reads this. */
   doneAt?: string;
+  /** Measurable completion condition; absent means user-confirmed. */
+  doneWhen?: DoneWhen;
 }
 
 export interface Goal {
@@ -135,6 +166,8 @@ export interface Goal {
   milestones?: GoalMilestone[];
   /** The one lever for next week, set by the weekly review session. */
   nextFocus?: string;
+  /** How progress is measured — the goal composer drafts these. */
+  checkins?: CheckinSpec[];
   status: GoalStatus;
   createdAt: string;
   /** Routines generated from this goal. */

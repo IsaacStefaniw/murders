@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Chip } from '@/components/chip';
@@ -13,6 +13,7 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { behaviourInfo } from '@/features/behaviours/catalog';
+import { GoalProgress } from '@/features/goals/GoalProgress';
 import { PATH_ORDER, PATHS } from '@/features/paths/definitions';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
@@ -72,6 +73,13 @@ export default function Life() {
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
   const logBehaviourEvent = useAppStore((s) => s.logBehaviourEvent);
   const setBehaviourEventTrigger = useAppStore((s) => s.setBehaviourEventTrigger);
+  const assessGoals = useAppStore((s) => s.assessGoals);
+
+  // Evidence pass on open: rungs satisfied by metrics or completed sessions
+  // get checked off before the cards render their verdicts.
+  useEffect(() => {
+    assessGoals();
+  }, [assessGoals]);
 
   /** Event awaiting an optional one-tap trigger. */
   const [pendingTrigger, setPendingTrigger] = useState<{
@@ -181,6 +189,7 @@ export default function Life() {
                     This week: {goal.nextFocus}
                   </AppText>
                 ) : null}
+                <GoalProgress goal={goal} />
                 {reviewable ? (
                   <Button
                     title="Weekly review"

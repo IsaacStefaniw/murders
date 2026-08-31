@@ -118,10 +118,11 @@ evidence, clearly labelled as simulation. Trust earned, not borrowed.
 loops (e1RM-driven loads, weight-trend nutrition, savings-rate ladder, deep
 work blocks, practice progression); progressive interview + question engine;
 existing-habit anchoring; Apple Health read-only ingestion; weekly review;
-the simulation lab; automated TestFlight releases.
+the simulation lab; automated TestFlight releases; the goal composer v1 —
+state any goal, and the engine drafts the milestone ladder and check-in
+schema for approval, then checks rungs off from evidence.
 
-**Next (the fuller app):** the goal composer v1 — user states any goal, the
-engine drafts the milestone ladder and check-in schema for approval; local
+**Next (the fuller app):** more composer archetypes, sim-gated; local
 notifications and calendar *read* so the plan meets the real week; the shared
 web↔app profile API; engine v6 (day-shifting on repeated misses,
 established-routine pruning immunity); more protocol coverage per pathway.
