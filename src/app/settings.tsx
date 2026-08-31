@@ -25,6 +25,11 @@ import {
   healthAvailable,
   syncAppleHealth,
 } from '@/features/health/healthkit';
+import {
+  notificationPermission,
+  requestNotificationPermission,
+  type PermissionState,
+} from '@/lib/notifications';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { useAppStore } from '@/state/store';
 
@@ -34,6 +39,9 @@ export default function Settings() {
   const router = useRouter();
   const theme = useTheme();
   const profile = useAppStore((s) => s.profile);
+  const notifications = useAppStore((s) => s.notifications);
+  const setNotificationSettings = useAppStore((s) => s.setNotificationSettings);
+  const [notifPermission, setNotifPermission] = useState<PermissionState>('undetermined');
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const addBehaviourIntention = useAppStore((s) => s.addBehaviourIntention);
   const setBehaviourIntentionActive = useAppStore((s) => s.setBehaviourIntentionActive);
@@ -56,6 +64,9 @@ export default function Settings() {
 
   useEffect(() => {
     healthAvailable().then(setCanUseHealth);
+    // Read-only: knowing the state lets the screen explain itself without
+    // triggering the one prompt iOS will ever show.
+    notificationPermission().then(setNotifPermission);
   }, []);
 
   const simLabel =
@@ -97,6 +108,26 @@ export default function Settings() {
   const trackedKeys = new Set(
     behaviourIntentions.filter((b) => b.active).map((b) => b.behaviour),
   );
+
+  /**
+   * Permission is asked here, at the moment someone opts in — never on
+   * launch. iOS offers the prompt once, and a prompt before anyone has seen
+   * what the app would say is the fastest route to a permanent no.
+   */
+  const toggleNotification = async (key: 'interventions' | 'sessions' | 'windDown') => {
+    const turningOn = !(notifications.enabled && notifications[key]);
+    if (turningOn) {
+      const state = await requestNotificationPermission();
+      setNotifPermission(state);
+      if (state !== 'granted') return;
+    }
+    const next = { ...notifications, [key]: turningOn };
+    setNotificationSettings({
+      ...next,
+      // Enabled is derived: the master switch is just "is anything on".
+      enabled: next.interventions || next.sessions || next.windDown,
+    });
+  };
 
   const toggleBehaviour = (key: (typeof BEHAVIOUR_CATALOG)[number]['key']) => {
     const existing = behaviourIntentions.find((b) => b.behaviour === key);
@@ -200,6 +231,37 @@ export default function Settings() {
             : 'Available in the iPhone app — connect it there and your vitals shape the plan automatically.'}
         </AppText>
       )}
+
+      <SectionHeader title="Notifications" />
+      <AppText variant="caption" color="textTertiary">
+        {notifPermission === 'denied'
+          ? 'Turned off for INTENT in iOS Settings. Enable them there first, then come back.'
+          : notifPermission === 'unavailable'
+            ? 'Not available in this build.'
+            : `At most ${notifications.dailyCap} a day, never during your quiet hours, and nothing at all until you turn one of these on. An app that says four things a day gets muted in a fortnight.`}
+      </AppText>
+      <View style={styles.chips}>
+        <Chip
+          label="Habit interventions"
+          selected={notifications.enabled && notifications.interventions}
+          onPress={() => void toggleNotification('interventions')}
+        />
+        <Chip
+          label="Session reminders"
+          selected={notifications.enabled && notifications.sessions}
+          onPress={() => void toggleNotification('sessions')}
+        />
+        <Chip
+          label="Wind-down"
+          selected={notifications.enabled && notifications.windDown}
+          onPress={() => void toggleNotification('windDown')}
+        />
+      </View>
+      <AppText variant="caption" color="textTertiary" style={styles.note}>
+        A habit intervention arrives BEFORE the window your own logs say it usually happens in —
+        the hour when a different plan still lands. It stays quiet until there is a pattern to
+        work from.
+      </AppText>
 
       <SectionHeader title="Behaviours you're working on" />
       {/* Grouped rather than listed: sixteen undifferentiated chips is a wall,

@@ -27,6 +27,10 @@ import {
   type EnjoymentRating,
   type FoodPreferences,
 } from '@/features/modalities/meals/food';
+import {
+  DEFAULT_NOTIFICATION_SETTINGS,
+  type NotificationSettings,
+} from '@/features/notifications/schedule';
 import { observationsFrom } from '@/features/training/log';
 import {
   baselinesFrom,
@@ -186,6 +190,14 @@ export interface AppState {
   setFoodPreferences: (patch: Partial<FoodPreferences>) => void;
   rateDish: (dishId: string, rating: EnjoymentRating['rating']) => void;
 
+  /**
+   * Notification settings. Off until someone turns them on: a permission
+   * prompt before anyone has seen what the app would say is the fastest
+   * route to a permanent no, and iOS offers that prompt once.
+   */
+  notifications: NotificationSettings;
+  setNotificationSettings: (patch: Partial<NotificationSettings>) => void;
+
   /** Apple Health — read-only vitals feeding the same metric stream. */
   healthConnectedAt: string | null;
   healthLastSyncAt: string | null;
@@ -285,6 +297,7 @@ const initialData = {
   metrics: [] as MetricObservation[],
   workoutLogs: [] as WorkoutLog[],
   foodPreferences: EMPTY_FOOD_PREFERENCES as FoodPreferences,
+  notifications: DEFAULT_NOTIFICATION_SETTINGS as NotificationSettings,
   healthConnectedAt: null as string | null,
   healthLastSyncAt: null as string | null,
   questionLog: {} as Record<string, string>,
@@ -694,6 +707,10 @@ export const useAppStore = create<AppState>()(
           const log = get().workoutLogs.find((l) => l.id === logId);
           if (!log) return;
           get().saveWorkoutLog({ ...log, sets: log.sets.filter((s) => s.id !== setId) });
+        },
+
+        setNotificationSettings: (patch) => {
+          set({ notifications: { ...get().notifications, ...patch } });
         },
 
         setFoodPreferences: (patch) => {

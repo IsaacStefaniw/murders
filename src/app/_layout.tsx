@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+
+import { useNotificationSync } from '@/features/notifications/useNotificationSync';
 import { useColorScheme } from 'react-native';
 
 import { Colors } from '@/constants/theme';
@@ -22,6 +24,10 @@ export default function RootLayout() {
   useEffect(() => {
     if (hydrated) SplashScreen.hideAsync();
   }, [hydrated]);
+
+  // Keeps the OS queue in step with what the app intends. No-ops entirely
+  // while notifications are off, which is the default.
+  useNotificationSync();
 
   const palette = colorScheme === 'dark' ? Colors.dark : Colors.light;
   const navTheme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
