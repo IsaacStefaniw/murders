@@ -176,3 +176,39 @@ it now has a metric that will show whether it works.
 Simulation ≠ users: personas are hand-built and acceptance probabilities
 are guesses. The sim validates machinery and catches regressions; only the
 seven-real-days experiment validates the product.
+
+## v5 — existing habits: capture, anchor, measure (2000 × 26 weeks × 3 arms)
+
+The humans in the cohort now HAVE habits (per-persona odds: gym, walking,
+fasting, meditation, sauna, cold, journaling, running), and activity
+matching a true habit completes more reliably (~1.2× boost — a modelling
+assumption, like shrink-relief). The ablation arm (`SIM_HABITS=0`) keeps
+the humans identical but builds their plans blind to those habits —
+measuring exactly what asking one interview question is worth.
+
+**Findings (capture+tuning vs blind):**
+
+1. **Capture's win is volume, not percentage.** Completion *rate* is a
+   wash (54.6% vs 54.2% — anchors add planned items and completions in
+   proportion). The real number: **things actually done per user-week
+   9.7 vs 8.3 (+17%)** — organising existing habits pulls a sixth more
+   real, kept practice inside the system, where the engine can schedule,
+   shorten, and learn from it.
+2. **Whole practices only exist if you ask.** Journal sessions 2,197 vs
+   **zero** blind; meditation sessions +49%. Nobody's plan invents the
+   journaling they already do — capture is the only door.
+3. **Alignment improves faster with capture** (+7.7 vs +6.2 pts) — habit
+   anchors hand the adaptation engine more true signal per week.
+4. **Cost found and tuned: minimal-capacity overload.** Daily anchors
+   crowded the calendars of users whose habits already lived happily
+   outside it — new_parent finished *below* the blind arm (46.0 vs 47.3).
+   Fix: at minimal capacity, habit anchors track at most 3 core days.
+   new_parent slope recovered to the best of all arms (+4.8 pts, 46.6
+   final); nothing else regressed.
+5. **Watch item:** the weekly review rests more routines under capture
+   (1,685 vs 1,211; over-pruned users 149 vs 69) — more inventory, more
+   pruning. Established routines arguably deserve pruning *immunity*
+   (resting someone's real habit is nonsense); candidate for v6.
+
+Engine health across all arms: 0 errors, 0 overlaps, 0 contract
+violations. Verdict: habit capture ships, with the capacity cap.
