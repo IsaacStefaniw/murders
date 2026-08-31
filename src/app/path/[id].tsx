@@ -10,6 +10,8 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
 import { protocolById } from '@/features/knowledge/protocols';
+import { QuestionCard } from '@/features/model/QuestionCard';
+import { NutritionHub } from '@/features/nutrition/NutritionHub';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { TrainingHub } from '@/features/training/TrainingHub';
 import { formatTime } from '@/lib/dates';
@@ -169,6 +171,10 @@ export default function PathHub() {
       ) : null}
 
       {def.id === 'training' ? <TrainingHub /> : null}
+      {def.id === 'nutrition' ? <NutritionHub /> : null}
+      {def.id === 'money' ? <QuestionCard domain="finance" /> : null}
+      {def.id === 'work' ? <QuestionCard domain="work" /> : null}
+      {def.id === 'recovery' ? <QuestionCard domain="mind" /> : null}
 
       <SectionHeader title="Yours, specifically" />
       <View style={styles.stack}>

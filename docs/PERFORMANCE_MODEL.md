@@ -24,9 +24,21 @@ programme. Four bodies of knowledge, filled progressively:
 Every possible question declares domain, importance, information gain,
 burden, and answer source. INTENT asks **one** next-best question
 (score = importance × infoGain / burden), never re-asks anything already
-known from the profile or a metric, and cools down for 14 days after a
-skip. "I can make your training loads exact if I know your bench press"
-— one question, never another assessment.
+known from the profile, a metric, or a path intake, and cools down for
+14 days after a skip. "I can make your training loads exact if I know
+your bench press" — one question, never another assessment.
+
+Three input kinds: `number` (→ profile fact or metric), `setEntry`
+(weight×reps → e1RM observation), and `choice` (chips → merged into the
+path's intake answers via `updatePathAnswers`, no rebuild). Every path
+hub renders the shared `QuestionCard` for its domain, so **answering
+more is always the user's choice** — each answer visibly sharpens the
+plan (focus lift changes the block; food trouble reorders the lever
+ladder; the money buffer reframes the first milestone).
+
+The interview is the same engine's front door: a fuller gate (sleep
+quality, pressure, food trouble in v5) builds buy-in and lands answers
+where the engine looks, so nothing asked at the door is ever asked again.
 
 ## Pathway contract
 
@@ -61,6 +73,22 @@ The brief's acceptance test lives in
 120kg-bench intermediate on 4 gym days and the dumbbell beginner on 3×30
 minutes get materially different splits, volume, loads, exercises and
 progressions — and observed performance changes the next block.
+
+## Nutrition v2 (`features/nutrition/plan.ts`)
+
+The second deep pathway. No logging, no counting: a **protein anchor**
+(g/kg band by aim — fat loss keeps protein high to protect muscle), a
+one-sentence plate, and a **lever ladder** — kitchen-closed, post-meal
+walk, liquid calories, protein breakfast… — with exactly one lever live
+at a time, ordered by the aim and reordered by the user's own
+"where food goes wrong" answer.
+
+Adaptation reads the **body-weight trend over three weeks and at least
+three weigh-ins — never one day's reading**: flat while cutting →
+switch on the next lever; losing faster than ~1%/week → ease (that pace
+costs muscle); building and sliding → add the fourth feed. The energy
+aim never judges by the scale at all. `NutritionHub` shows the anchor,
+the trend, the verdict, the ladder, and one question.
 
 ## Evidence quality
 

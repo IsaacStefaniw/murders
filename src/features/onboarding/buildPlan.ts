@@ -99,6 +99,9 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   const kidsCount = Number(str(answers, 'kidsCount')) || (hasKids ? 1 : undefined);
   const workStyle =
     (str(answers, 'workStyle') as LifeProfile['workStyle']) || undefined;
+  const sleepQuality =
+    (str(answers, 'sleepQuality') as LifeProfile['sleepQuality']) || undefined;
+  const pressure = (str(answers, 'pressure') as LifeProfile['pressure']) || undefined;
   const lifeVision = str(answers, 'vision') || undefined;
   const walking = str(answers, 'trainingSetup') === 'walking';
 
@@ -124,6 +127,8 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     weightKg,
     kidsCount,
     workStyle,
+    sleepQuality,
+    pressure,
     lifeVision,
     createdAt: now,
     updatedAt: now,
@@ -234,7 +239,9 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     routines.push(dateRoutine);
   }
 
-  // Wind-down routine protects sleep, especially with a late-nights intention.
+  // Wind-down routine protects sleep, especially with a late-nights
+  // intention or honestly-broken sleep — then it's non-negotiable.
+  const guardSleep = lessOf.includes('late_nights') || sleepQuality === 'broken';
   routines.push({
     id: newId('r'),
     title: 'Wind down, screens away',
@@ -247,10 +254,24 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     preferredEnd: minusMinutes(sleepTime, 20),
     energy: 'evening',
     flexible: false,
-    protected: lessOf.includes('late_nights'),
-    tier: lessOf.includes('late_nights') ? 'must' : 'could',
+    protected: guardSleep,
+    tier: guardSleep ? 'must' : 'could',
     active: true,
   });
+
+  // Broken sleep gets the strongest free lever there is: morning light
+  // anchors the clock so the wind-down has something to work with.
+  if (sleepQuality === 'broken') {
+    const light = protocolById('morning-light');
+    if (light) routines.push(toRoutine(light, profile));
+  }
+
+  // Redline pressure: a midday NSDR reset — recovery scheduled like a
+  // meeting, because at redline "when I get a minute" never arrives.
+  if (pressure === 'redline') {
+    const nsdr = protocolById('nsdr');
+    if (nsdr) routines.push(toRoutine(nsdr, profile));
+  }
 
   // Friend connection when asked for.
   if (profile.moreOf.includes('Seeing friends')) {
@@ -509,13 +530,13 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   // day carries tailored milestones, check-ins and advice, not just blocks.
   const pathStarts: LifeOperatingPlan['pathStarts'] = [];
   if (startsNutritionPath) {
-    pathStarts.push({
-      id: 'nutrition',
-      answers: {
-        aim: foodAim,
-        cooking: profile.moreOf.includes('Cooking real food') ? 'enjoy' : 'normal',
-      },
-    });
+    const nutritionAnswers: Record<string, string> = {
+      aim: foodAim,
+      cooking: profile.moreOf.includes('Cooking real food') ? 'enjoy' : 'normal',
+    };
+    const foodTrouble = str(answers, 'foodTrouble');
+    if (foodTrouble) nutritionAnswers.trouble = foodTrouble;
+    pathStarts.push({ id: 'nutrition', answers: nutritionAnswers });
   }
   if (startsMoneyPath) {
     pathStarts.push({

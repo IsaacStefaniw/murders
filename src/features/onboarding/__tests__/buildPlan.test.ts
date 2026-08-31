@@ -185,6 +185,32 @@ describe('buildLifeOperatingPlan', () => {
     expect(creative.routines.some((r) => r.protocolId === 'creative-block')).toBe(true);
   });
 
+  it('broken sleep promotes the wind-down to protected and adds morning light', () => {
+    const tired = buildLifeOperatingPlan({ ...answers, lessOf: [], sleepQuality: 'broken' });
+    const windDown = tired.routines.find((r) => r.protocolId === 'wind-down')!;
+    expect(windDown.protected).toBe(true);
+    expect(windDown.tier).toBe('must');
+    expect(tired.routines.some((r) => r.protocolId === 'morning-light')).toBe(true);
+    // Solid sleepers keep the light-touch version.
+    const rested = buildLifeOperatingPlan({ ...answers, lessOf: [], sleepQuality: 'good' });
+    expect(rested.routines.find((r) => r.protocolId === 'wind-down')!.tier).toBe('could');
+    expect(rested.routines.some((r) => r.protocolId === 'morning-light')).toBe(false);
+  });
+
+  it('redline pressure schedules a midday NSDR reset', () => {
+    const hot = buildLifeOperatingPlan({ ...answers, pressure: 'redline' });
+    expect(hot.routines.some((r) => r.protocolId === 'nsdr')).toBe(true);
+    expect(hot.profile.pressure).toBe('redline');
+    const calm = buildLifeOperatingPlan({ ...answers, pressure: 'calm' });
+    expect(calm.routines.some((r) => r.protocolId === 'nsdr')).toBe(false);
+  });
+
+  it('the food-trouble answer rides into the nutrition path intake', () => {
+    const v5 = buildLifeOperatingPlan({ ...answers, foodAim: 'weight', foodTrouble: 'evenings' });
+    const nutrition = v5.pathStarts.find((p) => p.id === 'nutrition')!;
+    expect(nutrition.answers.trouble).toBe('evenings');
+  });
+
   it('falls back to sensible defaults on an empty interview', () => {
     const fallback = buildLifeOperatingPlan({});
     expect(fallback.profile.workDays).toEqual([1, 2, 3, 4, 5]);

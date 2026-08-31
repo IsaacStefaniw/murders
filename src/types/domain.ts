@@ -55,6 +55,11 @@ export interface LifeProfile {
   kidsCount?: number;
   /** What the workday mostly demands — shapes the work path. */
   workStyle?: 'maker' | 'manager' | 'mixed' | 'physical';
+  /** Honest sleep quality — 'broken' promotes the wind-down to protected
+   * and adds morning light; training auto-regulation reads it later. */
+  sleepQuality?: 'good' | 'broken' | 'varies';
+  /** Current pressure level — 'redline' adds a midday NSDR reset. */
+  pressure?: 'calm' | 'full' | 'redline';
   /** The user's own three-year picture, in their words. */
   lifeVision?: string;
   createdAt: string;

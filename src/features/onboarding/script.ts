@@ -167,6 +167,27 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     ],
   },
   {
+    id: 'sleepQuality',
+    kind: 'single',
+    prompt: () => 'And honestly — how is the sleep itself?',
+    options: [
+      { value: 'good', label: 'Mostly solid' },
+      { value: 'broken', label: 'Broken or short' },
+      { value: 'varies', label: 'Depends on the week' },
+    ],
+  },
+  {
+    id: 'pressure',
+    kind: 'single',
+    prompt: () =>
+      'How much pressure are you carrying right now? The plan protects recovery differently at redline.',
+    options: [
+      { value: 'calm', label: 'Manageable' },
+      { value: 'full', label: 'A lot, but coping' },
+      { value: 'redline', label: 'Running hot' },
+    ],
+  },
+  {
     id: 'energy',
     kind: 'single',
     prompt: () => 'When do you have the most energy?',
@@ -230,6 +251,19 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
       { value: 'weight', label: 'Lose some weight' },
       { value: 'muscle', label: 'Support training' },
       { value: 'none', label: 'Not yet' },
+    ],
+  },
+  {
+    id: 'foodTrouble',
+    kind: 'single',
+    skipIf: (a) => !a.foodAim || a.foodAim === 'none',
+    prompt: () => 'Where does food usually go wrong? The answer decides which lever comes first.',
+    options: [
+      { value: 'evenings', label: 'Evenings at home' },
+      { value: 'snacking', label: 'Grazing all day' },
+      { value: 'drinks', label: 'Drinks carry it' },
+      { value: 'skipping', label: 'Skipping meals' },
+      { value: 'nowhere', label: 'It’s mostly fine' },
     ],
   },
   {

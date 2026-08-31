@@ -9,7 +9,7 @@ import { Chip } from '@/components/chip';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
 import { estimate1Rm, latest, metricDef, trend } from '@/features/model/metrics';
-import { nextQuestion } from '@/features/model/questionEngine';
+import { QuestionCard } from '@/features/model/QuestionCard';
 import { weekOf } from '@/features/training/programme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
@@ -29,22 +29,15 @@ export function TrainingHub() {
   const router = useRouter();
   const theme = useTheme();
 
-  const profile = useAppStore((s) => s.profile);
   const metrics = useAppStore((s) => s.metrics);
-  const questionLog = useAppStore((s) => s.questionLog);
   const programme = useAppStore((s) => s.trainingProgramme);
   const addMetric = useAppStore((s) => s.addMetric);
-  const markQuestionAsked = useAppStore((s) => s.markQuestionAsked);
   const buildTrainingBlock = useAppStore((s) => s.buildTrainingBlock);
-  const updateProfile = useAppStore((s) => s.updateProfile);
 
   const [logLift, setLogLift] = useState<string | null>(null);
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [answerReps, setAnswerReps] = useState('');
 
-  const question = nextQuestion({ profile, metrics, askedAt: questionLog, domain: 'training' });
   const week = programme ? weekOf(programme) : null;
   const knownLifts = LIFTS.filter((l) => latest(metrics, l.key));
 
@@ -91,48 +84,7 @@ export function TrainingHub() {
       ) : null}
 
       {/* One question, not an assessment. */}
-      {question ? (
-        <Card style={{ borderColor: theme.accent, backgroundColor: theme.accentSoft, marginTop: Spacing.lg }}>
-          <AppText variant="body">{question.prompt}</AppText>
-          <View style={styles.inputRow}>
-            <TextInput
-              value={answer}
-              onChangeText={setAnswer}
-              keyboardType="numeric"
-              placeholder={question.input === 'setEntry' ? 'kg' : (question.unit ?? '')}
-              placeholderTextColor={theme.textTertiary}
-              style={inputStyle}
-            />
-            {question.input === 'setEntry' ? (
-              <TextInput
-                value={answerReps}
-                onChangeText={setAnswerReps}
-                keyboardType="numeric"
-                placeholder="reps"
-                placeholderTextColor={theme.textTertiary}
-                style={inputStyle}
-              />
-            ) : null}
-            <Button
-              title="Save"
-              disabled={!Number(answer) || (question.input === 'setEntry' && !Number(answerReps))}
-              onPress={() => {
-                const value = Number(answer);
-                if (question.input === 'setEntry' && question.metricKey) {
-                  saveLift(question.metricKey, value, Number(answerReps));
-                } else {
-                  if (question.profileKey) updateProfile({ [question.profileKey]: value });
-                  if (question.metricKey) addMetric(question.metricKey, value);
-                }
-                markQuestionAsked(question.id);
-                setAnswer('');
-                setAnswerReps('');
-              }}
-            />
-            <Button title="Skip" variant="ghost" onPress={() => markQuestionAsked(question.id)} />
-          </View>
-        </Card>
-      ) : null}
+      <QuestionCard domain="training" />
 
       {/* The block. */}
       <SectionHeader

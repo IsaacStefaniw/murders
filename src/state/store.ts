@@ -135,6 +135,9 @@ export interface AppState {
   paths: Partial<Record<PathId, { startedAt: string; answers: Record<string, string>; goalId: string }>>;
   /** (Re)start a path: builds its goal + routines from the intake answers. */
   startPath: (id: PathId, answers: Record<string, string>) => void;
+  /** Merge deeper answers into a started path — the question engine's
+   * choice questions land here and sharpen the plan without a rebuild. */
+  updatePathAnswers: (id: PathId, patch: Record<string, string>) => void;
   setGoalStatus: (goalId: string, status: Goal['status']) => void;
   setMilestoneDone: (goalId: string, milestoneId: string, done: boolean) => void;
   setGoalNextFocus: (goalId: string, nextFocus: string | undefined) => void;
@@ -205,13 +208,20 @@ export function deriveTrainingInputs(
       : /lose|fat|lean|kg|weight/.test(title)
         ? 'fatloss'
         : 'general';
-  const focusLift = title.includes('bench')
-    ? ('bench' as const)
-    : title.includes('squat')
-      ? ('squat' as const)
-      : title.includes('deadlift')
-        ? ('deadlift' as const)
-        : undefined;
+  // The question engine's focus-lift answer beats the title heuristic.
+  const chosen = pathAnswers?.focusLift;
+  const focusLift =
+    chosen === 'bench' || chosen === 'squat' || chosen === 'deadlift'
+      ? chosen
+      : chosen === 'none'
+        ? undefined
+        : title.includes('bench')
+          ? ('bench' as const)
+          : title.includes('squat')
+            ? ('squat' as const)
+            : title.includes('deadlift')
+              ? ('deadlift' as const)
+              : undefined;
   const equipment: TrainingInputs['equipment'] =
     profile.trainingPreference === 'gym'
       ? 'gym'
@@ -519,6 +529,17 @@ export const useAppStore = create<AppState>()(
             const today = todayKey();
             for (let i = 1; i <= 6; i++) get().regeneratePlan(addDays(today, i));
           }
+        },
+
+        updatePathAnswers: (id, patch) => {
+          const entry = get().paths[id];
+          if (!entry) return;
+          set({
+            paths: {
+              ...get().paths,
+              [id]: { ...entry, answers: { ...entry.answers, ...patch } },
+            },
+          });
         },
 
         toggleProtocol: (protocolId) => {

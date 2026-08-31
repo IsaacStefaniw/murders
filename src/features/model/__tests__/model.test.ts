@@ -83,4 +83,33 @@ describe('question engine', () => {
     });
     expect(snoozed!.id).toBe('squat-baseline');
   });
+
+  it('choice questions only surface once their path exists', () => {
+    const noPath = nextQuestion({ profile, metrics: [], askedAt: {}, domain: 'finance' });
+    expect(noPath).toBeNull();
+    const withPath = nextQuestion({
+      profile,
+      metrics: [],
+      askedAt: {},
+      pathAnswers: { money: { mode: 'saving' } },
+      domain: 'finance',
+    });
+    expect(withPath!.id).toBe('money-buffer');
+    expect(withPath!.input).toBe('choice');
+  });
+
+  it('a choice answered into path answers is never re-asked', () => {
+    const trouble = QUESTIONS.find((q) => q.id === 'food-trouble')!;
+    const ctx = {
+      profile,
+      metrics: [],
+      askedAt: {},
+      pathAnswers: { nutrition: { aim: 'weight', trouble: 'evenings' } },
+    };
+    expect(isAnswered(trouble, ctx)).toBe(true);
+    // The interview's foodTrouble answer lands as path answers — so the
+    // engine moves on to what it still doesn't know.
+    const next = nextQuestion({ ...ctx, profile: null, domain: 'nutrition' });
+    expect(next!.id).toBe('weight');
+  });
 });

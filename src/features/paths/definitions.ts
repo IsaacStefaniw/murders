@@ -194,6 +194,13 @@ export const PATHS: Record<PathId, PathDefinition> = {
       if (answers.mode === 'clarity') {
         lines.push('One place, one monthly number. Clarity precedes every good money decision.');
       }
+      if (answers.buffer === 'none') {
+        lines.push('Under a month of buffer means the buffer IS the goal — everything else waits until one month is banked.');
+      } else if (answers.buffer === 'some') {
+        lines.push('One to three months of buffer: grow it to three, then the surplus goes to work.');
+      } else if (answers.buffer === 'solid') {
+        lines.push('Three-plus months banked — the buffer question is answered; the check-in is about putting the surplus to work.');
+      }
       lines.push('Sunday, 30 minutes. Small and weekly beats big and never.');
       return lines;
     },
@@ -242,6 +249,11 @@ export const PATHS: Record<PathId, PathDefinition> = {
       }
       if (answers.bottleneck === 'focus') {
         lines.push('“No time to think” is a calendar problem. The deep-work block is the fix, and it’s protected.');
+      }
+      if (answers.meetingLoad === 'heavy') {
+        lines.push('Meetings own most of the week — the deep-work block sits before the first call, or it doesn’t happen.');
+      } else if (answers.meetingLoad === 'light') {
+        lines.push('Light meeting load is an asset: two protected making blocks, not one.');
       }
       lines.push('The weekly review closes the loop: what moved, what stalled, the one lever for next week.');
       return lines;
@@ -360,7 +372,11 @@ export const PATHS: Record<PathId, PathDefinition> = {
       };
       lines.push(triggerLine[answers.trigger ?? 'unsure']);
       lines.push('One miss is noise. Two in a row is the fork — that’s when INTENT steps in, not with shame, with a plan.');
-      lines.push('Urges crest and fall in about 10 minutes. The replacement doesn’t have to beat the habit — it has to outlast the wave.');
+      if (answers.wave === 'evening') {
+        lines.push('Your urges run long, so the answer isn’t outlasting one wave — it’s changing the evening’s shape before it starts.');
+      } else {
+        lines.push('Urges crest and fall in about 10 minutes. The replacement doesn’t have to beat the habit — it has to outlast the wave.');
+      }
       if (answers.behaviour === 'alcohol') {
         lines.push('Honest scope: this is structure for cutting down. If drinking feels out of control, talk to someone qualified — that’s strength, not failure.');
       }
