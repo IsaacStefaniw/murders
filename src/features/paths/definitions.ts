@@ -8,7 +8,7 @@
  * real routines — adapted, learned-on, and reviewed like everything else.
  */
 
-import { behaviourInfo } from '@/features/behaviours/catalog';
+import { BEHAVIOUR_CATALOG, behaviourInfo } from '@/features/behaviours/catalog';
 import { buildGoalPlan, type GoalPlan, type ParsedGoal } from '@/features/goals/goalPlanner';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { DOMAIN_QUESTIONS, type DomainQuestion } from '@/features/knowledge/questionBank';
@@ -276,14 +276,11 @@ export const PATHS: Record<PathId, PathDefinition> = {
       {
         key: 'behaviour',
         question: 'Which habit are we working on first?',
-        options: [
-          { value: 'doomscrolling', label: 'Doom scrolling' },
-          { value: 'alcohol', label: 'Alcohol' },
-          { value: 'vaping', label: 'Vaping' },
-          { value: 'social_media', label: 'Social media' },
-          { value: 'junk_food', label: 'Junk food' },
-          { value: 'late_nights', label: 'Late nights' },
-        ],
+        // Mirrors BEHAVIOUR_CATALOG rather than restating a subset of it —
+        // a habit missing from this list was a habit the path could not
+        // start on, which is how `shopping` ended up trackable in Settings
+        // and unreachable here.
+        options: BEHAVIOUR_CATALOG.map((b) => ({ value: b.key, label: b.label })),
       },
       {
         key: 'trigger',

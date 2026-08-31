@@ -303,10 +303,19 @@ export type BehaviourKey =
   | 'doomscrolling'
   | 'alcohol'
   | 'vaping'
+  | 'smoking'
   | 'social_media'
+  | 'gaming'
+  | 'porn'
   | 'shopping'
+  | 'gambling'
   | 'junk_food'
-  | 'late_nights';
+  | 'sugar'
+  | 'late_caffeine'
+  | 'late_nights'
+  | 'phone_in_bed'
+  | 'overworking'
+  | 'procrastination';
 
 export interface BehaviourIntention {
   id: string;
@@ -324,6 +333,19 @@ export interface BehaviourEvent {
   occurredAt: string;
   trigger?: string;
   context?: string;
+  /**
+   * What it actually was, in the user's own words — "one piece of Kit Kat",
+   * "two beers", "40 minutes on Instagram". Free text on purpose: the moment
+   * this becomes a quantity the app scores, it stops being a log and starts
+   * being a scoreboard.
+   */
+  detail?: string;
+  /**
+   * How big it was RELATIVE TO THIS PERSON'S USUAL — not an absolute
+   * measure, and never a judgement. It exists so the pattern engine can tell
+   * a nibble from a night, and for nothing else.
+   */
+  size?: 'small' | 'usual' | 'more';
 }
 
 export type ReflectionMood = 1 | 2 | 3 | 4 | 5;

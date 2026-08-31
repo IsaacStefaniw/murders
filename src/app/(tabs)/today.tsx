@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
+import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
 import { Screen } from '@/components/screen';
@@ -11,6 +12,7 @@ import { SuggestionCard } from '@/components/suggestion-card';
 import { Spacing } from '@/constants/theme';
 import { buildLookingAhead, ideasFor } from '@/features/anticipation/lookAhead';
 import { behaviourInfo } from '@/features/behaviours/catalog';
+import { dueInterventions } from '@/features/behaviours/patterns';
 import { coachNote, weekMomentum } from '@/features/today/coach';
 import { availableStartsFor } from '@/features/planner/generate';
 import { ItemActions } from '@/features/today/item-actions';
@@ -50,6 +52,9 @@ export default function Today() {
   const dismissSuggestion = useAppStore((s) => s.dismissSuggestion);
   const refreshSuggestions = useAppStore((s) => s.refreshSuggestions);
   const reflections = useAppStore((s) => s.reflections);
+  const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
+  const behaviourEvents = useAppStore((s) => s.behaviourEvents);
+  const metrics = useAppStore((s) => s.metrics);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [planningGap, setPlanningGap] = useState<string | null>(null);
@@ -72,6 +77,12 @@ export default function Today() {
 
   const mealPlan = useAppStore((s) => s.mealPlan);
   const momentum = useMemo(() => weekMomentum(date, plans, goals), [date, plans, goals]);
+  // Timings computed from the person's own logged distribution, filtered to
+  // the days the pattern actually lives on. Nothing fires without a pattern.
+  const interventions = useMemo(
+    () => dueInterventions(behaviourIntentions, behaviourEvents, metrics, date),
+    [behaviourIntentions, behaviourEvents, metrics, date],
+  );
   const todayNote = useMemo(
     () => (plans[date] ? coachNote(date, plans[date].items, routines) : null),
     [date, plans, routines],
@@ -258,6 +269,28 @@ export default function Today() {
       ) : null}
 
       <SectionHeader title="Tonight" />
+      {interventions.map((iv) => (
+        <Card key={iv.intention.id}>
+          <AppText variant="heading">
+            {iv.at} — ahead of it
+          </AppText>
+          <AppText variant="secondary" style={styles.tonightLine}>
+            {behaviourInfo(iv.intention.behaviour).label} usually lands{' '}
+            {iv.pattern.window!.label}. The hour before is where the evening still bends.
+          </AppText>
+          {iv.pattern.coFactor ? (
+            <AppText variant="caption" color="textTertiary" style={styles.tonightLine}>
+              {iv.pattern.coFactor.label}.
+            </AppText>
+          ) : null}
+          <Button
+            title="Line up something else"
+            variant="secondary"
+            onPress={() => router.push('/session/breathe')}
+            style={styles.tonightLine}
+          />
+        </Card>
+      ))}
       {tonightDinner ? (
         <AppText variant="caption" color="textTertiary">
           Dinner is decided: {tonightDinner}

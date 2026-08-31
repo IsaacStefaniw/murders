@@ -191,7 +191,21 @@ export interface AppState {
   addBehaviourIntention: (behaviour: BehaviourKey, intentionText: string) => void;
   setBehaviourIntentionActive: (id: string, active: boolean) => void;
   /** Returns the event id so the UI can attach a trigger afterwards. */
-  logBehaviourEvent: (intentionId: string, trigger?: string, context?: string) => string;
+  logBehaviourEvent: (
+    intentionId: string,
+    trigger?: string,
+    context?: string,
+    detail?: string,
+    size?: BehaviourEvent['size'],
+  ) => string;
+  /** Log an occurrence that already happened, at its real time. */
+  logPastBehaviourEvent: (
+    intentionId: string,
+    occurredAt: string,
+    detail?: string,
+    size?: BehaviourEvent['size'],
+    trigger?: string,
+  ) => string;
   setBehaviourEventTrigger: (eventId: string, trigger: string) => void;
 
   saveReflection: (reflection: Omit<Reflection, 'id' | 'createdAt'>) => void;
@@ -788,12 +802,39 @@ export const useAppStore = create<AppState>()(
           });
         },
 
-        logBehaviourEvent: (intentionId, trigger, context) => {
+        logBehaviourEvent: (intentionId, trigger, context, detail, size) => {
           const id = newId('be');
           set({
             behaviourEvents: [
               ...get().behaviourEvents,
-              { id, intentionId, occurredAt: new Date().toISOString(), trigger, context },
+              {
+                id,
+                intentionId,
+                occurredAt: new Date().toISOString(),
+                trigger,
+                context,
+                detail,
+                size,
+              },
+            ],
+          });
+          return id;
+        },
+
+        /**
+         * Log something that already happened, at the time it happened.
+         *
+         * The eight-forty-five case: a person opens the app at ten and wants
+         * to record the thing from an hour ago. Stamping it with `now` would
+         * put it in the wrong window, and the window is the one thing this
+         * whole engine exists to find.
+         */
+        logPastBehaviourEvent: (intentionId, occurredAt, detail, size, trigger) => {
+          const id = newId('be');
+          set({
+            behaviourEvents: [
+              ...get().behaviourEvents,
+              { id, intentionId, occurredAt, trigger, detail, size },
             ],
           });
           return id;

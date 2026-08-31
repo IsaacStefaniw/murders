@@ -14,7 +14,12 @@ import { Chip } from '@/components/chip';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
-import { BEHAVIOUR_CATALOG } from '@/features/behaviours/catalog';
+import {
+  BEHAVIOUR_CATALOG,
+  BEHAVIOUR_FAMILY_LABELS,
+  behavioursInFamily,
+  type BehaviourFamily,
+} from '@/features/behaviours/catalog';
 import {
   connectAppleHealth,
   healthAvailable,
@@ -197,16 +202,25 @@ export default function Settings() {
       )}
 
       <SectionHeader title="Behaviours you're working on" />
-      <View style={styles.chips}>
-        {BEHAVIOUR_CATALOG.map((b) => (
-          <Chip
-            key={b.key}
-            label={b.label}
-            selected={trackedKeys.has(b.key)}
-            onPress={() => toggleBehaviour(b.key)}
-          />
-        ))}
-      </View>
+      {/* Grouped rather than listed: sixteen undifferentiated chips is a wall,
+          and the families are how people actually think about these. */}
+      {(Object.keys(BEHAVIOUR_FAMILY_LABELS) as BehaviourFamily[]).map((family) => (
+        <View key={family}>
+          <AppText variant="caption" color="textTertiary" style={styles.familyLabel}>
+            {BEHAVIOUR_FAMILY_LABELS[family]}
+          </AppText>
+          <View style={styles.chips}>
+            {behavioursInFamily(family).map((b) => (
+              <Chip
+                key={b.key}
+                label={b.label}
+                selected={trackedKeys.has(b.key)}
+                onPress={() => toggleBehaviour(b.key)}
+              />
+            ))}
+          </View>
+        </View>
+      ))}
       <AppText variant="caption" color="textTertiary" style={styles.note}>
         INTENT tracks these supportively — occurrences are data, never failures. Nothing here is
         medical advice; if something feels bigger than a habit, professional support is the right
@@ -293,6 +307,7 @@ export default function Settings() {
 const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  familyLabel: { marginTop: Spacing.md, marginBottom: Spacing.xs },
   note: { marginTop: Spacing.md },
   resetCard: { marginTop: Spacing.md, gap: Spacing.md },
   resetActions: { flexDirection: 'row', gap: Spacing.sm, alignItems: 'center' },

@@ -12,13 +12,15 @@
  * a defect that shipped to TestFlight.
  */
 
+import { behaviourPattern, momentNote } from '@/features/behaviours/patterns';
 import { composeFromText } from '@/features/goals/composer';
+import { computeWeeklyStats } from '@/features/review/computeWeekly';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { PATHS } from '@/features/paths/definitions';
 import { routineKey } from '@/features/planner/mergeRoutines';
 import { useAppStore } from '@/state/store';
-import { addDays, todayKey } from '@/lib/dates';
+import { addDays, todayKey, toMinutes } from '@/lib/dates';
 import type { InterviewAnswers } from '@/features/onboarding/script';
 
 const ANSWERS = {
@@ -356,5 +358,100 @@ describe('routine identity', () => {
     expect(routineKey({ ...base, title: 'Strength workout', protocolId: 'strength' })).toBe(
       routineKey({ ...base, title: 'Training that sticks', protocolId: 'strength' }),
     );
+  });
+});
+
+describe('journey: logging a non-conforming moment', () => {
+  /** Four evenings of the same thing, logged at the time it happened. */
+  function logFourEvenings(behaviour: 'sugar' | 'alcohol'): string {
+    useAppStore.getState().addBehaviourIntention(behaviour, 'Snack when it is worth it');
+    const intention = useAppStore.getState().behaviourIntentions.at(-1)!;
+    const base = new Date();
+    for (let i = 1; i <= 4; i++) {
+      const when = new Date(base.getTime() - i * 86400e3);
+      when.setHours(20, 30 + i * 5, 0, 0);
+      useAppStore
+        .getState()
+        .logPastBehaviourEvent(intention.id, when.toISOString(), 'one piece of Kit Kat');
+    }
+    return intention.id;
+  }
+
+  /**
+   * The reason logging takes a time rather than stamping `now`. People open
+   * the app after the moment, and the time is the only field the whole
+   * pattern engine runs on — stamped with `now`, every event would cluster
+   * around when someone remembers to log, not when the habit happens.
+   */
+  it('stores the moment at the hour it happened, not the hour it was typed', () => {
+    onboard();
+    const intentionId = logFourEvenings('sugar');
+    const own = useAppStore.getState().behaviourEvents.filter((e) => e.intentionId === intentionId);
+    expect(own).toHaveLength(4);
+    for (const e of own) {
+      expect(new Date(e.occurredAt).getHours()).toBe(20);
+      expect(e.detail).toBe('one piece of Kit Kat');
+    }
+  });
+
+  it('turns four logged evenings into a window and a time to act ahead of it', () => {
+    onboard();
+    const intentionId = logFourEvenings('sugar');
+    const { behaviourIntentions, behaviourEvents, metrics } = useAppStore.getState();
+    const intention = behaviourIntentions.find((b) => b.id === intentionId)!;
+    const pattern = behaviourPattern(intention, behaviourEvents, metrics);
+
+    expect(pattern.readiness).toBe('ready');
+    expect(pattern.window).not.toBeNull();
+    expect(pattern.intervention).not.toBeNull();
+    // Ahead of the window, never inside it.
+    expect(toMinutes(pattern.intervention!.at)).toBeLessThan(pattern.window!.startMin);
+  });
+
+  /**
+   * The line the whole feature is one bad sentence away from crossing. A
+   * snack has no established acute harm, so the app must reach for the
+   * person's own pattern rather than inventing a consequence — while a late
+   * coffee, which does have a mechanism, gets the mechanism.
+   */
+  it('offers a pattern for a snack and a mechanism for a late coffee', () => {
+    onboard();
+    const sugarId = logFourEvenings('sugar');
+    const state = useAppStore.getState();
+    const sugar = state.behaviourIntentions.find((b) => b.id === sugarId)!;
+    const evening = new Date();
+    evening.setHours(20, 45, 0, 0);
+
+    const snackNote = momentNote(
+      { id: 'x', intentionId: sugarId, occurredAt: evening.toISOString() },
+      behaviourPattern(sugar, state.behaviourEvents, state.metrics),
+      state.profile!.sleepTime,
+    );
+    expect(snackNote.kind).toBe('pattern');
+
+    useAppStore.getState().addBehaviourIntention('late_caffeine', 'Last coffee earlier');
+    const coffee = useAppStore.getState().behaviourIntentions.at(-1)!;
+    const afternoon = new Date();
+    afternoon.setHours(16, 30, 0, 0);
+    const coffeeNote = momentNote(
+      { id: 'y', intentionId: coffee.id, occurredAt: afternoon.toISOString() },
+      behaviourPattern(coffee, useAppStore.getState().behaviourEvents, state.metrics),
+      state.profile!.sleepTime,
+    );
+    expect(coffeeNote.kind).toBe('mechanism');
+  });
+
+  it('keeps food out of the weekly tally even once it has a pattern', () => {
+    onboard();
+    logFourEvenings('sugar');
+    const { behaviourIntentions, behaviourEvents } = useAppStore.getState();
+    const { stats } = computeWeeklyStats({
+      weekStart: addDays(todayKey(), -6),
+      plans: useAppStore.getState().plans,
+      behaviourIntentions,
+      behaviourEvents,
+      reflections: [],
+    });
+    expect(stats.behaviourEventCounts.sugar).toBeUndefined();
   });
 });

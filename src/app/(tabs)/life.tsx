@@ -12,7 +12,9 @@ import { EmptyState } from '@/components/empty-state';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
+import { BehaviourLog } from '@/features/behaviours/BehaviourLog';
 import { behaviourInfo } from '@/features/behaviours/catalog';
+import { behaviourPattern, weekNote } from '@/features/behaviours/patterns';
 import { GoalProgress } from '@/features/goals/GoalProgress';
 import { PATH_ORDER, PATHS } from '@/features/paths/definitions';
 import { useTheme } from '@/hooks/use-theme';
@@ -71,8 +73,8 @@ export default function Life() {
   const paths = useAppStore((s) => s.paths);
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
-  const logBehaviourEvent = useAppStore((s) => s.logBehaviourEvent);
   const setBehaviourEventTrigger = useAppStore((s) => s.setBehaviourEventTrigger);
+  const metrics = useAppStore((s) => s.metrics);
   const assessGoals = useAppStore((s) => s.assessGoals);
 
   // Evidence pass on open: rungs satisfied by metrics or completed sessions
@@ -81,6 +83,8 @@ export default function Life() {
     assessGoals();
   }, [assessGoals]);
 
+  /** The intention whose logging sheet is open, if any. */
+  const [logging, setLogging] = useState<string | null>(null);
   /** Event awaiting an optional one-tap trigger. */
   const [pendingTrigger, setPendingTrigger] = useState<{
     intentionId: string;
@@ -217,13 +221,30 @@ export default function Life() {
             const own = behaviourEvents.filter((e) => e.intentionId === intention.id);
             const count = own.filter((e) => e.occurredAt >= weekAgo).length;
             const topTrigger = commonTrigger(own);
+            const pattern = behaviourPattern(intention, behaviourEvents, metrics);
+
+            if (logging === intention.id) {
+              return (
+                <BehaviourLog
+                  key={intention.id}
+                  intention={intention}
+                  onDone={() => setLogging(null)}
+                />
+              );
+            }
+
             return (
               <Card key={intention.id}>
                 <View style={styles.intentionRow}>
                   <View style={styles.intentionInfo}>
                     <AppText variant="heading">{intention.intentionText}</AppText>
                     <AppText variant="caption" color="textTertiary">
-                      {info.label} · {count === 0 ? 'clear this week' : `${count} this week`}
+                      {info.label}
+                      {/* Food and gambling are never given a count — a running
+                          tally is a scoreboard, and this app does not keep one. */}
+                      {info.neverScore
+                        ? ''
+                        : ` · ${count === 0 ? 'clear this week' : `${count} this week`}`}
                       {topTrigger ? ` · usually: ${topTrigger.toLowerCase()}` : ''}
                     </AppText>
                   </View>
@@ -236,15 +257,21 @@ export default function Life() {
                     <Button
                       title="It happened"
                       variant="ghost"
-                      onPress={() =>
-                        setPendingTrigger({
-                          intentionId: intention.id,
-                          eventId: logBehaviourEvent(intention.id),
-                        })
-                      }
+                      onPress={() => setLogging(intention.id)}
                     />
                   </View>
                 </View>
+                {weekNote(pattern) ? (
+                  <AppText variant="secondary" style={styles.patternLine}>
+                    {weekNote(pattern)}
+                  </AppText>
+                ) : null}
+                {pattern.intervention ? (
+                  <AppText variant="caption" color="textTertiary" style={styles.patternLine}>
+                    Best moment to change the evening: {pattern.intervention.at}, ahead of the
+                    window rather than inside it.
+                  </AppText>
+                ) : null}
                 {pendingTrigger?.intentionId === intention.id ? (
                   <View style={styles.triggerArea}>
                     <AppText variant="caption" color="textTertiary">
@@ -345,5 +372,6 @@ const styles = StyleSheet.create({
   triggerArea: { marginTop: Spacing.md, gap: Spacing.sm },
   triggerChips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   note: { marginTop: Spacing.xs },
+  patternLine: { marginTop: Spacing.sm },
   settings: { marginTop: Spacing.xxl },
 });
