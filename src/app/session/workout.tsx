@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { Chip } from '@/components/chip';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
@@ -32,17 +33,30 @@ export default function WorkoutSession() {
     : (profile?.trainingDurationMin ?? 45);
 
   const programme = useAppStore((s) => s.trainingProgramme);
+  const metrics = useAppStore((s) => s.metrics);
+  const addMetric = useAppStore((s) => s.addMetric);
+
+  // Cross-pathway: last night's sleep auto-regulates today's session.
+  const today = todayKey();
+  const loggedSleep = metrics.find((m) => m.key === 'sleep.hours' && m.at.slice(0, 10) === today);
+  const [sleptHours, setSleptHours] = useState<number | null>(loggedSleep?.value ?? null);
+  const logSleep = (h: number) => {
+    setSleptHours(h);
+    if (!loggedSleep) addMetric('sleep.hours', h, 'pre-workout check');
+  };
 
   const session = useMemo(() => {
     const weekday = dateKeyToDate(date ?? todayKey()).getDay();
     // Training v2: when a block is active, today runs the PROGRAMME —
-    // your lifts, your loads — auto-regulated to the time that exists.
+    // your lifts, your loads — auto-regulated to the time that exists
+    // and the night that actually happened.
     const week = programme ? weekOf(programme) : null;
     if (programme && week) {
       const wk = programme.weeks[week - 1];
       const idx = Math.floor((weekday * wk.sessions.length) / 7) % wk.sessions.length;
       const adjusted = autoRegulate(wk.sessions[idx], {
         availableMin,
+        sleptHours: sleptHours ?? undefined,
         age: programme.inputs.age,
       });
       return {
@@ -58,7 +72,7 @@ export default function WorkoutSession() {
       };
     }
     return buildWorkout(availableMin, profile?.trainingPreference ?? 'mixed', weekday);
-  }, [availableMin, profile?.trainingPreference, date, programme]);
+  }, [availableMin, profile?.trainingPreference, date, programme, sleptHours]);
 
   const [doneSets, setDoneSets] = useState<Record<string, number>>({});
   const [restLeft, setRestLeft] = useState(0);
@@ -112,6 +126,26 @@ export default function WorkoutSession() {
         <AppText variant="caption" color="textTertiary" style={styles.note}>
           {session.note}
         </AppText>
+      ) : null}
+
+      {programme ? (
+        <View style={styles.sleepRow}>
+          <AppText variant="caption" color="textTertiary">
+            Last night:
+          </AppText>
+          {[
+            { label: 'Under 6h', value: 5 },
+            { label: '6–7h', value: 6.5 },
+            { label: '7h+', value: 8 },
+          ].map((o) => (
+            <Chip
+              key={o.label}
+              label={o.label}
+              selected={sleptHours === o.value}
+              onPress={() => logSleep(o.value)}
+            />
+          ))}
+        </View>
       ) : null}
 
       {restLeft > 0 ? (
@@ -174,6 +208,13 @@ export default function WorkoutSession() {
 
 const styles = StyleSheet.create({
   note: { marginTop: Spacing.sm },
+  sleepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
   stack: { gap: Spacing.sm },
   exercise: {
     flexDirection: 'row',

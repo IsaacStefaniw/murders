@@ -28,6 +28,7 @@ export default function BreatheSession() {
   const theme = useTheme();
   const { itemId, date } = useLocalSearchParams<{ itemId?: string; date?: string }>();
   const setItemStatus = useAppStore((s) => s.setItemStatus);
+  const addMetric = useAppStore((s) => s.addMetric);
 
   const [protocol, setProtocol] = useState<BreathProtocol | null>(null);
   const [startedAt, setStartedAt] = useState(0);
@@ -74,6 +75,14 @@ export default function BreatheSession() {
   }, [protocol, phaseIndex, round, finished, startedAt, scale]);
 
   const close = (completed: boolean) => {
+    if (completed && protocol) {
+      // Minutes feed the stillness-practice progression (features/mind).
+      addMetric(
+        'mind.minutes',
+        Math.max(1, Math.round((cycleSec * protocol.rounds) / 60)),
+        'breathwork',
+      );
+    }
     if (completed && itemId && date) {
       setItemStatus(date, itemId, 'completed', {
         source: 'manual',

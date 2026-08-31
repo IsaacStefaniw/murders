@@ -27,6 +27,7 @@ import {
   type TrainingInputs,
   type TrainingProgramme,
 } from '@/features/training/programme';
+import { buildExecutiveBlock, type WorkBlock, type WorkInputs } from '@/features/work/programme';
 import { availableStartsFor, generateDailyPlan } from '@/features/planner/generate';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
@@ -131,6 +132,10 @@ export interface AppState {
   trainingProgramme: TrainingProgramme | null;
   buildTrainingBlock: () => void;
 
+  /** Work & Leadership v2 — the current four-week executive block. */
+  workBlock: WorkBlock | null;
+  buildWorkBlock: () => void;
+
   /** Guided domain programs — see docs/PATHS_BRIEF.md. */
   paths: Partial<Record<PathId, { startedAt: string; answers: Record<string, string>; goalId: string }>>;
   /** (Re)start a path: builds its goal + routines from the intake answers. */
@@ -190,6 +195,7 @@ const initialData = {
   metrics: [] as MetricObservation[],
   questionLog: {} as Record<string, string>,
   trainingProgramme: null as TrainingProgramme | null,
+  workBlock: null as WorkBlock | null,
   clockOffsetMs: 0,
 };
 
@@ -240,6 +246,21 @@ export function deriveTrainingInputs(
     equipment,
     focusLift,
     age: profile.age,
+  };
+}
+
+/** Derive Work & Leadership v2 inputs from everything INTENT already knows. */
+export function deriveWorkInputs(
+  profile: LifeProfile,
+  pathAnswers: Record<string, string> | undefined,
+): WorkInputs {
+  const style =
+    (pathAnswers?.style as WorkInputs['style']) ?? profile.workStyle ?? 'mixed';
+  return {
+    style,
+    meetingLoad: pathAnswers?.meetingLoad as WorkInputs['meetingLoad'],
+    bottleneck: pathAnswers?.bottleneck,
+    pressure: profile.pressure,
   };
 }
 
@@ -494,6 +515,12 @@ export const useAppStore = create<AppState>()(
           if (!profile) return;
           const inputs = deriveTrainingInputs(profile, paths.training?.answers, goals);
           set({ trainingProgramme: buildProgramme(inputs, baselinesFrom(metrics)) });
+        },
+
+        buildWorkBlock: () => {
+          const { profile, paths } = get();
+          if (!profile) return;
+          set({ workBlock: buildExecutiveBlock(deriveWorkInputs(profile, paths.work?.answers)) });
         },
 
         startPath: (id, answers) => {

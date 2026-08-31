@@ -40,6 +40,7 @@ export const METRICS: MetricDefinition[] = [
   { key: 'strength.pullups.reps', label: 'Pull-ups', unit: 'reps', domain: 'training', direction: 'higher' },
   { key: 'body.weight', label: 'Body weight', unit: 'kg', domain: 'nutrition', direction: 'steady', decimals: 1 },
   { key: 'body.restingHr', label: 'Resting heart rate', unit: 'bpm', domain: 'sleep', direction: 'lower' },
+  { key: 'sleep.hours', label: 'Sleep', unit: 'h', domain: 'sleep', direction: 'higher' },
   { key: 'work.deepHours', label: 'Deep-work hours', unit: 'h/wk', domain: 'work', direction: 'higher' },
   { key: 'mind.minutes', label: 'Stillness minutes', unit: 'min/wk', domain: 'mind', direction: 'higher' },
   { key: 'finance.savingsRate', label: 'Savings rate', unit: '%', domain: 'finance', direction: 'higher' },

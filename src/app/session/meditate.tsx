@@ -18,6 +18,7 @@ export default function MeditateSession() {
   const theme = useTheme();
   const { itemId, date } = useLocalSearchParams<{ itemId?: string; date?: string }>();
   const setItemStatus = useAppStore((s) => s.setItemStatus);
+  const addMetric = useAppStore((s) => s.addMetric);
 
   const [totalSec, setTotalSec] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
@@ -29,6 +30,10 @@ export default function MeditateSession() {
   }, [totalSec, remaining > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const close = (completed: boolean) => {
+    if (completed && totalSec) {
+      // Minutes feed the stillness-practice progression (features/mind).
+      addMetric('mind.minutes', Math.max(1, Math.round(totalSec / 60)), 'meditation');
+    }
     if (completed && itemId && date) {
       setItemStatus(date, itemId, 'completed', {
         source: 'manual',

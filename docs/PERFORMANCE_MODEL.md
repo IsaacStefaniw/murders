@@ -90,6 +90,43 @@ costs muscle); building and sliding → add the fourth feed. The energy
 aim never judges by the scale at all. `NutritionHub` shows the anchor,
 the trend, the verdict, the ladder, and one question.
 
+## Work & Leadership v2 (`features/work/programme.ts`)
+
+An executive coaching block, same shape as training: four weeks — audit
+& protect → the one lever → subtract → review & reset — each with ONE
+leadership practice (owners-and-dates, a real one-on-one or a defended
+meeting-free morning by role, a written no, the Friday memo) and an
+honest deep-hours target computed from work style × meeting load ×
+pressure. Weekly deep hours are the measured number; below target and
+not improving reads as a calendar problem, never a discipline lecture.
+
+## Money v2 (`features/money/plan.ts`)
+
+A planning engine, not a budget app: the ordered ladder (automate → one
+month of buffer → kill expensive debt → three months → automate
+investing → raise the rate) with the intake answers marking steps done
+and exactly one step under the spotlight. One measured number — the
+savings rate — judged by its 90-day trend. Education, never financial
+advice.
+
+## Mind v2 (`features/mind/practice.ts`)
+
+A stillness practice that progresses like training: every completed
+breath or meditation session logs its minutes automatically; the last
+four weeks of minutes set the level (two-minute resets → five steady
+minutes → ten-minute sits → sits + NSDR). The level is a mirror, not a
+lock. Lives on the recovery path — a steadier nervous system is the
+quiet ally of every urge intention.
+
+## Cross-pathway intelligence v1
+
+With multiple deep pathways on one model, the trade-offs start flowing
+through it: the workout player asks one chip's worth of "last night?"
+— logged as sleep.hours — and a short night auto-regulates today's
+session (stimulus kept, accessories cut, reason stated). Sleep →
+training is the first edge; sleep → nutrition and calendar-load →
+work-target ride the same metrics.
+
 ## Evidence quality
 
 Protocols now carry `evidenceLevel` A–E (meta-analytic → heuristic),
@@ -101,12 +138,12 @@ grade reflects the research, not the messenger.
 Complexity behind the glass. The user sees their numbers, this week's
 prescription, and at most one question. Never 800 variables.
 
-## Next pathways (in order)
+## What's next
 
-Nutrition v2 (targets by aim + trend-based adaptation, never one day's
-weight) · Work/Business/Leadership (executive coach programmes,
-prepare-for-this sessions) · Sleep/recovery (recovery context that
-changes the day) · Meditation/breathwork progression + protocol
-preference learning · Finance planning engine · Sauna. Cross-pathway
-intelligence (sleep→training→nutrition→calendar trade-offs) rides on
-this shared model once two-plus pathways are deep.
+All five paths now run deep on the shared model. The next layers:
+prepare-for-this work sessions (walk in ready for the board meeting,
+the hard conversation) · richer sleep context (bedtime consistency,
+resting HR when HealthKit lands) · protocol preference learning (which
+levers this user actually keeps) · sauna/heat protocol depth · the
+global optimisation pass that arbitrates between pathways when the week
+can't hold everything.
