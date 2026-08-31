@@ -463,7 +463,16 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     if (habit === 'workout' || (habit === 'walking' && walking)) continue;
     if (!routines.some((r) => r.protocolId === protocolId)) {
       const protocol = protocolById(protocolId);
-      if (protocol) routines.push(toRoutine(protocol, profile));
+      if (!protocol) continue;
+      const anchored = toRoutine(protocol, profile);
+      // Cohort finding (sim v5): at minimal capacity, daily habit anchors
+      // overload the calendar the habit was already living outside of.
+      // Track the core days; the habit itself doesn't need the schedule.
+      if (capacity === 'minimal' && anchored.days.length > 3) {
+        anchored.days = anchored.days.filter((day) => [1, 3, 6].includes(day)).slice(0, 3);
+        if (anchored.days.length === 0) anchored.days = [1, 3, 6];
+      }
+      routines.push(anchored);
     }
   }
   const foodAim = str(answers, 'foodAim');
