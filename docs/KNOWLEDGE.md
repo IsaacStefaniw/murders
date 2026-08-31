@@ -73,6 +73,39 @@ running rule, the "23 minutes to refocus" statistic, and the claim that
 micro-breaks raise output. `LEARNING_ANTIPATTERNS` carries highlighting,
 rereading and learning styles as a first-class piece of content.
 
+Round three (177 protocols) ramped nutrition from 5 to 27 — it was the
+thinnest pillar carrying a full pathway — and broadened goal coverage to
+what people actually type: dieting and weight, meal planning, fibre and
+gut and alcohol, the food environment, quitting, parenting, purpose,
+communication, life admin, life transitions, and women's health, which
+the library had ignored entirely.
+
+**Two properties the protocol data could not previously express.**
+`neverNag` marks a practice that must never produce a streak, an
+adherence score or a missed-it suggestion: the adaptation engine learns
+the same way on everything, so it cannot know not to tell someone three
+weeks bereaved that they are 40% adherent. And `knowledgeContext` is now
+scoped — past 150 protocols the full library stopped fitting a prompt, so
+unscoped returns an index and scoped returns the summaries.
+
+**Refusing retracted work is part of the job.** Round three excluded
+"don't shop hungry" outright once an agent traced its modern source to a
+retracted paper, named the smaller-plate effect as having failed its
+first pre-registered test, and kept the whole bottomless-bowl lineage out
+of the library — including its author from every attribution. The
+five-stages model of grief is named as unsupported rather than used, and
+nothing resembling psychological debriefing appears: it is one of the few
+interventions in that literature whose evidence points the wrong way.
+
+**The safety line tightens where the subject demands it.** Dieting
+protocols all carry a safety note naming disordered eating and routing to
+a GP or dietitian, and the library states no calorie target, goal weight
+or rate of loss. Longevity excludes every compound. Injury prevention
+declined to write the return-to-training half of its own brief, because
+graded reintroduction after a named injury is clinical judgement. Women's
+health excludes contraception, fertility and hormone therapy, and says
+plainly that the popular cycle-phase training template is not supported.
+
 **A grade taxonomy that fits reality.** Round two exposed a mismatch: very
 large, consistent, meta-analysed cohort evidence (VO2 max and mortality,
 say) is stronger than "moderate observational" but is not a controlled
