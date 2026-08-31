@@ -2,9 +2,19 @@
 
 **Promise: reduce the distance between intention and action.**
 
-INTENT is an AI-powered Personal Operating System. It helps people do more of
-what makes life meaningful, less of what they regret, and spend less time
-managing their life so they can live it.
+INTENT is a Personal Operating System. It helps people do more of what makes
+life meaningful, less of what they regret, and spend less time managing their
+life so they can live it.
+
+**On "AI".** Every word the app currently says is deterministic: the
+scheduler, the protocol library, the goal composer, the behaviour pattern
+engine and the trajectory projections are all plain code, running on the
+device, inspectable and testable. An AI layer exists in `src/lib/ai` and is
+switched off — `getAiProvider()` returns null without a configured backend,
+and no build has ever shipped with one. That is a deliberate ordering, not a
+gap: a coach that hallucinates a protocol is worse than one that cannot
+speak. Marketing copy must not describe the product as AI-powered until a
+model actually runs.
 
 ## The loop
 

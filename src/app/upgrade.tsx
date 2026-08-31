@@ -37,15 +37,38 @@ export default function Upgrade() {
 
       <SectionHeader title="Everything in Plus" />
       <View style={styles.stack}>
+        {/*
+          Two lists, honestly separated. A paywall that describes features
+          the build does not have is a promise the first week breaks, and
+          it is the fastest way to lose someone who paid on the strength of
+          it. Anything not yet running says so, in the same size type.
+        */}
         {[
           ['All five paths, together', 'Training, nutrition, money, work and habits running as one plan — the trade-offs handled for you.'],
-          ['The AI coach', 'Daily briefs and weekly reviews written for your week, grounded only in the evidence library.'],
-          ['Household', 'Partner sync, date nights that coordinate themselves, shared family plans.'],
-          ['Calendar & health integrations', 'Real events in, real completions detected — less asking, more knowing.'],
+          ['Apple Health', 'Sleep, resting heart rate and weight read straight in, so last night shapes today’s session without you typing anything.'],
+          ['Timed interventions', 'INTENT works out when a habit usually wins and puts something else in front of you before that window, not after.'],
           ['Full history & weekly reports', 'Every week you’ve won, and what actually changed.'],
         ].map(([title, body]) => (
           <Card key={title}>
             <AppText variant="heading">{title}</AppText>
+            <AppText variant="caption" color="textTertiary">
+              {body}
+            </AppText>
+          </Card>
+        ))}
+      </View>
+
+      <SectionHeader title="Not built yet" />
+      <View style={styles.stack}>
+        {[
+          ['Partner sync', 'The household week is real and lives on this phone. Syncing it with someone else needs accounts, which are not built.'],
+          ['Calendar', 'Reading your real events in. Not built.'],
+          ['Written briefs', 'A daily brief and weekly narrative in prose. The engine that would write them is wired but switched off, so today every word in the app is deterministic — no model runs anywhere.'],
+        ].map(([title, body]) => (
+          <Card key={title}>
+            <AppText variant="heading" color="textTertiary">
+              {title}
+            </AppText>
             <AppText variant="caption" color="textTertiary">
               {body}
             </AppText>

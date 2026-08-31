@@ -1,6 +1,6 @@
 # INTENT
 
-> An AI-powered Personal Operating System. Reduce the distance between
+> A Personal Operating System. Reduce the distance between
 > intention and action.
 
 INTENT plans your days around what you say matters — schedule, training,

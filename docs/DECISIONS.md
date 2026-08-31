@@ -81,3 +81,62 @@ dependency, and keeps the surface area small. Settings lives behind Life, not
 in the tab bar.
 
 **Consequences:** Revisit if user testing shows discoverability problems.
+
+
+## ADR: estimated 1RM is claimed only for unambiguous barbell lifts
+
+A goblet squat is not a back squat and a Romanian deadlift is not a
+deadlift. Writing either into `strength.*.e1rm` corrupts the baseline every
+future prescription is computed from, and the person never learns why their
+loads went strange. `liftFor()` is deliberately strict and returns null on
+anything ambiguous; sets past twelve reps make no strength claim either,
+because Epley drifts badly there and a twenty-rep set is an endurance fact.
+A session of accessories is recorded in full and claims nothing. A false
+negative costs one metric reading; a false positive costs the programme.
+
+## ADR: no chart library
+
+The app has no `react-native-svg`, not even transitively — the icon set is
+SF Symbols. Adding one to draw a sparkline would mean a native dependency
+and a fresh build for the sake of a line. Charts are built from flexbox with
+percentage heights. The constraint chose bars over lines, which is the
+better answer at this size anyway: a line four hundred pixels wide invites
+people to read a slope off eight noisy points, and where a slope is
+trustworthy the trajectory engine states it in words instead.
+
+## ADR: consistency is shown as a dot grid, never a streak
+
+A streak counts consecutive days and resets to zero on one missed Tuesday,
+which punishes the ordinary shape of a life. A grid shows a good fortnight
+with one gap in it as a good fortnight. Nothing in the Data tab scores the
+person: no adherence percentage, no grade.
+
+## ADR: projections refuse to run on thin data
+
+Three readings across fourteen days is the floor, below which the answer is
+"not enough yet". A projection is a promise about the future and a wrong one
+costs more trust than a blank space. The fit is least squares rather than
+first-vs-last, so one bad-scales morning moves the answer a little instead
+of turning a slow month into a crisis. Direction of progress comes from the
+goal's own condition, never from the gap between now and target — a 100 kg
+bench goal with 105 kg on the bar is achieved, and inferring direction from
+the gap reports "going the wrong way" at the moment the person succeeded.
+
+## ADR: notifications are capped, quiet-hour-aware, and off by default
+
+The failure mode is not a bug — it is a person turning notifications off,
+and with them the one nudge that would have landed. Hard cap of three a day,
+priority-ordered, with anything past the cap dropped rather than deferred.
+Quiet hours derive from the person's own bedtime, and a notification landing
+inside them moves EARLIER, never later — the same rule the scheduler applies
+to a deadline anchor. Nothing is ever sent about a `neverNag` protocol.
+Permission is requested at the moment someone opts in, never on launch: iOS
+offers that prompt once.
+
+## ADR: no marketing claim outruns the code
+
+PRODUCT.md opened with "AI-powered" and the paywall sold an "AI coach" while
+the shipped build performed zero inference. Both are corrected, the paywall
+now separates what runs from what does not, and `claims.test.ts` fails if
+either drifts again. Delete that test in the same commit that turns a model
+on — not before.

@@ -12,4 +12,11 @@ module.exports = defineConfig([
     files: ["jest.setup.js"],
     languageOptions: { globals: { jest: "readonly", require: "readonly" } },
   },
+  {
+    // CI helper scripts run under Node, not React Native.
+    files: [".github/scripts/**/*.mjs"],
+    languageOptions: {
+      globals: { Buffer: "readonly", process: "readonly", console: "readonly" },
+    },
+  },
 ]);

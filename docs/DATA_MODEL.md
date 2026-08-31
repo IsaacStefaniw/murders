@@ -52,3 +52,33 @@ profiles ── life_profile (JSONB: stable facts — priorities, people,
 Tables for calendar connections/events, workouts, places, trips, integrations
 and commerce are deferred until their vertical slices — schema sophistication
 without a consuming feature is cost, not progress.
+
+
+## Added in the training / measurement round
+
+**`WorkoutLog` and `LoggedSet`** — what actually happened in a session,
+separate from the plan item that says *that* it happened. Only a log can
+feed a strength baseline or be corrected the next morning. Weight and reps
+are stored as typed; estimates are derived on read and never written back
+over the input. A session's e1RM observations are keyed to the log and
+replaced on every save, so correcting a set corrects the baseline rather
+than leaving a phantom personal best beside it.
+
+**`Goal.targetDate`** — optional. Plenty of goals are directions rather than
+deadlines, and a required date manufactures a failure nobody signed up for.
+Where one exists, the trajectory engine can say whether the current rate
+arrives in time.
+
+**`BehaviourEvent.detail` and `.size`** — free text and a relative-to-usual
+band. Deliberately not a quantity: a number becomes a total, a total becomes
+a chart, and the chart is a restriction scoreboard aimed at the people least
+served by one.
+
+**`FoodPreferences`** — allergies, intolerances, dietary patterns, dislikes,
+favourites, and an append-only enjoyment log. The allergen gate is
+fail-closed: a dish is only offered when we positively know it is free of a
+declared allergen, so "may contain" excludes and so does an unreviewed
+ingredient list.
+
+**`NotificationSettings`** — off by default, with a hard daily cap. Quiet
+hours are derived from the person's own sleep time rather than fixed.
