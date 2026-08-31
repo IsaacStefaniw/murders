@@ -62,13 +62,22 @@ jobs:
           EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           EXPO_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           EXPO_APPLE_TEAM_TYPE: INDIVIDUAL
+        # The ASC API key goes into eas.json's submit profile (runner-local,
+        # never committed) — the documented CI path; without it eas submit
+        # tries to register the key interactively and fails.
         run: |
           node -e "
             const fs = require('fs');
             const j = JSON.parse(fs.readFileSync('eas.json', 'utf8'));
             j.submit = j.submit || {};
             j.submit.production = j.submit.production || {};
-            j.submit.production.ios = { ...(j.submit.production.ios || {}), ascAppId: process.argv[1] };
+            j.submit.production.ios = {
+              ...(j.submit.production.ios || {}),
+              ascAppId: process.argv[1],
+              ascApiKeyPath: process.env.EXPO_ASC_API_KEY_PATH,
+              ascApiKeyId: process.env.EXPO_ASC_KEY_ID,
+              ascApiKeyIssuerId: process.env.EXPO_ASC_ISSUER_ID,
+            };
             fs.writeFileSync('eas.json', JSON.stringify(j, null, 2));
           " "$ASC_APP_ID"
           npx eas-cli@latest submit --platform ios --latest --non-interactive
