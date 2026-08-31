@@ -33,8 +33,42 @@ interface NotificationsModule {
   cancelAllScheduledNotificationsAsync: () => Promise<void>;
   getAllScheduledNotificationsAsync: () => Promise<unknown[]>;
   setNotificationHandler: (handler: unknown) => void;
-  AndroidImportance?: Record<string, number>;
-  SchedulableTriggerInputTypes?: Record<string, string>;
+  setNotificationChannelAsync?: (id: string, channel: Record<string, unknown>) => Promise<unknown>;
+}
+
+/**
+ * Without a handler, iOS does not present a notification that arrives while
+ * the app is in the FOREGROUND — it is delivered and silently swallowed.
+ *
+ * That is the failure mode this whole feature is most likely to ship with
+ * and least likely to notice: the 20:15 intervention fires while someone
+ * has the app open, nothing appears, and the reasonable conclusion is that
+ * notifications are broken.
+ *
+ * `shouldShowAlert` is deprecated in this SDK; banner and list are the
+ * fields that now decide presentation, and setting only the old one is the
+ * same silent nothing.
+ */
+let handlerInstalled = false;
+
+function installHandler(mod: NotificationsModule): void {
+  if (handlerInstalled) return;
+  handlerInstalled = true;
+  try {
+    mod.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        // No sound and no badge. An intervention is a quiet suggestion at a
+        // useful moment; a chime and a red dot make it an alarm, and an
+        // alarm about a habit is the thing people turn off.
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      }),
+    });
+  } catch {
+    // A build without the module, or one that refuses — the app still works.
+  }
 }
 
 let cached: NotificationsModule | null | undefined;
@@ -44,6 +78,16 @@ async function load(): Promise<NotificationsModule | null> {
   if (cached !== undefined) return cached;
   try {
     cached = (await import('expo-notifications')) as unknown as NotificationsModule;
+    installHandler(cached);
+    // Android drops any notification without a channel from API 26 on.
+    // iPhone-first does not mean iPhone-only, and a silent drop is a bug
+    // that only appears on someone else's phone.
+    await cached.setNotificationChannelAsync?.('default', {
+      name: 'INTENT',
+      importance: 4,
+      sound: null,
+      vibrationPattern: [0, 250],
+    });
   } catch {
     cached = null;
   }
