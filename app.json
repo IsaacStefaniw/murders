@@ -38,7 +38,7 @@
         "@kingstinct/react-native-healthkit",
         {
           "NSHealthShareUsageDescription": "INTENT reads sleep, resting heart rate and weight so your plan adapts to how you actually recovered. Read-only — nothing is written to Health.",
-          "NSHealthUpdateUsageDescription": false,
+          "NSHealthUpdateUsageDescription": "INTENT does not write to Apple Health and never requests this permission. This notice exists only because the underlying Health framework includes write capabilities.",
           "background": false
         }
       ],
