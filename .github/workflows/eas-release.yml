@@ -39,10 +39,13 @@ jobs:
         run: npx eas-cli@latest build --platform ios --profile production --non-interactive
       - name: Submit to TestFlight
         if: ${{ inputs.submit }}
+        # Recent eas-cli dropped the --asc-api-key-* flags; the ASC key is
+        # picked up from these environment variables instead.
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: |
-          npx eas-cli@latest submit --platform ios --latest --non-interactive \
-            --asc-api-key-path "$RUNNER_TEMP/AuthKey.p8" \
-            --asc-api-key-id "${{ secrets.ASC_KEY_ID }}" \
-            --asc-api-key-issuer-id "${{ secrets.ASC_ISSUER_ID }}"
+          EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/AuthKey.p8
+          EXPO_ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          EXPO_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          EXPO_APPLE_TEAM_TYPE: INDIVIDUAL
+        run: npx eas-cli@latest submit --platform ios --latest --non-interactive
