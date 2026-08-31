@@ -24,6 +24,7 @@ import {
   detectSlotMismatch,
   type ManualMove,
 } from '@/lib/scheduling/adaptation';
+import { HABIT_PROTOCOL } from '@/features/onboarding/buildPlan';
 import { addDays, toHHMM, toMinutes } from '@/lib/dates';
 import type { DailyPlan, Goal, LifeArea, PlanItem, Routine, Suggestion } from '@/types/domain';
 import type { GroundTruth, SimUser, Slot } from './personas';
@@ -145,6 +146,22 @@ export function runUser(
   // Durations at signup, so shrink-relief compares against the original ask.
   const originalDuration = new Map(routines.map((r) => [r.id, r.durationMin]));
 
+  // Established behaviour completes more reliably — the boost keys off the
+  // human's TRUE habits (they persist whether or not the interview captured
+  // them), so the capture-ablation measures plan composition honestly.
+  const habitProtocols = new Set(
+    (truth.trueHabits ?? []).map((h) => HABIT_PROTOCOL[h]).filter(Boolean),
+  );
+  const habitBoost = (item: PlanItem): number => {
+    if (!item.routineId || habitProtocols.size === 0) return 1;
+    const r = routines.find((x) => x.id === item.routineId);
+    if (!r) return 1;
+    const matches =
+      (r.protocolId && habitProtocols.has(r.protocolId)) ||
+      (truth.trueHabits?.includes('workout') && r.sessionType === 'workout');
+    return matches ? (truth.establishedBoost ?? 1.2) : 1;
+  };
+
   const plans: Record<string, DailyPlan> = {};
   const moves: ManualMove[] = [];
   const seenSuggestionKeys = new Set<string>();
@@ -235,7 +252,7 @@ export function runUser(
         week.userMoves += 1;
       }
 
-      let p = affinityFor(truth, area, slot) * truth.adherence;
+      let p = Math.min(0.95, affinityFor(truth, area, slot) * truth.adherence * habitBoost(item));
       // Activation-cost relief for a shrunk routine: smaller asks are easier
       // to start. A modelling assumption (documented in docs/SIMULATION.md),
       // capped at +15% relative.

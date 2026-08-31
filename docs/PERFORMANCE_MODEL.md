@@ -40,6 +40,19 @@ The interview is the same engine's front door: a fuller gate (sleep
 quality, pressure, food trouble in v5) builds buy-in and lands answers
 where the engine looks, so nothing asked at the door is ever asked again.
 
+## Foundations — build on what already exists
+
+"What works for you" starts with what you already DO. The interview asks
+which practices are already part of the user's life (fasting, gym
+training, walking, running, meditation, sauna, cold, journaling); each
+becomes an **established** routine — scheduled, labelled "already
+yours", and upgraded, never prescribed back as if it were new. Knock-on
+effects: an existing gym habit implies consistent training experience; a
+faster's first nutrition lever (the eating window) is live from day one;
+an established meditator starts the stillness practice at level 2.
+Established routines are the most reliable minutes in the plan — the
+engine builds the new asks around them.
+
 ## Pathway contract
 
 ASSESS → PRESCRIBE → SCHEDULE → EXECUTE → MEASURE → LEARN → ADAPT →

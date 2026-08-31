@@ -19,7 +19,9 @@ import { useAppStore } from '@/state/store';
 export function MindHub() {
   const theme = useTheme();
   const metrics = useAppStore((s) => s.metrics);
-  const state = useMemo(() => practiceState(metrics), [metrics]);
+  const profile = useAppStore((s) => s.profile);
+  const established = profile?.existingHabits?.includes('meditation') ?? false;
+  const state = useMemo(() => practiceState(metrics, established), [metrics, established]);
 
   return (
     <View>

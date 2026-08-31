@@ -327,6 +327,25 @@ export const PROTOCOLS: Protocol[] = [
     safety: 'Structure, not restriction — skip this protocol entirely if eating windows are a fraught topic for you.',
   },
 
+  {
+    id: 'fasting-window',
+    evidenceLevel: 'C',
+    title: 'Hold the eating window',
+    pillar: 'nutrition',
+    area: 'health',
+    goalDomains: ['health'],
+    summary: 'A consistent daily eating window — first bite and last bite at roughly the same times.',
+    why: 'Consistency beats duration: a steady window supports metabolic rhythm and quietly caps grazing, without counting anything.',
+    attribution: ['Peter Attia', 'David Sinclair', 'Rhonda Patrick'],
+    days: [0, 1, 2, 3, 4, 5, 6],
+    durationMin: 5,
+    anchor: { kind: 'sleep', offsetMin: 180, windowMin: 30 },
+    energy: 'evening',
+    tier: 'could',
+    safety:
+      'Not for everyone — skip entirely if pregnant, underweight, or if restriction has ever been a fraught topic. Protein and training quality come first.',
+  },
+
   // ── Longevity ─────────────────────────────────────────────────────────
   {
     id: 'sauna',

@@ -234,6 +234,23 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     ],
   },
   {
+    id: 'existingHabits',
+    kind: 'multi',
+    optional: true,
+    prompt: () =>
+      "What's already part of your life? INTENT builds on what you do — never prescribes it back to you as if it were new.",
+    options: [
+      { value: 'workout', label: 'Gym training' },
+      { value: 'walking', label: 'Walking' },
+      { value: 'running', label: 'Running' },
+      { value: 'fasting', label: 'Fasting / eating window' },
+      { value: 'meditation', label: 'Meditation' },
+      { value: 'sauna', label: 'Sauna' },
+      { value: 'cold', label: 'Cold showers' },
+      { value: 'journaling', label: 'Journaling' },
+    ],
+  },
+  {
     id: 'weight',
     kind: 'text',
     optional: true,

@@ -13,6 +13,7 @@ import type {
   BehaviourIntention,
   BehaviourKey,
   EnergyProfile,
+  ExistingHabitKey,
   Goal,
   LifeArea,
   LifeProfile,
@@ -31,6 +32,18 @@ export interface LifeOperatingPlan {
    * day one carries tailored protocols, milestones and advice. */
   pathStarts: { id: PathId; answers: Record<string, string> }[];
 }
+
+/** Which knowledge-base protocol carries each existing habit. */
+export const HABIT_PROTOCOL: Partial<Record<ExistingHabitKey, string>> = {
+  walking: 'daily-walk',
+  running: 'zone2',
+  meditation: 'meditation-10',
+  sauna: 'sauna',
+  cold: 'cold-finish',
+  journaling: 'evening-journal',
+  fasting: 'fasting-window',
+  workout: 'strength',
+};
 
 const TRAINING_WINDOWS: Record<EnergyProfile, { start: string; end: string }> = {
   morning: { start: '06:15', end: '07:30' },
@@ -104,6 +117,8 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   const pressure = (str(answers, 'pressure') as LifeProfile['pressure']) || undefined;
   const lifeVision = str(answers, 'vision') || undefined;
   const walking = str(answers, 'trainingSetup') === 'walking';
+  const existingHabits = arr(answers, 'existingHabits') as ExistingHabitKey[];
+  const hasHabit = (h: ExistingHabitKey) => existingHabits.includes(h);
 
   const profile: LifeProfile = {
     firstName: str(answers, 'name', 'there') || 'there',
@@ -123,6 +138,7 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
       : (str(answers, 'trainingSetup', 'mixed') as LifeProfile['trainingPreference']) || 'mixed',
     moreOf: arr(answers, 'moreOf'),
     lessOf,
+    existingHabits: existingHabits.length > 0 ? existingHabits : undefined,
     age,
     weightKg,
     kidsCount,
@@ -435,6 +451,21 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     });
   }
 
+  // ── Existing habits: the foundations. Anything the user ALREADY does
+  // gets scheduled as an established anchor — organised and upgraded,
+  // never prescribed back as if it were new. Established routines are the
+  // most reliable minutes in the whole plan; the engine builds around them.
+  for (const habit of existingHabits) {
+    const protocolId = HABIT_PROTOCOL[habit];
+    if (!protocolId) continue;
+    // 'workout' anchors the training routine that already exists; walking-
+    // as-training already owns the walk. Everything else gets its protocol.
+    if (habit === 'workout' || (habit === 'walking' && walking)) continue;
+    if (!routines.some((r) => r.protocolId === protocolId)) {
+      const protocol = protocolById(protocolId);
+      if (protocol) routines.push(toRoutine(protocol, profile));
+    }
+  }
   const foodAim = str(answers, 'foodAim');
   const startsNutritionPath = Boolean(foodAim && foodAim !== 'none');
 
@@ -486,7 +517,10 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
       (workStyle === 'maker' || workStyle === 'mixed')
         ? { bottleneck: 'focus' }
         : {};
-    const trainingExperience = str(answers, 'trainingExperience');
+    // Someone who already trains is 'consistent' even when the interview
+    // step was skipped — the habit is the evidence.
+    const trainingExperience =
+      str(answers, 'trainingExperience') || (hasHabit('workout') ? 'consistent' : '');
     if (ambitionOwnsTraining && trainingExperience) {
       ambitionAnswers.experience = trainingExperience;
     }
@@ -516,6 +550,17 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     active: true,
   }));
 
+  // Mark every routine that matches an existing habit as established —
+  // wherever it came from (habit anchor, mind toolkit, or the trainer).
+  // Runs after ALL routines are assembled, ambition-owned training included.
+  const establishedProtocols = new Set(
+    existingHabits.map((h) => HABIT_PROTOCOL[h]).filter(Boolean),
+  );
+  for (const r of routines) {
+    if (r.protocolId && establishedProtocols.has(r.protocolId)) r.established = true;
+    if (hasHabit('workout') && r.sessionType === 'workout') r.established = true;
+  }
+
   // A deep-work block can arrive from two doors (moreOf + a business
   // ambition); keep one of each protocol.
   const seenProtocol = new Set<string>();
@@ -536,6 +581,9 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     };
     const foodTrouble = str(answers, 'foodTrouble');
     if (foodTrouble) nutritionAnswers.trouble = foodTrouble;
+    // A faster already runs an eating window — their first nutrition lever
+    // is live from day one, not something to earn.
+    if (hasHabit('fasting')) nutritionAnswers.leverLevel = '1';
     pathStarts.push({ id: 'nutrition', answers: nutritionAnswers });
   }
   if (startsMoneyPath) {

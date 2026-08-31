@@ -211,7 +211,10 @@ export default function PathHub() {
           const why = r.protocolId ? protocolById(r.protocolId)?.why : undefined;
           return (
             <Card key={r.id}>
-              <AppText variant="heading">{r.title}</AppText>
+              <AppText variant="heading">
+                {r.title}
+                {r.established ? '  ·  already yours' : ''}
+              </AppText>
               <AppText variant="caption" color="textTertiary">
                 {r.days.length >= 7 ? 'Every day' : r.days.map((d) => DAY_LETTERS[d]).join(' ')}
                 {' · around '}

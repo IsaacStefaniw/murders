@@ -10,7 +10,7 @@
 
 import { buildLifeOperatingPlan, type LifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import type { InterviewAnswers } from '@/features/onboarding/script';
-import type { LifeArea } from '@/types/domain';
+import type { ExistingHabitKey, LifeArea } from '@/types/domain';
 
 export type Slot = 'morning' | 'midday' | 'evening';
 
@@ -29,6 +29,13 @@ export interface GroundTruth {
   applyReviewProb: number;
   /** Behaviour events per day (urges logged). */
   behaviourEventRate: number;
+  /** Habits the human ACTUALLY has — they persist whether or not the
+   * product captured them at onboarding. */
+  trueHabits?: ExistingHabitKey[];
+  /** Adherence multiplier on activity matching a true habit (~1.15–1.25):
+   * established behaviour completes more reliably than fresh prescriptions.
+   * A modelling assumption, documented in docs/SIMULATION.md. */
+  establishedBoost?: number;
 }
 
 export interface PersonaSpec {
@@ -36,6 +43,8 @@ export interface PersonaSpec {
   weight: number;
   answers: (rng: () => number) => InterviewAnswers;
   truth: (rng: () => number) => GroundTruth;
+  /** Probability per habit that this persona genuinely has it. */
+  habitOdds?: Partial<Record<ExistingHabitKey, number>>;
 }
 
 const even: Record<Slot, number> = { morning: 0.55, midday: 0.55, evening: 0.55 };
@@ -45,6 +54,7 @@ export const PERSONAS: PersonaSpec[] = [
     // Stated morning person; actually an evening completer. The adaptation
     // engine's core test case.
     key: 'busy_parent_exec',
+    habitOdds: { workout: 0.5, walking: 0.3, sauna: 0.15, fasting: 0.2 },
     weight: 0.3,
     answers: (rng) => ({
       name: 'Sam',
@@ -79,6 +89,7 @@ export const PERSONAS: PersonaSpec[] = [
   },
   {
     key: 'young_professional',
+    habitOdds: { workout: 0.4, running: 0.3, meditation: 0.25, cold: 0.15 },
     weight: 0.2,
     answers: (rng) => ({
       name: 'Jordan',
@@ -110,6 +121,7 @@ export const PERSONAS: PersonaSpec[] = [
     // Overcommits: says 5x training, real capacity is low. Tests whether the
     // weekly review prunes to something survivable instead of shaming.
     key: 'health_rebuilder',
+    habitOdds: { walking: 0.6, fasting: 0.25, journaling: 0.3 },
     weight: 0.2,
     answers: () => ({
       name: 'Casey',
@@ -141,6 +153,7 @@ export const PERSONAS: PersonaSpec[] = [
   {
     // Low capacity, family-first; the system must not overload them.
     key: 'new_parent',
+    habitOdds: { walking: 0.5, journaling: 0.2 },
     weight: 0.15,
     answers: () => ({
       name: 'Riley',
@@ -174,6 +187,7 @@ export const PERSONAS: PersonaSpec[] = [
   },
   {
     key: 'entrepreneur',
+    habitOdds: { workout: 0.6, sauna: 0.3, fasting: 0.35, cold: 0.2, meditation: 0.2 },
     weight: 0.15,
     answers: (rng) => ({
       name: 'Morgan',
@@ -227,7 +241,18 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-export function makeUser(id: number): SimUser {
+const HABIT_KEYS: ExistingHabitKey[] = [
+  'fasting',
+  'workout',
+  'walking',
+  'running',
+  'meditation',
+  'sauna',
+  'cold',
+  'journaling',
+];
+
+export function makeUser(id: number, opts: { captureHabits?: boolean } = {}): SimUser {
   const rng = mulberry32(1_000_003 * (id + 1));
   const pick = rng();
   let acc = 0;
@@ -239,11 +264,21 @@ export function makeUser(id: number): SimUser {
       break;
     }
   }
+  // The human's REAL habits exist either way; captureHabits controls only
+  // whether the interview asked about them (the ablation arm doesn't).
+  const trueHabits = HABIT_KEYS.filter((h) => rng() < (spec.habitOdds?.[h] ?? 0));
+  const answers = spec.answers(rng);
+  if (opts.captureHabits !== false && trueHabits.length > 0) {
+    answers.existingHabits = trueHabits;
+  }
+  const truth = spec.truth(rng);
+  truth.trueHabits = trueHabits;
+  truth.establishedBoost = 1.15 + rng() * 0.1;
   return {
     id,
     persona: spec.key,
-    plan: buildLifeOperatingPlan(spec.answers(rng)),
-    truth: spec.truth(rng),
+    plan: buildLifeOperatingPlan(answers),
+    truth,
     rng,
   };
 }

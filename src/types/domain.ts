@@ -16,6 +16,18 @@ export type LifeArea =
 
 export type EnergyProfile = 'morning' | 'midday' | 'evening' | 'any';
 
+/** Practices the user ALREADY does — captured at onboarding so INTENT
+ * builds on established behaviour instead of prescribing from zero. */
+export type ExistingHabitKey =
+  | 'fasting'
+  | 'workout'
+  | 'walking'
+  | 'running'
+  | 'meditation'
+  | 'sauna'
+  | 'cold'
+  | 'journaling';
+
 export interface Person {
   id: string;
   name: string;
@@ -48,6 +60,8 @@ export interface LifeProfile {
   moreOf: string[];
   /** Behaviour catalog keys the user wants less of. */
   lessOf: BehaviourKey[];
+  /** What's already part of their life — the foundations INTENT builds on. */
+  existingHabits?: ExistingHabitKey[];
   /** Optional personal numbers, asked only where the maths uses them
    * (protein target, training guidance). Never required, never judged. */
   age?: number;
@@ -154,6 +168,9 @@ export interface Routine {
   duringWork?: boolean;
   /** The modality session that runs this routine, if one exists. */
   sessionType?: SessionType;
+  /** Anchored on something the user already does — INTENT is organising
+   * and upgrading an existing habit, not prescribing a new one. */
+  established?: boolean;
   tier: PlanTier;
   active: boolean;
 }

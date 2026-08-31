@@ -19,7 +19,10 @@ const OUT = process.env.SIM_OUT ?? '/tmp';
 // ablates the proactive underserved-goal detector.
 const GOAL_RESCUE = process.env.SIM_GOAL_RESCUE !== '0';
 const GOAL_DIRECTION = process.env.SIM_GOAL_DIRECTION !== '0';
-const SUFFIX = `${GOAL_RESCUE ? '' : '-no-rescue'}${GOAL_DIRECTION ? '' : '-no-direction'}`;
+// SIM_HABITS=0 ablates habit capture: the humans keep their real habits,
+// but the interview never asks — plans are built blind to them.
+const CAPTURE_HABITS = process.env.SIM_HABITS !== '0';
+const SUFFIX = `${GOAL_RESCUE ? '' : '-no-rescue'}${GOAL_DIRECTION ? '' : '-no-direction'}${CAPTURE_HABITS ? '' : '-no-habits'}`;
 
 jest.setTimeout(60 * 60 * 1000);
 
@@ -28,7 +31,7 @@ it(`simulates ${USERS} users × ${DAYS} days`, () => {
   const t0 = Date.now();
   for (let i = 0; i < USERS; i++) {
     results.push(
-      runUser(makeUser(i), DAYS, '2026-01-05', {
+      runUser(makeUser(i, { captureHabits: CAPTURE_HABITS }), DAYS, '2026-01-05', {
         goalRescue: GOAL_RESCUE,
         goalDirection: GOAL_DIRECTION,
       }),

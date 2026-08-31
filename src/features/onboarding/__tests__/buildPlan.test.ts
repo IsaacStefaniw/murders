@@ -211,6 +211,45 @@ describe('buildLifeOperatingPlan', () => {
     expect(nutrition.answers.trouble).toBe('evenings');
   });
 
+  it('existing habits become established anchors, never fresh prescriptions', () => {
+    const habitual = buildLifeOperatingPlan({
+      ...answers,
+      existingHabits: ['walking', 'sauna', 'journaling', 'fasting'],
+      foodAim: 'weight',
+    });
+    expect(habitual.profile.existingHabits).toEqual(['walking', 'sauna', 'journaling', 'fasting']);
+    for (const pid of ['daily-walk', 'sauna', 'evening-journal', 'fasting-window']) {
+      const r = habitual.routines.find((x) => x.protocolId === pid)!;
+      expect(r).toBeDefined();
+      expect(r.established).toBe(true);
+    }
+    // A faster's first nutrition lever is live from day one.
+    const nutrition = habitual.pathStarts.find((p) => p.id === 'nutrition')!;
+    expect(nutrition.answers.leverLevel).toBe('1');
+  });
+
+  it('a habit and the mind toolkit never duplicate a protocol — it just becomes established', () => {
+    const both = buildLifeOperatingPlan({
+      ...answers,
+      mind: ['meditation', 'sauna'],
+      existingHabits: ['meditation', 'sauna'],
+    });
+    expect(both.routines.filter((r) => r.protocolId === 'meditation-10')).toHaveLength(1);
+    expect(both.routines.filter((r) => r.protocolId === 'sauna')).toHaveLength(1);
+    expect(both.routines.find((r) => r.protocolId === 'meditation-10')!.established).toBe(true);
+  });
+
+  it('an existing gym habit marks the training routine established and implies consistent experience', () => {
+    const lifter = buildLifeOperatingPlan({
+      ...answers,
+      existingHabits: ['workout'],
+      ambition: 'Get back to the gym',
+      trainingExperience: undefined,
+    });
+    const training = lifter.routines.find((r) => r.sessionType === 'workout')!;
+    expect(training.established).toBe(true);
+  });
+
   it('falls back to sensible defaults on an empty interview', () => {
     const fallback = buildLifeOperatingPlan({});
     expect(fallback.profile.workDays).toEqual([1, 2, 3, 4, 5]);

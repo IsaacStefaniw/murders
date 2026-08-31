@@ -59,9 +59,16 @@ const windowMinutes = (metrics: MetricObservation[], days: number): number => {
 
 export const minutesThisWeek = (metrics: MetricObservation[]): number => windowMinutes(metrics, 7);
 
-export function practiceLevel(metrics: MetricObservation[]): PracticeLevel {
+export function practiceLevel(
+  metrics: MetricObservation[],
+  establishedMeditator = false,
+): PracticeLevel {
   const monthMinutes = windowMinutes(metrics, 28);
-  return [...PRACTICE_LEVELS].reverse().find((l) => monthMinutes >= l.minutesFor)!;
+  const earned = [...PRACTICE_LEVELS].reverse().find((l) => monthMinutes >= l.minutesFor)!;
+  // An existing meditation habit starts at "five steady minutes" — INTENT
+  // never talks to an established meditator like a beginner.
+  if (establishedMeditator && earned.level < 2) return PRACTICE_LEVELS[1];
+  return earned;
 }
 
 export interface PracticeState {
@@ -72,8 +79,11 @@ export interface PracticeState {
   message: string;
 }
 
-export function practiceState(metrics: MetricObservation[]): PracticeState {
-  const level = practiceLevel(metrics);
+export function practiceState(
+  metrics: MetricObservation[],
+  establishedMeditator = false,
+): PracticeState {
+  const level = practiceLevel(metrics, establishedMeditator);
   const next = PRACTICE_LEVELS.find((l) => l.level === level.level + 1) ?? null;
   const weekMinutes = minutesThisWeek(metrics);
   const monthMinutes = windowMinutes(metrics, 28);
