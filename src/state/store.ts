@@ -22,6 +22,7 @@ import { detectGoalUnderserved } from '@/features/goals/underserved';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
+import { observationsFrom } from '@/features/training/log';
 import {
   baselinesFrom,
   buildProgramme,
@@ -66,8 +67,10 @@ import type {
   PlanItem,
   PlanItemStatus,
   Reflection,
+  LoggedSet,
   Routine,
   Suggestion,
+  WorkoutLog,
 } from '@/types/domain';
 
 export interface AppState {
@@ -155,6 +158,19 @@ export interface AppState {
    */
   updateMetric: (id: string, value: number, note?: string) => void;
   removeMetric: (id: string) => void;
+
+  /**
+   * Performed training sessions. Separate from plan items on purpose: an
+   * item records THAT it happened, a log records WHAT happened, and only
+   * the second can feed a strength baseline or be corrected next morning.
+   */
+  workoutLogs: WorkoutLog[];
+  /** Create or replace a session's log, writing any e1RM it evidences. */
+  saveWorkoutLog: (log: WorkoutLog) => void;
+  /** Correct one set after the fact — the reps or the weight, or both. */
+  updateLoggedSet: (logId: string, setId: string, patch: Partial<LoggedSet>) => void;
+  removeLoggedSet: (logId: string, setId: string) => void;
+  removeWorkoutLog: (logId: string) => void;
 
   /** Apple Health — read-only vitals feeding the same metric stream. */
   healthConnectedAt: string | null;
@@ -247,6 +263,7 @@ const initialData = {
     Record<PathId, { startedAt: string; answers: Record<string, string>; goalId: string }>
   >,
   metrics: [] as MetricObservation[],
+  workoutLogs: [] as WorkoutLog[],
   healthConnectedAt: null as string | null,
   healthLastSyncAt: null as string | null,
   questionLog: {} as Record<string, string>,
@@ -615,6 +632,54 @@ export const useAppStore = create<AppState>()(
 
         removeMetric: (id) => {
           set({ metrics: get().metrics.filter((o) => o.id !== id) });
+          get().assessGoals();
+        },
+
+        /**
+         * Save a session and let it move the model.
+         *
+         * The e1RM observations are REPLACED rather than appended on every
+         * save, keyed by the log's id. Editing yesterday's bench from 100 to
+         * 90 must correct the baseline, not leave the 100 standing beside it
+         * as a personal best that never happened — the same defect that
+         * `updateMetric` exists to fix, arriving by a different door.
+         */
+        saveWorkoutLog: (log) => {
+          const stamped = { ...log, updatedAt: new Date().toISOString() };
+          const others = get().workoutLogs.filter((l) => l.id !== log.id);
+          const noteTag = `workout:${log.id}`;
+          const keptMetrics = get().metrics.filter((m) => m.note !== noteTag);
+          const fresh = observationsFrom(stamped).map((o) => ({
+            ...observe(o.key, o.value, 'user', noteTag),
+            at: `${log.date}T12:00:00.000Z`,
+          }));
+          set({
+            workoutLogs: [...others, stamped].sort((a, b) => a.date.localeCompare(b.date)),
+            metrics: [...keptMetrics, ...fresh].slice(-2000),
+          });
+          get().assessGoals();
+        },
+
+        updateLoggedSet: (logId, setId, patch) => {
+          const log = get().workoutLogs.find((l) => l.id === logId);
+          if (!log) return;
+          get().saveWorkoutLog({
+            ...log,
+            sets: log.sets.map((s) => (s.id === setId ? { ...s, ...patch } : s)),
+          });
+        },
+
+        removeLoggedSet: (logId, setId) => {
+          const log = get().workoutLogs.find((l) => l.id === logId);
+          if (!log) return;
+          get().saveWorkoutLog({ ...log, sets: log.sets.filter((s) => s.id !== setId) });
+        },
+
+        removeWorkoutLog: (logId) => {
+          set({
+            workoutLogs: get().workoutLogs.filter((l) => l.id !== logId),
+            metrics: get().metrics.filter((m) => m.note !== `workout:${logId}`),
+          });
           get().assessGoals();
         },
 

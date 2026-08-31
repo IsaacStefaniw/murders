@@ -172,7 +172,21 @@ export default function PathHub() {
         </Card>
       ) : null}
 
-      {def.id === 'training' ? <TrainingHub /> : null}
+      {def.id === 'training' ? (
+        <>
+          <Card
+            onPress={() => router.push('/training/history' as never)}
+            style={{ marginTop: Spacing.sm }}
+            accessibilityLabel="Training history"
+          >
+            <AppText variant="heading">Session history</AppText>
+            <AppText variant="caption" color="textTertiary">
+              Every set you have logged — still editable, and feeding your strength numbers.
+            </AppText>
+          </Card>
+          <TrainingHub />
+        </>
+      ) : null}
       {def.id === 'nutrition' ? <NutritionHub /> : null}
       {def.id === 'money' ? <MoneyHub /> : null}
       {def.id === 'work' ? <WorkHub /> : null}

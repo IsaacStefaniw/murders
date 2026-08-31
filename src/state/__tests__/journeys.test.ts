@@ -15,6 +15,8 @@
 import { behaviourPattern, momentNote } from '@/features/behaviours/patterns';
 import { composeFromText } from '@/features/goals/composer';
 import { computeWeeklyStats } from '@/features/review/computeWeekly';
+import { personalBest } from '@/features/model/metrics';
+import { makeSet, newLog } from '@/features/training/log';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { PATHS } from '@/features/paths/definitions';
@@ -453,5 +455,78 @@ describe('journey: logging a non-conforming moment', () => {
       reflections: [],
     });
     expect(stats.behaviourEventCounts.sugar).toBeUndefined();
+  });
+});
+
+describe('journey: the gym feeds the model', () => {
+  const bench = (reps: number, weightKg: number, index: number) =>
+    makeSet('Bench press', index, reps, weightKg);
+
+  /**
+   * The loop that had never once closed. The programme prescribed loads
+   * from `strength.*.e1rm` baselines, and nothing in the app could ever
+   * write one — the workout player counted taps and threw them away. A
+   * block could be built but never progressed.
+   */
+  it('a logged session writes the strength baseline the next block reads', () => {
+    onboard();
+    const before = useAppStore.getState().metrics.filter((m) => m.key === 'strength.bench.e1rm');
+    expect(before).toHaveLength(0);
+
+    const log = newLog(todayKey(), 'Week 1 · Upper');
+    useAppStore.getState().saveWorkoutLog({
+      ...log,
+      sets: [bench(5, 90, 1), bench(5, 95, 2), bench(4, 95, 3)],
+    });
+
+    const after = useAppStore.getState().metrics.filter((m) => m.key === 'strength.bench.e1rm');
+    expect(after).toHaveLength(1);
+    expect(after[0].value).toBe(111); // the best set of the session, not each one
+
+    useAppStore.getState().buildTrainingBlock();
+    expect(useAppStore.getState().trainingProgramme?.baselines.bench).toBe(111);
+  });
+
+  /**
+   * Correcting a set must correct the baseline, not leave the original
+   * standing beside it as a personal best that never happened. Same defect
+   * `updateMetric` was built for, arriving through a different door.
+   */
+  it('correcting a set corrects the baseline rather than adding a phantom best', () => {
+    onboard();
+    const log = newLog(todayKey(), 'Week 1 · Upper');
+    useAppStore.getState().saveWorkoutLog({ ...log, sets: [bench(5, 140, 1)] });
+
+    const saved = useAppStore.getState().workoutLogs[0];
+    useAppStore.getState().updateLoggedSet(saved.id, saved.sets[0].id, { weightKg: 100 });
+
+    const readings = useAppStore.getState().metrics.filter((m) => m.key === 'strength.bench.e1rm');
+    expect(readings).toHaveLength(1);
+    expect(readings[0].value).toBe(116.5);
+    expect(personalBest(useAppStore.getState().metrics, 'strength.bench.e1rm')!.value).toBe(116.5);
+  });
+
+  it('deleting a session takes its readings with it', () => {
+    onboard();
+    const log = newLog(todayKey(), 'Week 1 · Upper');
+    useAppStore.getState().saveWorkoutLog({ ...log, sets: [bench(5, 100, 1)] });
+    const saved = useAppStore.getState().workoutLogs[0];
+
+    useAppStore.getState().removeWorkoutLog(saved.id);
+    expect(useAppStore.getState().workoutLogs).toHaveLength(0);
+    expect(useAppStore.getState().metrics.filter((m) => m.key === 'strength.bench.e1rm')).toHaveLength(0);
+  });
+
+  it('a session of accessories records the work and claims no strength number', () => {
+    onboard();
+    const log = newLog(todayKey(), 'Home session');
+    useAppStore.getState().saveWorkoutLog({
+      ...log,
+      sets: [makeSet('Goblet squats', 1, 12, 24), makeSet('Backpack rows', 1, 12, 20)],
+    });
+    expect(useAppStore.getState().workoutLogs[0].sets).toHaveLength(2);
+    expect(
+      useAppStore.getState().metrics.filter((m) => m.key.startsWith('strength.')),
+    ).toHaveLength(0);
   });
 });

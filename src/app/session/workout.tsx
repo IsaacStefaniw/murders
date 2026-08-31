@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
@@ -11,10 +11,13 @@ import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
 import { syncAppleHealth } from '@/features/health/healthkit';
 import { buildWorkout } from '@/features/modalities/gym/program';
+import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/training/log';
+import { defaultRepsFrom, SetLogger } from '@/features/training/SetLogger';
 import { autoRegulate, weekOf } from '@/features/training/programme';
 import { dateKeyToDate, todayKey, toMinutes } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import type { LoggedSet } from '@/types/domain';
 
 /**
  * Workout player: everything decided before the gym door — exercises,
@@ -77,13 +80,30 @@ export default function WorkoutSession() {
           sets: e.sets,
           reps: `${e.reps}${e.loadKg ? ` @ ${e.loadKg} kg` : e.rpe ? ` @ RPE ${e.rpe}` : ''}`,
           restSec: e.restSec,
+          // Carried through rather than baked into the label: the set
+          // logger prefills from it, and a string cannot be prefilled from.
+          loadKg: e.loadKg,
         })),
       };
     }
     return buildWorkout(availableMin, profile?.trainingPreference ?? 'mixed', weekday);
   }, [availableMin, profile?.trainingPreference, date, programme, sleptHours]);
 
-  const [doneSets, setDoneSets] = useState<Record<string, number>>({});
+  const workoutLogs = useAppStore((s) => s.workoutLogs);
+  const saveWorkoutLog = useAppStore((s) => s.saveWorkoutLog);
+  const sessionDate = date ?? todayKey();
+
+  /**
+   * One log per training day, derived rather than held in state: created on
+   * the first set so that opening the screen and walking away leaves no
+   * phantom session behind, and found again on re-entry so a set typed
+   * wrong an hour ago can be corrected rather than duplicated.
+   */
+  const log = useMemo(
+    () => workoutLogs.find((l) => l.date === sessionDate) ?? null,
+    [workoutLogs, sessionDate],
+  );
+
   const [restLeft, setRestLeft] = useState(0);
 
   useEffect(() => {
@@ -103,18 +123,47 @@ export default function WorkoutSession() {
   }
 
   const totalSets = session.exercises.reduce((s, e) => s + e.sets, 0);
-  const completedSets = Object.values(doneSets).reduce((s, n) => s + n, 0);
+  const loggedSets = log?.sets ?? [];
+  const completedSets = loggedSets.length;
   const allDone = completedSets >= totalSets;
 
-  const tickSet = (name: string, sets: number, restSec: number) => {
-    const done = doneSets[name] ?? 0;
-    if (done >= sets) return;
-    setDoneSets({ ...doneSets, [name]: done + 1 });
-    if (done + 1 < sets && restSec > 0) setRestLeft(restSec);
+  const setsFor = (name: string) =>
+    loggedSets.filter((s) => s.exercise === name).sort((a, b) => a.index - b.index);
+
+  const addSet = (name: string, restSec: number, reps: number, weightKg?: number) => {
+    const current = log ?? newLog(sessionDate, session.title);
+    const index = current.sets.filter((s) => s.exercise === name).length + 1;
+    saveWorkoutLog({ ...current, sets: [...current.sets, makeSet(name, index, reps, weightKg)] });
+    if (restSec > 0) setRestLeft(restSec);
+  };
+
+  const editSet = (setId: string, patch: Partial<LoggedSet>) => {
+    if (!log) return;
+    saveWorkoutLog({
+      ...log,
+      sets: log.sets.map((s) => (s.id === setId ? { ...s, ...patch } : s)),
+    });
+  };
+
+  const removeSet = (setId: string) => {
+    if (!log) return;
+    const remaining = log.sets.filter((s) => s.id !== setId);
+    // Re-index within the exercise so the labels stay 1, 2, 3 rather than
+    // developing a gap where a mistyped set used to be.
+    const counts = new Map<string, number>();
+    saveWorkoutLog({
+      ...log,
+      sets: remaining.map((s) => {
+        const n = (counts.get(s.exercise) ?? 0) + 1;
+        counts.set(s.exercise, n);
+        return { ...s, index: n };
+      }),
+    });
   };
 
   const finish = () => {
     const note = `workout session · ${completedSets}/${totalSets} sets`;
+    if (log) saveWorkoutLog({ ...log, durationMin: session.estimatedMin, note });
     if (itemId && date) {
       setItemStatus(date, itemId, 'completed', {
         source: 'manual',
@@ -179,43 +228,39 @@ export default function WorkoutSession() {
       <SectionHeader title="Session" />
       <View style={styles.stack}>
         {session.exercises.map((e) => {
-          const done = doneSets[e.name] ?? 0;
-          const complete = done >= e.sets;
+          const targetReps = defaultRepsFrom(e.reps);
+          const last = lastPerformance(workoutLogs, e.name, log?.id);
+          const next =
+            targetReps !== undefined
+              ? suggestNext(workoutLogs, e.name, targetReps, e.sets)
+              : null;
+          // What the person walks in wanting to know, in priority order: what
+          // the programme says today, else what they did last time.
+          const reference = next
+            ? next.reason
+            : last
+              ? `last time: ${last.set.weightKg ? `${last.set.weightKg} kg × ` : ''}${last.set.reps}`
+              : undefined;
           return (
-            <Pressable
+            <SetLogger
               key={e.name}
-              accessibilityRole="button"
-              accessibilityLabel={`${e.name}, ${done} of ${e.sets} sets done`}
-              onPress={() => tickSet(e.name, e.sets, e.restSec)}
-              style={({ pressed }) => [
-                styles.exercise,
-                {
-                  backgroundColor: pressed ? theme.surfacePressed : theme.surface,
-                  borderColor: complete ? theme.accent : theme.border,
-                },
-              ]}
-            >
-              <View style={styles.exerciseInfo}>
-                <AppText
-                  variant="body"
-                  style={[styles.exerciseName, complete && { color: theme.textTertiary }]}
-                >
-                  {e.name}
-                </AppText>
-                <AppText variant="caption" color="textTertiary">
-                  {e.reps}
-                  {e.restSec > 0 ? ` · rest ${e.restSec}s` : ''}
-                </AppText>
-              </View>
-              <AppText variant="heading" color={complete ? 'success' : 'textSecondary'}>
-                {done}/{e.sets}
-              </AppText>
-            </Pressable>
+              exercise={e.name}
+              prescribedSets={e.sets}
+              prescribedReps={`${e.reps}${e.restSec > 0 ? ` · rest ${e.restSec}s` : ''}`}
+              sets={setsFor(e.name)}
+              suggestedWeightKg={('loadKg' in e ? e.loadKg : undefined) ?? next?.weightKg ?? last?.set.weightKg}
+              suggestedReps={targetReps}
+              reference={reference}
+              onAddSet={(reps, weightKg) => addSet(e.name, e.restSec, reps, weightKg)}
+              onEditSet={editSet}
+              onRemoveSet={removeSet}
+            />
           );
         })}
       </View>
       <AppText variant="caption" color="textTertiary" style={styles.note}>
-        Tap an exercise each time you finish a set. Form over load; leave one rep in the tank.
+        Log what you actually lifted — tap any set to correct it, today or next week. Form over
+        load; leave one rep in the tank.
       </AppText>
 
       <View style={styles.footer}>

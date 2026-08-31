@@ -175,6 +175,36 @@ export interface Goal {
 }
 
 /**
+ * One set, as performed. Weight and reps as typed — estimates are derived
+ * on read, never written back over what the person actually entered.
+ */
+export interface LoggedSet {
+  id: string;
+  /** Exercise name as shown in the session; the join key back to the programme. */
+  exercise: string;
+  /** 1-based position within that exercise. */
+  index: number;
+  reps: number;
+  /** Absent for bodyweight and unloaded work, which is not a gap. */
+  weightKg?: number;
+  rpe?: number;
+  at: string;
+}
+
+/** A performed session. Stays editable after the fact — memory is not evidence. */
+export interface WorkoutLog {
+  id: string;
+  /** Date key of the session, not of the typing. */
+  date: string;
+  title: string;
+  sets: LoggedSet[];
+  durationMin?: number;
+  note?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * A recurring intended activity. Routines are what the scheduling engine
  * places into days; goals become real through routines.
  */
