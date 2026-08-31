@@ -12,6 +12,7 @@
  * a defect that shipped to TestFlight.
  */
 
+import { composeFromText } from '@/features/goals/composer';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { PATHS } from '@/features/paths/definitions';
@@ -217,6 +218,60 @@ describe('journey: the caffeine cutoff is a deadline', () => {
         expect(item.start <= '13:00').toBe(true);
       }
     }
+  });
+});
+
+describe('journey: correcting a mistyped number', () => {
+  const savingsGoal = () => {
+    const { goal, routines } = composeFromText(
+      'Save $40k for the house deposit',
+      useAppStore.getState().profile,
+    );
+    useAppStore.getState().addGoal(goal, routines);
+    return useAppStore.getState().goals.find((g) => g.id === goal.id)!;
+  };
+
+  it('a corrected reading un-ticks the rungs only the bad number had satisfied', () => {
+    onboard();
+    const goal = savingsGoal();
+    const key = goal.checkins!.find((c) => c.source === 'ask')!.metricKey;
+
+    // The fat-fingered entry: $40,000 typed where $4,000 was meant.
+    useAppStore.getState().addMetric(key, 40000);
+    let live = useAppStore.getState().goals.find((g) => g.id === goal.id)!;
+    expect(live.milestones!.every((m) => m.done)).toBe(true);
+
+    // Correcting it must walk the ladder back, not leave the goal complete.
+    const obs = useAppStore.getState().metrics.find((o) => o.key === key)!;
+    useAppStore.getState().updateMetric(obs.id, 4000);
+    live = useAppStore.getState().goals.find((g) => g.id === goal.id)!;
+    expect(live.milestones!.filter((m) => m.done)).toHaveLength(1); // the 10% rung only
+  });
+
+  it('deleting the reading entirely walks every evidence rung back', () => {
+    onboard();
+    const goal = savingsGoal();
+    const key = goal.checkins!.find((c) => c.source === 'ask')!.metricKey;
+    useAppStore.getState().addMetric(key, 40000);
+
+    const obs = useAppStore.getState().metrics.find((o) => o.key === key)!;
+    useAppStore.getState().removeMetric(obs.id);
+    const live = useAppStore.getState().goals.find((g) => g.id === goal.id)!;
+    expect(live.milestones!.some((m) => m.done)).toBe(false);
+  });
+
+  it('never un-ticks a rung the user confirmed themselves', () => {
+    onboard();
+    // An endurance ladder ends in two confirm rungs — a person's call, not
+    // a number's, so no correction may reach them.
+    const { goal, routines } = composeFromText('Run a marathon', useAppStore.getState().profile);
+    useAppStore.getState().addGoal(goal, routines);
+    const confirmRung = goal.milestones!.find((m) => m.doneWhen?.kind === 'confirm')!;
+    useAppStore.getState().setMilestoneDone(goal.id, confirmRung.id, true);
+
+    useAppStore.getState().assessGoals();
+    const live = useAppStore.getState().goals.find((g) => g.id === goal.id)!;
+    expect(live.milestones!.find((m) => m.id === confirmRung.id)!.done).toBe(true);
   });
 });
 

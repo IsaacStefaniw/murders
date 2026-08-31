@@ -284,6 +284,13 @@ export interface GoalAssessContext {
 export interface GoalAssessment {
   /** Milestones whose doneWhen is now satisfied by evidence. */
   autoDone: string[];
+  /**
+   * Milestones previously auto-completed whose evidence no longer holds —
+   * a corrected metric, a deleted reading. Only ever evidence-backed rungs:
+   * a rung the USER confirmed stays confirmed, because that was their call
+   * and not a number's.
+   */
+  autoUndone: string[];
   state: 'done' | 'on-track' | 'stalled' | 'need-data';
   /** The verdict's evidence, stated plainly. */
   reason: string;
@@ -344,11 +351,22 @@ export function assessGoal(goal: Goal, ctx: GoalAssessContext): GoalAssessment {
   const autoDone = milestones
     .filter((m) => !m.done && m.doneWhen && satisfied(m.doneWhen, goal, ctx))
     .map((m) => m.id);
+  // Evidence that stops holding un-ticks the rung it ticked. Without this a
+  // mistyped number could permanently mark a goal complete.
+  const autoUndone = milestones
+    .filter(
+      (m) =>
+        m.done &&
+        m.doneWhen &&
+        m.doneWhen.kind !== 'confirm' &&
+        !satisfied(m.doneWhen, goal, ctx),
+    )
+    .map((m) => m.id);
   const open = milestones.filter((m) => !m.done && !autoDone.includes(m.id));
   const next = open[0];
 
   if (milestones.length > 0 && open.length === 0) {
-    return { autoDone, state: 'done', reason: 'Every rung of the ladder is complete.' };
+    return { autoDone, autoUndone, state: 'done', reason: 'Every rung of the ladder is complete.' };
   }
 
   if (next?.doneWhen?.kind === 'metric') {
@@ -358,6 +376,7 @@ export function assessGoal(goal: Goal, ctx: GoalAssessContext): GoalAssessment {
       const ask = goal.checkins?.find((c) => c.metricKey === dw.metricKey);
       return {
         autoDone,
+        autoUndone,
         state: 'need-data',
         reason: ask
           ? `No reading yet for ${ask.label.toLowerCase()} — one answer starts the trend.`
@@ -369,6 +388,7 @@ export function assessGoal(goal: Goal, ctx: GoalAssessContext): GoalAssessment {
     if (gap > 0) {
       return {
         autoDone,
+        autoUndone,
         state: recentProgress(goal, ctx, today) ? 'on-track' : 'stalled',
         reason: `At ${fmt(obs.value, dw.unit ?? '')} — ${fmt(Math.round(gap * 10) / 10, dw.unit ?? '')} from “${next.title}”.`,
         next,
@@ -384,6 +404,7 @@ export function assessGoal(goal: Goal, ctx: GoalAssessContext): GoalAssessment {
     );
     return {
       autoDone,
+      autoUndone,
       state: weeks > 0 || recentProgress(goal, ctx, today) ? 'on-track' : 'stalled',
       reason:
         weeks > 0
@@ -397,6 +418,7 @@ export function assessGoal(goal: Goal, ctx: GoalAssessContext): GoalAssessment {
     const done = goalCompletions(goal, ctx.planEvents).length;
     return {
       autoDone,
+      autoUndone,
       state: recentProgress(goal, ctx, today) ? 'on-track' : 'stalled',
       reason: `${done} of ${next.doneWhen.target} sessions toward “${next.title}”.`,
       next,
@@ -405,6 +427,7 @@ export function assessGoal(goal: Goal, ctx: GoalAssessContext): GoalAssessment {
 
   return {
     autoDone,
+    autoUndone,
     state: recentProgress(goal, ctx, today) ? 'on-track' : 'stalled',
     reason: next
       ? `Next: “${next.title}” — ${describeDoneWhen(next.doneWhen)}.`

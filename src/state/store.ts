@@ -145,6 +145,16 @@ export interface AppState {
   /** Personal Performance Model — universal metric observations. */
   metrics: MetricObservation[];
   addMetric: (key: string, value: number, note?: string) => void;
+  /**
+   * Correct or remove a reading. The stream used to be strictly
+   * append-only, so a mistyped 140kg bench ticked goal milestones done and
+   * then celebrated a phantom personal best forever — `latest` would read
+   * the correction, but `personalBest` and the records feed never would.
+   * Editing re-runs the evidence pass, which can also UNSET a milestone
+   * that only the bad number had satisfied.
+   */
+  updateMetric: (id: string, value: number, note?: string) => void;
+  removeMetric: (id: string) => void;
 
   /** Apple Health — read-only vitals feeding the same metric stream. */
   healthConnectedAt: string | null;
@@ -580,20 +590,38 @@ export const useAppStore = create<AppState>()(
           get().assessGoals();
         },
 
+        updateMetric: (id, value, note) => {
+          set({
+            metrics: get().metrics.map((o) =>
+              o.id === id ? { ...o, value, note: note ?? o.note } : o,
+            ),
+          });
+          get().assessGoals();
+        },
+
+        removeMetric: (id) => {
+          set({ metrics: get().metrics.filter((o) => o.id !== id) });
+          get().assessGoals();
+        },
+
         assessGoals: () => {
           const { goals, metrics, planEvents } = get();
           const now = new Date().toISOString();
           let changed = false;
           const next = goals.map((g) => {
             if (g.status !== 'active' || !g.milestones?.length) return g;
-            const { autoDone } = assessGoal(g, { metrics, planEvents });
-            if (autoDone.length === 0) return g;
+            const { autoDone, autoUndone } = assessGoal(g, { metrics, planEvents });
+            if (autoDone.length === 0 && autoUndone.length === 0) return g;
             changed = true;
             return {
               ...g,
-              milestones: g.milestones.map((m) =>
-                autoDone.includes(m.id) ? { ...m, done: true, doneAt: now } : m,
-              ),
+              milestones: g.milestones.map((m) => {
+                if (autoDone.includes(m.id)) return { ...m, done: true, doneAt: now };
+                // Evidence that no longer holds un-ticks the rung it ticked —
+                // a corrected number must not leave a goal falsely complete.
+                if (autoUndone.includes(m.id)) return { ...m, done: false, doneAt: undefined };
+                return m;
+              }),
             };
           });
           if (changed) set({ goals: next });

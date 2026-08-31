@@ -25,6 +25,7 @@ import {
   weekdayOf,
 } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
+import { QuickLog } from '@/features/today/QuickLog';
 import { useAppStore } from '@/state/store';
 import type { PlanItem } from '@/types/domain';
 
@@ -324,6 +325,10 @@ export default function Today() {
         <Chip label="Meditate" onPress={() => router.push('/session/meditate' as never)} />
         <Chip label="Train" onPress={() => router.push('/session/workout' as never)} />
       </View>
+
+      {/* And the other direction: recording what already happened. */}
+      <SectionHeader title="Already done" />
+      <QuickLog />
 
       {lookAheadHighlight ? (
         /* One emotionally useful future moment — Plan owns the full week. */
