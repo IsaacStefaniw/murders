@@ -36,7 +36,9 @@ export type Pillar =
   | 'mind'
   | 'wealth'
   | 'leadership'
-  | 'connection';
+  | 'connection'
+  /** Sport, learning and craft — getting better at a thing on purpose. */
+  | 'skill';
 
 export const PILLAR_LABELS: Record<Pillar, string> = {
   sleep: 'Sleep & energy',
@@ -47,6 +49,7 @@ export const PILLAR_LABELS: Record<Pillar, string> = {
   wealth: 'Wealth',
   leadership: 'Leadership & work',
   connection: 'Connection',
+  skill: 'Skill & craft',
 };
 
 /** Where in the day a protocol wants to live. */
@@ -1099,12 +1102,28 @@ export function toRoutine(p: Protocol, profile: LifeProfile | null, goalId?: str
  * tokens, so suggestions the model writes stay anchored to the same
  * evidence-based library the deterministic engine plans from.
  */
-export function knowledgeContext(): string {
-  // Summary + evidence grade only. `why` is the evidence story we show the
-  // USER; the planner needs to know what a protocol does and how well
-  // supported it is, not to carry our copy in every prompt. Including it
-  // made the context grow faster than the library could — this scales.
-  return PROTOCOLS.map(
-    (p) => `- ${p.title} (${PILLAR_LABELS[p.pillar]}, evidence ${p.evidenceLevel}): ${p.summary}`,
-  ).join('\n');
+/**
+ * The library as grounding for a model prompt.
+ *
+ * Summary + evidence grade only. `why` is the evidence story we show the
+ * USER; the planner needs to know what a protocol does and how well
+ * supported it is, not to carry our copy in every prompt.
+ *
+ * Pass the pillars a prompt actually concerns. As the library grows past a
+ * hundred entries, sending all of it in every call is waste — a weekly
+ * training review has no use for the money protocols. Unfiltered stays
+ * available and remains small enough to send, but callers should narrow.
+ */
+export function knowledgeContext(pillars?: Pillar[]): string {
+  const scope = pillars?.length
+    ? PROTOCOLS.filter((p) => pillars.includes(p.pillar))
+    : PROTOCOLS;
+  return scope
+    .map((p) => `- ${p.title} (${PILLAR_LABELS[p.pillar]}, evidence ${p.evidenceLevel}): ${p.summary}`)
+    .join('\n');
+}
+
+/** The pillars that serve a goal domain — the natural prompt scope. */
+export function pillarsForDomain(domain: GoalDomain): Pillar[] {
+  return [...new Set(protocolsForDomain(domain).map((p) => p.pillar))];
 }

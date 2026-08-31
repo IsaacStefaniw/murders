@@ -1,4 +1,5 @@
 import {
+  EVIDENCE_LABELS,
   knowledgeContext,
   PROTOCOLS,
   protocolById,
@@ -151,7 +152,24 @@ describe('domain pathways', () => {
   it('knowledge context stays compact enough for a system prompt', () => {
     const ctx = knowledgeContext();
     expect(ctx).toContain('Zone 2');
-    // ~2k tokens ceiling — small enough to ride along in every agent call.
-    expect(ctx.length).toBeLessThan(9000);
+    // The whole library. It grows with every research round, so the bound is
+    // deliberate rather than tight: past this, callers must scope by pillar
+    // instead of raising it again.
+    expect(ctx.length).toBeLessThan(20000);
+  });
+
+  it('scopes to the pillars a prompt actually concerns', () => {
+    const training = knowledgeContext(['training']);
+    expect(training).toContain('Zone 2');
+    expect(training).not.toContain('Payday transfer');
+    // Scoping is what keeps prompts small as the library grows — a scoped
+    // context must stay well under the whole-library bound.
+    expect(training.length).toBeLessThan(knowledgeContext().length / 2);
+  });
+
+  it('every protocol carries a grade the evidence labels recognise', () => {
+    for (const p of PROTOCOLS) {
+      expect(EVIDENCE_LABELS[p.evidenceLevel]).toBeTruthy();
+    }
   });
 });
