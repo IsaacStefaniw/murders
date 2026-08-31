@@ -852,6 +852,12 @@ export const useAppStore = create<AppState>()(
           ]) {
             for (const s of detected) {
               if (claimed.has(routineIdOf(s))) continue;
+              // Some practices are never chased. A life-transition anchor
+              // missed three weeks after a bereavement is not a signal to
+              // act on, and the engine cannot know that on its own.
+              const routine = routines.find((r) => r.id === routineIdOf(s));
+              const protocol = routine?.protocolId ? protocolById(routine.protocolId) : undefined;
+              if (protocol?.neverNag) continue;
               claimed.add(routineIdOf(s));
               fresh.push(s);
             }

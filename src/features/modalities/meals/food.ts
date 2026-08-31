@@ -80,7 +80,7 @@ export const ALLERGEN_DISCLAIMER =
 
 /**
  * Intolerances are not allergies. They are unpleasant rather than
- * dangerous, they are dose-related in a way allergies are not, and the
+ * dangerous, they scale with how much you eat in a way allergies do not,
  * thresholds are personal. They get their own list so that neither one is
  * quietly treated as the other.
  */

@@ -155,22 +155,27 @@ describe('domain pathways', () => {
     }
   });
 
-  it('knowledge context stays compact enough for a system prompt', () => {
+  it('unscoped, the library is an index rather than a briefing', () => {
     const ctx = knowledgeContext();
     expect(ctx).toContain('Zone 2');
-    // The whole library. It grows with every research round, so the bound is
-    // deliberate rather than tight: past this, callers must scope by pillar
-    // instead of raising it again.
-    expect(ctx.length).toBeLessThan(20000);
+    // Titles and grades only: enough to know what exists, small enough to
+    // send. Summaries are the scoped call's job.
+    expect(ctx).not.toContain('Steady "can still hold a conversation" cardio');
+    expect(ctx.length).toBeLessThan(12000);
   });
 
-  it('scopes to the pillars a prompt actually concerns', () => {
+  it('scoped, it carries the summaries a prompt can act on', () => {
     const training = knowledgeContext(['training']);
     expect(training).toContain('Zone 2');
+    expect(training).toContain('Steady "can still hold a conversation" cardio');
     expect(training).not.toContain('Payday transfer');
-    // Scoping is what keeps prompts small as the library grows — a scoped
-    // context must stay well under the whole-library bound.
-    expect(training.length).toBeLessThan(knowledgeContext().length / 2);
+  });
+
+  it('a scoped context does not grow when unrelated pillars do', () => {
+    const wealth = knowledgeContext(['wealth']);
+    for (const p of PROTOCOLS.filter((x) => x.pillar !== 'wealth')) {
+      expect(wealth).not.toContain(p.summary);
+    }
   });
 
   it('every protocol carries a grade the evidence labels recognise', () => {
