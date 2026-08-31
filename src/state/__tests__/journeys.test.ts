@@ -14,6 +14,7 @@
 
 import { behaviourPattern, momentNote } from '@/features/behaviours/patterns';
 import { composeFromText } from '@/features/goals/composer';
+import { nextCheckin } from '@/features/checkins/due';
 import { computeWeeklyStats } from '@/features/review/computeWeekly';
 import { observe, personalBest } from '@/features/model/metrics';
 import { goalTrajectory } from '@/features/model/trajectory';
@@ -704,5 +705,111 @@ describe('journey: changing your mind', () => {
       if (Number(day) === 4) continue;
       expect(allowed.has(dish)).toBe(true);
     }
+  });
+});
+
+describe('journey: the measurement loop, end to end', () => {
+  /**
+   * The circuit that was open. The composer drafts a check-in spec for
+   * every measurable goal; nothing in the app ever asked. So no
+   * observation, so no evidence, so the milestone never ticked and the
+   * projection said "not enough data" however well the person was doing.
+   *
+   * This drives the whole loop: goal → question → answer → metric →
+   * milestone evidence → trajectory.
+   */
+  it('a drafted check-in becomes a question, an answer, a tick and a projection', () => {
+    onboard();
+    const store = useAppStore.getState();
+    const goalId = 'g-loop';
+    store.addGoal(
+      {
+        id: goalId,
+        title: 'Set aside £5,000',
+        area: 'admin',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        routineIds: [],
+        checkins: [
+          {
+            id: 'ci-loop',
+            metricKey: 'goal.g-loop.saved',
+            label: 'Amount set aside',
+            unit: '$',
+            cadenceDays: 7,
+            source: 'ask',
+            prompt: 'How much is set aside right now?',
+          },
+        ],
+        milestones: [
+          {
+            id: 'm1',
+            title: 'First £1,000',
+            done: false,
+            doneWhen: { kind: 'metric', metricKey: 'goal.g-loop.saved', op: 'gte', value: 1000 },
+          },
+        ],
+      },
+      [],
+    );
+
+    // It is asked, because nothing has ever been recorded.
+    const first = nextCheckin(
+      useAppStore.getState().goals,
+      useAppStore.getState().metrics,
+      useAppStore.getState().dismissedCheckins,
+    )!;
+    expect(first.spec.id).toBe('ci-loop');
+    expect(first.daysSince).toBeNull();
+
+    // Answering records the reading and re-runs the evidence pass.
+    useAppStore.getState().answerCheckin('ci-loop', 'goal.g-loop.saved', 1200);
+    const goal = useAppStore.getState().goals.find((g) => g.id === goalId)!;
+    expect(goal.milestones![0].done).toBe(true);
+
+    // And it stops asking, because it now has an answer.
+    expect(
+      nextCheckin(
+        useAppStore.getState().goals,
+        useAppStore.getState().metrics,
+        useAppStore.getState().dismissedCheckins,
+      ),
+    ).toBeNull();
+  });
+
+  it('"not now" is a real answer and holds, and answering later clears it', () => {
+    onboard();
+    useAppStore.getState().addGoal(
+      {
+        id: 'g-dismiss',
+        title: 'Set aside £5,000',
+        area: 'admin',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        routineIds: [],
+        checkins: [
+          {
+            id: 'ci-dismiss',
+            metricKey: 'goal.g-dismiss.saved',
+            label: 'Amount set aside',
+            cadenceDays: 7,
+            source: 'ask',
+          },
+        ],
+      },
+      [],
+    );
+
+    useAppStore.getState().dismissCheckin('ci-dismiss');
+    expect(
+      nextCheckin(
+        useAppStore.getState().goals,
+        useAppStore.getState().metrics,
+        useAppStore.getState().dismissedCheckins,
+      ),
+    ).toBeNull();
+
+    useAppStore.getState().answerCheckin('ci-dismiss', 'goal.g-dismiss.saved', 500);
+    expect(useAppStore.getState().dismissedCheckins['ci-dismiss']).toBeUndefined();
   });
 });

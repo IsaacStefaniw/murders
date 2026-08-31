@@ -13,6 +13,7 @@ import { Spacing } from '@/constants/theme';
 import { buildLookingAhead, ideasFor } from '@/features/anticipation/lookAhead';
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import { dueInterventions } from '@/features/behaviours/patterns';
+import { CheckinCard } from '@/features/checkins/CheckinCard';
 import { coachNote, weekMomentum } from '@/features/today/coach';
 import { availableStartsFor } from '@/features/planner/generate';
 import { ItemActions } from '@/features/today/item-actions';
@@ -184,6 +185,12 @@ export default function Today() {
           />
         </View>
       ) : null}
+
+      {/*
+        The input side of the measurement architecture. Renders nothing at
+        all unless something is genuinely due, which is most days.
+      */}
+      <CheckinCard />
 
       <SectionHeader title="Now" color="must" />
       {nowItem ? (

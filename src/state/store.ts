@@ -207,6 +207,15 @@ export interface AppState {
   questionLog: Record<string, string>;
   markQuestionAsked: (id: string) => void;
 
+  /**
+   * checkinSpecId → ISO when it was declined. "Not now" is a real answer,
+   * so it holds for a fortnight rather than reappearing tomorrow.
+   */
+  dismissedCheckins: Record<string, string>;
+  dismissCheckin: (specId: string) => void;
+  /** Answer a check-in: records the reading and re-runs the evidence pass. */
+  answerCheckin: (specId: string, metricKey: string, value: number) => void;
+
   /** Training v2 — the current four-week block. */
   trainingProgramme: TrainingProgramme | null;
   buildTrainingBlock: () => void;
@@ -301,6 +310,7 @@ const initialData = {
   healthConnectedAt: null as string | null,
   healthLastSyncAt: null as string | null,
   questionLog: {} as Record<string, string>,
+  dismissedCheckins: {} as Record<string, string>,
   trainingProgramme: null as TrainingProgramme | null,
   workBlock: null as WorkBlock | null,
   clockOffsetMs: 0,
@@ -707,6 +717,24 @@ export const useAppStore = create<AppState>()(
           const log = get().workoutLogs.find((l) => l.id === logId);
           if (!log) return;
           get().saveWorkoutLog({ ...log, sets: log.sets.filter((s) => s.id !== setId) });
+        },
+
+        dismissCheckin: (specId) => {
+          set({
+            dismissedCheckins: {
+              ...get().dismissedCheckins,
+              [specId]: new Date().toISOString(),
+            },
+          });
+        },
+
+        answerCheckin: (specId, metricKey, value) => {
+          // Clearing the dismissal matters: someone who said "not now" last
+          // week and answers this week should go back onto the normal
+          // cadence rather than staying silent for the rest of the fortnight.
+          const { [specId]: _cleared, ...rest } = get().dismissedCheckins;
+          set({ dismissedCheckins: rest });
+          get().addMetric(metricKey, value, 'check-in');
         },
 
         setNotificationSettings: (patch) => {
