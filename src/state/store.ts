@@ -124,6 +124,12 @@ export interface AppState {
   /** Personal Performance Model — universal metric observations. */
   metrics: MetricObservation[];
   addMetric: (key: string, value: number, note?: string) => void;
+
+  /** Apple Health — read-only vitals feeding the same metric stream. */
+  healthConnectedAt: string | null;
+  healthLastSyncAt: string | null;
+  setHealthConnected: () => void;
+  appendHealthObservations: (observations: MetricObservation[]) => void;
   /** questionId → ISO last asked/answered (the engine's memory). */
   questionLog: Record<string, string>;
   markQuestionAsked: (id: string) => void;
@@ -193,6 +199,8 @@ const initialData = {
     Record<PathId, { startedAt: string; answers: Record<string, string>; goalId: string }>
   >,
   metrics: [] as MetricObservation[],
+  healthConnectedAt: null as string | null,
+  healthLastSyncAt: null as string | null,
   questionLog: {} as Record<string, string>,
   trainingProgramme: null as TrainingProgramme | null,
   workBlock: null as WorkBlock | null,
@@ -508,6 +516,17 @@ export const useAppStore = create<AppState>()(
 
         markQuestionAsked: (id) => {
           set({ questionLog: { ...get().questionLog, [id]: new Date().toISOString() } });
+        },
+
+        setHealthConnected: () => {
+          set({ healthConnectedAt: new Date().toISOString() });
+        },
+
+        appendHealthObservations: (observations) => {
+          set({
+            metrics: [...get().metrics, ...observations].slice(-2000),
+            healthLastSyncAt: new Date().toISOString(),
+          });
         },
 
         buildTrainingBlock: () => {

@@ -32,6 +32,14 @@
     "plugins": [
       "expo-router",
       [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "INTENT reads sleep, resting heart rate and weight so your plan adapts to how you actually recovered. Read-only — nothing is written to Health.",
+          "NSHealthUpdateUsageDescription": false,
+          "background": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#3E6B58",

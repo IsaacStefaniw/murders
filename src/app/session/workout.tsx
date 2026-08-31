@@ -9,6 +9,7 @@ import { Chip } from '@/components/chip';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
+import { syncAppleHealth } from '@/features/health/healthkit';
 import { buildWorkout } from '@/features/modalities/gym/program';
 import { autoRegulate, weekOf } from '@/features/training/programme';
 import { dateKeyToDate, todayKey, toMinutes } from '@/lib/dates';
@@ -37,11 +38,18 @@ export default function WorkoutSession() {
   const addMetric = useAppStore((s) => s.addMetric);
 
   // Cross-pathway: last night's sleep auto-regulates today's session.
+  // With Apple Health connected the number arrives on its own.
+  useEffect(() => {
+    void syncAppleHealth();
+  }, []);
   const today = todayKey();
   const loggedSleep = metrics.find((m) => m.key === 'sleep.hours' && m.at.slice(0, 10) === today);
-  const [sleptHours, setSleptHours] = useState<number | null>(loggedSleep?.value ?? null);
+  const [manualSleep, setManualSleep] = useState<number | null>(null);
+  // A tap wins; otherwise today's logged value (incl. an Apple Health sync
+  // landing after mount) pre-fills the chips.
+  const sleptHours = manualSleep ?? loggedSleep?.value ?? null;
   const logSleep = (h: number) => {
-    setSleptHours(h);
+    setManualSleep(h);
     if (!loggedSleep) addMetric('sleep.hours', h, 'pre-workout check');
   };
 

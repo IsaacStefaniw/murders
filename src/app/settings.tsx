@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, StyleSheet, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Platform, StyleSheet, TextInput, View } from 'react-native';
 
 import { BUILD_TAG } from '@/lib/build';
 import { nowDate } from '@/lib/dates';
@@ -15,6 +15,11 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { BEHAVIOUR_CATALOG } from '@/features/behaviours/catalog';
+import {
+  connectAppleHealth,
+  healthAvailable,
+  syncAppleHealth,
+} from '@/features/health/healthkit';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { useAppStore } from '@/state/store';
 
@@ -34,10 +39,19 @@ export default function Settings() {
   const resetClock = useAppStore((s) => s.resetClock);
   const clockOffsetMs = useAppStore((s) => s.clockOffsetMs);
 
+  const healthConnectedAt = useAppStore((s) => s.healthConnectedAt);
+  const healthLastSyncAt = useAppStore((s) => s.healthLastSyncAt);
+
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [backupCopied, setBackupCopied] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [restoreText, setRestoreText] = useState('');
+  const [canUseHealth, setCanUseHealth] = useState(false);
+  const [connectingHealth, setConnectingHealth] = useState(false);
+
+  useEffect(() => {
+    healthAvailable().then(setCanUseHealth);
+  }, []);
 
   const simLabel =
     clockOffsetMs === 0
@@ -136,6 +150,51 @@ export default function Settings() {
           Sinclair — one tap adds them to your plan.
         </AppText>
       </Card>
+
+      <SectionHeader title="Apple Health" />
+      {healthConnectedAt ? (
+        <Card>
+          <AppText variant="heading">Connected ✓</AppText>
+          <AppText variant="caption" color="textTertiary">
+            Last night&apos;s sleep, resting heart rate and weight flow into your metrics —
+            read-only, on-device, and your own entries always win.
+            {healthLastSyncAt
+              ? ` Last synced ${new Date(healthLastSyncAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}.`
+              : ''}
+          </AppText>
+          <Button
+            title="Sync now"
+            variant="secondary"
+            onPress={() => syncAppleHealth(true)}
+            style={styles.note}
+          />
+        </Card>
+      ) : canUseHealth ? (
+        <Card>
+          <AppText variant="heading">Let your vitals shape the plan</AppText>
+          <AppText variant="caption" color="textTertiary">
+            Connect Apple Health and a short night automatically adjusts today&apos;s workout,
+            weigh-ins feed the nutrition trend, and resting heart rate adds recovery context.
+            Read-only — INTENT never writes to Health.
+          </AppText>
+          <Button
+            title={connectingHealth ? 'Waiting for permission…' : 'Connect Apple Health'}
+            disabled={connectingHealth}
+            onPress={async () => {
+              setConnectingHealth(true);
+              await connectAppleHealth();
+              setConnectingHealth(false);
+            }}
+            style={styles.note}
+          />
+        </Card>
+      ) : (
+        <AppText variant="caption" color="textTertiary">
+          {Platform.OS === 'ios'
+            ? 'Apple Health is not available on this device.'
+            : 'Available in the iPhone app — connect it there and your vitals shape the plan automatically.'}
+        </AppText>
+      )}
 
       <SectionHeader title="Behaviours you're working on" />
       <View style={styles.chips}>
