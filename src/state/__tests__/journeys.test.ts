@@ -454,7 +454,7 @@ describe('journey: logging a non-conforming moment', () => {
     expect(coffeeNote.kind).toBe('mechanism');
   });
 
-  it('keeps food out of the weekly tally even once it has a pattern', () => {
+  it('counts food in the weekly tally alongside everything else', () => {
     onboard();
     logFourEvenings('sugar');
     const { behaviourIntentions, behaviourEvents } = useAppStore.getState();
@@ -465,7 +465,11 @@ describe('journey: logging a non-conforming moment', () => {
       behaviourEvents,
       reflections: [],
     });
-    expect(stats.behaviourEventCounts.sugar).toBeUndefined();
+    expect(stats.behaviourEventCounts.sugar).toBe(4);
+    // The count travels; the free-text detail does not. These stats are
+    // handed verbatim to the weekly-narrative prompt, and "one piece of Kit
+    // Kat" is not the model's business.
+    expect(JSON.stringify(stats)).not.toContain('Kit Kat');
   });
 });
 

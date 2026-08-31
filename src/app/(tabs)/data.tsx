@@ -251,8 +251,7 @@ export default function Data() {
                       ) : null}
                     </>
                   )}
-                  {/* Food and gambling are counted nowhere in this app. */}
-                  {!info.neverScore && pattern.events > 0 ? (
+                  {pattern.events > 0 ? (
                     <View style={styles.gap}>
                       <Sparkbars
                         data={[pattern.week.priorMean, pattern.week.thisWeek].map((v) => ({

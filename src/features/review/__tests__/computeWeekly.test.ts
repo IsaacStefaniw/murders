@@ -33,12 +33,11 @@ describe('computeWeeklyStats behaviour counts', () => {
   });
 
   /**
-   * These stats are handed verbatim to the weekly-narrative prompt. A tally
-   * of sweets eaten reaching a language model is a shaming sentence waiting
-   * to be generated — so behaviours marked neverScore are counted nowhere,
-   * and their signal lives in the pattern engine as timing instead.
+   * Food and gambling used to be excluded here. They are counted now: a
+   * count is information, and a person who chose to track something is owed
+   * the number rather than protected from it.
    */
-  it('never tallies food or gambling, so the narrative prompt cannot see a score', () => {
+  it('counts every tracked behaviour, food and gambling included', () => {
     const { stats } = computeWeeklyStats({
       ...base,
       behaviourIntentions: [
@@ -53,9 +52,24 @@ describe('computeWeeklyStats behaviour counts', () => {
         event('bi-g', '06'),
       ],
     });
-    expect(stats.behaviourEventCounts.sugar).toBeUndefined();
-    expect(stats.behaviourEventCounts.junk_food).toBeUndefined();
-    expect(stats.behaviourEventCounts.gambling).toBeUndefined();
+    expect(stats.behaviourEventCounts.sugar).toBe(2);
+    expect(stats.behaviourEventCounts.junk_food).toBe(1);
+    expect(stats.behaviourEventCounts.gambling).toBe(1);
+  });
+
+  /**
+   * What a count must never become. These stats are handed verbatim to the
+   * weekly-narrative prompt, so the free-text detail a person wrote — "one
+   * piece of Kit Kat" — stays out of them. The number is information; the
+   * confession is not the model's business.
+   */
+  it('carries the count but never the free-text detail into the stats', () => {
+    const { stats } = computeWeeklyStats({
+      ...base,
+      behaviourIntentions: [intention('bi-s', 'sugar')],
+      behaviourEvents: [event('bi-s', '03')],
+    });
+    expect(stats.behaviourEventCounts.sugar).toBe(1);
     expect(JSON.stringify(stats)).not.toContain('Kit Kat');
   });
 });

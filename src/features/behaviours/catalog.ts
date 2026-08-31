@@ -93,13 +93,6 @@ export interface BehaviourInfo {
    * teach — impulse shopping is a money problem, not a metabolic one.
    */
   effects?: ProximateEffect[];
-  /**
-   * Never turn this into a streak, count-down or adherence percentage.
-   * Food and body-image adjacent behaviours are scored nowhere in this app:
-   * a running tally of sweets eaten is a restriction mechanic wearing a
-   * progress bar, and it hurts exactly the people most likely to log it.
-   */
-  neverScore?: boolean;
 }
 
 export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
@@ -270,7 +263,6 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
         attribution: 'Extrapolated from general pre-sleep arousal research; gambling-specific sleep evidence is thin',
       },
     ],
-    neverScore: true,
   },
   {
     key: 'junk_food',
@@ -279,6 +271,10 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Eat like it matters',
     logPrompt: 'What was going on?',
     detailHint: 'e.g. takeaway instead of the plan',
+    safetyNote:
+      'A count is information, not a verdict. If tracking meals starts to feel compulsive rather ' +
+      'than useful, switch it off — and if food is already a hard subject, a GP or dietitian is ' +
+      'the right place for it.',
     effects: [
       {
         withinHoursOfSleep: 3,
@@ -297,7 +293,6 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
         counterText: 'A ten-minute walk after eating blunts most of the spike.',
       },
     ],
-    neverScore: true,
   },
   {
     key: 'sugar',
@@ -306,6 +301,11 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Snack when it is worth it',
     logPrompt: 'What was going on?',
     detailHint: 'e.g. one piece of Kit Kat',
+    safetyNote:
+      'Counting anything you eat can tip from useful into preoccupying, and it does that fastest ' +
+      'for people who have been there before. If logging this starts to feel compulsive, or if ' +
+      'food is already a hard subject, turn it off here and talk to a GP or a dietitian — that ' +
+      'is the right tool, and this is not it.',
     effects: [
       {
         // The finding that makes this worth saying at all. It is about the
@@ -330,7 +330,6 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
         attribution: 'Nutrient-order and mixed-meal glycaemic research',
       },
     ],
-    neverScore: true,
   },
   {
     key: 'late_caffeine',

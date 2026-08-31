@@ -260,12 +260,7 @@ export default function Life() {
                   <View style={styles.intentionInfo}>
                     <AppText variant="heading">{intention.intentionText}</AppText>
                     <AppText variant="caption" color="textTertiary">
-                      {info.label}
-                      {/* Food and gambling are never given a count — a running
-                          tally is a scoreboard, and this app does not keep one. */}
-                      {info.neverScore
-                        ? ''
-                        : ` · ${count === 0 ? 'clear this week' : `${count} this week`}`}
+                      {info.label} · {count === 0 ? 'clear this week' : `${count} this week`}
                       {topTrigger ? ` · usually: ${topTrigger.toLowerCase()}` : ''}
                     </AppText>
                   </View>

@@ -4,7 +4,6 @@
  * No arbitrary scores.
  */
 
-import { behaviourInfo } from '@/features/behaviours/catalog';
 import { addDays } from '@/lib/dates';
 import type {
   BehaviourEvent,
@@ -43,13 +42,12 @@ export function computeWeeklyStats(input: {
     if (day < input.weekStart || day > weekEnd) continue;
     const intention = input.behaviourIntentions.find((b) => b.id === event.intentionId);
     if (!intention) continue;
-    // Behaviours marked neverScore are counted nowhere — not here, and so
-    // not in the weekly narrative prompt these stats feed. A tally of
-    // sweets eaten handed to a language model is a shaming sentence waiting
-    // to be generated, and the people most likely to log one are the people
-    // it hurts most. Their signal lives in the pattern engine as timing,
-    // which is the part that actually helps.
-    if (behaviourInfo(intention.behaviour).neverScore) continue;
+    // Every behaviour counts, food and gambling included. An earlier version
+    // suppressed those on the reasoning that a tally is a scoreboard — but a
+    // count is information, someone who chose to track a thing is owed the
+    // number, and the mechanism engine now supplies the education alongside
+    // it. The protection that survives is in the words rather than the
+    // omission: these are counts and directions, never grades.
     behaviourEventCounts[intention.behaviour] =
       (behaviourEventCounts[intention.behaviour] ?? 0) + 1;
   }

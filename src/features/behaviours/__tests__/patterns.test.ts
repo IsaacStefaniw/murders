@@ -437,9 +437,17 @@ describe('what may never be said', () => {
     for (const e of sugar) expect(EVIDENCE_LABELS[e.evidenceLevel]).toBeTruthy();
   });
 
-  it('never scores food or gambling', () => {
-    for (const info of BEHAVIOUR_CATALOG.filter((b) => b.family === 'food' || b.key === 'gambling')) {
-      expect(info.neverScore).toBe(true);
+  /**
+   * Food and gambling used to be exempt from counting. They are not any
+   * more — a count is information, and someone who chose to track a thing
+   * is owed the number. What replaces the exemption is a safety note, since
+   * a visible tally is precisely what can tip from useful into
+   * preoccupying for the people most likely to keep one.
+   */
+  it('warns where a visible count carries its own risk', () => {
+    for (const info of BEHAVIOUR_CATALOG.filter((b) => b.family === 'food')) {
+      expect(info.safetyNote).toBeTruthy();
+      expect(info.safetyNote!.toLowerCase()).toMatch(/compulsive|dietitian|gp/);
     }
   });
 
