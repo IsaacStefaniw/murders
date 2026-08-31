@@ -47,6 +47,7 @@ export default function FoodPreferencesScreen() {
   const theme = useTheme();
   const prefs = useAppStore((s) => s.foodPreferences);
   const setFoodPreferences = useAppStore((s) => s.setFoodPreferences);
+  const markFoodPreferencesAsked = useAppStore((s) => s.markFoodPreferencesAsked);
 
   const [dislikeText, setDislikeText] = useState('');
   const [favouriteText, setFavouriteText] = useState('');
@@ -217,7 +218,16 @@ export default function FoodPreferencesScreen() {
         </Card>
       ) : null}
 
-      <Button title="Done" onPress={() => router.back()} style={styles.footer} />
+      <Button
+        title="Done"
+        onPress={() => {
+          // Having seen this screen counts as having been asked, whether or
+          // not anything was declared.
+          markFoodPreferencesAsked();
+          router.back();
+        }}
+        style={styles.footer}
+      />
     </Screen>
   );
 }

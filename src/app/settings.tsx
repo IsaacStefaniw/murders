@@ -39,6 +39,7 @@ export default function Settings() {
   const router = useRouter();
   const theme = useTheme();
   const profile = useAppStore((s) => s.profile);
+  const foodPreferences = useAppStore((s) => s.foodPreferences);
   const notifications = useAppStore((s) => s.notifications);
   const setNotificationSettings = useAppStore((s) => s.setNotificationSettings);
   const [notifPermission, setNotifPermission] = useState<PermissionState>('undetermined');
@@ -231,6 +232,19 @@ export default function Settings() {
             : 'Available in the iPhone app — connect it there and your vitals shape the plan automatically.'}
         </AppText>
       )}
+
+      <SectionHeader title="Food" />
+      <Card
+        onPress={() => router.push('/nutrition/preferences' as never)}
+        accessibilityLabel="Food preferences"
+      >
+        <AppText variant="heading">Allergies, intolerances, favourites</AppText>
+        <AppText variant="caption" color="textTertiary">
+          {foodPreferences.allergies.length > 0
+            ? `${foodPreferences.allergies.length} declared — dishes are only suggested when we know they are free of them.`
+            : 'Nothing declared. Worth a minute before the app suggests any food.'}
+        </AppText>
+      </Card>
 
       <SectionHeader title="Notifications" />
       <AppText variant="caption" color="textTertiary">

@@ -188,6 +188,14 @@ export interface AppState {
    */
   foodPreferences: FoodPreferences;
   setFoodPreferences: (patch: Partial<FoodPreferences>) => void;
+  /**
+   * Whether the person has been asked about allergies at all. Distinct from
+   * having none: an empty list means "nothing to declare", but an unasked
+   * list means the app does not know, and it must not suggest food as
+   * though it does.
+   */
+  foodPreferencesAsked: boolean;
+  markFoodPreferencesAsked: () => void;
   rateDish: (dishId: string, rating: EnjoymentRating['rating']) => void;
 
   /**
@@ -306,6 +314,7 @@ const initialData = {
   metrics: [] as MetricObservation[],
   workoutLogs: [] as WorkoutLog[],
   foodPreferences: EMPTY_FOOD_PREFERENCES as FoodPreferences,
+  foodPreferencesAsked: false,
   notifications: DEFAULT_NOTIFICATION_SETTINGS as NotificationSettings,
   healthConnectedAt: null as string | null,
   healthLastSyncAt: null as string | null,
@@ -750,6 +759,8 @@ export const useAppStore = create<AppState>()(
         setFoodPreferences: (patch) => {
           set({ foodPreferences: { ...get().foodPreferences, ...patch } });
         },
+
+        markFoodPreferencesAsked: () => set({ foodPreferencesAsked: true }),
 
         /**
          * Append rather than overwrite. Taste changes, and "I liked this

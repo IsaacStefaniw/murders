@@ -52,6 +52,8 @@ export default function MealsSession() {
    * the same week the app suggested before.
    */
   const foodPreferences = useAppStore((s) => s.foodPreferences);
+  const foodPreferencesAsked = useAppStore((s) => s.foodPreferencesAsked);
+  const markFoodPreferencesAsked = useAppStore((s) => s.markFoodPreferencesAsked);
   const prefs = useMemo(
     () => ({ ...foodPreferences, effort: foodPreferences.effort ?? cooking }),
     [foodPreferences, cooking],
@@ -63,6 +65,42 @@ export default function MealsSession() {
   const [saved, setSaved] = useState(false);
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/today' as never));
+
+  /**
+   * The safety gate. An empty allergy list means "nothing to declare"; an
+   * UNASKED one means the app does not know, and it must not hand someone a
+   * week of dinners as though it does. One screen, once, with an explicit
+   * "nothing to avoid" so it is never a wall.
+   */
+  if (!foodPreferencesAsked) {
+    return (
+      <Screen>
+        <View style={styles.topRow}>
+          <AppText variant="label" color="textTertiary" style={styles.grow}>
+            Nutrition
+          </AppText>
+          <Button title="Not now" variant="ghost" onPress={close} />
+        </View>
+        <AppText variant="title">Anything you can&apos;t eat?</AppText>
+        <AppText variant="secondary" style={styles.sub}>
+          Asked once, before anything gets suggested. A dish is only ever offered when we know it
+          is free of what you tell us here — which means we leave out anything whose ingredients
+          we have not fully checked.
+        </AppText>
+        <View style={styles.gate}>
+          <Button
+            title="Set allergies and preferences"
+            onPress={() => router.push('/nutrition/preferences' as never)}
+          />
+          <Button
+            title="Nothing to avoid"
+            variant="secondary"
+            onPress={markFoodPreferencesAsked}
+          />
+        </View>
+      </Screen>
+    );
+  }
 
   const cycle = (weekday: number) => {
     setDinners((prev) => ({ ...prev, [weekday]: nextAllowedDish(prev[weekday] ?? '', prefs) }));
@@ -128,6 +166,7 @@ export default function MealsSession() {
 
 const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center' },
+  gate: { gap: Spacing.sm, marginTop: Spacing.xl },
   grow: { flexGrow: 1 },
   sub: { marginTop: Spacing.sm },
   stack: { gap: Spacing.sm },

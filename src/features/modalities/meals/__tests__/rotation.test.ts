@@ -6,6 +6,7 @@ import {
 import {
   allowedDishTitles,
   DINNER_IDEAS,
+  hasAnyPreference,
   nextAllowedDish,
   nextIdea,
   suggestAllowedWeek,
@@ -102,5 +103,24 @@ describe('preference-aware rotation', () => {
     const p = prefs({ intolerances: ['lactose'] });
     expect(suggestAllowedWeek('2026-03-02', p)).toEqual(suggestAllowedWeek('2026-03-02', p));
     expect(suggestAllowedWeek('2026-03-02', p)).not.toEqual(suggestAllowedWeek('2026-03-09', p));
+  });
+});
+
+describe('the unasked case', () => {
+  /**
+   * An empty allergy list means "nothing to declare". An UNASKED one means
+   * the app does not know — and the two must not be the same value, or a
+   * fresh install looks exactly like someone who has confirmed they can eat
+   * anything. The meals session gates on `foodPreferencesAsked` for that
+   * reason; here we only pin that the empty case is genuinely permissive,
+   * so the distinction has to be carried outside the model.
+   */
+  it('treats empty preferences as permissive, which is why the gate exists', () => {
+    expect(allowedDishTitles(EMPTY_FOOD_PREFERENCES).length).toBeGreaterThan(0);
+    expect(hasAnyPreference(EMPTY_FOOD_PREFERENCES)).toBe(false);
+  });
+
+  it('knows the difference between empty and declared', () => {
+    expect(hasAnyPreference({ ...EMPTY_FOOD_PREFERENCES, allergies: ['peanuts'] })).toBe(true);
   });
 });
