@@ -68,6 +68,13 @@
         "projectId": "a9eb10e2-88c8-4bb5-b8b9-20c950431faa"
       }
     },
-    "owner": "isaacstefaniw"
+    "owner": "isaacstefaniw",
+    "updates": {
+      "url": "https://u.expo.dev/a9eb10e2-88c8-4bb5-b8b9-20c950431faa",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    }
   }
 }
