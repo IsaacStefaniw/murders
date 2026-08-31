@@ -20,7 +20,11 @@
  *    `coFactor` says what was also true, never what caused what.
  */
 
-import { behaviourInfo, type BehaviourInfo } from '@/features/behaviours/catalog';
+import {
+  behaviourInfo,
+  type BehaviourInfo,
+  type ProximateEffect,
+} from '@/features/behaviours/catalog';
 import type { EvidenceLevel } from '@/features/knowledge/protocols';
 import { latest, type MetricObservation } from '@/features/model/metrics';
 import { toDateKey, toHHMM, toMinutes, weekdayOf } from '@/lib/dates';
@@ -351,9 +355,42 @@ export function dueInterventions(
  * ---------------------------------------------------------------------- */
 
 export type MomentNote =
-  | { kind: 'mechanism'; text: string; evidenceLevel: EvidenceLevel; attribution: string }
+  | {
+      kind: 'mechanism';
+      text: string;
+      evidenceLevel: EvidenceLevel;
+      attribution: string;
+      /** The lever that addresses it, where one exists. */
+      counterText?: string;
+      counterProtocolId?: string;
+      /** A second, weaker mechanism worth knowing but not worth leading with. */
+      also?: { text: string; evidenceLevel: EvidenceLevel };
+    }
   | { kind: 'pattern'; text: string }
   | { kind: 'logged'; text: string };
+
+/** Grades in order of how much weight they can carry. */
+const GRADE_RANK: Record<EvidenceLevel, number> = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+
+/**
+ * The mechanisms that actually apply to this moment, best-evidenced first.
+ *
+ * An effect with no window applies whenever it happened; one with a window
+ * applies only inside it. Sorting by grade means the strongest claim leads
+ * and the weaker one is offered as a footnote rather than smuggled in
+ * beside it at the same apparent confidence.
+ */
+export function effectsFor(
+  info: BehaviourInfo,
+  hoursBefore: number | null,
+): ProximateEffect[] {
+  return (info.effects ?? [])
+    .filter((e) => {
+      if (e.withinHoursOfSleep === undefined) return true;
+      return hoursBefore !== null && hoursBefore <= e.withinHoursOfSleep;
+    })
+    .sort((a, b) => GRADE_RANK[a.evidenceLevel] - GRADE_RANK[b.evidenceLevel]);
+}
 
 /**
  * Hours between an event and bedtime. An event after bedtime counts as zero
@@ -384,14 +421,24 @@ export function momentNote(
   pattern: BehaviourPattern,
   sleepTime: string | null,
 ): MomentNote {
-  const effect = pattern.info.proximateEffect;
   const gap = hoursBeforeSleep(event.occurredAt, sleepTime);
-  if (effect && gap !== null && gap <= effect.withinHoursOfSleep) {
+  const applicable = effectsFor(pattern.info, gap);
+  const lead = applicable[0];
+  if (lead) {
+    // The second mechanism rides along only when it is genuinely weaker;
+    // two claims at the same grade read as one long paragraph nobody
+    // finishes, and the point is a sentence someone remembers at 9pm.
+    const second = applicable.find(
+      (e) => e !== lead && GRADE_RANK[e.evidenceLevel] > GRADE_RANK[lead.evidenceLevel],
+    );
     return {
       kind: 'mechanism',
-      text: effect.text,
-      evidenceLevel: effect.evidenceLevel,
-      attribution: effect.attribution,
+      text: lead.text,
+      evidenceLevel: lead.evidenceLevel,
+      attribution: lead.attribution,
+      counterText: lead.counterText,
+      counterProtocolId: lead.counterProtocolId,
+      also: second ? { text: second.text, evidenceLevel: second.evidenceLevel } : undefined,
     };
   }
 
@@ -430,12 +477,26 @@ export function weekNote(pattern: BehaviourPattern): string | null {
   }
 
   const head = parts.join(' ').replace(' —', ',') + '.';
-  if (!pattern.week.comparable) return head;
+
+  /**
+   * The week's mechanism line: what a window like this one costs, stated
+   * once, about the timing rather than about the person. This is the part
+   * that makes a pattern worth reading — "mostly 20:30–21:45" is an
+   * observation, and "and that is the hour it costs the most" is the reason
+   * to move it.
+   */
+  const windowEffect = pattern.window
+    ? effectsFor(pattern.info, null).find((e) => e.counterText) ??
+      (pattern.info.effects ?? []).find((e) => e.counterText)
+    : undefined;
+  const lever = windowEffect?.counterText ? ` ${windowEffect.counterText}` : '';
+
+  if (!pattern.week.comparable) return head + lever;
   const tail =
     pattern.week.direction === 'up'
       ? `This week: ${pattern.week.thisWeek}, against ${pattern.week.priorMean} a week before.`
       : pattern.week.direction === 'down'
         ? `This week: ${pattern.week.thisWeek}, down from ${pattern.week.priorMean} a week.`
         : `This week: ${pattern.week.thisWeek}, about the usual.`;
-  return `${head} ${tail}`;
+  return `${head} ${tail}${lever}`;
 }

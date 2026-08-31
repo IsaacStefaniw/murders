@@ -158,17 +158,21 @@ export function plannedNotifications(input: ScheduleInput, now = new Date()): Pl
     );
     for (const iv of due) {
       const info = behaviourInfo(iv.intention.behaviour);
+      // The lever, where the behaviour has one. A notification that says
+      // only "this usually happens now" is an observation; one that adds
+      // "and a ten-minute walk flattens most of it" is a plan. The second
+      // is the one worth interrupting someone for.
+      const lever = (info.effects ?? []).find((e) => e.counterText)?.counterText;
       candidates.push({
         id: `intervention:${iv.intention.id}:${date}`,
         kind: 'intervention',
         at: pullOutOfQuiet(iv.at, quiet),
         date,
         title: 'The hour before',
-        // Names the time and the plan, never the behaviour's worth. The
-        // whole design of the behaviour engine is that it reports patterns
-        // rather than verdicts, and a notification must not be where that
-        // slips.
-        body: `${info.label} usually lands ${iv.pattern.window?.label ?? 'about now'}. Good moment to line something else up.`,
+        // Names the time, the mechanism's remedy, and nothing about the
+        // behaviour's worth. The engine reports patterns rather than
+        // verdicts and a push must not be where that slips.
+        body: `${info.label} usually lands ${iv.pattern.window?.label ?? 'about now'}.${lever ? ` ${lever}` : ' Good moment to line something else up.'}`,
       });
     }
   }

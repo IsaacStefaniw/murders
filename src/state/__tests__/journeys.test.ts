@@ -417,12 +417,11 @@ describe('journey: logging a non-conforming moment', () => {
   });
 
   /**
-   * The line the whole feature is one bad sentence away from crossing. A
-   * snack has no established acute harm, so the app must reach for the
-   * person's own pattern rather than inventing a consequence — while a late
-   * coffee, which does have a mechanism, gets the mechanism.
+   * Both of these have real mechanisms and both should teach them. The
+   * line the feature stays on is that it says what the behaviour DOES —
+   * graded, timed, and paired with the lever — never that it is bad.
    */
-  it('offers a pattern for a snack and a mechanism for a late coffee', () => {
+  it('teaches the mechanism for an evening snack and for a late coffee alike', () => {
     onboard();
     const sugarId = logFourEvenings('sugar');
     const state = useAppStore.getState();
@@ -435,7 +434,13 @@ describe('journey: logging a non-conforming moment', () => {
       behaviourPattern(sugar, state.behaviourEvents, state.metrics),
       state.profile!.sleepTime,
     );
-    expect(snackNote.kind).toBe('pattern');
+    // Evening insulin sensitivity is lower than morning: a real, graded,
+    // teachable mechanism. This assertion used to be `pattern`, which
+    // encoded the mistake of withholding it.
+    expect(snackNote.kind).toBe('mechanism');
+    if (snackNote.kind !== 'mechanism') throw new Error('unreachable');
+    expect(snackNote.text).toMatch(/insulin/i);
+    expect(snackNote.counterProtocolId).toBe('post-meal-walk');
 
     useAppStore.getState().addBehaviourIntention('late_caffeine', 'Last coffee earlier');
     const coffee = useAppStore.getState().behaviourIntentions.at(-1)!;

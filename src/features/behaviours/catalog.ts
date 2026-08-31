@@ -4,37 +4,65 @@
  * INTENT is a wellbeing product, not a diagnosis or treatment product.
  * Copy never moralises. Occurrences are data, not failures.
  *
- * The hard rule in this file is about `proximateEffect`. A user who logs
- * something at 8:45pm deserves to know what it actually does — but only
- * where real evidence says it does something, and only inside the window
- * where that mechanism applies. Most behaviours here carry NO proximate
- * effect, and that absence is deliberate: one piece of chocolate in the
- * evening has no established acute harm, and inventing one to make the
- * moment feel weightier would be a lie that also happens to be shaming.
- * Where there is no mechanism, the app has the pattern to offer instead,
- * which is both true and more useful.
+ * The hard rule in this file is about `effects`. Someone who logs something
+ * at 8:45pm deserves to know what it actually does — stated as a mechanism,
+ * graded by how well it is evidenced, and only inside the window where it
+ * applies.
+ *
+ * An earlier version of this file withheld the mechanism for food entirely,
+ * on the reasoning that a snack has no established acute harm and inventing
+ * one would be shaming. That was wrong twice over. It is not true — a
+ * chocolate bar produces a real glucose and insulin response, and insulin
+ * sensitivity runs on a body clock that makes the evening the expensive
+ * time for it — and the reasoning conflated *don't shame* with *don't
+ * inform*, which is a different and worse failure. Withholding something
+ * true because a reader might mishear it is condescension, not care.
+ *
+ * The line that does hold: say what the behaviour DOES, never that it IS
+ * bad. Not squeamishness — "bad" carries no information and a mechanism
+ * carries all of it, and only one of the two tells you what to change.
+ * Every effect that can name a specific counter-move does, because knowing
+ * that a ten-minute walk flattens most of the curve is the part that
+ * changes a Tuesday.
  */
 
 import type { EvidenceLevel } from '@/features/knowledge/protocols';
 import type { BehaviourKey } from '@/types/domain';
 
 /**
- * A mechanism — what this behaviour measurably does, in the hours it does
- * it. Never a verdict, never a number about this person, never a
- * prediction. It says what happens in a body, not what happened to theirs.
+ * A mechanism — what this behaviour measurably does. Never a verdict, never
+ * a number about this person, never a prediction. It says what happens in a
+ * body, not what happened to theirs.
+ *
+ * A behaviour usually has more than one, at different strengths and in
+ * different windows: late caffeine has a sleep mechanism graded A, evening
+ * sugar has a metabolic one graded B and a sleep one graded C. Collapsing
+ * those into a single line would force one grade onto claims that do not
+ * share it, which is how a strong finding ends up laundering a weak one.
  */
 export interface ProximateEffect {
   /**
-   * The mechanism only applies within this many hours before sleep. Events
-   * outside the window get no mechanism note at all — a coffee at 8am is
-   * not the caffeine finding, and saying so anyway would be noise the user
-   * learns to ignore.
+   * Applies only within this many hours before sleep. Undefined means the
+   * mechanism holds whenever it happens.
+   *
+   * Events outside the window get nothing — a coffee at 8am is not the
+   * caffeine finding, and saying it anyway is noise people learn to ignore,
+   * which costs the times it mattered.
    */
-  withinHoursOfSleep: number;
-  /** Plain words, mechanism only. No 'you', no 'your sleep', no should. */
+  withinHoursOfSleep?: number;
+  /** Plain words, mechanism only. */
   text: string;
   evidenceLevel: EvidenceLevel;
   attribution: string;
+  /**
+   * The protocol that actually addresses this, where one exists. This is
+   * the difference between telling someone a fact and handing them the
+   * lever — "a ten-minute walk flattens most of that curve" is the part
+   * that changes a Tuesday.
+   */
+  counterProtocolId?: string;
+  /** One line naming the counter-move, for when the protocol is offered. */
+  counterText?: string;
 }
 
 export type BehaviourFamily = 'digital' | 'substance' | 'food' | 'money' | 'rhythm';
@@ -60,10 +88,11 @@ export interface BehaviourInfo {
    */
   safetyNote?: string;
   /**
-   * What the evidence supports about the hours right after, if anything.
-   * Absent for most behaviours on purpose — see the file header.
+   * What the evidence supports about what this does, strongest first.
+   * Absent only where there genuinely is no physiological mechanism to
+   * teach — impulse shopping is a money problem, not a metabolic one.
    */
-  proximateEffect?: ProximateEffect;
+  effects?: ProximateEffect[];
   /**
    * Never turn this into a streak, count-down or adherence percentage.
    * Food and body-image adjacent behaviours are scored nowhere in this app:
@@ -81,12 +110,16 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Less time lost to scrolling',
     logPrompt: 'What were you reaching for?',
     detailHint: 'e.g. forty minutes on the news',
-    proximateEffect: {
-      withinHoursOfSleep: 2,
-      text: 'Emotionally charged reading close to bed lengthens how long it takes to fall asleep. The arousal does more of that than the screen light does.',
-      evidenceLevel: 'C',
-      attribution: 'Sleep-onset and pre-sleep cognitive arousal research',
-    },
+    effects: [
+      {
+        withinHoursOfSleep: 2,
+        text: 'Emotionally charged reading close to bed lengthens how long it takes to fall asleep. The arousal does more of that than the screen light does — which is why night mode alone changes little.',
+        evidenceLevel: 'C',
+        attribution: 'Pre-sleep cognitive arousal and sleep-onset research',
+        counterProtocolId: 'wind-down',
+        counterText: 'A wind-down that starts before the phone does is the reliable fix.',
+      },
+    ],
   },
   {
     key: 'alcohol',
@@ -99,12 +132,21 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
       'If cutting down feels hard, or stopping suddenly causes shakes, sweating or anxiety, ' +
       'talk to a doctor before making big changes — stopping abruptly can be unsafe for some ' +
       'people. Support exists and it works. INTENT will pace changes gradually.',
-    proximateEffect: {
-      withinHoursOfSleep: 4,
-      text: 'Alcohol shortens the night, not the sleep. It speeds falling asleep and then suppresses REM and fragments the second half.',
-      evidenceLevel: 'B',
-      attribution: 'Meta-analyses of alcohol and sleep architecture',
-    },
+    effects: [
+      {
+        withinHoursOfSleep: 4,
+        text: 'Alcohol shortens the night, not the sleep. It speeds falling asleep, then suppresses REM and fragments the second half as it clears — which is why a drink can feel like it helped and still cost you the morning.',
+        evidenceLevel: 'B',
+        attribution: 'Meta-analyses of alcohol and sleep architecture; the effect grows with the amount',
+        counterProtocolId: 'alcohol-cutoff',
+        counterText: 'Most of it comes back if the last drink lands three or more hours before bed.',
+      },
+      {
+        text: 'It also blunts the next day’s training. Alcohol interferes with the muscle protein synthesis that follows a session, and with the glycogen you replace overnight.',
+        evidenceLevel: 'C',
+        attribution: 'Controlled studies of post-exercise alcohol and recovery, mostly small',
+      },
+    ],
   },
   {
     key: 'vaping',
@@ -113,12 +155,21 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Keep the vape down',
     logPrompt: 'What triggered it?',
     detailHint: 'e.g. stepped outside with the team',
-    proximateEffect: {
-      withinHoursOfSleep: 3,
-      text: 'Nicotine is a stimulant with a half-life around two hours, and it lightens sleep in the hours after it.',
-      evidenceLevel: 'C',
-      attribution: 'Nicotine pharmacology; vaping-specific sleep evidence is still thin',
-    },
+    effects: [
+      {
+        withinHoursOfSleep: 3,
+        text: 'Nicotine is a stimulant with a half-life around two hours. It raises heart rate and lightens sleep across the hours it takes to clear.',
+        evidenceLevel: 'C',
+        attribution: 'Nicotine pharmacology; vaping-specific sleep evidence is still thin',
+        counterProtocolId: 'wind-down',
+        counterText: 'The last one of the evening is the one that costs the most — moving it earlier buys the night back.',
+      },
+      {
+        text: 'Nicotine reaches peak blood levels within about ten minutes and falls away over roughly two hours, which is the interval the next craving arrives on. The cycle is pharmacological, not a matter of resolve.',
+        evidenceLevel: 'B',
+        attribution: 'Nicotine pharmacokinetics',
+      },
+    ],
   },
   {
     key: 'smoking',
@@ -131,12 +182,21 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
       'Quitting is far easier with support than alone. Your GP or a national quitline can ' +
       'offer nicotine replacement and a plan — both roughly double the odds of it sticking. ' +
       'INTENT is here for the pattern, not instead of that.',
-    proximateEffect: {
-      withinHoursOfSleep: 3,
-      text: 'Nicotine is a stimulant with a half-life around two hours, and it lightens sleep in the hours after it.',
-      evidenceLevel: 'B',
-      attribution: 'Nicotine pharmacology and smoking–sleep cohort studies',
-    },
+    effects: [
+      {
+        withinHoursOfSleep: 3,
+        text: 'Nicotine is a stimulant with a half-life around two hours. Smokers spend measurably more of the night in light sleep and less in deep sleep than non-smokers.',
+        evidenceLevel: 'B',
+        attribution: 'Nicotine pharmacology and polysomnography cohort studies',
+        counterProtocolId: 'wind-down',
+        counterText: 'The evening ones cost the most sleep. Moving the last one earlier is the cheapest change available.',
+      },
+      {
+        text: 'Overnight withdrawal is part of why early waking is common in heavy smokers — blood nicotine falls through the night and the body notices before you do.',
+        evidenceLevel: 'C',
+        attribution: 'Smoking-cessation and sleep-continuity literature',
+      },
+    ],
   },
   {
     key: 'social_media',
@@ -153,12 +213,16 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Play on purpose, stop on time',
     logPrompt: 'What were you playing?',
     detailHint: 'e.g. two hours, meant to be one',
-    proximateEffect: {
-      withinHoursOfSleep: 2,
-      text: 'Competitive or fast-paced play keeps heart rate and alertness up past the session, which pushes sleep onset later.',
-      evidenceLevel: 'C',
-      attribution: 'Pre-sleep arousal and gaming studies',
-    },
+    effects: [
+      {
+        withinHoursOfSleep: 2,
+        text: 'Competitive or fast-paced play keeps heart rate and alertness elevated past the session itself, pushing sleep onset later than the clock suggests.',
+        evidenceLevel: 'C',
+        attribution: 'Pre-sleep arousal and gaming studies',
+        counterProtocolId: 'wind-down',
+        counterText: 'The arousal outlasts the game by a while — a real gap between the last match and bed does the work.',
+      },
+    ],
   },
   {
     key: 'porn',
@@ -193,6 +257,19 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
       'not an app. Free, confidential help exists in most countries — in Australia, Gambling ' +
       'Help Online (1800 858 858) is 24/7. Bank card gambling blocks and self-exclusion ' +
       'schemes work better than intention alone. INTENT will not track amounts or losses.',
+    effects: [
+      {
+        text: 'Near-misses activate the same reward circuitry as wins, which is why machines and apps are designed to produce them. The pull after a near-miss is engineered, not a personal failing.',
+        evidenceLevel: 'B',
+        attribution: 'Imaging studies of near-miss reward response in gambling',
+      },
+      {
+        withinHoursOfSleep: 3,
+        text: 'Late betting keeps arousal and heart rate up well past the last bet, and the sleep that follows is shorter and lighter.',
+        evidenceLevel: 'D',
+        attribution: 'Extrapolated from general pre-sleep arousal research; gambling-specific sleep evidence is thin',
+      },
+    ],
     neverScore: true,
   },
   {
@@ -202,6 +279,24 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Eat like it matters',
     logPrompt: 'What was going on?',
     detailHint: 'e.g. takeaway instead of the plan',
+    effects: [
+      {
+        withinHoursOfSleep: 3,
+        text: 'A large meal close to bed keeps digestion and core temperature up when both need to fall for sleep to start. Lying down within a couple of hours of it also makes reflux considerably more likely.',
+        evidenceLevel: 'C',
+        attribution: 'Late-meal timing and sleep-quality studies; reflux positioning evidence is stronger than the sleep-architecture evidence',
+        counterProtocolId: 'kitchen-closed',
+        counterText: 'A kitchen that closes about three hours before bed removes the decision rather than requiring one.',
+      },
+      {
+        withinHoursOfSleep: 5,
+        text: 'Evening insulin sensitivity is lower than morning insulin sensitivity, so the same meal produces a larger and longer glucose rise at night.',
+        evidenceLevel: 'B',
+        attribution: 'Circadian metabolism research',
+        counterProtocolId: 'post-meal-walk',
+        counterText: 'A ten-minute walk after eating blunts most of the spike.',
+      },
+    ],
     neverScore: true,
   },
   {
@@ -211,6 +306,30 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Snack when it is worth it',
     logPrompt: 'What was going on?',
     detailHint: 'e.g. one piece of Kit Kat',
+    effects: [
+      {
+        // The finding that makes this worth saying at all. It is about the
+        // CLOCK, not the food: the same bar, eaten twelve hours apart, is
+        // two different metabolic events.
+        withinHoursOfSleep: 5,
+        text: 'Insulin sensitivity runs on a body clock and is at its lowest in the evening. The same bar produces a higher and longer glucose rise at nine at night than the identical one at nine in the morning.',
+        evidenceLevel: 'B',
+        attribution: 'Circadian metabolism research — the evening glucose response is well replicated in controlled feeding studies',
+        counterProtocolId: 'post-meal-walk',
+        counterText: 'Ten minutes of walking flattens most of that curve. It is the highest-return ten minutes in nutrition.',
+      },
+      {
+        withinHoursOfSleep: 3,
+        text: 'The rise is followed by a dip a few hours later, and the hormones that correct a nocturnal dip — cortisol and adrenaline among them — are the ones that wake people around three.',
+        evidenceLevel: 'C',
+        attribution: 'Glycaemic variability and sleep-fragmentation studies; the link is consistent but the trials are small',
+      },
+      {
+        text: 'Sugar eaten on its own hits the bloodstream faster than the same sugar alongside protein, fat or fibre, which slow absorption and blunt the peak.',
+        evidenceLevel: 'B',
+        attribution: 'Nutrient-order and mixed-meal glycaemic research',
+      },
+    ],
     neverScore: true,
   },
   {
@@ -220,12 +339,21 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Last coffee earlier',
     logPrompt: 'What was it, and what was it for?',
     detailHint: 'e.g. a flat white at 4pm to get through',
-    proximateEffect: {
-      withinHoursOfSleep: 8,
-      text: 'Caffeine has a half-life around five hours, so a late one is still half-present at bedtime. In controlled trials it cut total sleep even when taken six hours before bed and even when people did not notice.',
-      evidenceLevel: 'A',
-      attribution: 'Drake et al. 2013, Journal of Clinical Sleep Medicine',
-    },
+    effects: [
+      {
+        withinHoursOfSleep: 8,
+        text: 'Caffeine has a half-life around five hours, so a four o’clock coffee is still half-present at bedtime. In controlled trials it cut total sleep even when taken six hours before bed — and even when people reported noticing nothing.',
+        evidenceLevel: 'A',
+        attribution: 'Drake et al. 2013, Journal of Clinical Sleep Medicine',
+        counterProtocolId: 'caffeine-cutoff',
+        counterText: 'A cutoff eight to ten hours before bed is the whole intervention. Nothing else about coffee needs changing.',
+      },
+      {
+        text: 'It works by blocking adenosine rather than adding energy — the tiredness is still accumulating underneath and arrives all at once when the caffeine clears.',
+        evidenceLevel: 'B',
+        attribution: 'Adenosine-receptor pharmacology',
+      },
+    ],
   },
   {
     key: 'late_nights',
@@ -242,12 +370,16 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Keep the bed for sleep',
     logPrompt: 'What did you pick it up for?',
     detailHint: 'e.g. checked one thing, stayed forty minutes',
-    proximateEffect: {
-      withinHoursOfSleep: 1,
-      text: 'The bed stops being a sleep cue when it doubles as a screen. Sleep-onset time drifts later over weeks of it, which is why the standard insomnia protocol moves the phone out of the room first.',
-      evidenceLevel: 'B',
-      attribution: 'Stimulus-control therapy, the core component of CBT-I',
-    },
+    effects: [
+      {
+        withinHoursOfSleep: 1,
+        text: 'The bed stops working as a sleep cue when it doubles as a screen. Sleep onset drifts later over weeks of it, which is why the standard insomnia protocol moves the phone out of the room before it changes anything else.',
+        evidenceLevel: 'B',
+        attribution: 'Stimulus-control therapy, the core component of CBT-I',
+        counterProtocolId: 'wind-down',
+        counterText: 'Charging it in another room is the single change with the best evidence behind it.',
+      },
+    ],
   },
   {
     key: 'overworking',
@@ -256,12 +388,16 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Close the laptop earlier',
     logPrompt: 'What made tonight the night?',
     detailHint: 'e.g. back on email until eleven',
-    proximateEffect: {
-      withinHoursOfSleep: 2,
-      text: 'Work in the last hour before bed keeps the problem loaded, and unfinished-task rumination is one of the best-established reasons falling asleep takes longer.',
-      evidenceLevel: 'C',
-      attribution: 'Work-related rumination and sleep-onset research',
-    },
+    effects: [
+      {
+        withinHoursOfSleep: 2,
+        text: 'Work in the last hour before bed keeps the problem loaded. Unfinished-task rumination is among the best-established reasons falling asleep takes longer, and the mind does not stop working just because the laptop has closed.',
+        evidenceLevel: 'C',
+        attribution: 'Work-related rumination and sleep-onset research',
+        counterProtocolId: 'wind-down',
+        counterText: 'Writing down the unfinished thing is what lets you stop holding it — the effect is on the loop, not the task.',
+      },
+    ],
   },
   {
     key: 'procrastination',

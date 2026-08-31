@@ -27,11 +27,12 @@ import { Spacing } from '@/constants/theme';
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import {
   behaviourPattern,
+  effectsFor,
   hoursBeforeSleep,
   momentNote,
   type MomentNote,
 } from '@/features/behaviours/patterns';
-import { EVIDENCE_LABELS } from '@/features/knowledge/protocols';
+import { EVIDENCE_LABELS, protocolById } from '@/features/knowledge/protocols';
 import { useTheme } from '@/hooks/use-theme';
 import { toHHMM } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
@@ -64,6 +65,7 @@ export function BehaviourLog({ intention, onDone }: Props) {
   const events = useAppStore((s) => s.behaviourEvents);
   const metrics = useAppStore((s) => s.metrics);
   const logPastBehaviourEvent = useAppStore((s) => s.logPastBehaviourEvent);
+  const toggleProtocol = useAppStore((s) => s.toggleProtocol);
 
   const [now] = useState(() => new Date());
   const [offsetMin, setOffsetMin] = useState(0);
@@ -105,9 +107,35 @@ export function BehaviourLog({ intention, onDone }: Props) {
           {note.text}
         </AppText>
         {note.kind === 'mechanism' ? (
-          <AppText variant="caption" color="textTertiary" style={styles.gap}>
-            {EVIDENCE_LABELS[note.evidenceLevel]} · {note.attribution}
-          </AppText>
+          <>
+            <AppText variant="caption" color="textTertiary" style={styles.gap}>
+              {EVIDENCE_LABELS[note.evidenceLevel]} · {note.attribution}
+            </AppText>
+            {note.also ? (
+              <AppText variant="caption" color="textTertiary" style={styles.gap}>
+                Also, less firmly: {note.also.text} ({EVIDENCE_LABELS[note.also.evidenceLevel]})
+              </AppText>
+            ) : null}
+            {/*
+              The lever, not just the fact. Knowing that a ten-minute walk
+              flattens most of the curve is the half of this that changes
+              anything.
+            */}
+            {note.counterText ? (
+              <Card style={styles.counter}>
+                <AppText variant="body">{note.counterText}</AppText>
+                {note.counterProtocolId && protocolById(note.counterProtocolId) ? (
+                  <Chip
+                    label={`Add: ${protocolById(note.counterProtocolId)!.title}`}
+                    onPress={() => {
+                      toggleProtocol(note.counterProtocolId!);
+                      onDone();
+                    }}
+                  />
+                ) : null}
+              </Card>
+            ) : null}
+          </>
         ) : null}
         {pattern.intervention ? (
           <AppText variant="caption" color="textTertiary" style={styles.gap}>
@@ -170,9 +198,9 @@ export function BehaviourLog({ intention, onDone }: Props) {
         ))}
       </View>
 
-      {info.proximateEffect && gap !== null && gap <= info.proximateEffect.withinHoursOfSleep ? (
+      {effectsFor(info, gap).length > 0 ? (
         <AppText variant="caption" color="textTertiary" style={styles.label}>
-          That is inside the window where this one affects the night.
+          That timing has a known effect — you&apos;ll get the detail once it&apos;s logged.
         </AppText>
       ) : null}
 
@@ -186,6 +214,7 @@ export function BehaviourLog({ intention, onDone }: Props) {
 
 const styles = StyleSheet.create({
   gap: { marginTop: Spacing.sm },
+  counter: { marginTop: Spacing.md, gap: Spacing.sm },
   label: { marginTop: Spacing.md },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, marginTop: Spacing.xs },
   input: {

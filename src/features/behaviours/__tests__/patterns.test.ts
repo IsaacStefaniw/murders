@@ -12,6 +12,7 @@ import {
   weekNote,
   weekPressure,
 } from '@/features/behaviours/patterns';
+import { EVIDENCE_LABELS, protocolById } from '@/features/knowledge/protocols';
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import type { BehaviourEvent, BehaviourIntention } from '@/types/domain';
 
@@ -245,16 +246,37 @@ describe('momentNote', () => {
   ];
 
   /**
-   * Isaac's case, and the one this whole design turns on. One piece of
-   * chocolate at 8:45pm has no established acute harm. The app must not
-   * invent one to make the moment land — it has the person's own pattern,
-   * which is both true and more useful.
+   * The case this whole design turns on, and the one it originally got
+   * wrong. A chocolate bar at 8:45pm does produce a glucose and insulin
+   * response, and evening insulin sensitivity is measurably lower than
+   * morning — so there IS something true and useful to say. What must not
+   * appear is a verdict; what must appear is the mechanism and the lever.
    */
-  it('offers the pattern, not a fabricated harm, for a snack at 8:45pm', () => {
+  it('teaches the mechanism for a snack at 8:45pm, and names what helps', () => {
     const pattern = behaviourPattern(intention('sugar'), evenings, [], new Date('2026-03-06T09:00:00'));
     const note = momentNote(at('2026-03-05', '20:45'), pattern, '22:30');
-    expect(note.kind).toBe('pattern');
-    expect(note.text).toContain('20:30–21:45');
+    expect(note.kind).toBe('mechanism');
+    if (note.kind !== 'mechanism') throw new Error('unreachable');
+    expect(note.text).toMatch(/insulin/i);
+    expect(note.counterText).toMatch(/walk/i);
+    expect(note.counterProtocolId).toBe('post-meal-walk');
+    // The strongest claim leads; the weaker one rides along marked as weaker.
+    expect(note.evidenceLevel).toBe('B');
+    expect(note.also?.evidenceLevel).toBe('C');
+  });
+
+  /**
+   * The same bar at nine in the morning is a different metabolic event, and
+   * the evening finding must not be recited at it. What survives is the
+   * timeless part — sugar alone absorbs faster than sugar with protein —
+   * which is true at any hour.
+   */
+  it('drops the evening-specific claim for the same snack in the morning', () => {
+    const pattern = behaviourPattern(intention('sugar'), evenings, [], new Date('2026-03-06T09:00:00'));
+    const morning = momentNote(at('2026-03-05', '09:00'), pattern, '22:30');
+    expect(morning.kind).toBe('mechanism');
+    if (morning.kind !== 'mechanism') throw new Error('unreachable');
+    expect(morning.text).not.toMatch(/evening|nine at night/i);
   });
 
   it('offers a mechanism only where one exists and applies right now', () => {
@@ -263,14 +285,23 @@ describe('momentNote', () => {
     expect(late.kind).toBe('mechanism');
     expect(late.text).toContain('half-life');
 
-    // Same behaviour, same person, a morning coffee: outside the window the
-    // finding does not apply, and saying it anyway teaches people to ignore us.
+    // Same behaviour, same person, a morning coffee: the SLEEP finding does
+    // not apply outside its window and must not be recited anyway. The
+    // timeless pharmacology still can — it is true at any hour.
     const morning = momentNote(at('2026-03-05', '07:30'), pattern, '22:30');
-    expect(morning.kind).not.toBe('mechanism');
+    expect(morning.kind).toBe('mechanism');
+    if (morning.kind !== 'mechanism') throw new Error('unreachable');
+    expect(morning.text).not.toMatch(/half-life|bedtime/i);
+    expect(morning.text).toMatch(/adenosine/i);
   });
 
-  it('falls back to a flat acknowledgement rather than filling the silence', () => {
-    const pattern = behaviourPattern(intention('sugar'), [at('2026-03-02', '20:45')], [], new Date());
+  /**
+   * A behaviour with no physiological mechanism and no pattern yet gets an
+   * acknowledgement and nothing else. The app never fills the silence with
+   * something invented.
+   */
+  it('falls back to a flat acknowledgement where there is genuinely nothing to say', () => {
+    const pattern = behaviourPattern(intention('shopping'), [at('2026-03-02', '20:45')], [], new Date());
     const note = momentNote(at('2026-03-02', '20:45'), pattern, '22:30');
     expect(note.kind).toBe('logged');
   });
@@ -353,14 +384,57 @@ describe('what may never be said', () => {
   });
 
   /**
-   * Absence of a mechanism is a design decision, not an oversight. If a
-   * future edit gives sweets or gambling a physiological claim, this fails
-   * — which is the intended alarm.
+   * The reverse of what this test used to assert.
+   *
+   * It once pinned that sweets and junk food carried NO mechanism, on the
+   * reasoning that a snack has no established acute harm. That was wrong on
+   * the science — a chocolate bar produces a real glucose and insulin
+   * response, and evening insulin sensitivity is measurably lower than
+   * morning — and wrong on the principle, which confused not shaming with
+   * not informing.
    */
-  it('claims no acute mechanism where the evidence does not support one', () => {
-    for (const key of ['sugar', 'junk_food', 'gambling', 'shopping', 'porn', 'procrastination'] as const) {
-      expect(behaviourInfo(key).proximateEffect).toBeUndefined();
+  it('teaches the mechanism where the evidence supports one, food included', () => {
+    for (const key of ['sugar', 'junk_food', 'late_caffeine', 'alcohol', 'smoking'] as const) {
+      expect(behaviourInfo(key).effects?.length ?? 0).toBeGreaterThan(0);
     }
+    const sugar = behaviourInfo('sugar').effects!;
+    expect(JSON.stringify(sugar)).toMatch(/insulin/i);
+    // And it hands over the lever, not just the fact.
+    expect(sugar.some((e) => e.counterProtocolId === 'post-meal-walk')).toBe(true);
+  });
+
+  /**
+   * Still silent where there genuinely is no physiological mechanism to
+   * teach. Impulse shopping is a money problem, not a metabolic one, and
+   * inventing biology for it would be the original error in the other
+   * direction.
+   */
+  it('invents no mechanism where none exists', () => {
+    for (const key of ['shopping', 'porn', 'procrastination'] as const) {
+      expect(behaviourInfo(key).effects).toBeUndefined();
+    }
+  });
+
+  /** Every counter-move points at a protocol that actually exists. */
+  it('every named counter-move resolves to a real protocol', () => {
+    for (const info of BEHAVIOUR_CATALOG) {
+      for (const effect of info.effects ?? []) {
+        if (!effect.counterProtocolId) continue;
+        expect(protocolById(effect.counterProtocolId)).toBeDefined();
+        expect(effect.counterText).toBeTruthy();
+      }
+    }
+  });
+
+  /**
+   * A weak claim must not ride on a strong one's grade. Each mechanism
+   * carries its own, and the strongest leads.
+   */
+  it('grades each mechanism separately rather than averaging them', () => {
+    const sugar = behaviourInfo('sugar').effects!;
+    const grades = new Set(sugar.map((e) => e.evidenceLevel));
+    expect(grades.size).toBeGreaterThan(1);
+    for (const e of sugar) expect(EVIDENCE_LABELS[e.evidenceLevel]).toBeTruthy();
   });
 
   it('never scores food or gambling', () => {
@@ -383,10 +457,12 @@ describe('what may never be said', () => {
       expect(info.label.length).toBeGreaterThan(2);
       expect(info.detailHint.length).toBeGreaterThan(5);
       expect(info.logPrompt.length).toBeGreaterThan(5);
-      if (info.proximateEffect) {
-        expect(info.proximateEffect.text.length).toBeGreaterThan(40);
-        expect(info.proximateEffect.attribution.length).toBeGreaterThan(5);
-        expect(info.proximateEffect.withinHoursOfSleep).toBeGreaterThan(0);
+      for (const effect of info.effects ?? []) {
+        expect(effect.text.length).toBeGreaterThan(40);
+        expect(effect.attribution.length).toBeGreaterThan(5);
+        if (effect.withinHoursOfSleep !== undefined) {
+          expect(effect.withinHoursOfSleep).toBeGreaterThan(0);
+        }
       }
     }
   });
