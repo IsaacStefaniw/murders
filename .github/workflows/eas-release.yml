@@ -40,7 +40,9 @@ jobs:
       - name: Submit to TestFlight
         if: ${{ inputs.submit }}
         # Recent eas-cli dropped the --asc-api-key-* flags; the ASC key is
-        # picked up from these environment variables instead.
+        # picked up from these environment variables instead. Non-interactive
+        # submits also require the App Store Connect app's numeric ID, which
+        # we resolve from the API and inject into eas.json's submit profile.
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/AuthKey.p8
@@ -48,4 +50,15 @@ jobs:
           EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           EXPO_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           EXPO_APPLE_TEAM_TYPE: INDIVIDUAL
-        run: npx eas-cli@latest submit --platform ios --latest --non-interactive
+        run: |
+          ASC_APP_ID=$(node .github/scripts/asc-app-id.mjs)
+          echo "Resolved ascAppId: $ASC_APP_ID"
+          node -e "
+            const fs = require('fs');
+            const j = JSON.parse(fs.readFileSync('eas.json', 'utf8'));
+            j.submit = j.submit || {};
+            j.submit.production = j.submit.production || {};
+            j.submit.production.ios = { ...(j.submit.production.ios || {}), ascAppId: process.argv[1] };
+            fs.writeFileSync('eas.json', JSON.stringify(j, null, 2));
+          " "$ASC_APP_ID"
+          npx eas-cli@latest submit --platform ios --latest --non-interactive
