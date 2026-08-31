@@ -187,7 +187,21 @@ export default function PathHub() {
           <TrainingHub />
         </>
       ) : null}
-      {def.id === 'nutrition' ? <NutritionHub /> : null}
+      {def.id === 'nutrition' ? (
+        <>
+          <Card
+            onPress={() => router.push('/nutrition/preferences' as never)}
+            style={{ marginTop: Spacing.sm }}
+            accessibilityLabel="Food preferences"
+          >
+            <AppText variant="heading">Allergies, dislikes, favourites</AppText>
+            <AppText variant="caption" color="textTertiary">
+              Everything you can and cannot eat. The week re-rotates from whatever is true now.
+            </AppText>
+          </Card>
+          <NutritionHub />
+        </>
+      ) : null}
       {def.id === 'money' ? <MoneyHub /> : null}
       {def.id === 'work' ? <WorkHub /> : null}
       {def.id === 'recovery' ? <MindHub /> : null}

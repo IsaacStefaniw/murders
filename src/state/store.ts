@@ -22,6 +22,11 @@ import { detectGoalUnderserved } from '@/features/goals/underserved';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
+import {
+  EMPTY_FOOD_PREFERENCES,
+  type EnjoymentRating,
+  type FoodPreferences,
+} from '@/features/modalities/meals/food';
 import { observationsFrom } from '@/features/training/log';
 import {
   baselinesFrom,
@@ -172,6 +177,15 @@ export interface AppState {
   removeLoggedSet: (logId: string, setId: string) => void;
   removeWorkoutLog: (logId: string) => void;
 
+  /**
+   * Food preferences — allergies, intolerances, patterns, dislikes,
+   * favourites. The model existed in `meals/food.ts` and reached no screen,
+   * so the rotation could not honour an allergy it had the data to respect.
+   */
+  foodPreferences: FoodPreferences;
+  setFoodPreferences: (patch: Partial<FoodPreferences>) => void;
+  rateDish: (dishId: string, rating: EnjoymentRating['rating']) => void;
+
   /** Apple Health — read-only vitals feeding the same metric stream. */
   healthConnectedAt: string | null;
   healthLastSyncAt: string | null;
@@ -198,6 +212,12 @@ export interface AppState {
   updatePathAnswers: (id: PathId, patch: Record<string, string>) => void;
   setGoalStatus: (goalId: string, status: Goal['status']) => void;
   setMilestoneDone: (goalId: string, milestoneId: string, done: boolean) => void;
+  /** Rename, retarget, or re-date a goal. A plan you cannot change is a plan you abandon. */
+  updateGoal: (goalId: string, patch: Partial<Goal>) => void;
+  /** Edit one rung's title. The condition behind it is left alone. */
+  updateMilestone: (goalId: string, milestoneId: string, patch: { title?: string }) => void;
+  addMilestone: (goalId: string, title: string) => void;
+  removeMilestone: (goalId: string, milestoneId: string) => void;
   /** Evidence pass: milestones whose doneWhen is satisfied by metrics or
    * completed sessions get checked off automatically (goal composer). */
   assessGoals: () => void;
@@ -264,6 +284,7 @@ const initialData = {
   >,
   metrics: [] as MetricObservation[],
   workoutLogs: [] as WorkoutLog[],
+  foodPreferences: EMPTY_FOOD_PREFERENCES as FoodPreferences,
   healthConnectedAt: null as string | null,
   healthLastSyncAt: null as string | null,
   questionLog: {} as Record<string, string>,
@@ -675,6 +696,28 @@ export const useAppStore = create<AppState>()(
           get().saveWorkoutLog({ ...log, sets: log.sets.filter((s) => s.id !== setId) });
         },
 
+        setFoodPreferences: (patch) => {
+          set({ foodPreferences: { ...get().foodPreferences, ...patch } });
+        },
+
+        /**
+         * Append rather than overwrite. Taste changes, and "I liked this
+         * once in March" should not outvote "I have been bored of it since
+         * June" — the ranking reads the most recent rating for a dish.
+         */
+        rateDish: (dishId, rating) => {
+          const prefs = get().foodPreferences;
+          set({
+            foodPreferences: {
+              ...prefs,
+              enjoyment: [
+                ...prefs.enjoyment,
+                { dishId, rating, at: todayKey() },
+              ].slice(-500),
+            },
+          });
+        },
+
         removeWorkoutLog: (logId) => {
           set({
             workoutLogs: get().workoutLogs.filter((l) => l.id !== logId),
@@ -838,10 +881,72 @@ export const useAppStore = create<AppState>()(
           });
         },
 
+        updateGoal: (goalId, patch) => {
+          set({
+            goals: get().goals.map((g) => (g.id === goalId ? { ...g, ...patch, id: g.id } : g)),
+          });
+          // A changed target or date can flip a rung either way.
+          get().assessGoals();
+        },
+
+        updateMilestone: (goalId, milestoneId, patch) => {
+          set({
+            goals: get().goals.map((g) =>
+              g.id === goalId
+                ? {
+                    ...g,
+                    milestones: (g.milestones ?? []).map((m) =>
+                      m.id === milestoneId ? { ...m, ...patch } : m,
+                    ),
+                  }
+                : g,
+            ),
+          });
+        },
+
+        /**
+         * A rung the person wrote themselves. It carries no `doneWhen`, so
+         * only they can tick it — inventing a measurable condition for
+         * words we did not parse would tick it off on evidence that has
+         * nothing to do with what they meant.
+         */
+        addMilestone: (goalId, title) => {
+          set({
+            goals: get().goals.map((g) =>
+              g.id === goalId
+                ? {
+                    ...g,
+                    milestones: [
+                      ...(g.milestones ?? []),
+                      { id: newId('ms'), title, done: false },
+                    ],
+                  }
+                : g,
+            ),
+          });
+        },
+
+        removeMilestone: (goalId, milestoneId) => {
+          set({
+            goals: get().goals.map((g) =>
+              g.id === goalId
+                ? { ...g, milestones: (g.milestones ?? []).filter((m) => m.id !== milestoneId) }
+                : g,
+            ),
+          });
+        },
+
         updateRoutine: (routineId, patch) => {
           set({
             routines: get().routines.map((r) => (r.id === routineId ? { ...r, ...patch } : r)),
           });
+          if (!get().profile) return;
+          // The whole visible week, not just today. Today caches seven days
+          // ahead, so regenerating one day left a Mon/Wed/Fri change looking
+          // unsaved all week — the same defect that made added goals appear
+          // not to save.
+          const today = todayKey();
+          for (let i = 0; i <= 6; i++) get().regeneratePlan(addDays(today, i));
         },
 
         addBehaviourIntention: (behaviour, intentionText) => {

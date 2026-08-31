@@ -17,6 +17,10 @@ import { composeFromText } from '@/features/goals/composer';
 import { computeWeeklyStats } from '@/features/review/computeWeekly';
 import { observe, personalBest } from '@/features/model/metrics';
 import { goalTrajectory } from '@/features/model/trajectory';
+import {
+  allowedDishTitles,
+  suggestAllowedWeek,
+} from '@/features/modalities/meals/rotation';
 import { makeSet, newLog } from '@/features/training/log';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
@@ -603,5 +607,102 @@ describe('journey: knowing whether you will make it', () => {
 
     const goal = useAppStore.getState().goals.find((g) => g.id === 'g-thin')!;
     expect(goalTrajectory(goal, useAppStore.getState().metrics)!.verdict).toBe('not-enough-data');
+  });
+});
+
+describe('journey: changing your mind', () => {
+  /**
+   * Goals were write-once — composed at creation, then fixed, with only
+   * pause and drop available. That is the wrong shape for anything lasting
+   * a year: ambitions get renamed as they get clearer, and a milestone
+   * ladder drafted by a parser usually needs a human edit.
+   */
+  it('a goal can be renamed, re-dated and re-laddered after the fact', () => {
+    onboard();
+    const store = useAppStore.getState();
+    store.addGoal(
+      {
+        id: 'g-edit',
+        title: 'Get fitter',
+        area: 'health',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        routineIds: [],
+        milestones: [{ id: 'm1', title: 'Show up twice a week', done: false }],
+      },
+      [],
+    );
+
+    useAppStore.getState().updateGoal('g-edit', {
+      title: 'Deadlift 140 kg',
+      targetDate: '2026-12-01',
+    });
+    useAppStore.getState().addMilestone('g-edit', 'Deadlift 120 kg');
+    const goal = useAppStore.getState().goals.find((g) => g.id === 'g-edit')!;
+    expect(goal.title).toBe('Deadlift 140 kg');
+    expect(goal.targetDate).toBe('2026-12-01');
+    expect(goal.milestones).toHaveLength(2);
+
+    /**
+     * A rung the person wrote carries no measurable condition, so only they
+     * can tick it. Inventing one from words the app did not parse would tick
+     * it off on evidence with nothing to do with what they meant.
+     */
+    const added = goal.milestones!.find((m) => m.title === 'Deadlift 120 kg')!;
+    expect(added.doneWhen).toBeUndefined();
+
+    useAppStore.getState().removeMilestone('g-edit', 'm1');
+    expect(useAppStore.getState().goals.find((g) => g.id === 'g-edit')!.milestones).toHaveLength(1);
+  });
+
+  /**
+   * The screen tells people a routine change takes effect across the whole
+   * visible week. Today caches seven days ahead, so regenerating only today
+   * would leave a Mon/Wed/Fri change looking unsaved all week.
+   */
+  it('editing a routine reshapes the whole visible week, not just today', () => {
+    onboard();
+    const routine = activeRoutines().find((r) => r.days.length > 0 && r.days.length < 7)!;
+    const today = todayKey();
+    for (let i = 0; i <= 6; i++) useAppStore.getState().ensurePlan(addDays(today, i));
+
+    useAppStore.getState().updateRoutine(routine.id, { days: [0, 1, 2, 3, 4, 5, 6] });
+
+    let daysWithIt = 0;
+    for (let i = 0; i <= 6; i++) {
+      const plan = useAppStore.getState().plans[addDays(today, i)];
+      if (plan?.items.some((it) => it.routineId === routine.id)) daysWithIt += 1;
+    }
+    expect(daysWithIt).toBeGreaterThan(routine.days.length);
+  });
+
+  it('turning a routine off clears it from the week and keeps it recoverable', () => {
+    onboard();
+    const routine = activeRoutines()[0];
+    useAppStore.getState().updateRoutine(routine.id, { active: false });
+
+    const today = todayKey();
+    for (let i = 0; i <= 6; i++) {
+      const plan = useAppStore.getState().plans[addDays(today, i)];
+      expect(plan?.items.some((it) => it.routineId === routine.id)).toBe(false);
+    }
+    expect(useAppStore.getState().routines.find((r) => r.id === routine.id)).toBeDefined();
+  });
+
+  /**
+   * The food model existed, was tested, and was imported by nothing — the
+   * rotation served titles from a list that knew no ingredients, so it
+   * could not honour an allergy it had the data to respect.
+   */
+  it('a declared allergy reshapes the dinner rotation', () => {
+    onboard();
+    useAppStore.getState().setFoodPreferences({ allergies: ['fish'] });
+    const prefs = useAppStore.getState().foodPreferences;
+    const week = suggestAllowedWeek(todayKey(), prefs);
+    const allowed = new Set(allowedDishTitles(prefs));
+    for (const [day, dish] of Object.entries(week)) {
+      if (Number(day) === 4) continue;
+      expect(allowed.has(dish)).toBe(true);
+    }
   });
 });

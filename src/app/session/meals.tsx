@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
@@ -8,8 +8,8 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
 import {
-  nextIdea,
-  suggestWeek,
+  nextAllowedDish,
+  suggestAllowedWeek,
   type CookingEffort,
 } from '@/features/modalities/meals/rotation';
 import { addDays, todayKey, weekdayOf } from '@/lib/dates';
@@ -45,15 +45,27 @@ export default function MealsSession() {
     | CookingEffort
     | undefined;
 
+  /**
+   * Preferences carry the cooking answer through, so the rotation honours
+   * allergies, intolerances and dietary patterns as well as effort. Where
+   * nothing has been declared this falls back to the simple pool, which is
+   * the same week the app suggested before.
+   */
+  const foodPreferences = useAppStore((s) => s.foodPreferences);
+  const prefs = useMemo(
+    () => ({ ...foodPreferences, effort: foodPreferences.effort ?? cooking }),
+    [foodPreferences, cooking],
+  );
+
   const [dinners, setDinners] = useState<Record<number, string>>(
-    () => mealPlan?.dinners ?? suggestWeek(today, cooking),
+    () => mealPlan?.dinners ?? suggestAllowedWeek(today, prefs),
   );
   const [saved, setSaved] = useState(false);
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/today' as never));
 
   const cycle = (weekday: number) => {
-    setDinners((prev) => ({ ...prev, [weekday]: nextIdea(prev[weekday] ?? '', cooking) }));
+    setDinners((prev) => ({ ...prev, [weekday]: nextAllowedDish(prev[weekday] ?? '', prefs) }));
     setSaved(false);
   };
 

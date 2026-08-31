@@ -183,7 +183,12 @@ export default function Life() {
             const trajectory = goalTrajectory(goal, metrics);
             return (
               <Card key={goal.id}>
-                <AppText variant="heading">{goal.title}</AppText>
+                <View style={styles.goalHead}>
+                  <AppText variant="heading" style={styles.goalTitle}>
+                    {goal.title}
+                  </AppText>
+                  <Chip label="Edit" onPress={() => router.push(`/goals/${goal.id}` as never)} />
+                </View>
                 <AppText variant="caption" color="textTertiary">
                   {goal.milestones?.length
                     ? `${milestonesDone} of ${goal.milestones.length} milestones`
@@ -389,5 +394,7 @@ const styles = StyleSheet.create({
   triggerChips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   note: { marginTop: Spacing.xs },
   patternLine: { marginTop: Spacing.sm },
+  goalHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: Spacing.md },
+  goalTitle: { flexShrink: 1 },
   settings: { marginTop: Spacing.xxl },
 });

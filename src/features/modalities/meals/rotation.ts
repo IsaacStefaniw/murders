@@ -11,12 +11,18 @@
  * cooking answer the user actually gave. Before this, the app told people
  * "your rotation favours one-pan, under-20-minute dinners" while the
  * rotation ignored the answer entirely — a claim the code didn't keep.
- * This is deliberately a minimal shape, not a food database: no
- * ingredients, allergens or macros yet, so nothing here can pretend to
- * handle allergies or intolerances. That model is still to come.
+ * The dish list below is the fallback pool, kept for the case where a
+ * person has stated no preferences at all. Once they have, the rotation
+ * sources from the real food model in `food.ts` — ingredients, allergens,
+ * intolerances and dietary patterns — and the safety gate there is
+ * fail-closed. That model used to exist and reach no screen; the
+ * preference-aware functions at the bottom of this file are the join.
  */
 
+import { DISHES, rankDishes, type FoodPreferences } from '@/features/modalities/meals/food';
+
 export type CookingEffort = 'quick' | 'normal' | 'enjoy';
+
 
 export interface DinnerIdea {
   title: string;
@@ -69,6 +75,66 @@ export function nextIdea(current: string, cooking?: CookingEffort): string {
  */
 export function suggestWeek(weekStart: string, cooking?: CookingEffort): Record<number, string> {
   const pool = ideasFor(cooking);
+  const seed = Array.from(weekStart).reduce((a, c) => a + c.charCodeAt(0), 0);
+  const week: Record<number, string> = {};
+  for (let d = 0; d <= 6; d++) {
+    week[d] = pool[(seed + d * 3) % pool.length];
+  }
+  week[4] = 'Leftovers night';
+  return week;
+}
+
+/* ── Preference-aware rotation ────────────────────────────────────────────
+ *
+ * Everything above works on titles alone and cannot know that a dish
+ * contains sesame. These take the person's stated preferences and go
+ * through `food.ts`, whose allergen gate excludes on "may contain" and on
+ * any dish whose ingredients have not been reviewed. A false exclusion
+ * costs someone a dinner suggestion; a false inclusion could hurt them.
+ * ------------------------------------------------------------------- */
+
+/**
+ * The dishes a person can actually eat, best first.
+ *
+ * Falls back to the simple pool only when nothing has been declared — a
+ * person with no stated allergies loses nothing by the older list, and
+ * a person with stated allergies must never be served from it.
+ */
+export function allowedDishTitles(prefs: FoodPreferences | null): string[] {
+  if (!prefs || !hasAnyPreference(prefs)) return ideasFor(prefs?.effort);
+  const ranked = rankDishes(DISHES, prefs).filter((r) => !r.excluded);
+  return ranked.map((r) => r.dish.title);
+}
+
+export const hasAnyPreference = (p: FoodPreferences): boolean =>
+  p.patterns.length > 0 ||
+  p.allergies.length > 0 ||
+  p.intolerances.length > 0 ||
+  p.dislikes.length > 0 ||
+  p.favourites.length > 0;
+
+/** Next dish after `current`, cycling within what the person can eat. */
+export function nextAllowedDish(current: string, prefs: FoodPreferences | null): string {
+  const pool = allowedDishTitles(prefs);
+  if (pool.length === 0) return current;
+  const i = pool.indexOf(current);
+  return i === -1 ? pool[0] : pool[(i + 1) % pool.length];
+}
+
+/**
+ * A week of dinners the person can actually eat.
+ *
+ * Where the allowed pool is smaller than the week, dishes repeat rather
+ * than the week being padded with something excluded. Eating the same
+ * safe dinner twice is a normal week; being handed one that contains your
+ * allergen is not.
+ */
+export function suggestAllowedWeek(
+  weekStart: string,
+  prefs: FoodPreferences | null,
+): Record<number, string> {
+  const pool = allowedDishTitles(prefs);
+  if (pool.length === 0) return suggestWeek(weekStart, prefs?.effort);
   const seed = Array.from(weekStart).reduce((a, c) => a + c.charCodeAt(0), 0);
   const week: Record<number, string> = {};
   for (let d = 0; d <= 6; d++) {

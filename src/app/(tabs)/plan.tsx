@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -12,6 +13,7 @@ import { useAppStore } from '@/state/store';
 
 /** The week ahead. Deterministic plans for the next seven days, editable in place. */
 export default function Plan() {
+  const router = useRouter();
   const today = todayKey();
   const dates = Array.from({ length: 7 }, (_, i) => addDays(today, i));
 
@@ -38,6 +40,17 @@ export default function Plan() {
         Plan
       </AppText>
       <AppText variant="title">The week ahead</AppText>
+
+      <Card
+        onPress={() => router.push('/plan/routines' as never)}
+        style={styles.routinesCard}
+        accessibilityLabel="Adjust your routines"
+      >
+        <AppText variant="heading">Adjust when things happen</AppText>
+        <AppText variant="caption" color="textTertiary">
+          Days, times and lengths. You know your week better than the scheduler does.
+        </AppText>
+      </Card>
 
       <View style={styles.stack}>
         {dates.map((date) => {
@@ -107,6 +120,7 @@ export default function Plan() {
 }
 
 const styles = StyleSheet.create({
+  routinesCard: { marginTop: Spacing.lg, marginBottom: Spacing.md },
   stack: { gap: Spacing.sm, marginTop: Spacing.lg },
   dayHeader: {
     flexDirection: 'row',
