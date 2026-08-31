@@ -8,6 +8,7 @@ import { behaviourInfo } from '@/features/behaviours/catalog';
 import { buildGoalPlan, parseGoal } from '@/features/goals/goalPlanner';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import type { PathId } from '@/features/paths/definitions';
+import { dedupeRoutines } from '@/features/planner/mergeRoutines';
 import { newId } from '@/lib/dates';
 import type {
   BehaviourIntention,
@@ -571,14 +572,9 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   }
 
   // A deep-work block can arrive from two doors (moreOf + a business
-  // ambition); keep one of each protocol.
-  const seenProtocol = new Set<string>();
-  const dedupedRoutines = routines.filter((r) => {
-    if (!r.protocolId) return true;
-    if (seenProtocol.has(r.protocolId)) return false;
-    seenProtocol.add(r.protocolId);
-    return true;
-  });
+  // ambition); keep one of each protocol. The same rule now guards every
+  // later merge into the store — see features/planner/mergeRoutines.
+  const dedupedRoutines = dedupeRoutines(routines);
 
   // Paths the answers already justify — started at approval, so the first
   // day carries tailored milestones, check-ins and advice, not just blocks.

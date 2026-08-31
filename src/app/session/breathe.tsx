@@ -28,6 +28,7 @@ export default function BreatheSession() {
   const theme = useTheme();
   const { itemId, date } = useLocalSearchParams<{ itemId?: string; date?: string }>();
   const setItemStatus = useAppStore((s) => s.setItemStatus);
+  const logCompletedActivity = useAppStore((s) => s.logCompletedActivity);
   const addMetric = useAppStore((s) => s.addMetric);
 
   const [protocol, setProtocol] = useState<BreathProtocol | null>(null);
@@ -88,6 +89,15 @@ export default function BreatheSession() {
         source: 'manual',
         confidence: 1,
         at: new Date().toISOString(),
+        note: 'breath session',
+      });
+    } else if (completed && protocol) {
+      // Unscheduled, but it still happened — put it on the day.
+      logCompletedActivity({
+        title: protocol.name,
+        area: 'health',
+        durationMin: Math.max(1, Math.round((cycleSec * protocol.rounds) / 60)),
+        sessionType: 'breathe',
         note: 'breath session',
       });
     }

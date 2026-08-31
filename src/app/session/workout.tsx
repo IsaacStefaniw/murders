@@ -27,6 +27,7 @@ export default function WorkoutSession() {
   const profile = useAppStore((s) => s.profile);
   const plans = useAppStore((s) => s.plans);
   const setItemStatus = useAppStore((s) => s.setItemStatus);
+  const logCompletedActivity = useAppStore((s) => s.logCompletedActivity);
 
   const item = itemId && date ? plans[date]?.items.find((i) => i.id === itemId) : undefined;
   const availableMin = item
@@ -113,12 +114,23 @@ export default function WorkoutSession() {
   };
 
   const finish = () => {
+    const note = `workout session · ${completedSets}/${totalSets} sets`;
     if (itemId && date) {
       setItemStatus(date, itemId, 'completed', {
         source: 'manual',
         confidence: 1,
         at: new Date().toISOString(),
-        note: `workout session · ${completedSets}/${totalSets} sets`,
+        note,
+      });
+    } else if (completedSets > 0) {
+      // Started from "Any time" with no plan item behind it. Before this,
+      // finishing here wrote nothing at all — a whole session vanished.
+      logCompletedActivity({
+        title: 'Workout',
+        area: 'health',
+        durationMin: session.estimatedMin,
+        sessionType: 'workout',
+        note,
       });
     }
     router.back();

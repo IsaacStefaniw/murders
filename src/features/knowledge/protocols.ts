@@ -57,6 +57,13 @@ interface Anchor {
   start?: string;
   /** Latest acceptable start, minutes after preferred. */
   windowMin: number;
+  /**
+   * A deadline, not an activity — "last coffee by", "kitchen closed".
+   * The scheduler may bring these earlier but must never push them later:
+   * a cutoff moved to make room has become false, not merely inconvenient.
+   * Deadlines are placed rigidly and surface as unplaced rather than drift.
+   */
+  deadline?: boolean;
 }
 
 /**
@@ -283,12 +290,14 @@ export const PROTOCOLS: Protocol[] = [
     pillar: 'sleep',
     area: 'health',
     goalDomains: ['health'],
-    summary: 'Last coffee checkpoint — nothing caffeinated after early afternoon.',
-    why: 'Caffeine’s half-life is 5–6 hours: a quarter of that afternoon coffee is still circulating at midnight, quietly shaving deep sleep you never see.',
+    summary: 'Last caffeine of the day, ten hours before your bedtime.',
+    why: 'Caffeine’s half-life is 5–6 hours: a quarter of that afternoon coffee is still circulating at midnight, quietly shaving deep sleep you never see. Ten hours leaves only a trace by lights-out.',
     attribution: ['Andrew Huberman', 'Peter Attia'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 5,
-    anchor: { kind: 'wake', offsetMin: 8 * 60, windowMin: 30 },
+    // Anchored to BEDTIME, like every other sleep-protective protocol, and
+    // marked a deadline so the placement pass can never move it later.
+    anchor: { kind: 'sleep', offsetMin: 10 * 60, windowMin: 30, deadline: true },
     energy: 'midday',
     tier: 'could',
   },
@@ -316,12 +325,13 @@ export const PROTOCOLS: Protocol[] = [
     pillar: 'nutrition',
     area: 'health',
     goalDomains: ['health'],
-    summary: 'A consistent last bite ~3 hours before bed; eat within a daylight window.',
+    summary: 'A consistent last bite by three hours before bed; eat within a daylight window.',
     why: 'A steady, earlier eating window supports sleep and metabolic rhythm; late eating works against both.',
     attribution: ['David Sinclair', 'Rhonda Patrick'],
     days: [0, 1, 2, 3, 4],
     durationMin: 5,
-    anchor: { kind: 'sleep', offsetMin: 180, windowMin: 30 },
+    // Also a deadline — "last bite by", not an activity to slot in.
+    anchor: { kind: 'sleep', offsetMin: 180, windowMin: 30, deadline: true },
     energy: 'evening',
     tier: 'could',
     safety: 'Structure, not restriction — skip this protocol entirely if eating windows are a fraught topic for you.',
@@ -597,7 +607,8 @@ export function toRoutine(p: Protocol, profile: LifeProfile | null, goalId?: str
     preferredStart: start,
     preferredEnd: toHHMM((toMinutes(start) + p.anchor.windowMin) % 1440),
     energy: p.energy,
-    flexible: !p.duringWork,
+    // A deadline is never flexible: the placement pass may not move it later.
+    flexible: !p.duringWork && !p.anchor.deadline,
     protected: false,
     duringWork: p.duringWork,
     sessionType: p.sessionType,

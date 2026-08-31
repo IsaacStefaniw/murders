@@ -30,6 +30,7 @@ import {
 } from '@/features/training/programme';
 import { buildExecutiveBlock, type WorkBlock, type WorkInputs } from '@/features/work/programme';
 import { availableStartsFor, generateDailyPlan } from '@/features/planner/generate';
+import { mergeRoutines } from '@/features/planner/mergeRoutines';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
   applyMoveRoutine,
@@ -117,6 +118,25 @@ export interface AppState {
       goalId?: string;
     },
   ) => void;
+
+  /**
+   * Record something that ALREADY happened — an unscheduled workout, a
+   * sauna last night. Appends a completed item to the day and records the
+   * completion event, so unplanned effort reaches week momentum, the goal
+   * composer's streak and count rungs, and the adaptation engine exactly
+   * like planned effort does. Returns the new item's id.
+   */
+  logCompletedActivity: (input: {
+    title: string;
+    area: PlanItem['area'];
+    durationMin: number;
+    date?: string;
+    /** Defaults to ending now. */
+    endedAt?: string;
+    sessionType?: PlanItem['sessionType'];
+    goalId?: string;
+    note?: string;
+  }) => string;
 
   addGoal: (goal: Goal, routines: Routine[]) => void;
   /** Toggle a knowledge-base protocol on the plan. Returns true if now active. */
@@ -507,13 +527,50 @@ export const useAppStore = create<AppState>()(
           updatePlanItems(date, (items) => [...items, item]);
         },
 
+        logCompletedActivity: (input) => {
+          const date = input.date ?? todayKey();
+          get().ensurePlan(date);
+          const at = input.endedAt ?? new Date().toISOString();
+          // Place it where it actually happened: ending now (or at the given
+          // time), starting its duration earlier. Clamped so a late-evening
+          // entry can't wrap past midnight into negative minutes.
+          const ended = input.endedAt ? new Date(input.endedAt) : nowDate();
+          const endMin = Math.min(
+            1439,
+            Math.max(input.durationMin, ended.getHours() * 60 + ended.getMinutes()),
+          );
+          const item: PlanItem = {
+            id: newId('pi'),
+            date,
+            start: toHHMM(endMin - input.durationMin),
+            end: toHHMM(endMin),
+            title: input.title,
+            area: input.area,
+            goalId: input.goalId,
+            sessionType: input.sessionType,
+            tier: 'should',
+            status: 'completed',
+            fixed: false,
+            evidence: { source: 'manual', confidence: 1, at, note: input.note },
+          };
+          updatePlanItems(date, (items) => [...items, item]);
+          record(eventFor(item, date, 'completed', { evidence: item.evidence }));
+          get().assessGoals();
+          return item.id;
+        },
+
         addGoal: (goal, routines) => {
           set({
             goals: [...get().goals, goal],
-            routines: [...get().routines, ...routines],
+            routines: mergeRoutines(get().routines, routines),
           });
           // Pre-onboarding there is nothing to regenerate yet.
-          if (get().profile) get().regeneratePlan(todayKey());
+          if (!get().profile) return;
+          // The whole visible week, not just today: Today caches seven days
+          // ahead, so regenerating only today left a Mon/Wed/Fri routine
+          // invisible all week and looking unsaved.
+          const today = todayKey();
+          for (let i = 0; i <= 6; i++) get().regeneratePlan(addDays(today, i));
         },
 
         addMetric: (key, value, note) => {

@@ -18,6 +18,7 @@ export default function MeditateSession() {
   const theme = useTheme();
   const { itemId, date } = useLocalSearchParams<{ itemId?: string; date?: string }>();
   const setItemStatus = useAppStore((s) => s.setItemStatus);
+  const logCompletedActivity = useAppStore((s) => s.logCompletedActivity);
   const addMetric = useAppStore((s) => s.addMetric);
 
   const [totalSec, setTotalSec] = useState<number | null>(null);
@@ -39,6 +40,16 @@ export default function MeditateSession() {
         source: 'manual',
         confidence: 1,
         at: new Date().toISOString(),
+        note: 'meditation session',
+      });
+    } else if (completed && totalSec) {
+      // Launched from "Any time" rather than a plan item — it still happened,
+      // so it still belongs on the day.
+      logCompletedActivity({
+        title: 'Meditation',
+        area: 'health',
+        durationMin: Math.max(1, Math.round(totalSec / 60)),
+        sessionType: 'meditate',
         note: 'meditation session',
       });
     }

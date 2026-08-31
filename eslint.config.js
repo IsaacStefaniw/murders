@@ -6,5 +6,10 @@ module.exports = defineConfig([
   expoConfig,
   {
     ignores: ["dist/*"],
-  }
+  },
+  {
+    // Jest setup runs in the test environment, not the app runtime.
+    files: ["jest.setup.js"],
+    languageOptions: { globals: { jest: "readonly", require: "readonly" } },
+  },
 ]);

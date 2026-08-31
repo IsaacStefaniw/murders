@@ -7,7 +7,11 @@ import { Button } from '@/components/button';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
-import { nextIdea, suggestWeek } from '@/features/modalities/meals/rotation';
+import {
+  nextIdea,
+  suggestWeek,
+  type CookingEffort,
+} from '@/features/modalities/meals/rotation';
 import { addDays, todayKey, weekdayOf } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
@@ -35,16 +39,21 @@ export default function MealsSession() {
 
   const mealPlan = useAppStore((s) => s.mealPlan);
   const saveMealPlan = useAppStore((s) => s.saveMealPlan);
+  // The cooking answer the user gave in the nutrition path — the rotation
+  // honours it rather than just claiming to.
+  const cooking = useAppStore((s) => s.paths.nutrition?.answers.cooking) as
+    | CookingEffort
+    | undefined;
 
   const [dinners, setDinners] = useState<Record<number, string>>(
-    () => mealPlan?.dinners ?? suggestWeek(today),
+    () => mealPlan?.dinners ?? suggestWeek(today, cooking),
   );
   const [saved, setSaved] = useState(false);
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/today' as never));
 
   const cycle = (weekday: number) => {
-    setDinners((prev) => ({ ...prev, [weekday]: nextIdea(prev[weekday] ?? '') }));
+    setDinners((prev) => ({ ...prev, [weekday]: nextIdea(prev[weekday] ?? '', cooking) }));
     setSaved(false);
   };
 
