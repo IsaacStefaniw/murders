@@ -15,7 +15,14 @@ import { DOMAIN_QUESTIONS, type DomainQuestion } from '@/features/knowledge/ques
 import { newId } from '@/lib/dates';
 import type { BehaviourKey, LifeProfile, Routine } from '@/types/domain';
 
-export type PathId = 'training' | 'nutrition' | 'money' | 'work' | 'recovery';
+export type PathId =
+  | 'training'
+  | 'nutrition'
+  | 'money'
+  | 'work'
+  | 'recovery'
+  | 'relationship'
+  | 'family';
 
 /** A path build is a goal plan, plus optionally the behaviour it protects. */
 export type PathBuild = GoalPlan & { behaviour?: BehaviourKey };
@@ -385,6 +392,137 @@ export const PATHS: Record<PathId, PathDefinition> = {
     sessionLabel: 'Breathe through an urge',
     sessionRoute: '/session/breathe',
   },
+  relationship: {
+    id: 'relationship',
+    title: 'Relationship',
+    promise:
+      'Small, repeatable attention rather than a grand gesture you never schedule — the five minutes at the door, one thing named out loud, and one unhurried conversation a month.',
+    questions: DOMAIN_QUESTIONS.relationship ?? [],
+    build: (answers, profile) => {
+      const plan = buildGoalPlan(
+        parsed('More present with the person I chose', 'relationship', 'relationship'),
+        profile,
+        undefined,
+        answers,
+      );
+      // A hard answer must SHRINK the plan, not grow it. Someone telling us
+      // things are bad does not need six more calendar blocks; they need the
+      // two smallest ones and an honest pointer to a professional.
+      const hard = answers.temperature === 'hard';
+      const noWindow = answers.window === 'none';
+      const ids = hard || noWindow
+        ? ['partner-reunion', 'partner-appreciation']
+        : answers.obstacle === 'conflict' || answers.temperature === 'tense'
+          ? ['repair-rehearsal', 'partner-reunion', 'partner-appreciation']
+          : answers.obstacle === 'work'
+            ? ['partner-reunion', 'partner-appreciation', 'state-of-us']
+            : ['partner-appreciation', 'partner-checkin-weekly', 'state-of-us'];
+
+      const routines: Routine[] = [];
+      for (const id of ids) {
+        const protocol = protocolById(id);
+        if (protocol) routines.push(toRoutine(protocol, profile, plan.goal.id));
+      }
+      // Weekend-only windows: nothing weekday-anchored will survive.
+      if (answers.window === 'weekend') {
+        for (const r of routines) r.days = r.days.filter((d) => d === 0 || d === 6);
+      }
+      return {
+        goal: { ...plan.goal, routineIds: routines.map((r) => r.id) },
+        routines,
+      };
+    },
+    insights: (answers) => {
+      const lines: string[] = [];
+      if (answers.temperature === 'hard') {
+        lines.push(
+          'This one is kept deliberately small. Two five-minute practices, nothing more — and if the same conversation keeps ending badly, a couples therapist will do more than any plan here can.',
+        );
+      }
+      if (answers.obstacle === 'work') {
+        lines.push('The reunion is your lever: the first five minutes home set the tone for the whole evening.');
+      }
+      if (answers.obstacle === 'conflict') {
+        lines.push('Repair comes before connection. Stable couples aren’t the ones who avoid conflict — they’re the ones who cool it early.');
+      }
+      if (answers.window === 'none') {
+        lines.push('You told me there’s almost no window, so nothing here needs one. Both practices fit inside five minutes.');
+      }
+      lines.push('Evidence here is honest: mostly observational, graded C to E. These are worth testing on yourselves, not laws.');
+      return lines;
+    },
+  },
+
+  family: {
+    id: 'family',
+    title: 'Family & adventure',
+    promise:
+      'The weekend that actually happens, one-on-one time with each child, and the next trip planned early enough that looking forward to it counts.',
+    questions: DOMAIN_QUESTIONS.family ?? [],
+    build: (answers, profile) => {
+      const plan = buildGoalPlan(
+        parsed('Time with them that I don’t keep postponing', 'family', 'family'),
+        profile,
+        undefined,
+        answers,
+      );
+      // Low energy is a real constraint: lead with the small unmoveable
+      // ritual rather than a three-hour adventure nobody has left in them.
+      const ids =
+        answers.blocker === 'energy'
+          ? ['family-ritual-anchor', 'device-free-meal']
+          : answers.blocker === 'scattered'
+            ? ['device-free-meal', 'family-adventure', 'one-on-one-child']
+            : answers.blocker === 'logistics'
+              ? ['family-adventure', 'trip-anticipation', 'one-on-one-child']
+              : ['family-adventure', 'one-on-one-child', 'device-free-meal'];
+
+      const routines: Routine[] = [];
+      for (const id of ids) {
+        const protocol = protocolById(id);
+        if (protocol) routines.push(toRoutine(protocol, profile, plan.goal.id));
+      }
+      // Under-fives can't sustain a three-hour outing or a 25-minute sit.
+      if (answers.ages === 'under5') {
+        for (const r of routines) {
+          if (r.protocolId === 'family-adventure') r.durationMin = 90;
+          if (r.protocolId === 'one-on-one-child') r.durationMin = 15;
+        }
+      }
+      if (answers.horizon === 'booked' || answers.horizon === 'choosing') {
+        const trip = protocolById('trip-anticipation');
+        if (trip && !routines.some((r) => r.protocolId === 'trip-anticipation')) {
+          routines.push(toRoutine(trip, profile, plan.goal.id));
+        }
+      }
+      return {
+        goal: { ...plan.goal, routineIds: routines.map((r) => r.id) },
+        routines,
+      };
+    },
+    insights: (answers) => {
+      const lines: string[] = [];
+      if (answers.blocker === 'energy') {
+        lines.push('Small and repeatable beats big and abandoned — one unmoveable ritual, not a packed weekend.');
+      }
+      if (answers.blocker === 'logistics') {
+        lines.push('Your problem is deciding, not caring. The outing goes in the calendar before the week starts, or it doesn’t happen.');
+      }
+      if (answers.ages === 'under5') {
+        lines.push('Sized to the youngest: 90-minute adventures and 15-minute one-on-ones. An outing nobody enjoyed is worse than a slow morning at home.');
+      }
+      lines.push('Much of this research is correlational — settled families sustain rituals as much as rituals settle families. Graded C and D, and said plainly.');
+      return lines;
+    },
+  },
 };
 
-export const PATH_ORDER: PathId[] = ['training', 'nutrition', 'money', 'work', 'recovery'];
+export const PATH_ORDER: PathId[] = [
+  'training',
+  'nutrition',
+  'money',
+  'work',
+  'recovery',
+  'relationship',
+  'family',
+];

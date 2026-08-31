@@ -14,6 +14,7 @@
 
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
+import { PATHS } from '@/features/paths/definitions';
 import { routineKey } from '@/features/planner/mergeRoutines';
 import { useAppStore } from '@/state/store';
 import { addDays, todayKey } from '@/lib/dates';
@@ -214,6 +215,64 @@ describe('journey: the caffeine cutoff is a deadline', () => {
         if (item.routineId !== routine.id) continue;
         // Whatever happens, it never lands in the late afternoon or evening.
         expect(item.start <= '13:00').toBe(true);
+      }
+    }
+  });
+});
+
+describe('journey: the new pathways', () => {
+  it('a hard relationship answer shrinks the plan and names a professional', () => {
+    onboard();
+    useAppStore.getState().startPath('relationship', {
+      temperature: 'hard',
+      obstacle: 'conflict',
+      window: 'after_bed',
+    });
+
+    const goalId = useAppStore.getState().paths.relationship!.goalId;
+    const routines = useAppStore.getState().routines.filter((r) => r.goalId === goalId && r.active);
+
+    // Someone telling us things are bad gets the two smallest practices,
+    // never a fuller calendar.
+    expect(routines).toHaveLength(2);
+    expect(routines.every((r) => r.durationMin <= 5)).toBe(true);
+
+    const insights = PATHS.relationship.insights(
+      { temperature: 'hard' },
+      useAppStore.getState().profile,
+    );
+    expect(insights.join(' ')).toMatch(/therapist/i);
+  });
+
+  it('a no-window answer never schedules a block the user said does not exist', () => {
+    onboard();
+    useAppStore.getState().startPath('relationship', { temperature: 'good', window: 'none' });
+    const goalId = useAppStore.getState().paths.relationship!.goalId;
+    const routines = useAppStore.getState().routines.filter((r) => r.goalId === goalId && r.active);
+    expect(routines.every((r) => r.durationMin <= 5)).toBe(true);
+  });
+
+  it('family sizes the outing to the youngest child', () => {
+    onboard();
+    useAppStore.getState().startPath('family', { ages: 'under5', blocker: 'logistics' });
+    const goalId = useAppStore.getState().paths.family!.goalId;
+    const routines = useAppStore.getState().routines.filter((r) => r.goalId === goalId);
+    const adventure = routines.find((r) => r.protocolId === 'family-adventure');
+    expect(adventure?.durationMin).toBe(90); // not the default 180
+  });
+
+  it('every new pathway builds real, schedulable routines', () => {
+    for (const id of ['relationship', 'family'] as const) {
+      useAppStore.getState().resetAll();
+      onboard();
+      useAppStore.getState().startPath(id, {});
+      const goalId = useAppStore.getState().paths[id]!.goalId;
+      const routines = useAppStore.getState().routines.filter((r) => r.goalId === goalId);
+      expect(routines.length).toBeGreaterThan(0);
+      // Every routine traces back to a graded protocol — no orphan blocks.
+      for (const r of routines) {
+        expect(r.protocolId).toBeTruthy();
+        expect(protocolById(r.protocolId!)).toBeDefined();
       }
     }
   });

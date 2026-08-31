@@ -85,17 +85,27 @@ describe('question engine', () => {
   });
 
   it('choice questions only surface once their path exists', () => {
-    const noPath = nextQuestion({ profile, metrics: [], askedAt: {}, domain: 'finance' });
+    // Relationship questions all target a path, so the domain stays silent
+    // until that path is started.
+    const noPath = nextQuestion({ profile, metrics: [], askedAt: {}, domain: 'relationship' });
     expect(noPath).toBeNull();
     const withPath = nextQuestion({
       profile,
       metrics: [],
       askedAt: {},
-      pathAnswers: { money: { mode: 'saving' } },
-      domain: 'finance',
+      pathAnswers: { relationship: { temperature: 'drifting' } },
+      domain: 'relationship',
     });
-    expect(withPath!.id).toBe('money-buffer');
+    expect(withPath!.id).toBe('partner-window');
     expect(withPath!.input).toBe('choice');
+  });
+
+  it('a metric question needs no path — it asks for a number we already use', () => {
+    // finance.savingsRate drives assessMoney, so it is worth asking for
+    // whether or not the money path has been started.
+    const asked = nextQuestion({ profile, metrics: [], askedAt: {}, domain: 'finance' });
+    expect(asked!.id).toBe('money-savings-rate');
+    expect(asked!.metricKey).toBe('finance.savingsRate');
   });
 
   it('a choice answered into path answers is never re-asked', () => {

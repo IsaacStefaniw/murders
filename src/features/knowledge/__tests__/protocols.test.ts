@@ -51,6 +51,45 @@ describe('knowledge base integrity', () => {
     }
   });
 
+  /**
+   * Money content is education, never financial advice, and the line is
+   * easiest to cross by omission. Anything touching debt, investing or a
+   * position number must name a licensed professional as the next step.
+   */
+  it('money protocols that touch advice territory route to a professional', () => {
+    const adviceAdjacent = ['payday-automation', 'raise-precommit', 'debt-order-review', 'net-worth-check'];
+    for (const id of adviceAdjacent) {
+      const p = PROTOCOLS.find((x) => x.id === id);
+      expect(p).toBeDefined();
+      expect(p!.safety).toBeTruthy();
+      expect(p!.safety!.toLowerCase()).toMatch(/adviser|professional|accountant|charity/);
+    }
+  });
+
+  /** No protocol may name a product, platform, ticker or return figure. */
+  it('never names a financial product or promises a return', () => {
+    const text = JSON.stringify(PROTOCOLS.filter((p) => p.pillar === 'wealth')).toLowerCase();
+    for (const banned of ['etf', 'index fund', 's&p', 'bitcoin', 'crypto', '% return', 'guaranteed']) {
+      expect(text).not.toContain(banned);
+    }
+  });
+
+  /**
+   * Grades must stay spread. Relationship, family and leadership research is
+   * mostly observational; a library where everything is A/B would mean the
+   * grading had stopped meaning anything.
+   */
+  it('keeps evidence grading honest across the library', () => {
+    const grades = new Set(PROTOCOLS.map((p) => p.evidenceLevel));
+    expect(grades.size).toBeGreaterThanOrEqual(4);
+    const strong = PROTOCOLS.filter((p) => p.evidenceLevel === 'A' || p.evidenceLevel === 'B');
+    expect(strong.length).toBeLessThan(PROTOCOLS.length / 2);
+    // Connection protocols rest on observational work — none should claim A.
+    for (const p of PROTOCOLS.filter((x) => x.pillar === 'connection')) {
+      expect(p.evidenceLevel).not.toBe('A');
+    }
+  });
+
   it('session-linked protocols respect their modality contract', () => {
     for (const p of PROTOCOLS.filter((x) => x.sessionType)) {
       const modality = MODALITIES[p.sessionType!];
@@ -94,7 +133,17 @@ describe('toRoutine', () => {
 
 describe('domain pathways', () => {
   it('each core goal domain has at least one protocol behind it', () => {
-    for (const domain of ['fitness', 'health', 'business', 'finance', 'friends'] as const) {
+    for (const domain of [
+      'fitness',
+      'health',
+      'business',
+      'finance',
+      'friends',
+      // Filled by the pathway research round — these were empty before.
+      'relationship',
+      'family',
+      'experience',
+    ] as const) {
       expect(protocolsForDomain(domain).length).toBeGreaterThan(0);
     }
   });

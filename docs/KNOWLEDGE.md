@@ -22,6 +22,41 @@ automatically.
 - **No substances.** The library contains behaviours only — no
   supplements, dosing, or anything requiring clinical judgement.
 
+## Research rounds — how the base grows
+
+The library is enriched by **build-time research agents**, one per pillar.
+They produce candidate protocols as a reviewed change to this repository;
+they never generate guidance live for a user. Two reasons, both binding:
+
+- **It protects the simulation lab.** 2,000 users x 26 weeks runs in
+  seconds because the engine is pure functions. Runtime model calls would
+  make our published evidence impossible to reproduce.
+- **It protects the claims.** Every protocol carries an evidence grade, a
+  safety note and attribution under the sourcing policy above, and a human
+  reviews each entry before it ships.
+
+Each candidate must arrive with: what to do in one sentence; why it works
+in plain words without overclaiming; an A-E grade **with the reasoning**;
+a plain-words safety note; whose public teaching popularised it, as credit
+not endorsement; and the scheduling shape (duration, days, and whether it
+anchors to wake, to sleep, or to a fixed time). Anchor direction is a
+correctness property, not a preference — the caffeine cutoff shipped wrong
+for exactly this reason.
+
+**Grade honestly or not at all.** A round where everything comes back A or
+B has failed. The first round (August 2026) added 27 protocols across
+relationships, family and adventure, money, leadership and mind, and
+produced exactly two A grades — automated payday saving and implementation
+intentions. Connection protocols are graded C to E throughout, and an
+integrity test now forbids an A in that pillar: nothing about couple or
+family behaviour has support at the level of morning light or strength
+training, and the library should say so.
+
+Money protocols carry an extra constraint enforced by test: anything
+touching debt, investing or a position number must name a licensed
+professional as the next step, and no protocol may name a product,
+platform, ticker or return figure.
+
 ## How the base enriches the pathways
 
 One list feeds every surface, so the app stays coherent and reviewable:
