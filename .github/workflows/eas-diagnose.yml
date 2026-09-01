@@ -36,8 +36,15 @@ jobs:
           # fails with MODULE_NOT_FOUND, which is how the first run died.
           echo '--- iOS builds (newest first) ---'
           npx eas-cli build:list --platform ios --limit 5 --json --non-interactive > builds.json || true
-          jq -r '.[] | "build \(.appBuildVersion // "?")  runtime=\(.runtimeVersion // "-")  channel=\(.channel // "-")  status=\(.status)"' builds.json \
-            || { echo 'filter failed; raw keys:'; jq -r '.[0] | keys | join(", ")' builds.json; }
+          # Field names differ across eas-cli versions, so print the newest
+          # build's whole record rather than guessing at keys — the first
+          # run reported runtime=- and channel=- for every build, which is a
+          # missing field, not a missing value.
+          jq -r '.[] | "build \(.appBuildVersion // "?")  status=\(.status)"' builds.json || true
+          echo '  newest build, full record:'
+          jq '.[0] | {appBuildVersion, status, channel, runtimeVersion,
+                      buildProfile, gitCommitHash, completedAt,
+                      metadata: (.metadata // {})}' builds.json || jq '.[0]' builds.json
 
           echo
           echo '--- Updates per branch (newest first) ---'
