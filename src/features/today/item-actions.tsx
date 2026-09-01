@@ -258,36 +258,50 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
     );
   }
 
+  /**
+   * Start gets its own full-width row rather than a quarter of one.
+   *
+   * Four buttons across a phone could not fit: each carries 24pt of
+   * padding either side, so the three fixed-width ones consumed the row and
+   * Start — the only one with flex — was squeezed to a green square with
+   * its label clipped away entirely. The primary action on a session-backed
+   * item was invisible, which is close to the worst place to lose a label.
+   *
+   * The secondary row wraps as well, so the same thing cannot happen again
+   * at a larger text size.
+   */
   return (
-    <View style={styles.row}>
+    <View style={styles.column}>
       {session ? (
         <Button
           title="Start"
+          hint="Opens the guided session for this block."
           onPress={() => {
             const query = new URLSearchParams(session.params).toString();
             router.push((query ? `${session.route}?${query}` : session.route) as never);
             onDone?.();
           }}
-          style={styles.grow}
         />
       ) : null}
-      <Button
-        title="Done"
-        variant={session ? 'secondary' : 'primary'}
-        onPress={() => {
-          setItemStatus(date, item.id, 'completed');
-          if (goal && nextMilestone) {
-            setMode('milestone');
-          } else {
-            finish();
-          }
-        }}
-        style={session ? undefined : styles.grow}
-      />
-      {!item.fixed ? (
-        <Button title="Move" variant={session ? 'ghost' : 'secondary'} onPress={() => setMode('move')} />
-      ) : null}
-      {!item.fixed ? <Button title="Skip" variant="ghost" onPress={() => setMode('skip')} /> : null}
+      <View style={styles.row}>
+        <Button
+          title="Done"
+          variant={session ? 'secondary' : 'primary'}
+          onPress={() => {
+            setItemStatus(date, item.id, 'completed');
+            if (goal && nextMilestone) {
+              setMode('milestone');
+            } else {
+              finish();
+            }
+          }}
+          style={styles.grow}
+        />
+        {!item.fixed ? (
+          <Button title="Move" variant="secondary" onPress={() => setMode('move')} />
+        ) : null}
+        {!item.fixed ? <Button title="Skip" variant="ghost" onPress={() => setMode('skip')} /> : null}
+      </View>
     </View>
   );
 }
@@ -296,9 +310,11 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    // Wraps rather than crushing a label to nothing when the type scale grows.
+    flexWrap: 'wrap',
     gap: Spacing.sm,
   },
   column: { gap: Spacing.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  grow: { flex: 1 },
+  grow: { flexGrow: 1, flexBasis: 'auto' },
 });
