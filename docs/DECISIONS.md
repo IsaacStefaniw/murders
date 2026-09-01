@@ -71,14 +71,26 @@ explicit store actions.
 
 ---
 
-## ADR-005 — Text-only minimal tab bar (2026-08-30)
+## ADR-005 — Text-only minimal tab bar (2026-08-30, revised 2026-09-01)
 
-**Decision:** Four text tabs (Today / Plan / Life / Intent), custom minimal
-tab bar, no icon library.
+**Decision:** Four text tabs, custom minimal tab bar, no icon library.
+Settings lives behind Coaches, not in the tab bar.
 
 **Reason:** Matches the calm/near-empty design language, avoids an icon
-dependency, and keeps the surface area small. Settings lives behind Life, not
-in the tab bar.
+dependency, and keeps the surface area small.
+
+**2026-09-01 revision — the labels.** The bar had grown to five: Today,
+Plan, Life, Data, Intent. Three of those were abstract nouns that could
+have sat on any screen in the app, and one was the product's own name — a
+tab called "Intent" tells a first-time user nothing about what is behind
+it. It was also the thinnest of the five, and everything on it (the week's
+report, suggestions, the weekly review) answered the same question the
+numbers tab already asks. It merged in.
+
+Now **Today · Week · Coaches · Progress**. The rule the four follow is to
+name the content, not the concept: "Week" is a calendar, "Coaches" is where
+the seven coaches live. Neither needs a sentence underneath it, which was
+the whole point.
 
 **Consequences:** Revisit if user testing shows discoverability problems.
 
@@ -140,3 +152,93 @@ the shipped build performed zero inference. Both are corrected, the paywall
 now separates what runs from what does not, and `claims.test.ts` fails if
 either drifts again. Delete that test in the same commit that turns a model
 on — not before.
+
+---
+
+## ADR-014 — A claim opens the door; evidence keeps it open (2026-09-01)
+
+**Decision:** Every pathway has a four-rung level (Foundation, Developing,
+Established, Advanced). A declared experience level is believed immediately
+up to Established. Advanced is earned from logged work only, never selected.
+Stepping back is always available and never automatic.
+
+**Reason:** `experience` sat on TrainingInputs and was never read — a
+first-timer and a decade-deep lifter received byte-identical blocks. Fixing
+it raised the harder question of who decides the level.
+
+Making people prove themselves before the app takes them seriously is an
+insult and they leave. Letting a form field unlock top singles and an
+overreach week is unsafe for whoever picks the flattering option. So the
+claim buys everything short of the top rung, and the top rung needs a log.
+
+For training, Advanced additionally requires three baselined lifts and
+measured progress on two, over at least eight weeks. Deliberately NOT a
+population strength table: we never ask anyone's sex, and applying one
+sex's numbers to everybody would make the gate quietly wrong for half the
+people it judges. Training age is also the better question — it is what
+decides whether top singles are a tool or a stunt.
+
+Demotion is never automatic. A thin log is far more often a busy fortnight
+than a lie, and an app that quietly decides you were exaggerating is one
+people stop being honest with.
+
+**Consequences:** A Foundation block cannot produce a deadlift or overhead-
+press baseline, so nobody reaches Advanced without passing through the
+levels where those lifts are taught. That is intended, not incidental.
+
+---
+
+## ADR-015 — A short interview spine, depth asked by the coach that wants it (2026-09-01)
+
+**Decision:** Ten opening questions — nine the scheduler cannot build a
+correct first week without, plus existing habits. The other eighteen move
+to the pathway that consumes them and are asked one at a time. Every spine
+question shows what it just changed.
+
+**Reason:** Twenty-eight questions stood between opening the app and seeing
+it do anything: too long to survive for someone still deciding whether to
+bother, and no more convincing for the length, because a question that
+changes nothing you can see is just a form.
+
+Length is not the problem — unrewarded length is. Four questions to set up
+the Training coach is configuration you asked for; the same four in a wall
+of twenty-eight from a stranger is an interrogation. Same questions,
+opposite experience.
+
+Existing habits is core despite being optional, because it decides whether
+a routine is created as an established anchor or prescribed back as
+something new. Answered later it would change nothing already built, and
+the app would have spent its first week telling someone who has meditated
+daily for a decade to try meditating.
+
+**Consequences:** Profiles created before the split have no stored answers,
+so they are reconstructed from the profile on rehydration. What the profile
+cannot prove stays unanswered and is asked once — `outdoors` is where both
+`outdoors` and `walking` land, and guessing wrong hands a walker a barbell
+programme.
+
+---
+
+## ADR-016 — Recovery signals are read against the person, never a population (2026-09-01)
+
+**Decision:** HRV and resting heart rate are compared only to the person's
+own fourteen-day median, excluding today. VO₂max prescribes from the
+individual's ninety-day direction and never classifies them. BMI is shown
+only beside waist-to-height and beside the sentence saying what it cannot
+tell.
+
+**Reason:** Healthy adults span roughly 20ms to 200ms of SDNN, so one
+person's excellent is another's alarming, and colouring a number against a
+published band tells half the users something false. VO₂max reference
+tables are split by sex, which we do not ask for. BMI shown bare tells a
+strong person they are overweight — wrong, and the kind of wrong that costs
+every other claim the app makes.
+
+A median rather than a mean because a bad run must not quietly redefine bad
+as normal; excluding today because otherwise an unusual morning compares
+against itself and looks ordinary.
+
+**Consequences:** The readiness card is silent most mornings, which is what
+makes it worth reading on the morning it appears. A low reading costs
+accessory volume and never the main work — the session people actually skip
+is the one that got cancelled for them.

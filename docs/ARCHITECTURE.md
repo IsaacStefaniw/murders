@@ -17,7 +17,7 @@
 ```
 src/
   app/            Expo Router routes — thin screens, no business logic
-    (tabs)/       today / plan / life / intent
+    (tabs)/       today / plan (Week) / life (Coaches) / data (Progress)
     check-in/     morning & evening modals
     goals/        goal creation modal
   components/     design system (text, screen, button, card, chip, …)
