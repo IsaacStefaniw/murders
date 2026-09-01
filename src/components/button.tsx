@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { Platform, Pressable, StyleSheet, type ViewStyle } from 'react-native';
 
+import { MIN_TARGET } from '@/components/field';
 import { AppText } from '@/components/text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -10,10 +11,12 @@ interface ButtonProps {
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   disabled?: boolean;
+  /** What pressing this does, when the title alone does not say. */
+  hint?: string;
   style?: ViewStyle;
 }
 
-export function Button({ title, onPress, variant = 'primary', disabled, style }: ButtonProps) {
+export function Button({ title, onPress, variant = 'primary', disabled, hint, style }: ButtonProps) {
   const theme = useTheme();
 
   const background =
@@ -44,6 +47,10 @@ export function Button({ title, onPress, variant = 'primary', disabled, style }:
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={title}
+      // Without this a dimmed button is announced as an ordinary one, and
+      // the only feedback for pressing it is that nothing happens.
+      accessibilityState={{ disabled: !!disabled }}
+      accessibilityHint={hint}
       disabled={disabled}
       onPress={handlePress}
       style={({ pressed }) => [
@@ -63,6 +70,7 @@ const styles = StyleSheet.create({
   base: {
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: MIN_TARGET,
     paddingVertical: Spacing.lg - 2,
     paddingHorizontal: Spacing.xl,
     borderRadius: Radius.lg,

@@ -35,10 +35,19 @@ import { observationsFrom } from '@/features/training/log';
 import {
   baselinesFrom,
   buildProgramme,
+  LEVEL_FROM_EXPERIENCE,
   type TrainingInputs,
   type TrainingProgramme,
 } from '@/features/training/programme';
 import { buildExecutiveBlock, type WorkBlock, type WorkInputs } from '@/features/work/programme';
+import {
+  levelFor,
+  levelProgress,
+  type LevelEvidence,
+  type LevelProgress,
+  type PathLevel,
+} from '@/features/paths/level';
+import { trainingEvidence, TRAINING_STANDARD_TEXT } from '@/features/training/level';
 import { availableStartsFor, generateDailyPlan } from '@/features/planner/generate';
 import { mergeRoutines } from '@/features/planner/mergeRoutines';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
@@ -228,6 +237,22 @@ export interface AppState {
   trainingProgramme: TrainingProgramme | null;
   buildTrainingBlock: () => void;
 
+  /**
+   * A voluntary cap on a pathway's level — "this is too hard, take it
+   * back a step". Only ever lowers: the ladder in features/paths/level
+   * decides how high someone can go, and this decides how high they want
+   * to. Clearing it hands the decision back to the evidence.
+   */
+  pathLevelStepBack: Partial<Record<PathId, PathLevel>>;
+  setPathLevelStepBack: (path: PathId, level: PathLevel | null) => void;
+  /** Level, evidence and what unlocks the next rung, for the training hub. */
+  trainingLevelState: () => {
+    level: PathLevel;
+    evidence: LevelEvidence;
+    progress: LevelProgress;
+    steppedBack: boolean;
+  };
+
   /** Work & Leadership v2 — the current four-week executive block. */
   workBlock: WorkBlock | null;
   buildWorkBlock: () => void;
@@ -321,6 +346,7 @@ const initialData = {
   questionLog: {} as Record<string, string>,
   dismissedCheckins: {} as Record<string, string>,
   trainingProgramme: null as TrainingProgramme | null,
+  pathLevelStepBack: {} as Partial<Record<PathId, PathLevel>>,
   workBlock: null as WorkBlock | null,
   clockOffsetMs: 0,
 };
@@ -330,6 +356,7 @@ export function deriveTrainingInputs(
   profile: LifeProfile,
   pathAnswers: Record<string, string> | undefined,
   goals: Goal[],
+  level?: PathLevel,
 ): TrainingInputs {
   const fitnessGoal = goals.find((g) => g.status === 'active' && g.domain === 'fitness');
   const title = fitnessGoal?.title.toLowerCase() ?? '';
@@ -367,6 +394,7 @@ export function deriveTrainingInputs(
     experience:
       (pathAnswers?.experience as TrainingInputs['experience']) ??
       (goal === 'strength' ? 'consistent' : 'returning'),
+    level,
     daysAvailable: profile.trainingDaysPerWeek,
     sessionMin: profile.trainingDurationMin >= 45 ? 60 : 30,
     equipment,
@@ -831,8 +859,38 @@ export const useAppStore = create<AppState>()(
         buildTrainingBlock: () => {
           const { profile, paths, goals, metrics } = get();
           if (!profile) return;
-          const inputs = deriveTrainingInputs(profile, paths.training?.answers, goals);
+          const { level } = get().trainingLevelState();
+          const inputs = deriveTrainingInputs(profile, paths.training?.answers, goals, level);
           set({ trainingProgramme: buildProgramme(inputs, baselinesFrom(metrics)) });
+        },
+
+        setPathLevelStepBack: (path, level) => {
+          const next = { ...get().pathLevelStepBack };
+          if (level) next[path] = level;
+          else delete next[path];
+          set({ pathLevelStepBack: next });
+          // The block is rebuilt immediately: a person who has just said
+          // the programme is too hard should not have to wait a week to
+          // see an easier one.
+          if (path === 'training') get().buildTrainingBlock();
+        },
+
+        trainingLevelState: () => {
+          const { paths, workoutLogs, metrics, pathLevelStepBack } = get();
+          const evidence = trainingEvidence(workoutLogs, metrics);
+          const claim = paths.training?.answers?.experience;
+          const claimed =
+            claim === 'new' || claim === 'returning' || claim === 'consistent'
+              ? LEVEL_FROM_EXPERIENCE[claim]
+              : null;
+          const stepBack = pathLevelStepBack.training ?? null;
+          const level = levelFor('training', claimed, evidence, stepBack);
+          return {
+            level,
+            evidence,
+            progress: levelProgress('training', level, evidence, TRAINING_STANDARD_TEXT),
+            steppedBack: stepBack != null,
+          };
         },
 
         buildWorkBlock: () => {

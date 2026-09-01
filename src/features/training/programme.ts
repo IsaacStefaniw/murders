@@ -12,15 +12,34 @@
  */
 
 import { estimate1Rm, latest, type MetricObservation } from '@/features/model/metrics';
+import type { PathLevel } from '@/features/paths/level';
 import { newId } from '@/lib/dates';
 
 export type TrainingGoal = 'strength' | 'hypertrophy' | 'fatloss' | 'general';
 export type TrainingExperience = 'new' | 'returning' | 'consistent';
 export type TrainingEquipment = 'gym' | 'home' | 'dumbbells' | 'bodyweight';
 
+/**
+ * How the intake's three answers map onto the shared ladder. `consistent`
+ * stops at `established` on purpose: `advanced` is earned in
+ * features/paths/level, never selected on a form.
+ */
+export const LEVEL_FROM_EXPERIENCE: Record<TrainingExperience, PathLevel> = {
+  new: 'foundation',
+  returning: 'developing',
+  consistent: 'established',
+};
+
 export interface TrainingInputs {
   goal: TrainingGoal;
   experience: TrainingExperience;
+  /**
+   * The level this block was actually built at. Absent on blocks built
+   * before the ladder existed, and on those the declared experience still
+   * decides — so an old stored programme keeps working and simply gets the
+   * level its owner would have been given anyway.
+   */
+  level?: PathLevel;
   daysAvailable: number; // 2–5
   sessionMin: number; // realistic session length
   equipment: TrainingEquipment;
@@ -85,6 +104,101 @@ export function baselinesFrom(metrics: MetricObservation[]): TrainingProgramme['
 
 const round2p5 = (kg: number) => Math.round(kg / 2.5) * 2.5;
 
+
+/**
+ * What each rung actually changes in the prescription.
+ *
+ * These are the numbers that make a foundation block and an advanced block
+ * different programmes rather than the same programme with a different
+ * word on it. The two that matter most are `complexLifts` and `overreach`:
+ * the first keeps a first-timer off the two lifts that punish a rushed
+ * pattern hardest, and the second is the deliberate over-shoot that only
+ * makes sense for someone whose log shows they can absorb it.
+ */
+interface LevelTuning {
+  /** Sets added to or removed from every main lift, outside the deload. */
+  setsDelta: number;
+  /** Shift applied to the prescribed %e1RM, outside the deload. */
+  pctDelta: number;
+  /** Ceiling on effort when there is no baseline to compute a load from. */
+  rpeCap: number;
+  /** Accessory slots added or removed. */
+  accessoryDelta: number;
+  /** Barbell deadlift and overhead press as programmed main work. */
+  complexLifts: boolean;
+  /** A heavy top single in the peak week, when the focus lift is baselined. */
+  topSingle: boolean;
+  /** Week 3 overshoots deliberately, and the deload pays for it. */
+  overreach: boolean;
+  /** Every session carries one thing to think about while doing it. */
+  technicalFocus: boolean;
+}
+
+const LEVEL_TUNING: Record<PathLevel, LevelTuning> = {
+  foundation: {
+    setsDelta: -1,
+    pctDelta: -0.075,
+    rpeCap: 7,
+    accessoryDelta: -1,
+    complexLifts: false,
+    topSingle: false,
+    overreach: false,
+    technicalFocus: true,
+  },
+  developing: {
+    setsDelta: 0,
+    pctDelta: -0.025,
+    rpeCap: 8,
+    accessoryDelta: 0,
+    complexLifts: true,
+    topSingle: false,
+    overreach: false,
+    technicalFocus: true,
+  },
+  established: {
+    setsDelta: 0,
+    pctDelta: 0,
+    rpeCap: 8,
+    accessoryDelta: 0,
+    complexLifts: true,
+    topSingle: true,
+    overreach: false,
+    technicalFocus: false,
+  },
+  advanced: {
+    setsDelta: 1,
+    pctDelta: 0.025,
+    rpeCap: 9,
+    accessoryDelta: 1,
+    complexLifts: true,
+    topSingle: true,
+    overreach: true,
+    technicalFocus: false,
+  },
+};
+
+/**
+ * The level a set of inputs builds at. Explicit when the ladder set it;
+ * otherwise the declared experience, which is what every programme built
+ * before the ladder existed was implicitly using.
+ */
+export function levelOf(inputs: TrainingInputs): PathLevel {
+  return inputs.level ?? LEVEL_FROM_EXPERIENCE[inputs.experience] ?? 'developing';
+}
+
+/**
+ * One thing to think about while the set is happening. Rotated by session
+ * so the same cue is not repeated all block — a cue you have stopped
+ * reading is not a cue.
+ */
+const TECHNICAL_CUES = [
+  'Focus this session: brace before the bar moves, not after.',
+  'Focus this session: control the way down. The lowering is where the work is.',
+  'Focus this session: full range on every rep, even the last one.',
+  'Focus this session: same bar path every rep. Consistency before load.',
+  'Focus this session: finish each set with one clean rep left in you.',
+];
+
 /** Weekly %e1RM for the main lifts by phase and goal. */
 function mainScheme(goal: TrainingGoal, week: number): { sets: number; reps: string; pct: number } {
   if (goal === 'strength') {
@@ -119,17 +233,37 @@ function prescribe(
   week: number,
   primary: boolean,
   restSec: number,
+  tuning: LevelTuning,
 ): PrescribedExercise {
   const scheme = mainScheme(goal, week);
-  const sets = primary ? scheme.sets : Math.max(2, scheme.sets - 1);
+  const deload = week === 4;
+
+  // The deload is the same week for everybody. Its whole job is to be
+  // easy, and an advanced lifter's extra set would undo it.
+  const setsDelta = deload ? 0 : tuning.setsDelta;
+  const pctDelta = deload ? 0 : tuning.pctDelta;
+  // Week 3 is the peak; for a level that overreaches it peaks harder.
+  const overreachSets = !deload && week === 3 && tuning.overreach && primary ? 1 : 0;
+
   const base = lift ? baselines[lift] : undefined;
+  const sets = Math.max(
+    2,
+    (primary ? scheme.sets : Math.max(2, scheme.sets - 1)) + setsDelta + overreachSets,
+  );
+
   if (base) {
-    const pct = primary ? scheme.pct : scheme.pct - 0.05;
-    return { name, sets, reps: scheme.reps, loadKg: round2p5(base * pct), restSec };
+    const pct = (primary ? scheme.pct : scheme.pct - 0.05) + pctDelta;
+    // Clamped so no combination of goal, week and level can prescribe a
+    // load that is either a warm-up or a maximal attempt by accident.
+    const safePct = Math.min(0.9, Math.max(0.5, pct));
+    return { name, sets, reps: scheme.reps, loadKg: round2p5(base * safePct), restSec };
   }
-  // No baseline: effort-anchored, deliberately conservative for new lifters.
-  const rpe = week === 4 ? 6 : goal === 'strength' ? 8 : 7;
-  return { name, sets, reps: scheme.reps, rpe, restSec };
+
+  // No baseline: effort-anchored, and the level caps how hard that effort
+  // is allowed to be. Someone in their first month should not be taken to
+  // an RPE they have no reference for.
+  const target = deload ? 6 : goal === 'strength' ? 8 : 7;
+  return { name, sets, reps: scheme.reps, rpe: Math.min(target, tuning.rpeCap), restSec };
 }
 
 const ACCESSORIES: Record<TrainingEquipment, PrescribedExercise[]> = {
@@ -161,19 +295,47 @@ interface Slot {
   primary: boolean;
 }
 
-/** Main-work menu per equipment; barbell numbers only where a barbell exists. */
-function mains(equipment: TrainingEquipment): { upper: Slot[]; lower: Slot[]; full: Slot[] } {
+/**
+ * Main-work menu per equipment; barbell numbers only where a barbell
+ * exists, and the two lifts that punish a rushed pattern hardest only
+ * where the level has earned them.
+ *
+ * The deadlift and the overhead press are held back at foundation, and
+ * nothing else is. A first-timer squats and benches from week one — those
+ * are trainable immediately under light load, and refusing them would be
+ * the patronising version of this. What they get instead of a deadlift is
+ * the hinge it is built on, which is the actual prerequisite.
+ *
+ * The consequence is deliberate: a foundation block cannot produce a
+ * deadlift or overhead-press baseline, and the top rung requires three
+ * baselined lifts. Nobody reaches advanced without having passed through
+ * the levels where those lifts are programmed.
+ */
+function mains(
+  equipment: TrainingEquipment,
+  complexLifts: boolean,
+): { upper: Slot[]; lower: Slot[]; full: Slot[] } {
   if (equipment === 'gym' || equipment === 'home') {
     const barbell = equipment === 'gym';
+    const overhead: Slot = barbell
+      ? complexLifts
+        ? { name: 'Overhead press', lift: 'ohp', primary: false }
+        : { name: 'Dumbbell shoulder press', lift: null, primary: false }
+      : { name: 'Pike push-ups', lift: null, primary: false };
+    const hinge: Slot = barbell
+      ? complexLifts
+        ? { name: 'Deadlift', lift: 'deadlift', primary: false }
+        : { name: 'Romanian deadlift — hinge practice', lift: null, primary: false }
+      : { name: 'Hip hinges (loaded)', lift: null, primary: false };
     return {
       upper: [
         { name: barbell ? 'Bench press' : 'Push-ups (loaded)', lift: barbell ? 'bench' : null, primary: true },
-        { name: barbell ? 'Overhead press' : 'Pike push-ups', lift: barbell ? 'ohp' : null, primary: false },
+        overhead,
         { name: barbell ? 'Barbell row' : 'Backpack rows', lift: null, primary: false },
       ],
       lower: [
         { name: barbell ? 'Squat' : 'Goblet squats', lift: barbell ? 'squat' : null, primary: true },
-        { name: barbell ? 'Deadlift' : 'Hip hinges (loaded)', lift: barbell ? 'deadlift' : null, primary: false },
+        hinge,
       ],
       full: [
         { name: barbell ? 'Squat' : 'Goblet squats', lift: barbell ? 'squat' : null, primary: true },
@@ -228,6 +390,42 @@ function fitToTime(
   return out;
 }
 
+
+/**
+ * What the level means, said once at the top of the block so nobody has to
+ * guess why their programme looks the way it does. An unexplained
+ * difference reads as a bug; an explained one reads as a coach.
+ */
+const LEVEL_NOTE: Record<PathLevel, string> = {
+  foundation:
+    'Foundation block — squat and bench from day one at conservative loads, the hinge learned before it is loaded, and one thing to think about each session. Volume comes after the patterns do.',
+  developing:
+    'Developing block — deadlift and overhead press are in, sets and loads step up. Enough to drive progress without costing you the rest of the week.',
+  established:
+    'Established block — full prescribed volume, a peak week, and a heavy top set on your focus lift.',
+  advanced:
+    'Advanced block — higher intensity, an extra set on the main work, and week 3 deliberately overreaches. The deload after it is not optional.',
+};
+
+/** The line at the top of a session, when there is one worth saying. */
+function sessionNote(
+  phase: TrainingPhase,
+  week: number,
+  dayIdx: number,
+  tuning: LevelTuning,
+): string | undefined {
+  if (phase === 'deload') {
+    return tuning.overreach
+      ? 'Deload — this one is repaying week 3. Light means light; the adaptation happens here.'
+      : 'Deload — moving well at lighter loads, then we reassess and rebuild.';
+  }
+  if (week === 3 && tuning.overreach) {
+    return 'Overreach — expect to feel behind by the end of the week. That is the intent, and next week is the deload.';
+  }
+  if (tuning.technicalFocus) return TECHNICAL_CUES[(week + dayIdx) % TECHNICAL_CUES.length];
+  return undefined;
+}
+
 const PHASES: TrainingPhase[] = ['build', 'build', 'progress', 'deload'];
 
 /** Build the four-week block from who this person actually is. */
@@ -236,8 +434,12 @@ export function buildProgramme(
   baselines: TrainingProgramme['baselines'] = {},
 ): TrainingProgramme {
   const days = Math.min(Math.max(inputs.daysAvailable, 2), 5);
-  const menu = mains(inputs.equipment);
+  const level = levelOf(inputs);
+  const tuning = LEVEL_TUNING[level];
+  const menu = mains(inputs.equipment, tuning.complexLifts);
   const notes: string[] = [];
+
+  notes.push(LEVEL_NOTE[level]);
 
   // Split from real availability, not aspiration.
   const split: ('upper' | 'lower' | 'full')[] =
@@ -265,10 +467,21 @@ export function buildProgramme(
         if (fi > 0) slots.unshift(...slots.splice(fi, 1));
       }
       let exercises = slots.map((s, si) =>
-        prescribe(s.name, s.lift, baselines, inputs.goal, week, s.primary && si === 0, si === 0 ? 120 : 90),
+        prescribe(
+          s.name,
+          s.lift,
+          baselines,
+          inputs.goal,
+          week,
+          s.primary && si === 0,
+          si === 0 ? 120 : 90,
+          tuning,
+        ),
       );
-      // Week 3 heavy top set for a baselined focus lift.
-      if (week === 3 && inputs.focusLift && baselines[inputs.focusLift] && slots[0]?.lift === inputs.focusLift) {
+      // Week 3 heavy top set for a baselined focus lift — and only for a
+      // level where a near-maximal single is a training tool rather than a
+      // test of nerve.
+      if (tuning.topSingle && week === 3 && inputs.focusLift && baselines[inputs.focusLift] && slots[0]?.lift === inputs.focusLift) {
         exercises.unshift({
           name: `${exercises[0].name} — heavy top single`,
           sets: 1,
@@ -277,7 +490,10 @@ export function buildProgramme(
           restSec: 180,
         });
       }
-      const accessoryBudget = inputs.goal === 'hypertrophy' ? 3 : 2;
+      const accessoryBudget = Math.max(
+        1,
+        (inputs.goal === 'hypertrophy' ? 3 : 2) + tuning.accessoryDelta,
+      );
       exercises = exercises.concat(
         ACCESSORIES[inputs.equipment].slice(0, phase === 'deload' ? 1 : accessoryBudget).map((e) => ({ ...e })),
       );
@@ -290,7 +506,7 @@ export function buildProgramme(
           kind === 'full' ? `Full body ${String.fromCharCode(65 + dayIdx)}` : kind === 'upper' ? `Upper ${dayIdx < 2 ? 'A' : 'B'}` : `Lower ${dayIdx < 2 ? 'A' : 'B'}`,
         exercises,
         estimatedMin: Math.min(estimateMin(exercises, inputs.age), inputs.sessionMin),
-        note: phase === 'deload' ? 'Deload — moving well at lighter loads, then we reassess and rebuild.' : undefined,
+        note: sessionNote(phase, week, dayIdx, tuning),
       };
     });
     return {
@@ -300,7 +516,9 @@ export function buildProgramme(
         phase === 'deload'
           ? 'Recover, then retest the main lifts'
           : week === 3
-            ? 'Peak week — heaviest work of the block'
+            ? tuning.overreach
+              ? 'Overreach week — deliberately more than you can sustain, and next week pays it back'
+              : 'Peak week — heaviest work of the block'
             : 'Accumulate quality volume',
       sessions,
     };

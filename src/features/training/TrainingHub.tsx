@@ -1,17 +1,18 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { SectionHeader } from '@/components/section-header';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { estimate1Rm, latest, metricDef, trend } from '@/features/model/metrics';
 import { QuestionCard } from '@/features/model/QuestionCard';
+import { LevelCard } from '@/features/paths/LevelCard';
 import { weekOf } from '@/features/training/programme';
-import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
 const LIFTS = [
@@ -27,12 +28,23 @@ const LIFTS = [
  */
 export function TrainingHub() {
   const router = useRouter();
-  const theme = useTheme();
 
   const metrics = useAppStore((s) => s.metrics);
   const programme = useAppStore((s) => s.trainingProgramme);
   const addMetric = useAppStore((s) => s.addMetric);
   const buildTrainingBlock = useAppStore((s) => s.buildTrainingBlock);
+  const trainingLevelState = useAppStore((s) => s.trainingLevelState);
+  const setPathLevelStepBack = useAppStore((s) => s.setPathLevelStepBack);
+  // Recomputed whenever a log or a metric lands, which is exactly when the
+  // ladder can have moved.
+  const logCount = useAppStore((s) => s.workoutLogs.length);
+  const metricCount = useAppStore((s) => s.metrics.length);
+  const stepBack = useAppStore((s) => s.pathLevelStepBack.training);
+  const levelState = useMemo(
+    () => trainingLevelState(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [trainingLevelState, logCount, metricCount, stepBack],
+  );
 
   const [logLift, setLogLift] = useState<string | null>(null);
   const [weight, setWeight] = useState('');
@@ -40,11 +52,6 @@ export function TrainingHub() {
 
   const week = programme ? weekOf(programme) : null;
   const knownLifts = LIFTS.filter((l) => latest(metrics, l.key));
-
-  const inputStyle = [
-    styles.numInput,
-    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-  ];
 
   const saveLift = (key: string, w: number, r: number) => {
     const e1rm = estimate1Rm(w, r);
@@ -54,6 +61,18 @@ export function TrainingHub() {
 
   return (
     <View>
+      {/* The ladder first: it explains why the block below looks the way
+          it does, and it is the thing worth coming back for. */}
+      <SectionHeader title="Where you are" />
+      <LevelCard
+        path="training"
+        level={levelState.level}
+        evidence={levelState.evidence}
+        progress={levelState.progress}
+        steppedBack={levelState.steppedBack}
+        onStepBack={(l) => setPathLevelStepBack('training', l)}
+      />
+
       {/* Your numbers — the simple, meaningful progress line. */}
       {knownLifts.length > 0 ? (
         <View>
@@ -149,24 +168,27 @@ export function TrainingHub() {
       </View>
       {logLift ? (
         <View style={styles.inputRow}>
-          <TextInput
+          <Field
+            label={`${LIFTS.find((l) => l.key === logLift)?.label ?? 'Lift'} weight in kilograms`}
+            showLabel={false}
             value={weight}
             onChangeText={setWeight}
             keyboardType="numeric"
             placeholder="kg"
-            placeholderTextColor={theme.textTertiary}
-            style={inputStyle}
+            width={84}
           />
-          <TextInput
+          <Field
+            label="Repetitions completed"
+            showLabel={false}
             value={reps}
             onChangeText={setReps}
             keyboardType="numeric"
             placeholder="reps"
-            placeholderTextColor={theme.textTertiary}
-            style={inputStyle}
+            width={84}
           />
           <Button
             title="Save"
+            hint="Estimates your one-rep max from this set and adds it to your numbers."
             disabled={!Number(weight) || !Number(reps)}
             onPress={() => {
               const e1rm = saveLift(logLift, Number(weight), Number(reps));
@@ -191,13 +213,5 @@ const styles = StyleSheet.create({
   grow: { flexGrow: 1 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.md },
-  numInput: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontSize: 17,
-    width: 84,
-  },
   hint: { marginTop: Spacing.sm },
 });
