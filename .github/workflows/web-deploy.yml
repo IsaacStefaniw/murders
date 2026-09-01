@@ -1,0 +1,37 @@
+# Build the website in web/ and deploy it to Cloudflare Workers.
+# Requires repository secrets:
+#   CLOUDFLARE_API_TOKEN  — token with "Workers Scripts: Edit"
+#   CLOUDFLARE_ACCOUNT_ID — the account the Worker belongs to
+name: Deploy website
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Replace the live website
+        type: boolean
+        default: false
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run lint
+      - name: Build
+        run: npm run build
+      - name: Product-truth guardrails
+        run: node --test tests/rendered-html.test.mjs
+      - name: Deploy
+        if: ${{ inputs.confirm }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler@4 deploy

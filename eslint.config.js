@@ -5,7 +5,7 @@ const expoConfig = require("eslint-config-expo/flat");
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ["dist/*"],
+    ignores: ["dist/*", "web/**"],
   },
   {
     // Jest setup runs in the test environment, not the app runtime.

@@ -43,3 +43,10 @@ example
 # generated native folders
 /ios
 /android
+
+# Website (web/) build output
+web/node_modules/
+web/dist/
+web/.next/
+web/.wrangler/
+web/.sites-runtime/
