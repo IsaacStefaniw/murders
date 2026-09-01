@@ -41,7 +41,14 @@ export interface FieldProps {
   onSubmitEditing?: () => void;
   returnKeyType?: 'done' | 'next' | 'go' | 'send';
   style?: StyleProp<ViewStyle>;
-  /** Fixed width, for numeric boxes sitting in a row. */
+  /**
+   * Starting width for a numeric box sitting in a row.
+   *
+   * A MINIMUM, not a fixed size: at the largest accessibility text setting
+   * 17pt type renders near 30pt, and a hard-width box clips the number
+   * being typed into it — silently, and only for the people who most need
+   * to read it.
+   */
   width?: number;
   /**
    * 'large' is for the one input a screen is about — a goal being named, a
@@ -84,13 +91,13 @@ export function Field({
         borderColor: theme.border,
         backgroundColor: editable ? theme.surface : theme.surfacePressed,
       },
-      width != null ? { width } : null,
+      width != null ? { minWidth: width, flexGrow: 0 } : null,
     ],
     [theme, multiline, editable, width, size],
   );
 
   return (
-    <View style={[styles.wrap, width != null ? { width } : null, style]}>
+    <View style={[styles.wrap, width != null ? { minWidth: width, flexShrink: 1 } : null, style]}>
       {showLabel ? (
         <AppText variant="label" color="textSecondary" style={styles.label}>
           {label}

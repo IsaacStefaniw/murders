@@ -39,7 +39,7 @@ import {
   type TrainingInputs,
   type TrainingProgramme,
 } from '@/features/training/programme';
-import { PATH_ANSWER_FOR, profilePatchFor } from '@/features/onboarding/buildPlan';
+import { answersFromProfile, PATH_ANSWER_FOR, profilePatchFor } from '@/features/onboarding/buildPlan';
 import type { InterviewAnswers } from '@/features/onboarding/script';
 import { buildExecutiveBlock, type WorkBlock, type WorkInputs } from '@/features/work/programme';
 import {
@@ -1479,7 +1479,15 @@ export const useAppStore = create<AppState>()(
           ),
         ),
       onRehydrateStorage: () => (state) => {
-        state?.setHydrated();
+        if (!state) return;
+        // Anyone who onboarded before the interview was split has a
+        // profile but no stored answers. Reconstructing what the profile
+        // can prove is what stops them being asked eighteen questions they
+        // already sat through.
+        if (state.profile && Object.keys(state.interviewAnswers ?? {}).length === 0) {
+          state.interviewAnswers = answersFromProfile(state.profile);
+        }
+        state.setHydrated();
       },
     },
   ),

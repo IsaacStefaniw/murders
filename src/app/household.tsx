@@ -171,7 +171,8 @@ const styles = StyleSheet.create({
   sub: { marginTop: Spacing.sm },
   stack: { gap: Spacing.sm },
   entryRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  when: { width: 76 },
+  // minWidth so a scaled-up time is never cut off by its own column.
+  when: { minWidth: 76 },
   entryTitle: { flex: 1, fontWeight: '500' },
   copy: { marginTop: Spacing.md },
 });

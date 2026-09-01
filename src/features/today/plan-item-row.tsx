@@ -96,7 +96,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.md,
   },
-  time: { width: 62, fontVariant: ['tabular-nums'] },
+  // minWidth so a scaled-up time is never cut off by its own column.
+  time: { minWidth: 62, fontVariant: ['tabular-nums'] },
   title: { flex: 1, fontWeight: '500' },
   focus: { paddingLeft: 62 + Spacing.md },
   actions: { paddingTop: Spacing.xs },

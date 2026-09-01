@@ -70,3 +70,46 @@ describe('touch targets', () => {
     }
   });
 });
+
+/**
+ * Dynamic Type. At the largest accessibility setting, 13pt renders near
+ * 30pt and 17pt near 40 — so a text column pinned to a fixed width clips
+ * its own contents, silently, and only for the people who set the type
+ * large because they need it.
+ *
+ * The rule is `minWidth` for anything holding text and `width` only for
+ * genuinely decorative boxes. The gutter stops aligning perfectly at
+ * extreme sizes; that is the correct thing to lose.
+ */
+describe('large text', () => {
+  const DECORATIVE = [
+    'charts.tsx',      // a 10pt legend dot
+    'breathe.tsx',     // the breathing circle
+    'LevelCard.tsx',   // a 6pt progress bar
+  ];
+
+  it('never pins a text column to a fixed width', () => {
+    const offenders: string[] = [];
+    for (const file of tsxFiles(SRC)) {
+      if (DECORATIVE.some((d) => file.endsWith(d))) continue;
+      for (const line of readFileSync(file, 'utf8').split('\n')) {
+        if (/(^|[^a-zA-Z])width: \d/.test(line) && !/minWidth|maxWidth|border\w*Width/.test(line)) {
+          offenders.push(`${rel(file)}: ${line.trim()}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  /**
+   * `numberOfLines` truncates with an ellipsis, which at large type turns
+   * a sentence into three words and a dot. Nothing in the app uses it, and
+   * this keeps it that way.
+   */
+  it('never truncates text to a line count', () => {
+    const offenders = tsxFiles(SRC)
+      .filter((f) => readFileSync(f, 'utf8').includes('numberOfLines'))
+      .map(rel);
+    expect(offenders).toEqual([]);
+  });
+});

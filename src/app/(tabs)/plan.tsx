@@ -129,7 +129,8 @@ const styles = StyleSheet.create({
   },
   items: { marginTop: Spacing.md, gap: Spacing.sm },
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  time: { width: 56, fontVariant: ['tabular-nums'] },
+  // minWidth so a scaled-up time is never cut off by its own column.
+  time: { minWidth: 56, fontVariant: ['tabular-nums'] },
   itemTitle: { flex: 1 },
   rebuild: { marginTop: Spacing.sm },
 });

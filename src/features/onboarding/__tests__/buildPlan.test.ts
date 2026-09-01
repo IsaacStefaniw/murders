@@ -1,4 +1,5 @@
 import {
+  answersFromProfile,
   buildLifeOperatingPlan,
   PATH_ANSWER_FOR,
   profilePatchFor,
@@ -430,5 +431,69 @@ describe('answering a deferred question late', () => {
     expect(profilePatchFor('trainingSetup', 'walking', base)).toEqual({
       trainingPreference: 'outdoors',
     });
+  });
+});
+
+/**
+ * The migration for everyone who onboarded before the interview was split.
+ * Their answers were never stored — the profile was the only record — so
+ * without this they open the app and get asked eighteen questions they
+ * already sat through, which is a worse first impression than the long
+ * interview ever was.
+ */
+describe('rebuilding answers from an existing profile', () => {
+  // Someone who answered the whole original twenty-eight — the case this
+  // migration exists for.
+  const full = buildLifeOperatingPlan({
+    ...answers,
+    workStyle: 'maker',
+    sleepQuality: 'broken',
+    pressure: 'redline',
+    age: '45',
+    weight: '90',
+    vision: 'Present at home, sharp at work',
+    existingHabits: ['walking'],
+    moreOf: ['Reading'],
+    lessOf: ['alcohol'],
+  }).profile;
+
+  it('recovers everything the profile can actually prove', () => {
+    const recovered = answersFromProfile(full);
+    expect(recovered.name).toBe('Isaac');
+    expect(recovered.workHours).toBe(`${full.workStart}-${full.workEnd}`);
+    expect(recovered.sleep).toBe(`${full.wakeTime}-${full.sleepTime}`);
+    expect(recovered.household).toContain('partner');
+    expect(recovered.partnerName).toBe('Anna');
+  });
+
+  it('leaves nothing outstanding for someone who answered everything', () => {
+    const recovered = answersFromProfile(full);
+    const stillAsked = (
+      ['training', 'nutrition', 'money', 'work', 'recovery', 'relationship', 'family', 'coaches'] as const
+    ).flatMap((t) => deferredSteps(recovered, t).map((s) => s.id));
+    // Only the questions this profile genuinely cannot answer.
+    expect(stillAsked).not.toContain('workStyle');
+    expect(stillAsked).not.toContain('pressure');
+    expect(stillAsked).not.toContain('household');
+  });
+
+  /**
+   * 'outdoors' is where both 'outdoors' and 'walking' land, so it cannot be
+   * reversed — and guessing wrong hands a walker a barbell programme.
+   * Asking once is the correct outcome, not a compromise.
+   */
+  it('refuses to guess a setup it cannot recover, and asks instead', () => {
+    const walker = { ...full, trainingPreference: 'outdoors' as const };
+    const recovered = answersFromProfile(walker);
+    expect(recovered.trainingSetup).toBeUndefined();
+    expect(deferredSteps(recovered, 'training').map((s) => s.id)).toContain('trainingSetup');
+  });
+
+  it('does not mistake the placeholder partner name for a real one', () => {
+    const unnamed = {
+      ...full,
+      people: [{ id: 'p1', name: 'Partner', relation: 'partner' as const }],
+    };
+    expect(answersFromProfile(unnamed).partnerName).toBeUndefined();
   });
 });

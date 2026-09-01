@@ -713,3 +713,57 @@ export const PATH_ANSWER_FOR: Record<string, { path: PathId; key: string }> = {
   sleepQuality: { path: 'recovery', key: 'sleepQuality' },
   pressure: { path: 'recovery', key: 'pressure' },
 };
+
+/**
+ * Reconstruct the interview answers from a profile that already exists.
+ *
+ * Needed exactly once, for the people who onboarded before the interview
+ * was split. Their answers were never stored — the profile was the only
+ * record — so without this every one of them would open the app and be
+ * asked eighteen questions they had already sat through. That is a worse
+ * first impression than the long interview was.
+ *
+ * Only what the profile can actually prove. A field the profile does not
+ * carry stays unanswered, and the question is asked once, in the pathway
+ * that wants it, which is the correct outcome rather than a compromise.
+ */
+export function answersFromProfile(profile: LifeProfile): InterviewAnswers {
+  const answers: InterviewAnswers = {
+    name: profile.firstName,
+    priorities: profile.priorities,
+    capacity: profile.capacity,
+    workDays: profile.workDays.map(String),
+    workHours: `${profile.workStart}-${profile.workEnd}`,
+    sleep: `${profile.wakeTime}-${profile.sleepTime}`,
+    energy: profile.energyProfile,
+    trainingDays: String(profile.trainingDaysPerWeek),
+  };
+
+  if (profile.lifeVision) answers.vision = profile.lifeVision;
+  if (profile.age) answers.age = String(profile.age);
+  if (profile.weightKg) answers.weight = String(profile.weightKg);
+  if (profile.workStyle) answers.workStyle = profile.workStyle;
+  if (profile.sleepQuality) answers.sleepQuality = profile.sleepQuality;
+  if (profile.pressure) answers.pressure = profile.pressure;
+  if (profile.moreOf.length > 0) answers.moreOf = profile.moreOf;
+  if (profile.lessOf.length > 0) answers.lessOf = profile.lessOf;
+  if (profile.existingHabits?.length) answers.existingHabits = profile.existingHabits;
+  if (profile.kidsCount) answers.kidsCount = String(profile.kidsCount);
+
+  // 'outdoors' is where both 'outdoors' and 'walking' land, so it cannot
+  // be reversed — and guessing wrong would hand a walker a barbell
+  // programme. Left unanswered, and asked once.
+  if (profile.trainingPreference !== 'outdoors') {
+    answers.trainingSetup = profile.trainingPreference;
+  }
+
+  const household: string[] = [];
+  if (profile.people.some((p) => p.relation === 'partner')) household.push('partner');
+  if (profile.people.some((p) => p.relation === 'child')) household.push('kids');
+  if (household.length > 0) answers.household = household;
+
+  const partner = profile.people.find((p) => p.relation === 'partner');
+  if (partner && partner.name !== 'Partner') answers.partnerName = partner.name;
+
+  return answers;
+}

@@ -179,7 +179,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
   },
-  dayName: { width: 86 },
+  // minWidth, not width: at the largest text setting a fixed 86pt column
+  // clips the day name. The gutter stops aligning perfectly, which is the
+  // right thing to lose.
+  dayName: { minWidth: 86 },
   meal: { flex: 1, fontWeight: '500' },
   save: { marginTop: Spacing.xl },
 });
