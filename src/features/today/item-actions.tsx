@@ -8,6 +8,10 @@ import { Chip } from '@/components/chip';
 import { Spacing } from '@/constants/theme';
 import { sessionForItem } from '@/features/modalities/registry';
 import { smartMoveOptions } from '@/features/planner/moveOptions';
+import {
+  candidateStartsFor,
+  type Displacement,
+} from '@/features/planner/moveWithBump';
 import { addDays, formatTime, nowMinutes, toMinutes } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 import type { DailyPlan, LifeProfile, PlanItem } from '@/types/domain';
@@ -35,6 +39,8 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
 
   const setMilestoneDone = useAppStore((s) => s.setMilestoneDone);
   const [mode, setMode] = useState<'idle' | 'move' | 'choose' | 'skip' | 'milestone'>('idle');
+  /** What else moved to make room. Shown once, then cleared on the next action. */
+  const [knockOn, setKnockOn] = useState<Displacement[]>([]);
   const session = item.status === 'planned' ? sessionForItem(item, goals) : null;
 
   // Doing → progressing: completing a goal-linked block asks, once, whether
@@ -49,6 +55,17 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
   const finish = () => {
     setMode('idle');
     onDone?.();
+  };
+
+  /**
+   * Apply a move and keep whatever it displaced, so the person is told
+   * rather than discovering later that their evening rearranged itself.
+   */
+  const applyMove = (start: string) => {
+    const displaced = moveItem(date, item.id, start);
+    setKnockOn(displaced);
+    if (displaced.length === 0) finish();
+    else setMode('idle');
   };
 
   if (mode === 'milestone' && goal && nextMilestone) {
@@ -82,15 +99,27 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
 
   if (mode === 'move' || mode === 'choose') {
     const { options, allSlots } = smartMoveOptions(item, plan, profile, nowMinutes());
+    // Every time of day, each priced by what it would displace — so the
+    // choice belongs to the person rather than to the scheduler.
+    const candidates = candidateStartsFor(plan, item.id, {
+      wakeTime: profile.wakeTime,
+      sleepTime: profile.sleepTime,
+    });
     // A day with genuinely no room is a real answer, and saying so beats a
     // menu whose only entry is Tomorrow with no explanation of why.
     if (allSlots.length === 0) {
       return (
         <View style={styles.column}>
           <AppText variant="caption" color="textTertiary">
-            Nothing free today that fits {duration} minutes — the day is full.
+            Nothing free today that fits {duration} minutes. You can still take a time and
+            move what is there.
           </AppText>
           <View style={styles.chips}>
+            <Chip
+              label="Pick a time anyway"
+              hint="Shows every time of day, and what each one would move."
+              onPress={() => setMode('choose')}
+            />
             <Chip
               label="Move to tomorrow"
               onPress={() => {
@@ -127,8 +156,7 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
                   label={o.kind === 'slot' ? `${o.label} (${formatTime(o.start!)})` : o.label}
                   onPress={() => {
                     if (o.kind === 'slot') {
-                      moveItem(date, item.id, o.start!);
-                      finish();
+                      applyMove(o.start!);
                     } else if (o.kind === 'tomorrow') {
                       moveItemToDate(date, item.id, addDays(date, 1));
                       finish();
@@ -138,14 +166,24 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
                   }}
                 />
               ))
-            : allSlots.map((slot) => (
+            : candidates.map((c) => (
                 <Chip
-                  key={slot}
-                  label={formatTime(slot)}
-                  onPress={() => {
-                    moveItem(date, item.id, slot);
-                    finish();
-                  }}
+                  key={c.start}
+                  label={
+                    c.bumps > 0
+                      ? `${formatTime(c.start)} · moves ${c.bumps}`
+                      : c.hitsFixed
+                        ? `${formatTime(c.start)} · during work`
+                        : formatTime(c.start)
+                  }
+                  hint={
+                    c.bumps > 0
+                      ? 'Takes this time and shifts what is there to the nearest free slot.'
+                      : c.hitsFixed
+                        ? 'Overlaps a fixed commitment. Yours to choose.'
+                        : undefined
+                  }
+                  onPress={() => applyMove(c.start)}
                 />
               ))}
           <Chip label="Cancel" onPress={() => setMode('idle')} />
@@ -188,6 +226,33 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
             }}
           />
           <Chip label="Cancel" onPress={() => setMode('idle')} />
+        </View>
+      </View>
+    );
+  }
+
+  if (knockOn.length > 0) {
+    return (
+      <View style={styles.column}>
+        <AppText variant="caption" color="textTertiary">
+          Moved to make room:
+        </AppText>
+        {knockOn.map((d) => (
+          <AppText key={d.id} variant="secondary">
+            {d.to
+              ? `${d.title} → ${formatTime(d.to)}`
+              : `${d.title} — no room left today, left where it was`}
+          </AppText>
+        ))}
+        <View style={styles.chips}>
+          <Chip
+            label="Got it"
+            selected
+            onPress={() => {
+              setKnockOn([]);
+              finish();
+            }}
+          />
         </View>
       </View>
     );

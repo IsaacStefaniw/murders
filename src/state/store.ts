@@ -55,6 +55,7 @@ import {
   freeEndAtOrBefore,
   generateDailyPlan,
 } from '@/features/planner/generate';
+import { moveWithBump, type Displacement } from '@/features/planner/moveWithBump';
 import { mergeRoutines } from '@/features/planner/mergeRoutines';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
@@ -159,7 +160,17 @@ export interface AppState {
     evidence?: CompletionEvidence,
   ) => void;
   /** Move a plan item within its day. Recorded as a behavioural signal. */
-  moveItem: (date: string, itemId: string, newStart: string, initiatedBy?: 'user' | 'intent') => void;
+  /**
+   * Move an item to a chosen time, displacing whatever flexible things sit
+   * there. Returns what else moved so the person can be told — a plan that
+   * rearranges itself silently is worse than one that refuses.
+   */
+  moveItem: (
+    date: string,
+    itemId: string,
+    newStart: string,
+    initiatedBy?: 'user' | 'intent',
+  ) => Displacement[];
   /** Move a plan item to another day, at the first slot that actually fits. */
   moveItemToDate: (date: string, itemId: string, targetDate: string) => void;
   /** Shorten an item to fit the time that exists — recovery, not compliance. */
@@ -654,21 +665,21 @@ export const useAppStore = create<AppState>()(
         },
 
         moveItem: (date, itemId, newStart, initiatedBy = 'user') => {
-          const item = get().plans[date]?.items.find((i) => i.id === itemId);
-          if (!item || item.fixed) return;
-          const duration = toMinutes(item.end) - toMinutes(item.start);
-          updatePlanItems(date, (items) =>
-            items.map((i) =>
-              i.id === itemId
-                ? {
-                    ...i,
-                    start: newStart,
-                    end: toHHMM(toMinutes(newStart) + duration),
-                    movedFrom: i.movedFrom ?? i.start,
-                  }
-                : i,
-            ),
-          );
+          const plan = get().plans[date];
+          const profile = get().profile;
+          const item = plan?.items.find((i) => i.id === itemId);
+          if (!plan || !profile || !item || item.fixed) return [];
+
+          // The chosen time is granted and the flexible day re-laid around
+          // it. Choosing a time is a statement about priority; answering
+          // "something else is there" mistakes INTENT's own arrangement for
+          // a fact about the person's life.
+          const outcome = moveWithBump(plan, itemId, newStart, {
+            wakeTime: profile.wakeTime,
+            sleepTime: profile.sleepTime,
+          });
+          updatePlanItems(date, () => outcome.items);
+
           record(
             eventFor(item, date, 'rescheduled', {
               originalStart: item.start,
@@ -676,7 +687,22 @@ export const useAppStore = create<AppState>()(
               initiatedBy,
             }),
           );
+          // Each knock-on move is recorded as its own reschedule, initiated
+          // by INTENT rather than the user — the learning layer should not
+          // read a bump as the person choosing that time.
+          for (const d of outcome.displaced) {
+            const moved = plan.items.find((i) => i.id === d.id);
+            if (!moved || !d.to) continue;
+            record(
+              eventFor(moved, date, 'rescheduled', {
+                originalStart: d.from,
+                newStart: d.to,
+                initiatedBy: 'intent',
+              }),
+            );
+          }
           get().refreshSuggestions();
+          return outcome.displaced;
         },
 
         moveItemToDate: (date, itemId, targetDate) => {
