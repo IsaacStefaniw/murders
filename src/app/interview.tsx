@@ -5,18 +5,17 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { activeSteps } from '@/features/onboarding/script';
 import { useOnboardingStore } from '@/features/onboarding/state';
-import { useTheme } from '@/hooks/use-theme';
 
 /**
  * The Life Interview. One question at a time, quick answers, a visible
@@ -24,7 +23,6 @@ import { useTheme } from '@/hooks/use-theme';
  */
 export default function Interview() {
   const router = useRouter();
-  const theme = useTheme();
   const { answers, setAnswer } = useOnboardingStore();
   const [stepIndex, setStepIndex] = useState(0);
   const [textDraft, setTextDraft] = useState('');
@@ -97,18 +95,17 @@ export default function Interview() {
           <AppText variant="title">{step.prompt(answers)}</AppText>
 
           {step.kind === 'text' ? (
-            <TextInput
+            <Field
+              // The question above IS the label, so it is announced rather
+              // than drawn — a second copy would read as a duplicate.
+              label={step.prompt(answers)}
+              showLabel={false}
               value={textDraft}
               onChangeText={setTextDraft}
               placeholder={step.placeholder}
-              placeholderTextColor={theme.textTertiary}
               autoFocus
               returnKeyType="done"
               onSubmitEditing={canContinue ? submitText : undefined}
-              style={[
-                styles.input,
-                { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-              ]}
             />
           ) : (
             <View style={styles.chips}>
@@ -161,12 +158,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.sm,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: 17,
   },
 });

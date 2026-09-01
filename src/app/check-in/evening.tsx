@@ -1,16 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { analyseReflection } from '@/lib/ai/agents';
 import { todayKey } from '@/lib/dates';
-import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 import type { ReflectionMood } from '@/types/domain';
 
@@ -25,7 +25,6 @@ const MOODS: { value: ReflectionMood; label: string }[] = [
 /** One-minute evening reflection. Quick controls, optional text. */
 export default function EveningCheckIn() {
   const router = useRouter();
-  const theme = useTheme();
   const date = todayKey();
 
   const saveReflection = useAppStore((s) => s.saveReflection);
@@ -53,10 +52,6 @@ export default function EveningCheckIn() {
     router.back();
   };
 
-  const inputStyle = [
-    styles.input,
-    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-  ];
 
   return (
     <Screen>
@@ -74,25 +69,25 @@ export default function EveningCheckIn() {
       </View>
 
       <SectionHeader title="What got in the way?" />
-      <TextInput
+      <Field
+        label="What got in the way?"
+        showLabel={false}
         value={gotInTheWay}
         onChangeText={setGotInTheWay}
         placeholder="Optional"
-        placeholderTextColor={theme.textTertiary}
         multiline
-        style={inputStyle}
       />
 
       {/* Deliberately last (peak-end rule): the day's final cognitive act is
           retrieving something good, which lifts tomorrow's starting mood. */}
       <SectionHeader title="What went well?" />
-      <TextInput
+      <Field
+        label="What went well?"
+        showLabel={false}
         value={wentWell}
         onChangeText={setWentWell}
         placeholder="End on a good note — one moment is plenty"
-        placeholderTextColor={theme.textTertiary}
         multiline
-        style={inputStyle}
       />
 
       <View style={styles.footer}>
@@ -108,14 +103,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.sm,
     marginTop: Spacing.lg,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: 16,
-    minHeight: 52,
   },
   footer: { marginTop: Spacing.xxl },
 });

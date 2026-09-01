@@ -14,18 +14,18 @@
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { goalTrajectory } from '@/features/model/trajectory';
 import { addDays, formatDateLong, todayKey } from '@/lib/dates';
-import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
 const HORIZONS = [
@@ -36,7 +36,6 @@ const HORIZONS = [
 
 export default function EditGoal() {
   const router = useRouter();
-  const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const goal = useAppStore((s) => s.goals.find((g) => g.id === id));
@@ -61,7 +60,6 @@ export default function EditGoal() {
   }
 
   const trajectory = goalTrajectory(goal, metrics);
-  const inputStyle = [styles.input, { color: theme.text, borderColor: theme.border }];
 
   return (
     <Screen>
@@ -70,22 +68,22 @@ export default function EditGoal() {
       </AppText>
 
       <SectionHeader title="What it is" />
-      <TextInput
+      <Field
+        label="Goal title"
+        showLabel={false}
         value={goal.title}
         onChangeText={(title) => updateGoal(goal.id, { title })}
-        style={[...inputStyle, styles.titleInput]}
-        accessibilityLabel="Goal title"
+        size="large"
         multiline
       />
 
       <SectionHeader title="Why" />
-      <TextInput
+      <Field
+        label="Why this goal matters"
+        showLabel={false}
         value={goal.why ?? ''}
         onChangeText={(why) => updateGoal(goal.id, { why: why || undefined })}
         placeholder="The reason, in your words. Used when motivation dips."
-        placeholderTextColor={theme.textTertiary}
-        style={inputStyle}
-        accessibilityLabel="Why this goal matters"
         multiline
       />
 
@@ -127,11 +125,11 @@ export default function EditGoal() {
       <View style={styles.stack}>
         {(goal.milestones ?? []).map((m) => (
           <Card key={m.id}>
-            <TextInput
+            <Field
+              label={`Milestone: ${m.title}`}
+              showLabel={false}
               value={m.title}
               onChangeText={(title) => updateMilestone(goal.id, m.id, { title })}
-              style={inputStyle}
-              accessibilityLabel={`Milestone: ${m.title}`}
             />
             <View style={styles.rungRow}>
               <AppText variant="caption" color="textTertiary" style={styles.grow}>
@@ -150,12 +148,14 @@ export default function EditGoal() {
         ))}
       </View>
       <View style={styles.addRow}>
-        <TextInput
+        <Field
+          label="Add a milestone"
+          showLabel={false}
+          style={styles.grow}
           value={newRung}
           onChangeText={setNewRung}
           placeholder="Add a milestone"
-          placeholderTextColor={theme.textTertiary}
-          style={inputStyle}
+          returnKeyType="done"
           onSubmitEditing={() => {
             if (newRung.trim()) addMilestone(goal.id, newRung.trim());
             setNewRung('');
@@ -221,15 +221,5 @@ const styles = StyleSheet.create({
   rungRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm },
   grow: { flexShrink: 1, flexGrow: 1 },
   gap: { marginTop: Spacing.sm },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 8,
-    fontSize: 16,
-    marginTop: Spacing.sm,
-  },
-  titleInput: { fontSize: 18 },
   footer: { marginTop: Spacing.xxl },
 });

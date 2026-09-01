@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
-import { Radius, Spacing } from '@/constants/theme';
+import { Field } from '@/components/field';
+import { Spacing } from '@/constants/theme';
 import { estimate1Rm } from '@/features/model/metrics';
 import { nextQuestion, type QuestionDomain } from '@/features/model/questionEngine';
 import { useTheme } from '@/hooks/use-theme';
@@ -37,10 +38,6 @@ export function QuestionCard({ domain }: { domain: QuestionDomain }) {
   const question = nextQuestion({ profile, metrics, askedAt: questionLog, pathAnswers, domain });
   if (!question) return null;
 
-  const inputStyle = [
-    styles.numInput,
-    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-  ];
 
   const saveChoice = (value: string) => {
     if (question.pathId && question.answerKey) {
@@ -74,22 +71,30 @@ export function QuestionCard({ domain }: { domain: QuestionDomain }) {
         </View>
       ) : (
         <View style={styles.inputRow}>
-          <TextInput
+          <Field
+            // The question itself is the label. Announcing it here is what
+            // makes the field mean anything without sight of the card.
+            label={
+              question.input === 'setEntry'
+                ? `${question.prompt} — weight in kilograms`
+                : `${question.prompt}${question.unit ? ` in ${question.unit}` : ''}`
+            }
+            showLabel={false}
             value={answer}
             onChangeText={setAnswer}
             keyboardType="numeric"
             placeholder={question.input === 'setEntry' ? 'kg' : (question.unit ?? '')}
-            placeholderTextColor={theme.textTertiary}
-            style={inputStyle}
+            width={84}
           />
           {question.input === 'setEntry' ? (
-            <TextInput
+            <Field
+              label={`${question.prompt} — repetitions completed`}
+              showLabel={false}
               value={answerReps}
               onChangeText={setAnswerReps}
               keyboardType="numeric"
               placeholder="reps"
-              placeholderTextColor={theme.textTertiary}
-              style={inputStyle}
+              width={84}
             />
           ) : null}
           <Button
@@ -110,13 +115,5 @@ export function QuestionCard({ domain }: { domain: QuestionDomain }) {
 const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.md },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.md },
-  numInput: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontSize: 17,
-    width: 84,
-  },
   hint: { marginTop: Spacing.sm },
 });

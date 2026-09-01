@@ -1,14 +1,15 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { protocolById } from '@/features/knowledge/protocols';
 import { MindHub } from '@/features/mind/MindHub';
 import { MoneyHub } from '@/features/money/MoneyHub';
@@ -57,10 +58,6 @@ export default function PathHub() {
   }
 
   const entry = paths[def.id];
-  const inputStyle = [
-    styles.numInput,
-    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-  ];
 
   const build = () => {
     const patch: { age?: number; weightKg?: number } = {};
@@ -108,13 +105,14 @@ export default function PathHub() {
         {(def.personalNumbers ?? []).map((ask) => (
           <View key={ask.key}>
             <SectionHeader title={`${ask.label} (optional)`} />
-            <TextInput
+            <Field
+              label={`${ask.label}, optional`}
+              showLabel={false}
+              hint={ask.why}
               value={numbers[ask.key] ?? ''}
               onChangeText={(t) => setNumbers((prev) => ({ ...prev, [ask.key]: t }))}
               keyboardType="numeric"
               placeholder="—"
-              placeholderTextColor={theme.textTertiary}
-              style={inputStyle}
             />
             <AppText variant="caption" color="textTertiary" style={styles.why}>
               {ask.why}
@@ -278,14 +276,6 @@ const styles = StyleSheet.create({
   sub: { marginTop: Spacing.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   stack: { gap: Spacing.sm },
-  numInput: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: 17,
-    width: 120,
-  },
   why: { marginTop: Spacing.sm },
   whyLine: { marginTop: Spacing.xs, fontStyle: 'italic' },
   buildButton: { marginTop: Spacing.xl },

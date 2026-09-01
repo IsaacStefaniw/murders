@@ -1,24 +1,23 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import { proposeIntention } from '@/features/checkins/propose';
 import { formatTime, todayKey } from '@/lib/dates';
-import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 import type { BehaviourKey } from '@/types/domain';
 
 /** The 30-second morning check-in. Approve the day almost immediately. */
 export default function MorningCheckIn() {
   const router = useRouter();
-  const theme = useTheme();
   const date = todayKey();
 
   const profile = useAppStore((s) => s.profile);
@@ -102,16 +101,14 @@ export default function MorningCheckIn() {
           </View>
         </View>
       ) : (
-        <TextInput
+        <Field
+          label="One intention"
+          showLabel={false}
+          hint="One sentence. The suggestion in grey is a starting point, not a requirement."
           value={intention}
           onChangeText={setIntention}
           placeholder={proposal.text}
-          placeholderTextColor={theme.textTertiary}
           autoFocus
-          style={[
-            styles.input,
-            { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-          ]}
         />
       )}
 
@@ -151,13 +148,6 @@ export default function MorningCheckIn() {
 const styles = StyleSheet.create({
   stack: { gap: Spacing.sm },
   priority: { fontWeight: '600' },
-  input: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: 16,
-  },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   intentionActions: { flexDirection: 'row', marginTop: Spacing.xs },
   footer: { marginTop: Spacing.xxl, gap: Spacing.sm },

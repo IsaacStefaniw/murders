@@ -12,9 +12,10 @@
  */
 
 import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { AppText } from '@/components/text';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -85,12 +86,15 @@ export function SetLogger({
     accessibilityLabel: string,
   ) => (
     <View style={styles.field}>
-      <TextInput
+      <Field
+        label={accessibilityLabel}
+        showLabel={false}
         value={value}
         onChangeText={onChange}
         keyboardType="decimal-pad"
-        accessibilityLabel={accessibilityLabel}
-        style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+        // Compact and fixed, the way the row read before — but now on a
+        // 44pt-tall control instead of the 34pt one it used to be.
+        width={72}
       />
       <AppText variant="caption" color="textTertiary">
         {label}
@@ -207,13 +211,4 @@ const styles = StyleSheet.create({
   editRow: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', gap: Spacing.sm },
   addRow: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', gap: Spacing.sm },
   field: { gap: 2 },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-    minWidth: 64,
-    fontSize: 16,
-    textAlign: 'center',
-  },
 });

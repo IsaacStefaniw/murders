@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { Field } from '@/components/field';
 import { SectionHeader } from '@/components/section-header';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { latest, trend } from '@/features/model/metrics';
 import { QuestionCard } from '@/features/model/QuestionCard';
 import { assessWork, weekOfBlock } from '@/features/work/programme';
@@ -41,10 +42,6 @@ export function WorkHub() {
   const deepTrend = trend(metrics, 'work.deepHours', 28);
   const lastHours = latest(metrics, 'work.deepHours');
 
-  const inputStyle = [
-    styles.numInput,
-    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-  ];
 
   return (
     <View>
@@ -58,13 +55,14 @@ export function WorkHub() {
         </AppText>
       </Card>
       <View style={styles.inputRow}>
-        <TextInput
+        <Field
+          label="This week's deep-work hours"
+          showLabel={false}
           value={hoursLog}
           onChangeText={setHoursLog}
           keyboardType="numeric"
           placeholder="h"
-          placeholderTextColor={theme.textTertiary}
-          style={inputStyle}
+          width={84}
         />
         <Button
           title="Log this week's deep hours"
@@ -136,13 +134,5 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
   grow: { flexGrow: 1 },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.md },
-  numInput: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontSize: 17,
-    width: 84,
-  },
   line: { marginTop: Spacing.xs },
 });

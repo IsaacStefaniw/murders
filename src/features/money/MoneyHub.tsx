@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { Field } from '@/components/field';
 import { SectionHeader } from '@/components/section-header';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { QuestionCard } from '@/features/model/QuestionCard';
 import { assessMoney, buildMoneyLadder } from '@/features/money/plan';
 import { useTheme } from '@/hooks/use-theme';
@@ -36,10 +37,6 @@ export function MoneyHub() {
   );
   const assessment = useMemo(() => assessMoney(metrics), [metrics]);
 
-  const inputStyle = [
-    styles.numInput,
-    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-  ];
 
   return (
     <View>
@@ -57,13 +54,14 @@ export function MoneyHub() {
         </AppText>
       </Card>
       <View style={styles.inputRow}>
-        <TextInput
+        <Field
+          label="Last month's savings rate, as a percentage"
+          showLabel={false}
           value={rateLog}
           onChangeText={setRateLog}
           keyboardType="numeric"
           placeholder="%"
-          placeholderTextColor={theme.textTertiary}
-          style={inputStyle}
+          width={84}
         />
         <Button
           title="Log last month's rate"
@@ -122,13 +120,5 @@ const styles = StyleSheet.create({
   grow: { flexGrow: 1 },
   dimmed: { opacity: 0.55 },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.md },
-  numInput: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontSize: 17,
-    width: 84,
-  },
   hint: { marginTop: Spacing.sm },
 });

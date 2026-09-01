@@ -1,16 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Platform, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Platform, StyleSheet, View } from 'react-native';
 
 import { BUILD_TAG } from '@/lib/build';
 import { nowDate } from '@/lib/dates';
-import { useTheme } from '@/hooks/use-theme';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
@@ -37,7 +37,6 @@ const STORE_KEY = 'intent-os-store';
 
 export default function Settings() {
   const router = useRouter();
-  const theme = useTheme();
   const profile = useAppStore((s) => s.profile);
   const foodPreferences = useAppStore((s) => s.foodPreferences);
   const notifications = useAppStore((s) => s.notifications);
@@ -341,16 +340,13 @@ export default function Settings() {
       </View>
       {restoring ? (
         <View style={styles.restoreArea}>
-          <TextInput
+          <Field
+            label="Backup to restore"
+            hint="Paste the whole backup. Restoring replaces everything currently on this device."
             value={restoreText}
             onChangeText={setRestoreText}
             placeholder="Paste a backup here"
-            placeholderTextColor={theme.textTertiary}
             multiline
-            style={[
-              styles.input,
-              { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-            ]}
           />
           <Button title="Restore backup" onPress={restoreBackup} disabled={!restoreText.trim()} />
         </View>
@@ -391,13 +387,5 @@ const styles = StyleSheet.create({
   labRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.md },
   labColumn: { gap: Spacing.sm, marginTop: Spacing.md },
   restoreArea: { gap: Spacing.sm, marginTop: Spacing.md },
-  input: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: 13,
-    minHeight: 72,
-  },
   done: { marginTop: Spacing.xxl },
 });

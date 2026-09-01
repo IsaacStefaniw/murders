@@ -1,15 +1,15 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { formatDateLong, todayKey } from '@/lib/dates';
-import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
 /**
@@ -20,7 +20,6 @@ import { useAppStore } from '@/state/store';
  */
 export default function JournalSession() {
   const router = useRouter();
-  const theme = useTheme();
   const date = todayKey();
 
   const reflections = useAppStore((s) => s.reflections);
@@ -50,10 +49,6 @@ export default function JournalSession() {
     setSaved(true);
   };
 
-  const inputStyle = [
-    styles.input,
-    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-  ];
   const hasContent = Boolean(wentWell.trim() || gratefulFor.trim() || tomorrow.trim());
 
   return (
@@ -70,42 +65,42 @@ export default function JournalSession() {
       </AppText>
 
       <SectionHeader title="What went well today?" />
-      <TextInput
+      <Field
+        label="What went well today?"
+        showLabel={false}
         value={wentWell}
         onChangeText={(t) => {
           setWentWell(t);
           setSaved(false);
         }}
         placeholder="One thing counts."
-        placeholderTextColor={theme.textTertiary}
         multiline
-        style={inputStyle}
       />
 
       <SectionHeader title="What are you grateful for?" />
-      <TextInput
+      <Field
+        label="What are you grateful for?"
+        showLabel={false}
         value={gratefulFor}
         onChangeText={(t) => {
           setGratefulFor(t);
           setSaved(false);
         }}
         placeholder="Small and specific works best."
-        placeholderTextColor={theme.textTertiary}
         multiline
-        style={inputStyle}
       />
 
       <SectionHeader title="One line for tomorrow" />
-      <TextInput
+      <Field
+        label="One line for tomorrow"
+        showLabel={false}
         value={tomorrow}
         onChangeText={(t) => {
           setTomorrow(t);
           setSaved(false);
         }}
         placeholder="The single thing that would make tomorrow good."
-        placeholderTextColor={theme.textTertiary}
         multiline
-        style={inputStyle}
       />
 
       <Button
@@ -146,14 +141,6 @@ const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center' },
   grow: { flexGrow: 1 },
   sub: { marginTop: Spacing.sm },
-  input: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: 17,
-    minHeight: 56,
-  },
   save: { marginTop: Spacing.xl },
   stack: { gap: Spacing.sm },
 });

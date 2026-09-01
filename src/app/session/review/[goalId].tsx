@@ -1,14 +1,15 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { Field } from '@/components/field';
 import { Chip } from '@/components/chip';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
@@ -44,10 +45,6 @@ export default function WeeklyReview() {
     router.back();
   };
 
-  const inputStyle = [
-    styles.input,
-    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-  ];
 
   return (
     <Screen>
@@ -78,33 +75,33 @@ export default function WeeklyReview() {
       ) : null}
 
       <SectionHeader title="What moved this week?" />
-      <TextInput
+      <Field
+        label="What moved this week?"
+        showLabel={false}
         value={moved}
         onChangeText={setMoved}
         placeholder="One line. Facts beat feelings."
-        placeholderTextColor={theme.textTertiary}
         multiline
-        style={inputStyle}
       />
 
       <SectionHeader title="The one lever for next week" />
-      <TextInput
+      <Field
+        label="The one lever for next week"
+        showLabel={false}
         value={lever}
         onChangeText={setLever}
         placeholder="This becomes your growth block's focus"
-        placeholderTextColor={theme.textTertiary}
         multiline
-        style={inputStyle}
       />
 
       <SectionHeader title="Anything blocking?" />
-      <TextInput
+      <Field
+        label="Anything blocking?"
+        showLabel={false}
         value={blocking}
         onChangeText={setBlocking}
         placeholder="Optional"
-        placeholderTextColor={theme.textTertiary}
         multiline
-        style={inputStyle}
       />
 
       {lever.trim() ? (
@@ -127,13 +124,5 @@ export default function WeeklyReview() {
 const styles = StyleSheet.create({
   why: { marginTop: Spacing.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  input: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: 16,
-    minHeight: 52,
-  },
   footer: { marginTop: Spacing.xxl, gap: Spacing.sm },
 });

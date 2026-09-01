@@ -12,18 +12,17 @@
  */
 
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { inputHintFor, nextCheckin, whyAsking } from '@/features/checkins/due';
-import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
 export function CheckinCard() {
-  const theme = useTheme();
   const goals = useAppStore((s) => s.goals);
   const metrics = useAppStore((s) => s.metrics);
   const dismissedCheckins = useAppStore((s) => s.dismissedCheckins);
@@ -56,15 +55,16 @@ export function CheckinCard() {
         {whyAsking(due)}
       </AppText>
       <View style={styles.row}>
-        <TextInput
+        <Field
+          label={`${due.question}${unit ? ` in ${unit}` : ''}`}
+          showLabel={false}
           value={value}
           onChangeText={setValue}
           keyboardType="decimal-pad"
           placeholder={due.lastValue !== null ? String(due.lastValue) : unit || '0'}
-          placeholderTextColor={theme.textTertiary}
-          accessibilityLabel={due.question}
-          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+          returnKeyType="done"
           onSubmitEditing={submit}
+          width={110}
         />
         {unit ? (
           <AppText variant="caption" color="textTertiary">
@@ -81,12 +81,4 @@ export function CheckinCard() {
 const styles = StyleSheet.create({
   question: { marginTop: 2 },
   row: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.md },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 8,
-    minWidth: 96,
-    fontSize: 18,
-  },
 });

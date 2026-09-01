@@ -17,11 +17,12 @@
  */
 
 import { useMemo, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { behaviourInfo } from '@/features/behaviours/catalog';
@@ -33,7 +34,6 @@ import {
   type MomentNote,
 } from '@/features/behaviours/patterns';
 import { EVIDENCE_LABELS, protocolById } from '@/features/knowledge/protocols';
-import { useTheme } from '@/hooks/use-theme';
 import { toHHMM } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 import type { BehaviourEvent, BehaviourIntention } from '@/types/domain';
@@ -59,7 +59,6 @@ interface Props {
 }
 
 export function BehaviourLog({ intention, onDone }: Props) {
-  const theme = useTheme();
   const info = behaviourInfo(intention.behaviour);
   const profile = useAppStore((s) => s.profile);
   const events = useAppStore((s) => s.behaviourEvents);
@@ -172,15 +171,13 @@ export function BehaviourLog({ intention, onDone }: Props) {
       <AppText variant="caption" color="textTertiary" style={styles.label}>
         What was it? (optional)
       </AppText>
-      <TextInput
+      <Field
+        label="What was it, optional"
+        showLabel={false}
+        hint="Stays on this device and is never sent anywhere. Only the count is ever used."
         value={detail}
         onChangeText={setDetail}
         placeholder={info.detailHint}
-        placeholderTextColor={theme.textTertiary}
-        style={[
-          styles.input,
-          { color: theme.text, borderColor: theme.border },
-        ]}
         multiline
       />
 
@@ -217,13 +214,5 @@ const styles = StyleSheet.create({
   counter: { marginTop: Spacing.md, gap: Spacing.sm },
   label: { marginTop: Spacing.md },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, marginTop: Spacing.xs },
-  input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: Spacing.sm,
-    marginTop: Spacing.xs,
-    minHeight: 44,
-    fontSize: 16,
-  },
   actions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.md, alignItems: 'center' },
 });

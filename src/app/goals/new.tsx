@@ -1,14 +1,15 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import {
   composeGoalDraft,
   describeCheckin,
@@ -17,7 +18,6 @@ import {
 import { DOMAIN_LABELS, parseGoal } from '@/features/goals/goalPlanner';
 import { DOMAIN_QUESTIONS } from '@/features/knowledge/questionBank';
 import { addDays, formatTime, todayKey } from '@/lib/dates';
-import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -29,7 +29,6 @@ const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
  */
 export default function NewGoal() {
   const router = useRouter();
-  const theme = useTheme();
   const addGoal = useAppStore((s) => s.addGoal);
   const profile = useAppStore((s) => s.profile);
 
@@ -74,11 +73,6 @@ export default function NewGoal() {
     router.back();
   };
 
-  const inputStyle = [
-    styles.input,
-    { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-  ];
-
   if (step === 'describe') {
     return (
       <Screen>
@@ -86,14 +80,16 @@ export default function NewGoal() {
         <AppText variant="secondary" style={styles.sub}>
           One sentence. I&apos;ll do the structuring.
         </AppText>
-        <TextInput
+        <Field
+          label="What do you want to be true?"
+          showLabel={false}
+          hint="Describe the goal in your own words. INTENT reads it and drafts the milestones."
           value={text}
           onChangeText={setText}
           placeholder="e.g. Grow the business to $2m revenue"
-          placeholderTextColor={theme.textTertiary}
           autoFocus
           multiline
-          style={[...inputStyle, styles.bigInput]}
+          size="large"
         />
         {parsed ? (
           <AppText variant="caption" color="textTertiary" style={styles.sub}>
@@ -117,14 +113,16 @@ export default function NewGoal() {
         <AppText variant="secondary" style={styles.sub}>
           Your words. When motivation dips, they&apos;ll do the arguing.
         </AppText>
-        <TextInput
+        <Field
+          label="Why this matters"
+          showLabel={false}
+          hint="Optional. Shown back to you on the days motivation dips."
           value={why}
           onChangeText={setWhy}
           placeholder="Optional — but the goals with a why are the ones that happen"
-          placeholderTextColor={theme.textTertiary}
           autoFocus
           multiline
-          style={[...inputStyle, styles.bigInput]}
+          size="large"
         />
         <View style={styles.footer}>
           <Button title={why.trim() ? 'Continue' : 'Skip'} onPress={afterWhy} />
@@ -301,14 +299,6 @@ export default function NewGoal() {
 
 const styles = StyleSheet.create({
   sub: { marginTop: Spacing.sm },
-  input: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: 17,
-  },
-  bigInput: { marginTop: Spacing.xl, minHeight: 76 },
   stack: { flexDirection: 'column', gap: Spacing.sm },
   doneWhenList: { marginTop: Spacing.md, gap: Spacing.xs },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },

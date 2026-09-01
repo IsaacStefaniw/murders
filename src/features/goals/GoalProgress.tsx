@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
-import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Field } from '@/components/field';
+import { Spacing } from '@/constants/theme';
 import { useAppStore } from '@/state/store';
 import type { Goal } from '@/types/domain';
 
@@ -18,7 +18,6 @@ import { assessGoal, dueCheckin } from './composer';
  * answering is visible immediately.
  */
 export function GoalProgress({ goal }: { goal: Goal }) {
-  const theme = useTheme();
   const metrics = useAppStore((s) => s.metrics);
   const planEvents = useAppStore((s) => s.planEvents);
   const addMetric = useAppStore((s) => s.addMetric);
@@ -54,16 +53,14 @@ export function GoalProgress({ goal }: { goal: Goal }) {
           <AppText variant="body" style={styles.prompt}>
             {due.prompt ?? due.label}
           </AppText>
-          <TextInput
+          <Field
+            label={`${due.prompt ?? due.label}${due.unit ? ` in ${due.unit}` : ''}`}
+            showLabel={false}
             value={answer}
             onChangeText={setAnswer}
             keyboardType="numeric"
             placeholder={due.unit ?? ''}
-            placeholderTextColor={theme.textTertiary}
-            style={[
-              styles.numInput,
-              { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-            ]}
+            width={96}
           />
           <Button title="Save" disabled={!Number(answer)} onPress={save} />
         </View>
@@ -76,12 +73,4 @@ const styles = StyleSheet.create({
   wrap: { marginTop: Spacing.sm, gap: Spacing.sm },
   inputRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: Spacing.sm },
   prompt: { flexShrink: 1, flexBasis: '100%' },
-  numInput: {
-    borderWidth: 1,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    fontSize: 17,
-    width: 110,
-  },
 });

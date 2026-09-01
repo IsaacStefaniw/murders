@@ -15,11 +15,12 @@
 
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
+import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { AppText } from '@/components/text';
@@ -35,7 +36,6 @@ import {
   type DietaryPattern,
   type Intolerance,
 } from '@/features/modalities/meals/food';
-import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
 /** Add or remove one value from a list, without caring which. */
@@ -44,7 +44,6 @@ const toggle = <T,>(list: T[], value: T): T[] =>
 
 export default function FoodPreferencesScreen() {
   const router = useRouter();
-  const theme = useTheme();
   const prefs = useAppStore((s) => s.foodPreferences);
   const setFoodPreferences = useAppStore((s) => s.setFoodPreferences);
   const markFoodPreferencesAsked = useAppStore((s) => s.markFoodPreferencesAsked);
@@ -65,7 +64,6 @@ export default function FoodPreferencesScreen() {
     clear();
   };
 
-  const inputStyle = [styles.input, { color: theme.text, borderColor: theme.border }];
 
   return (
     <Screen>
@@ -144,12 +142,14 @@ export default function FoodPreferencesScreen() {
         ))}
       </View>
       <View style={styles.addRow}>
-        <TextInput
+        <Field
+          label="Add a food you would rather not see"
+          showLabel={false}
+          style={styles.grow}
           value={dislikeText}
           onChangeText={setDislikeText}
           placeholder="mushrooms"
-          placeholderTextColor={theme.textTertiary}
-          style={inputStyle}
+          returnKeyType="done"
           onSubmitEditing={() => addWord('dislikes', dislikeText, () => setDislikeText(''))}
         />
         <Chip label="Add" onPress={() => addWord('dislikes', dislikeText, () => setDislikeText(''))} />
@@ -167,12 +167,14 @@ export default function FoodPreferencesScreen() {
         ))}
       </View>
       <View style={styles.addRow}>
-        <TextInput
+        <Field
+          label="Add a food you want more of"
+          showLabel={false}
+          style={styles.grow}
           value={favouriteText}
           onChangeText={setFavouriteText}
           placeholder="salmon"
-          placeholderTextColor={theme.textTertiary}
-          style={inputStyle}
+          returnKeyType="done"
           onSubmitEditing={() => addWord('favourites', favouriteText, () => setFavouriteText(''))}
         />
         <Chip
@@ -256,14 +258,7 @@ const styles = StyleSheet.create({
   sub: { marginTop: Spacing.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm },
   addRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.sm },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 8,
-    fontSize: 16,
-  },
+  grow: { flexGrow: 1, flexShrink: 1 },
   warning: { marginTop: Spacing.sm },
   gap: { marginTop: Spacing.sm },
   footer: { marginTop: Spacing.xxl },

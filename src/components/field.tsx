@@ -43,6 +43,12 @@ export interface FieldProps {
   style?: StyleProp<ViewStyle>;
   /** Fixed width, for numeric boxes sitting in a row. */
   width?: number;
+  /**
+   * 'large' is for the one input a screen is about — a goal being named, a
+   * journal entry. Bigger type and more room, so the field reads as the
+   * point of the page rather than a form control on it.
+   */
+  size?: 'default' | 'large';
   testID?: string;
 }
 
@@ -63,6 +69,7 @@ export function Field({
   returnKeyType,
   style,
   width,
+  size = 'default',
   testID,
 }: FieldProps) {
   const theme = useTheme();
@@ -71,6 +78,7 @@ export function Field({
     () => [
       styles.input,
       multiline && styles.multiline,
+      size === 'large' && styles.large,
       {
         color: theme.text,
         borderColor: theme.border,
@@ -78,7 +86,7 @@ export function Field({
       },
       width != null ? { width } : null,
     ],
-    [theme, multiline, editable, width],
+    [theme, multiline, editable, width, size],
   );
 
   return (
@@ -150,6 +158,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   multiline: { minHeight: 96, textAlignVertical: 'top' },
+  large: { fontSize: 22, lineHeight: 30, minHeight: 120, paddingVertical: Spacing.lg },
   unit: { minWidth: 28 },
   hint: { marginTop: 2 },
 });
