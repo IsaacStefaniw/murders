@@ -31,9 +31,23 @@ import {
   type PermissionState,
 } from '@/lib/notifications';
 import { isSupabaseConfigured } from '@/lib/supabase';
+import {
+  checkAndApply,
+  currentUpdate,
+  describeUpdate,
+  type CheckResult,
+  type UpdateInfo,
+} from '@/lib/updates';
 import { useAppStore } from '@/state/store';
 
 const STORE_KEY = 'intent-os-store';
+
+const UPDATE_RESULT_LABEL: Record<CheckResult, string> = {
+  applied: 'Restarting into the new version…',
+  'up-to-date': 'You are on the latest version.',
+  unavailable: 'This build cannot receive updates.',
+  failed: 'Could not check right now — try again on a better connection.',
+};
 
 export default function Settings() {
   const router = useRouter();
@@ -61,8 +75,12 @@ export default function Settings() {
   const [restoreText, setRestoreText] = useState('');
   const [canUseHealth, setCanUseHealth] = useState(false);
   const [connectingHealth, setConnectingHealth] = useState(false);
+  const [update, setUpdate] = useState<UpdateInfo | null>(null);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [checkResult, setCheckResult] = useState<CheckResult | null>(null);
 
   useEffect(() => {
+    currentUpdate().then(setUpdate);
     healthAvailable().then(setCanUseHealth);
     // Read-only: knowing the state lets the screen explain itself without
     // triggering the one prompt iOS will ever show.
@@ -368,9 +386,36 @@ export default function Settings() {
         </View>
       </View>
 
-      <AppText variant="caption" color="textTertiary" style={styles.note}>
-        Build {BUILD_TAG}
-      </AppText>
+      <SectionHeader title="Version" />
+      <Card>
+        <AppText variant="heading">Build {BUILD_TAG}</AppText>
+        <AppText variant="caption" color="textTertiary">
+          {describeUpdate(update)}
+        </AppText>
+        {update ? (
+          <>
+            <Button
+              title={checkingUpdate ? 'Checking…' : 'Check for updates'}
+              variant="secondary"
+              disabled={checkingUpdate}
+              onPress={async () => {
+                setCheckingUpdate(true);
+                setCheckResult(null);
+                // 'applied' never renders: the app restarts inside this call.
+                const result = await checkAndApply();
+                setCheckResult(result);
+                setCheckingUpdate(false);
+              }}
+              style={styles.note}
+            />
+            {checkResult ? (
+              <AppText variant="caption" color="textTertiary">
+                {UPDATE_RESULT_LABEL[checkResult]}
+              </AppText>
+            ) : null}
+          </>
+        ) : null}
+      </Card>
       <Button title="Done" variant="secondary" onPress={() => router.back()} style={styles.done} />
     </Screen>
   );
