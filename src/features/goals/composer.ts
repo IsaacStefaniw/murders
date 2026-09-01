@@ -220,6 +220,48 @@ export function composeGoalDraft(
       ];
       checkins.push(planCheckin('Working sessions completed'));
     }
+  } else if (
+    parsed.domain === 'relationship' ||
+    parsed.domain === 'family' ||
+    parsed.domain === 'friends'
+  ) {
+    /**
+     * The goals with nothing external enforcing them.
+     *
+     * These had no ladder at all — a date night or a family adventure was
+     * filed as a goal and then given no rungs, which meant it could never
+     * visibly progress and never fed the trajectory engine. That is the
+     * worst place to have the gap: nobody is going to send a calendar
+     * invite for the thing you promised your own family, so the only
+     * pressure on it is whether it can be seen working.
+     *
+     * The rungs are weeks in a row rather than a count, because with these
+     * the pattern IS the goal. Six occasional date nights across a year is
+     * not the thing anybody meant.
+     */
+    ladder = [
+      rung('Two weeks running', { kind: 'streak', weeks: 2, minPerWeek: 1 }),
+      rung('Six weeks running — it is starting to be normal', {
+        kind: 'streak',
+        weeks: 6,
+        minPerWeek: 1,
+      }),
+      rung('A full season of it', { kind: 'streak', weeks: 12, minPerWeek: 1 }),
+    ];
+    checkins.push(planCheckin('Times it actually happened'));
+  } else if (parsed.domain === 'behaviour') {
+    /**
+     * Counted down rather than up, and never framed as a score. The rungs
+     * are weeks where the counter-move happened, not days of abstinence —
+     * a ladder that resets on a single bad night is a ladder people stop
+     * looking at, which is the opposite of what this pathway is for.
+     */
+    ladder = [
+      rung('A week of logging honestly', { kind: 'streak', weeks: 1, minPerWeek: 1 }),
+      rung('Four weeks of knowing your own pattern', { kind: 'streak', weeks: 4, minPerWeek: 1 }),
+      rung('Twelve weeks — the pattern has changed', { kind: 'streak', weeks: 12, minPerWeek: 1 }),
+    ];
+    checkins.push(planCheckin('Weeks with the counter-move in place'));
   }
 
   // Every rung has a condition; planner milestones become confirm rungs.

@@ -16,6 +16,7 @@ import {
   describeDoneWhen,
 } from '@/features/goals/composer';
 import { DOMAIN_LABELS, parseGoal } from '@/features/goals/goalPlanner';
+import { PRESET_GROUPS } from '@/features/goals/presets';
 import { DOMAIN_QUESTIONS } from '@/features/knowledge/questionBank';
 import { addDays, formatTime, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
@@ -98,6 +99,44 @@ export default function NewGoal() {
             {parsed.timeframe ? ` · ${parsed.timeframe}` : ''}
           </AppText>
         ) : null}
+        {/*
+          The shelf. A blank box asks someone to be articulate about their
+          own life before anything has been given to them, and the honest
+          answer at that moment is usually "I don't know, better?".
+          Recognition is a far easier act than composition.
+
+          A preset is only the sentence they would have typed — it fills
+          the box and goes through the same parser, so it can never drift
+          from what typing produces.
+        */}
+        {text.trim().length === 0 ? (
+          <View style={styles.presets}>
+            <AppText variant="caption" color="textTertiary">
+              Or start from one of these — each one fills the box above, and you can edit it.
+            </AppText>
+            {PRESET_GROUPS.map((group) => (
+              <View key={group.title} style={styles.presetGroup}>
+                <AppText variant="label" color="textSecondary">
+                  {group.title}
+                </AppText>
+                <AppText variant="caption" color="textTertiary">
+                  {group.blurb}
+                </AppText>
+                <View style={styles.chipsRow}>
+                  {group.presets.map((preset) => (
+                    <Chip
+                      key={preset.id}
+                      label={preset.label}
+                      hint={preset.commitment}
+                      onPress={() => setText(preset.text)}
+                    />
+                  ))}
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         <View style={styles.footer}>
           <Button title="Continue" disabled={text.trim().length < 4} onPress={() => setStep('why')} />
           <Button title="Cancel" variant="ghost" onPress={() => router.back()} />
@@ -299,6 +338,8 @@ export default function NewGoal() {
 
 const styles = StyleSheet.create({
   sub: { marginTop: Spacing.sm },
+  presets: { marginTop: Spacing.xl, gap: Spacing.lg },
+  presetGroup: { gap: Spacing.sm },
   stack: { flexDirection: 'column', gap: Spacing.sm },
   doneWhenList: { marginTop: Spacing.md, gap: Spacing.xs },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },

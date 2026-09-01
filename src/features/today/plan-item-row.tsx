@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/text';
 import { Radius, Spacing } from '@/constants/theme';
 import { ItemActions } from '@/features/today/item-actions';
+import { ItemGuidanceView } from '@/features/today/item-guidance-view';
 import { formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import type { DailyPlan, LifeProfile, PlanItem } from '@/types/domain';
@@ -74,6 +75,7 @@ export function PlanItemRow({ item, plan, profile, date, expanded, onToggle }: P
 
       {expanded ? (
         <View style={styles.actions}>
+          <ItemGuidanceView item={item} />
           <ItemActions item={item} plan={plan} profile={profile} date={date} onDone={onToggle} />
         </View>
       ) : null}
