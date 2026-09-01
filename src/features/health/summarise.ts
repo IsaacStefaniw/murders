@@ -55,13 +55,65 @@ export interface HealthSnapshot {
   sleepHours?: number | null;
   restingHr?: number | null;
   weightKg?: number | null;
+  /** SDNN in milliseconds — a recovery signal, read against your own baseline. */
+  hrvMs?: number | null;
+  /** Apple's estimate from outdoor walks and runs. Slow-moving, approximate. */
+  vo2max?: number | null;
+  heightCm?: number | null;
+  waistCm?: number | null;
 }
 
-const SNAPSHOT_KEYS: { key: string; field: keyof HealthSnapshot }[] = [
+/**
+ * `onChangeOnly` marks a reading that does not move day to day.
+ *
+ * Height is measured once a decade and VO2max is re-estimated every few
+ * weeks, so recording them daily would file three hundred identical
+ * observations a year into a stream the trend engine reads. A flat line
+ * three hundred points long is not more information than one point; it is
+ * the same information, harder to chart.
+ */
+const SNAPSHOT_KEYS: { key: string; field: keyof HealthSnapshot; onChangeOnly?: boolean }[] = [
   { key: 'sleep.hours', field: 'sleepHours' },
   { key: 'body.restingHr', field: 'restingHr' },
   { key: 'body.weight', field: 'weightKg' },
+  { key: 'body.hrv', field: 'hrvMs' },
+  { key: 'body.vo2max', field: 'vo2max', onChangeOnly: true },
+  { key: 'body.height', field: 'heightCm', onChangeOnly: true },
+  { key: 'body.waist', field: 'waistCm', onChangeOnly: true },
 ];
+
+/**
+ * Body-mass index, computed rather than read.
+ *
+ * HealthKit exposes a BMI field, but it is whatever some app last wrote
+ * there — often stale, often from a scale that guessed at a height. Two
+ * numbers we hold honestly beat one we would have to trust blindly.
+ *
+ * Returns null rather than a number when either input is missing or
+ * implausible. A BMI computed from a height of zero is not a smaller
+ * problem than no BMI at all.
+ */
+export function bmiFrom(weightKg: number | null | undefined, heightCm: number | null | undefined): number | null {
+  if (!weightKg || !heightCm) return null;
+  if (heightCm < 100 || heightCm > 250 || weightKg < 25 || weightKg > 400) return null;
+  const m = heightCm / 100;
+  return Math.round((weightKg / (m * m)) * 10) / 10;
+}
+
+/**
+ * Waist-to-height ratio.
+ *
+ * Kept beside BMI because it is the better of the two for anyone who
+ * lifts: BMI cannot tell muscle from fat and reports a great many strong
+ * people as overweight, which is both wrong and the kind of wrong that
+ * makes someone stop trusting everything else the app says. The commonly
+ * cited threshold is 0.5 — keep your waist under half your height.
+ */
+export function waistToHeight(waistCm: number | null | undefined, heightCm: number | null | undefined): number | null {
+  if (!waistCm || !heightCm) return null;
+  if (heightCm < 100 || heightCm > 250 || waistCm < 40 || waistCm > 250) return null;
+  return Math.round((waistCm / heightCm) * 100) / 100;
+}
 
 /**
  * Turn a snapshot into observations to append — skipping any metric that
@@ -75,11 +127,19 @@ export function snapshotObservations(
 ): MetricObservation[] {
   const today = todayIso.slice(0, 10);
   const out: MetricObservation[] = [];
-  for (const { key, field } of SNAPSHOT_KEYS) {
-    const value = snapshot[field];
-    if (value == null || !Number.isFinite(value) || value <= 0) continue;
+  for (const { key, field, onChangeOnly } of SNAPSHOT_KEYS) {
+    const raw = snapshot[field];
+    if (raw == null || !Number.isFinite(raw) || raw <= 0) continue;
+    const value = Math.round(raw * 10) / 10;
     if (existing.some((o) => o.key === key && o.at.slice(0, 10) === today)) continue;
-    out.push({ ...observe(key, Math.round(value * 10) / 10, 'healthkit'), at: todayIso });
+    if (onChangeOnly) {
+      const previous = existing
+        .filter((o) => o.key === key)
+        .sort((a, b) => a.at.localeCompare(b.at))
+        .at(-1);
+      if (previous && previous.value === value) continue;
+    }
+    out.push({ ...observe(key, value, 'healthkit'), at: todayIso });
   }
   return out;
 }

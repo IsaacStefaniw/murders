@@ -533,22 +533,39 @@ export function buildProgramme(
  */
 export function autoRegulate(
   session: ProgrammeSession,
-  ctx: { availableMin?: number; sleptHours?: number; age?: number },
+  ctx: {
+    availableMin?: number;
+    sleptHours?: number;
+    age?: number;
+    /**
+     * This morning's read from features/health/readiness — HRV and resting
+     * heart rate against the person's OWN baseline, never a population
+     * band. 'back-off' costs accessory volume; the main work never moves,
+     * because the session someone actually skips is the one that got
+     * cancelled for them.
+     */
+    readiness?: 'ready' | 'caution' | 'back-off';
+  },
 ): ProgrammeSession {
   const tight = ctx.availableMin != null && ctx.availableMin < session.estimatedMin;
   const shortNight = ctx.sleptHours != null && ctx.sleptHours < 6;
-  if (!tight && !shortNight) return session;
+  const unrecovered = ctx.readiness === 'back-off';
+  if (!tight && !shortNight && !unrecovered) return session;
 
   let exercises = session.exercises.map((e) => ({ ...e }));
-  if (shortNight) exercises = exercises.filter((e) => !e.accessory).concat(exercises.filter((e) => e.accessory).slice(0, 1));
+  if (shortNight || unrecovered) {
+    exercises = exercises.filter((e) => !e.accessory).concat(exercises.filter((e) => e.accessory).slice(0, 1));
+  }
   if (ctx.availableMin != null) exercises = fitToTime(exercises, ctx.availableMin, ctx.age);
 
   const reason =
-    tight && shortNight
-      ? 'Short night and a tight window — keeping the stimulus, cutting accessory volume.'
-      : shortNight
-        ? 'Short night — main work stays, accessories rest today.'
-        : `Only ${ctx.availableMin} minutes — condensed, main work kept.`;
+    tight && (shortNight || unrecovered)
+      ? 'Short recovery and a tight window — keeping the stimulus, cutting accessory volume.'
+      : unrecovered && !shortNight
+        ? 'Your own recovery numbers are down this morning — main work stays, accessories rest today.'
+        : shortNight
+          ? 'Short night — main work stays, accessories rest today.'
+          : `Only ${ctx.availableMin} minutes — condensed, main work kept.`;
   return {
     ...session,
     exercises,

@@ -24,7 +24,31 @@ const READ_TYPES = [
   'HKCategoryTypeIdentifierSleepAnalysis',
   'HKQuantityTypeIdentifierRestingHeartRate',
   'HKQuantityTypeIdentifierBodyMass',
+  'HKQuantityTypeIdentifierHeartRateVariabilitySDNN',
+  'HKQuantityTypeIdentifierVO2Max',
+  'HKQuantityTypeIdentifierHeight',
+  'HKQuantityTypeIdentifierWaistCircumference',
 ] as const;
+
+/**
+ * How far back each signal is worth looking, in hours.
+ *
+ * These are not one number because the signals do not move at one speed.
+ * HRV and resting heart rate are today's readings and stale ones say
+ * nothing about today; VO2max is estimated from outdoor walks and may not
+ * update for a fortnight; height does not change. Using a single window
+ * would either throw away a perfectly good VO2max or treat a three-week-old
+ * HRV as this morning's recovery.
+ */
+const WINDOW_HOURS = {
+  sleep: 18,
+  restingHr: 48,
+  weight: 48,
+  hrv: 48,
+  vo2max: 24 * 90,
+  height: 24 * 365 * 5,
+  waist: 24 * 90,
+} as const;
 
 const ASLEEP_VALUES = new Set<number>([
   CategoryValueSleepAnalysis.asleepUnspecified,
@@ -60,20 +84,48 @@ export async function connectAppleHealth(): Promise<boolean> {
 async function readSnapshot(now: Date): Promise<HealthSnapshot> {
   const since = (hours: number) => new Date(now.getTime() - hours * 3600e3);
 
-  const [sleep, rhr, weight] = await Promise.all([
+  // Spelled out rather than looped: the unit is part of each identifier's
+  // type, so writing them literally is what makes the compiler check that
+  // 'ml/(kg*min)' is the VO2max unit and 'cm' is a length. A helper taking
+  // strings would have compiled happily with either one wrong, and the
+  // catch below would have turned that into a silently missing metric.
+  const latestSample = { limit: 1 } as const;
+  const window = (hours: number) => ({ date: { startDate: since(hours), endDate: now } });
+
+  const [sleep, rhr, weight, hrv, vo2max, height, waist] = await Promise.all([
     queryCategorySamples('HKCategoryTypeIdentifierSleepAnalysis', {
       limit: 0,
-      filter: { date: { startDate: since(18), endDate: now } },
+      filter: window(WINDOW_HOURS.sleep),
     }).catch(() => []),
     queryQuantitySamples('HKQuantityTypeIdentifierRestingHeartRate', {
-      limit: 1,
+      ...latestSample,
       unit: 'count/min',
-      filter: { date: { startDate: since(48), endDate: now } },
+      filter: window(WINDOW_HOURS.restingHr),
     }).catch(() => []),
     queryQuantitySamples('HKQuantityTypeIdentifierBodyMass', {
-      limit: 1,
+      ...latestSample,
       unit: 'kg',
-      filter: { date: { startDate: since(48), endDate: now } },
+      filter: window(WINDOW_HOURS.weight),
+    }).catch(() => []),
+    queryQuantitySamples('HKQuantityTypeIdentifierHeartRateVariabilitySDNN', {
+      ...latestSample,
+      unit: 'ms',
+      filter: window(WINDOW_HOURS.hrv),
+    }).catch(() => []),
+    queryQuantitySamples('HKQuantityTypeIdentifierVO2Max', {
+      ...latestSample,
+      unit: 'ml/(kg*min)',
+      filter: window(WINDOW_HOURS.vo2max),
+    }).catch(() => []),
+    queryQuantitySamples('HKQuantityTypeIdentifierHeight', {
+      ...latestSample,
+      unit: 'cm',
+      filter: window(WINDOW_HOURS.height),
+    }).catch(() => []),
+    queryQuantitySamples('HKQuantityTypeIdentifierWaistCircumference', {
+      ...latestSample,
+      unit: 'cm',
+      filter: window(WINDOW_HOURS.waist),
     }).catch(() => []),
   ]);
 
@@ -88,13 +140,17 @@ async function readSnapshot(now: Date): Promise<HealthSnapshot> {
     ),
     restingHr: rhr[0]?.quantity ?? null,
     weightKg: weight[0]?.quantity ?? null,
+    hrvMs: hrv[0]?.quantity ?? null,
+    vo2max: vo2max[0]?.quantity ?? null,
+    heightCm: height[0]?.quantity ?? null,
+    waistCm: waist[0]?.quantity ?? null,
   };
 }
 
 /**
- * Pull last night's sleep, latest resting HR and weight into the metric
- * stream. Throttled unless forced; silent on failure — health data is a
- * quiet input, never an error the user has to manage.
+ * Pull the latest readings into the metric stream. Throttled unless
+ * forced; silent on failure — health data is a quiet input, never an error
+ * the user has to manage.
  */
 export async function syncAppleHealth(force = false): Promise<void> {
   const store = useAppStore.getState();

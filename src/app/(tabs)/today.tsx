@@ -8,6 +8,7 @@ import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
+import { ReadinessCard } from '@/features/health/ReadinessCard';
 import { SuggestionCard } from '@/components/suggestion-card';
 import { Spacing } from '@/constants/theme';
 import { buildLookingAhead, ideasFor } from '@/features/anticipation/lookAhead';
@@ -191,6 +192,10 @@ export default function Today() {
         all unless something is genuinely due, which is most days.
       */}
       <CheckinCard />
+
+      {/* Silent on the ordinary morning; that is what makes it worth
+          reading on the morning it appears. */}
+      <ReadinessCard />
 
       <SectionHeader title="Now" color="must" />
       {nowItem ? (

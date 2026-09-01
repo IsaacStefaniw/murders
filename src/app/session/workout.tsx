@@ -13,6 +13,7 @@ import { syncAppleHealth } from '@/features/health/healthkit';
 import { buildWorkout } from '@/features/modalities/gym/program';
 import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/training/log';
 import { defaultRepsFrom, SetLogger } from '@/features/training/SetLogger';
+import { readinessFrom } from '@/features/health/readiness';
 import { autoRegulate, weekOf } from '@/features/training/programme';
 import { dateKeyToDate, todayKey, toMinutes } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
@@ -57,6 +58,10 @@ export default function WorkoutSession() {
     if (!loggedSleep) addMetric('sleep.hours', h, 'pre-workout check');
   };
 
+  // This morning's recovery read, against this person's own baseline.
+  // Null for most people most weeks — nothing is invented from no data.
+  const readiness = useMemo(() => readinessFrom(metrics), [metrics]);
+
   const session = useMemo(() => {
     const weekday = dateKeyToDate(date ?? todayKey()).getDay();
     // Training v2: when a block is active, today runs the PROGRAMME —
@@ -70,6 +75,7 @@ export default function WorkoutSession() {
         availableMin,
         sleptHours: sleptHours ?? undefined,
         age: programme.inputs.age,
+        readiness: readiness?.band,
       });
       return {
         title: `Week ${week} · ${adjusted.title}`,
@@ -87,7 +93,7 @@ export default function WorkoutSession() {
       };
     }
     return buildWorkout(availableMin, profile?.trainingPreference ?? 'mixed', weekday);
-  }, [availableMin, profile?.trainingPreference, date, programme, sleptHours]);
+  }, [availableMin, profile?.trainingPreference, date, programme, sleptHours, readiness?.band]);
 
   const workoutLogs = useAppStore((s) => s.workoutLogs);
   const saveWorkoutLog = useAppStore((s) => s.saveWorkoutLog);

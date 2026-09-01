@@ -193,8 +193,8 @@ export default function Settings() {
         <Card>
           <AppText variant="heading">Connected ✓</AppText>
           <AppText variant="caption" color="textTertiary">
-            Last night&apos;s sleep, resting heart rate and weight flow into your metrics —
-            read-only, on-device, and your own entries always win.
+            Sleep, resting heart rate, heart-rate variability, cardio fitness, weight, height and
+            waist flow into your metrics — read-only, on-device, and your own entries always win.
             {healthLastSyncAt
               ? ` Last synced ${new Date(healthLastSyncAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}.`
               : ''}

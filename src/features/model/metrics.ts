@@ -40,6 +40,34 @@ export const METRICS: MetricDefinition[] = [
   { key: 'strength.pullups.reps', label: 'Pull-ups', unit: 'reps', domain: 'training', direction: 'higher' },
   { key: 'body.weight', label: 'Body weight', unit: 'kg', domain: 'nutrition', direction: 'steady', decimals: 1 },
   { key: 'body.restingHr', label: 'Resting heart rate', unit: 'bpm', domain: 'sleep', direction: 'lower' },
+  /**
+   * Heart-rate variability, as SDNN in milliseconds.
+   *
+   * Direction is 'higher' for the individual and meaningless between
+   * individuals — healthy adults span roughly 20ms to 200ms, so one
+   * person's excellent is another's alarming. Everything downstream reads
+   * this against the person's own rolling baseline and never against a
+   * population number. It is a recovery signal, not a diagnosis.
+   */
+  { key: 'body.hrv', label: 'Heart-rate variability', unit: 'ms', domain: 'sleep', direction: 'higher' },
+  /**
+   * Cardiorespiratory fitness. Apple estimates this from outdoor walks and
+   * runs, so it moves slowly and is approximate — treated as a trend, never
+   * as a test result.
+   */
+  { key: 'body.vo2max', label: 'Cardio fitness (VO₂max)', unit: 'ml/kg/min', domain: 'training', direction: 'higher' },
+  /**
+   * Height, so waist-to-height and BMI can be computed rather than asked
+   * for. Recorded once and effectively constant; 'steady' keeps a
+   * re-measurement from reading as a trend.
+   */
+  { key: 'body.height', label: 'Height', unit: 'cm', domain: 'nutrition', direction: 'steady' },
+  /**
+   * Waist circumference. Kept alongside weight because it separates the
+   * two things weight alone conflates, and waist-to-height is a better
+   * simple marker than BMI for anyone carrying real muscle.
+   */
+  { key: 'body.waist', label: 'Waist', unit: 'cm', domain: 'nutrition', direction: 'lower', decimals: 1 },
   { key: 'sleep.hours', label: 'Sleep', unit: 'h', domain: 'sleep', direction: 'higher' },
   { key: 'work.deepHours', label: 'Deep-work hours', unit: 'h/wk', domain: 'work', direction: 'higher' },
   { key: 'mind.minutes', label: 'Stillness minutes', unit: 'min/wk', domain: 'mind', direction: 'higher' },
@@ -89,9 +117,19 @@ export interface Trend {
   direction: 'up' | 'down' | 'flat';
 }
 
-/** First-vs-latest over a rolling window — deliberately simple and legible. */
-export function trend(obs: MetricObservation[], key: string, windowDays = 28): Trend | null {
-  const cutoff = new Date(Date.now() - windowDays * 86400e3).toISOString();
+/**
+ * First-vs-latest over a rolling window — deliberately simple and legible.
+ *
+ * `now` is injectable so callers can be tested against a fixed history
+ * rather than against whatever day the suite happens to run on.
+ */
+export function trend(
+  obs: MetricObservation[],
+  key: string,
+  windowDays = 28,
+  now: Date = new Date(),
+): Trend | null {
+  const cutoff = new Date(now.getTime() - windowDays * 86400e3).toISOString();
   const own = forKey(obs, key).filter((o) => o.at >= cutoff);
   if (own.length < 2) return null;
   const from = own[0].value;
@@ -104,8 +142,9 @@ export function trend(obs: MetricObservation[], key: string, windowDays = 28): T
 export function recentRecords(
   obs: MetricObservation[],
   windowDays = 7,
+  now: Date = new Date(),
 ): { def: MetricDefinition; value: number }[] {
-  const cutoff = new Date(Date.now() - windowDays * 86400e3).toISOString();
+  const cutoff = new Date(now.getTime() - windowDays * 86400e3).toISOString();
   const out: { def: MetricDefinition; value: number }[] = [];
   for (const def of METRICS) {
     const best = personalBest(obs, def.key);

@@ -21,6 +21,7 @@ import { Card } from '@/components/card';
 import { EmptyState } from '@/components/empty-state';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
+import { BodyNumbers } from '@/features/health/BodyNumbers';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { behaviourInfo } from '@/features/behaviours/catalog';
@@ -205,6 +206,8 @@ export default function Data() {
           </Card>
         </>
       ) : null}
+
+      <BodyNumbers />
 
       <SectionHeader title="The shape of the month" />
       <Card>
