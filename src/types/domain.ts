@@ -241,6 +241,12 @@ export interface Routine {
   /** Anchored on something the user already does — INTENT is organising
    * and upgrading an existing habit, not prescribing a new one. */
   established?: boolean;
+  /**
+   * The hour is part of what this is. The scheduler may slide it, but only
+   * near its window — a dinner pushed to the morning has become false, not
+   * merely inconvenient.
+   */
+  timeAnchored?: boolean;
   tier: PlanTier;
   active: boolean;
 }

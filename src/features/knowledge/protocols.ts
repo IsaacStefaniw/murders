@@ -61,6 +61,16 @@ interface Anchor {
   /** Latest acceptable start, minutes after preferred. */
   windowMin: number;
   /**
+   * The hour is part of what this IS, not merely when it suits.
+   *
+   * Dinner moved to 09:40 has not been rescheduled, it has been turned
+   * into something else — where a message to a friend at 20:00 instead of
+   * 12:45 is simply a message to a friend. Wake- and sleep-anchored
+   * protocols get this automatically; a fixed-anchor one has to say so,
+   * because the anchor alone cannot tell a meal from an errand.
+   */
+  timeAnchored?: boolean;
+  /**
    * A deadline, not an activity — "last coffee by", "kitchen closed".
    * The scheduler may bring these earlier but must never push them later:
    * a cutoff moved to make room has become false, not merely inconvenient.
@@ -242,7 +252,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Rhonda Patrick', 'Peter Attia'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 15,
-    anchor: { kind: 'fixed', start: '18:50', windowMin: 40 },
+    anchor: { kind: 'fixed', start: '18:50', windowMin: 40 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
   },
@@ -404,7 +414,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Theresa Marteau', 'Gareth Hollands', 'Richard Thaler'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 5,
-    anchor: { kind: 'fixed', start: '18:30', windowMin: 120 },
+    anchor: { kind: 'fixed', start: '18:30', windowMin: 120 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
     safety:
@@ -422,7 +432,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Michael Pollan', 'Julia Wolfson'],
     days: [1, 2, 3],
     durationMin: 35,
-    anchor: { kind: 'fixed', start: '18:15', windowMin: 90 },
+    anchor: { kind: 'fixed', start: '18:15', windowMin: 90 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
   },
@@ -438,7 +448,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Eric VanEpps', 'Christina Roberto', 'Peter Attia'],
     days: [5],
     durationMin: 5,
-    anchor: { kind: 'fixed', start: '17:30', windowMin: 120 },
+    anchor: { kind: 'fixed', start: '17:30', windowMin: 120 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
   },
@@ -454,7 +464,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Tim Ferriss', 'Michael Pollan'],
     days: [0],
     durationMin: 45,
-    anchor: { kind: 'fixed', start: '17:00', windowMin: 120 },
+    anchor: { kind: 'fixed', start: '17:00', windowMin: 120 , timeAnchored: true},
     energy: 'any',
     tier: 'could',
     safety:
@@ -824,7 +834,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Barbara Fiese'],
     days: [0, 1, 2, 3, 4],
     durationMin: 40,
-    anchor: { kind: 'fixed', start: '18:15', windowMin: 45 },
+    anchor: { kind: 'fixed', start: '18:15', windowMin: 45 , timeAnchored: true},
     energy: 'evening',
     tier: 'should',
     safety: 'Aim only at the nights that are realistic. Conversation, not inspection — a meal that becomes a performance review stops being the good thing here.',
@@ -2405,7 +2415,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Rhonda Patrick', 'Peter Attia'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 10,
-    anchor: { kind: 'fixed', start: '12:30', windowMin: 120 },
+    anchor: { kind: 'fixed', start: '12:30', windowMin: 120 , timeAnchored: true},
     energy: 'midday',
     tier: 'should',
     safety: 'An anchor to build around, not a rule to obey, and no food is off the plate because of it. Kidney or liver conditions, pregnancy, and any medical eating plan mean your doctor or dietitian sets your protein intake, not INTENT. If ordering your plate by macronutrient starts to feel like a set of rules you can fail, drop the protocol — that shift is the early shape of disordered eating.',
@@ -2422,7 +2432,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Barbara Rolls', 'Andrew Huberman'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 20,
-    anchor: { kind: 'fixed', start: '18:30', windowMin: 90 },
+    anchor: { kind: 'fixed', start: '18:30', windowMin: 90 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
     safety: 'Slowing down is meant to make a meal more enjoyable, not more supervised. If paying attention to how you eat turns into monitoring every mouthful, or into stopping meals early, stop running this one. Anyone with a history of an eating disorder should skip it, and take it to a registered dietitian or GP rather than an app.',
@@ -2515,7 +2525,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Justin Sonnenburg', 'Christopher Gardner'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 5,
-    anchor: { kind: 'fixed', start: '12:45', windowMin: 240 },
+    anchor: { kind: 'fixed', start: '12:45', windowMin: 240 , timeAnchored: true},
     energy: 'any',
     tier: 'could',
     safety: 'Ordinary foods, nothing bought off a shelf of pills, and no amount to hit. Unpasteurised ferments are not for everyone — in pregnancy, or with a suppressed immune system, ask your doctor which are fine for you. Bloating, pain or a change in bowel habit that persists is a medical question rather than a food-diary one.',
@@ -2549,7 +2559,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Heinz Valtin', 'Peter Attia'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 5,
-    anchor: { kind: 'fixed', start: '12:30', windowMin: 300 },
+    anchor: { kind: 'fixed', start: '12:30', windowMin: 300 , timeAnchored: true},
     energy: 'any',
     tier: 'could',
     safety: 'Thirst stops being a reliable guide in older age, in hot weather, during long or hard exercise, and with some conditions and medicines — those are cases to ask a doctor about rather than guess at. More is not better: drinking large volumes quickly can be dangerous. If a clinician has told you to limit or increase fluids, follow that and ignore this.',
@@ -2566,7 +2576,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Alpana Shukla', 'Saeko Imai'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 5,
-    anchor: { kind: 'fixed', start: '18:40', windowMin: 90 },
+    anchor: { kind: 'fixed', start: '18:40', windowMin: 90 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
     safety: 'A way of ordering a plate, not a way of managing a condition. If you live with diabetes or take anything that affects blood sugar, your clinician’s plan is the one that counts and nothing here changes it.',
@@ -2908,7 +2918,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Gareth Hollands', 'Theresa Marteau'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 5,
-    anchor: { kind: 'fixed', start: '18:20', windowMin: 60 },
+    anchor: { kind: 'fixed', start: '18:20', windowMin: 60 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
     safety: 'This is about where the serving dish sits, not about eating less than you need. Training hard, pregnant, unwell, or losing weight you did not mean to lose — then the bigger first plate is the right one.',
@@ -2942,7 +2952,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Eric Robinson', 'Suzanne Higgs'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 20,
-    anchor: { kind: 'fixed', start: '18:15', windowMin: 60 },
+    anchor: { kind: 'fixed', start: '18:15', windowMin: 60 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
   },
@@ -3088,7 +3098,7 @@ export const PROTOCOLS: Protocol[] = [
     // Fixed, not sleep-anchored: a child's bedtime is not a fixed offset
     // from the parent's, and anchoring it there would drift the child's
     // bedtime whenever the parent's did.
-    anchor: { kind: 'fixed', start: '18:45', windowMin: 45 },
+    anchor: { kind: 'fixed', start: '18:45', windowMin: 45 , timeAnchored: true},
     energy: 'evening',
     tier: 'should',
     safety: 'Educational structure, never medical advice. Hold it warmly: a sequence enforced against a frightened or distressed child has stopped being a routine, and an off night is an off night, not a verdict on you. If sleep is a lasting worry — loud snoring or pauses in breathing, tiredness that never lifts, or a child repeatedly terrified at night — that belongs with your GP or health visitor rather than with a better schedule.',
@@ -3422,6 +3432,9 @@ export function toRoutine(p: Protocol, profile: LifeProfile | null, goalId?: str
     energy: p.energy,
     // A deadline is never flexible: the placement pass may not move it later.
     flexible: !p.duringWork && !p.anchor.deadline,
+    // Anything hung off waking or sleeping is tied to the body clock, so it
+    // is time-anchored by definition; a fixed anchor has to declare it.
+    timeAnchored: p.anchor.timeAnchored ?? p.anchor.kind !== 'fixed',
     protected: false,
     duringWork: p.duringWork,
     sessionType: p.sessionType,

@@ -247,6 +247,9 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
       preferredEnd: '20:15',
       energy: 'evening',
       flexible: true,
+      // A date night at 09:40 is not a date night. The scheduler may
+      // slide it within the evening and no further.
+      timeAnchored: true,
       protected: false,
       tier: 'should',
       active: true,
