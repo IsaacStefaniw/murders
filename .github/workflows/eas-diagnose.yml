@@ -32,19 +32,23 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
+          # The runner's own jq. `npx jq` resolves to a broken shim that
+          # fails with MODULE_NOT_FOUND, which is how the first run died.
           echo '--- iOS builds (newest first) ---'
-          npx eas-cli build:list --platform ios --limit 5 --json --non-interactive \
-            | npx --yes jq -r '.[] | "build \(.appBuildVersion // "?")  runtime=\(.runtimeVersion)  channel=\(.channel // "-")  status=\(.status)  \(.completedAt // "")"'
+          npx eas-cli build:list --platform ios --limit 5 --json --non-interactive > builds.json || true
+          jq -r '.[] | "build \(.appBuildVersion // "?")  runtime=\(.runtimeVersion // "-")  channel=\(.channel // "-")  status=\(.status)"' builds.json \
+            || { echo 'filter failed; raw keys:'; jq -r '.[0] | keys | join(", ")' builds.json; }
 
           echo
-          echo '--- Updates on each channel (newest first) ---'
+          echo '--- Updates per branch (newest first) ---'
           for b in preview production; do
             echo "branch: $b"
-            npx eas-cli update:list --branch "$b" --limit 5 --json --non-interactive \
-              | npx --yes jq -r '.currentPage[]? | "  runtime=\(.runtimeVersion)  \(.createdAt)  \(.message)"' || echo '  (none)'
+            npx eas-cli update:list --branch "$b" --limit 5 --json --non-interactive > "upd-$b.json" || true
+            jq -r '(.currentPage // .[0].updates // .) | .[]? | "  runtime=\(.runtimeVersion // "-")  \(.createdAt // "-")  \(.message // "-")"' "upd-$b.json" \
+              || { echo '  filter failed; raw:'; head -c 1500 "upd-$b.json"; }
           done
 
           echo
-          echo '--- Channel to branch mapping ---'
-          npx eas-cli channel:list --json --non-interactive \
-            | npx --yes jq -r '.[]? | "\(.name) -> \(.branchMapping // "-")"' || true
+          echo '--- Channels ---'
+          npx eas-cli channel:list --json --non-interactive > ch.json || true
+          jq -c '.' ch.json | head -c 2000 || true
