@@ -42,6 +42,16 @@ import { useAppStore } from '@/state/store';
 
 const STORE_KEY = 'intent-os-store';
 
+/**
+ * Which of the two things you are holding. The build stamp cannot answer
+ * this — it reads 'dev' everywhere until a build sets it — but the presence
+ * of the updates runtime can: only a real native build has one.
+ */
+function surfaceLabel(update: UpdateInfo | null): string {
+  if (Platform.OS === 'web') return 'Web preview';
+  return update ? 'iPhone app' : 'iPhone app (development)';
+}
+
 const UPDATE_RESULT_LABEL: Record<CheckResult, string> = {
   applied: 'Restarting into the new version…',
   'up-to-date': 'You are on the latest version.',
@@ -388,9 +398,10 @@ export default function Settings() {
 
       <SectionHeader title="Version" />
       <Card>
-        <AppText variant="heading">Build {BUILD_TAG}</AppText>
+        <AppText variant="heading">{surfaceLabel(update)}</AppText>
         <AppText variant="caption" color="textTertiary">
           {describeUpdate(update)}
+          {BUILD_TAG === 'dev' ? '' : ` · build ${BUILD_TAG}`}
         </AppText>
         {update ? (
           <>
