@@ -1,0 +1,50 @@
+# Answer "why has the update not arrived?" with facts instead of inference.
+#
+# An over-the-air update only installs onto a build whose runtime version
+# matches the update's. Nothing on the phone shows either number, and
+# nothing in this repo can read them — the fingerprint computed here is
+# what the NEXT update would carry, not what an installed build carries.
+# Only EAS knows that, so this asks it.
+#
+# Read the output as one comparison: the runtime version of the newest
+# iOS build against the runtime version of the newest update on its
+# channel. Equal means the update is eligible and any remaining problem is
+# on the device. Different means it was refused, and the build is the only
+# thing that can fix it.
+#
+# Requires repository secret: EXPO_TOKEN
+name: Diagnose update delivery
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+
+      - name: Builds, updates and channels
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          echo '--- iOS builds (newest first) ---'
+          npx eas-cli build:list --platform ios --limit 5 --json --non-interactive \
+            | npx --yes jq -r '.[] | "build \(.appBuildVersion // "?")  runtime=\(.runtimeVersion)  channel=\(.channel // "-")  status=\(.status)  \(.completedAt // "")"'
+
+          echo
+          echo '--- Updates on each channel (newest first) ---'
+          for b in preview production; do
+            echo "branch: $b"
+            npx eas-cli update:list --branch "$b" --limit 5 --json --non-interactive \
+              | npx --yes jq -r '.currentPage[]? | "  runtime=\(.runtimeVersion)  \(.createdAt)  \(.message)"' || echo '  (none)'
+          done
+
+          echo
+          echo '--- Channel to branch mapping ---'
+          npx eas-cli channel:list --json --non-interactive \
+            | npx --yes jq -r '.[]? | "\(.name) -> \(.branchMapping // "-")"' || true
