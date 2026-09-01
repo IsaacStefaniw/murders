@@ -44,6 +44,9 @@ export default function PlanReview() {
       profile: plan.profile,
       goals: plan.goals,
       behaviourIntentions: plan.behaviourIntentions,
+      // Carried forward so the deferred questions know what has already
+      // been asked, weeks later and in a different screen.
+      answers,
       routines: plan.routines.map((r) =>
         disabledRoutines.has(r.id) ? { ...r, active: false } : r,
       ),

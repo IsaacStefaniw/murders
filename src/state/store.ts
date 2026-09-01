@@ -39,6 +39,8 @@ import {
   type TrainingInputs,
   type TrainingProgramme,
 } from '@/features/training/programme';
+import { PATH_ANSWER_FOR, profilePatchFor } from '@/features/onboarding/buildPlan';
+import type { InterviewAnswers } from '@/features/onboarding/script';
 import { buildExecutiveBlock, type WorkBlock, type WorkInputs } from '@/features/work/programme';
 import {
   levelFor,
@@ -109,8 +111,26 @@ export interface AppState {
     goals: Goal[];
     routines: Routine[];
     behaviourIntentions: BehaviourIntention[];
+    /** Kept so the deferred questions know what has already been asked. */
+    answers?: InterviewAnswers;
   }) => void;
   updateProfile: (patch: Partial<LifeProfile>) => void;
+
+  /**
+   * Every interview answer given so far, spine and deferred alike.
+   *
+   * Kept because the deferred questions are asked over weeks rather than
+   * in one sitting, and the only way to know which are still outstanding
+   * is to know which have been answered. The transient onboarding store
+   * cannot do that — it is cleared the moment the interview ends.
+   */
+  interviewAnswers: InterviewAnswers;
+  /**
+   * Answer a question the interview deferred. Routes the value to the
+   * profile field, the pathway intake, or both, and rebuilds whatever it
+   * invalidates.
+   */
+  answerDeferredQuestion: (stepId: string, value: string | string[] | undefined) => void;
 
   /** Returns the plan for a date, generating it if absent. */
   ensurePlan: (date: string) => DailyPlan;
@@ -346,6 +366,7 @@ const initialData = {
   questionLog: {} as Record<string, string>,
   dismissedCheckins: {} as Record<string, string>,
   trainingProgramme: null as TrainingProgramme | null,
+  interviewAnswers: {} as InterviewAnswers,
   pathLevelStepBack: {} as Partial<Record<PathId, PathLevel>>,
   workBlock: null as WorkBlock | null,
   clockOffsetMs: 0,
@@ -472,9 +493,47 @@ export const useAppStore = create<AppState>()(
         ...initialData,
         hydrated: false,
 
-        completeOnboarding: ({ profile, goals, routines, behaviourIntentions }) => {
-          set({ onboarded: true, profile, goals, routines, behaviourIntentions });
+        completeOnboarding: ({ profile, goals, routines, behaviourIntentions, answers }) => {
+          set({ onboarded: true, profile, goals, routines, behaviourIntentions, interviewAnswers: answers ?? {} });
           get().regeneratePlan(todayKey());
+        },
+
+        answerDeferredQuestion: (stepId, value) => {
+          const profile = get().profile;
+          set({ interviewAnswers: { ...get().interviewAnswers, [stepId]: value } });
+          if (!profile) return;
+
+          const patch = profilePatchFor(stepId, value, profile);
+          if (patch) get().updateProfile(patch);
+
+          // A pathway question only reaches a pathway that has been
+          // started. Writing into one that has not would leave an answer
+          // the intake would then ask for again.
+          const route = PATH_ANSWER_FOR[stepId];
+          const one = Array.isArray(value) ? value[0] : value;
+          if (route && one && get().paths[route.path]) {
+            get().updatePathAnswers(route.path, { [route.key]: one });
+          }
+
+          // A behaviour named here is a behaviour to protect against, and
+          // the whole point of naming it is that something happens.
+          if (stepId === 'lessOf' && Array.isArray(value)) {
+            const existing = new Set(get().behaviourIntentions.map((b) => b.behaviour));
+            for (const key of value as BehaviourKey[]) {
+              if (!existing.has(key)) {
+                get().addBehaviourIntention(key, behaviourInfo(key).intentionTemplate);
+              }
+            }
+          }
+
+          // Anything that changes what a block is computed from invalidates
+          // the block. Rebuilding now beats a plan that silently disagrees
+          // with the answer just given.
+          if (route?.path === 'training' || stepId === 'trainingSetup') get().buildTrainingBlock();
+          if (route?.path === 'work') get().buildWorkBlock();
+          if (patch && ('wakeTime' in patch || 'workDays' in patch || 'trainingPreference' in patch)) {
+            get().regeneratePlan(todayKey());
+          }
         },
 
         updateProfile: (patch) => {

@@ -6,6 +6,34 @@
  * the interview never relies on parsing free conversation. An AI
  * interview processor (lib/ai) can later enrich this, but the structured
  * path is the source of truth.
+ *
+ * ── Why the interview is split ──────────────────────────────────────────
+ *
+ * There were twenty-eight questions here and all of them came before the
+ * person had seen a single thing the app does. That is the wrong trade in
+ * both directions at once: too long to survive for someone deciding
+ * whether to bother, and yet no more convincing for it, because a question
+ * that changes nothing you can see is just a form.
+ *
+ * The resolution is not "ask fewer questions". It is that LENGTH IS NOT
+ * THE PROBLEM — UNREWARDED LENGTH IS. So the script is now two things:
+ *
+ * A SPINE of nine questions, marked `core`, which is exactly the set the
+ * scheduler cannot produce a correct first week without. Wake and sleep,
+ * work days and hours, capacity, energy, training days, priorities, name,
+ * and the one ambition. Answer those and there is a real plan on the other
+ * side, not a teaser of one.
+ *
+ * Everything else is DEFERRED to the pathway that actually consumes it,
+ * and asked there. Answering four questions to start the Training coach is
+ * motivated configuration — you asked for the coach — where the same four
+ * questions in a wall of twenty-eight are an interrogation by a stranger.
+ * Each deferred step declares where it goes and how its answer lands on
+ * the profile when it arrives late.
+ *
+ * And every core step carries a `reveal`: one line, shown the moment the
+ * answer lands, naming what just changed in the plan. This is what makes
+ * the questions the reveal rather than the toll before it.
  */
 
 export type StepKind = 'text' | 'single' | 'multi';
@@ -27,13 +55,55 @@ export interface InterviewStep {
   optional?: boolean;
   /** Skip this step entirely based on earlier answers. */
   skipIf?: (answers: InterviewAnswers) => boolean;
+  /**
+   * Part of the opening spine. True only where the scheduler cannot build
+   * a correct first week without the answer — that is the whole test, and
+   * it is what keeps the spine at nine rather than creeping back to
+   * twenty-eight.
+   */
+  core?: boolean;
+  /** Where this is asked instead, when it is not core. */
+  deferTo?: DeferTarget;
+  /**
+   * One line naming what just changed because of this answer, shown the
+   * moment it lands. The reason a nine-question interview reads as the
+   * plan being built rather than as a form being filled.
+   */
+  reveal?: (answers: InterviewAnswers) => string | null;
 }
 
 export type InterviewAnswers = Record<string, string | string[] | undefined>;
 
+/**
+ * Where a deferred question is asked instead of in the opening interview.
+ * A PathId sends it to that coach's intake; 'coaches' means it belongs to
+ * no single pathway and is asked from the Coaches tab.
+ */
+export type DeferTarget =
+  | 'training'
+  | 'nutrition'
+  | 'money'
+  | 'work'
+  | 'recovery'
+  | 'relationship'
+  | 'family'
+  | 'coaches';
+
+/** Human names for the life areas, for the reveal lines. */
+const LABEL: Record<string, string> = {
+  family: 'family',
+  relationship: 'your relationship',
+  health: 'health',
+  work: 'work',
+  growth: 'growth',
+  enjoyment: 'enjoyment',
+  admin: 'money',
+};
+
 export const INTERVIEW_STEPS: InterviewStep[] = [
   {
     id: 'name',
+    core: true,
     kind: 'text',
     prompt: () =>
       "Let's build a life you actually follow. First — what should I call you?",
@@ -41,6 +111,13 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'priorities',
+    core: true,
+    reveal: (a) => {
+      const picked = Array.isArray(a.priorities) ? a.priorities : [];
+      return picked.length > 0
+        ? `Noted. When two things want the same hour, ${LABEL[picked[0]] ?? picked[0]} wins.`
+        : null;
+    },
     kind: 'multi',
     maxSelections: 3,
     prompt: (a) =>
@@ -57,6 +134,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'vision',
+    deferTo: 'coaches',
     kind: 'text',
     optional: true,
     prompt: () =>
@@ -65,6 +143,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'household',
+    deferTo: 'family',
     kind: 'multi',
     prompt: () => "Who's at home with you?",
     options: [
@@ -75,6 +154,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'kidsCount',
+    deferTo: 'family',
     kind: 'single',
     skipIf: (a) => !(a.household as string[] | undefined)?.includes('kids'),
     prompt: () => 'How many kids?',
@@ -87,6 +167,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'partnerName',
+    deferTo: 'relationship',
     kind: 'text',
     optional: true,
     skipIf: (a) => !(a.household as string[] | undefined)?.includes('partner'),
@@ -95,6 +176,13 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'capacity',
+    core: true,
+    reveal: (a) =>
+      a.capacity === 'minimal'
+        ? 'Then the week stays deliberately thin. Fewer commitments kept beats more abandoned.'
+        : a.capacity === 'push'
+          ? 'Fuller week, then — and the first time it stops getting done, it comes back down.'
+          : 'A full week with slack left in it, so one bad day does not take the rest with it.',
     kind: 'single',
     prompt: () =>
       'Honestly — how full is life right now? INTENT plans to your real capacity, not your ambitions.',
@@ -106,6 +194,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'age',
+    deferTo: 'training',
     kind: 'single',
     optional: true,
     prompt: () =>
@@ -120,6 +209,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'workStyle',
+    deferTo: 'work',
     kind: 'single',
     prompt: () => 'What does your workday mostly demand?',
     options: [
@@ -131,6 +221,13 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'workDays',
+    core: true,
+    reveal: (a) => {
+      const days = Array.isArray(a.workDays) ? a.workDays.length : 0;
+      return days > 0
+        ? `${days} working ${days === 1 ? 'day' : 'days'}. Nothing gets scheduled over them.`
+        : null;
+    },
     kind: 'multi',
     prompt: () => 'Which days do you usually work?',
     options: [
@@ -145,6 +242,13 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'workHours',
+    core: true,
+    reveal: (a) => {
+      const hours = typeof a.workHours === 'string' ? a.workHours.split('-') : null;
+      return hours
+        ? `Then your own time starts at ${hours[1]}, and that is where the evening plan goes.`
+        : null;
+    },
     kind: 'single',
     prompt: () => 'And roughly what hours?',
     options: [
@@ -158,6 +262,13 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'sleep',
+    core: true,
+    reveal: (a) => {
+      const times = typeof a.sleep === 'string' ? a.sleep.split('-') : null;
+      return times
+        ? `Up at ${times[0]}, down at ${times[1]}. Nothing is ever scheduled after ${times[1]}, and reminders go quiet then too.`
+        : null;
+    },
     kind: 'single',
     prompt: () => 'When does a good day start and end for you?',
     options: [
@@ -168,6 +279,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'sleepQuality',
+    deferTo: 'recovery',
     kind: 'single',
     prompt: () => 'And honestly — how is the sleep itself?',
     options: [
@@ -178,6 +290,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'pressure',
+    deferTo: 'recovery',
     kind: 'single',
     prompt: () =>
       'How much pressure are you carrying right now? The plan protects recovery differently at redline.',
@@ -189,6 +302,13 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'energy',
+    core: true,
+    reveal: (a) =>
+      a.energy === 'morning'
+        ? 'So the hardest thing in the day goes early, while it is cheapest.'
+        : a.energy === 'evening'
+          ? 'So the demanding work goes late, when you actually have it — not at 7am because a book said so.'
+          : 'So the hard work sits mid-day, around the dip rather than in it.',
     kind: 'single',
     prompt: () => 'When do you have the most energy?',
     options: [
@@ -199,6 +319,14 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'trainingDays',
+    core: true,
+    reveal: (a) => {
+      const n = Number(a.trainingDays);
+      if (!n) return null;
+      return n <= 3
+        ? `${n} sessions, each full-body. At this frequency that beats a split, and it is what goes in the calendar.`
+        : `${n} sessions on an upper/lower split — every lift trained twice a week.`;
+    },
     kind: 'single',
     prompt: () => 'How many days a week do you want to train? Be honest, not ambitious.',
     options: [
@@ -212,6 +340,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'trainingSetup',
+    deferTo: 'training',
     kind: 'single',
     prompt: () => 'Where will that usually happen?',
     options: [
@@ -224,6 +353,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'trainingExperience',
+    deferTo: 'training',
     kind: 'single',
     skipIf: (a) => a.trainingSetup === 'walking',
     prompt: () => 'And where are you starting from?',
@@ -235,6 +365,24 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'existingHabits',
+    /**
+     * Core despite being optional, and despite the spine otherwise being
+     * only what the scheduler strictly needs.
+     *
+     * This one has to be asked before the plan is built rather than after,
+     * because it decides whether a routine is created as an ESTABLISHED
+     * anchor or prescribed back as something new. Answered a week later it
+     * would land on the profile and change nothing that had already been
+     * built — the app would have spent its first week telling someone who
+     * has meditated daily for a decade to try meditating.
+     */
+    core: true,
+    reveal: (a) => {
+      const habits = Array.isArray(a.existingHabits) ? a.existingHabits : [];
+      return habits.length > 0
+        ? `Then those stay yours. They go in as things you already do, not as things to start.`
+        : 'Fine — then everything in the plan is new, and it starts small on purpose.';
+    },
     kind: 'multi',
     optional: true,
     prompt: () =>
@@ -252,6 +400,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'weight',
+    deferTo: 'nutrition',
     kind: 'text',
     optional: true,
     prompt: () =>
@@ -260,6 +409,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'foodAim',
+    deferTo: 'nutrition',
     kind: 'single',
     optional: true,
     prompt: () => 'Food — want the nutrition coach in the loop?',
@@ -272,6 +422,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'foodTrouble',
+    deferTo: 'nutrition',
     kind: 'single',
     skipIf: (a) => !a.foodAim || a.foodAim === 'none',
     prompt: () => 'Where does food usually go wrong? The answer decides which lever comes first.',
@@ -285,6 +436,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'mind',
+    deferTo: 'recovery',
     kind: 'multi',
     optional: true,
     prompt: () => 'And your headspace — anything you want in the toolkit?',
@@ -296,6 +448,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'moreOf',
+    deferTo: 'coaches',
     kind: 'multi',
     prompt: () => 'What do you want more of in your weeks?',
     options: [
@@ -312,6 +465,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'lessOf',
+    deferTo: 'recovery',
     kind: 'multi',
     optional: true,
     prompt: () =>
@@ -328,6 +482,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'money',
+    deferTo: 'money',
     kind: 'single',
     optional: true,
     prompt: () => 'Money — want INTENT in the loop?',
@@ -340,6 +495,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'moneyAutomation',
+    deferTo: 'money',
     kind: 'single',
     skipIf: (a) => !a.money || a.money === 'none',
     prompt: () => 'Is any of it automated today?',
@@ -351,6 +507,11 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'ambition',
+    core: true,
+    reveal: (a) =>
+      typeof a.ambition === 'string' && a.ambition.trim()
+        ? 'Now the milestones get drafted from it, and the week gets built to serve them.'
+        : null,
     kind: 'text',
     optional: true,
     prompt: () => "Last one. What's one thing you're working toward this year?",
@@ -359,7 +520,36 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
 ];
 
-/** Steps that actually apply for a given answer set, in order. */
-export function activeSteps(answers: InterviewAnswers): InterviewStep[] {
-  return INTERVIEW_STEPS.filter((s) => !s.skipIf?.(answers));
+/**
+ * Steps that actually apply for a given answer set, in order.
+ *
+ * Defaults to the spine. `'all'` is for anything that needs the full
+ * script — tests, and the settings screen where someone can choose to
+ * answer everything at once.
+ */
+export function activeSteps(
+  answers: InterviewAnswers,
+  scope: 'core' | 'all' = 'core',
+): InterviewStep[] {
+  return INTERVIEW_STEPS.filter(
+    (s) => (scope === 'all' || s.core) && !s.skipIf?.(answers),
+  );
+}
+
+/**
+ * The deferred questions belonging to one place that have not been
+ * answered yet — what a pathway hub offers, one at a time.
+ */
+export function deferredSteps(
+  answers: InterviewAnswers,
+  target: DeferTarget,
+): InterviewStep[] {
+  return INTERVIEW_STEPS.filter(
+    (s) =>
+      !s.core &&
+      s.deferTo === target &&
+      !s.skipIf?.(answers) &&
+      (answers[s.id] === undefined ||
+        (Array.isArray(answers[s.id]) && (answers[s.id] as string[]).length === 0)),
+  );
 }

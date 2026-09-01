@@ -11,6 +11,7 @@ import { Card } from '@/components/card';
 import { EmptyState } from '@/components/empty-state';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
+import { DeferredQuestions } from '@/features/onboarding/DeferredQuestions';
 import { Spacing } from '@/constants/theme';
 import { BehaviourLog } from '@/features/behaviours/BehaviourLog';
 import { behaviourInfo } from '@/features/behaviours/catalog';
@@ -117,6 +118,13 @@ export default function Life() {
           “{profile.lifeVision}”
         </AppText>
       ) : null}
+
+      {/* Questions that belong to no single coach. Disappears once
+          answered rather than sitting there as a permanent chore. */}
+      <DeferredQuestions
+        target="coaches"
+        promise="One more thing INTENT can use across every coach."
+      />
 
       <SectionHeader title="Paths" />
       <AppText variant="caption" color="textTertiary">

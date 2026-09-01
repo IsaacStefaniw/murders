@@ -619,3 +619,97 @@ function minusMinutes(hhmm: string, minutes: number): string {
   const total = (h * 60 + m - minutes + 1440) % 1440;
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
+
+/**
+ * Where a deferred interview answer lands when it arrives late.
+ *
+ * The opening interview builds the whole profile at once. A question
+ * answered afterwards — inside the pathway that asked for it — has to
+ * find its way to the same field, and only that field: rebuilding the
+ * profile from the merged answers would also rebuild the goals and
+ * routines, discarding whatever the person had since edited.
+ *
+ * Returns null for a step whose answer does not belong on the profile at
+ * all. Those are the pathway ones, and they go through PATH_ANSWER_FOR.
+ */
+export function profilePatchFor(
+  stepId: string,
+  value: string | string[] | undefined,
+  current: LifeProfile,
+): Partial<LifeProfile> | null {
+  const one = Array.isArray(value) ? value[0] : value;
+  const many = Array.isArray(value) ? value : value ? [value] : [];
+
+  switch (stepId) {
+    case 'vision':
+      return { lifeVision: one || undefined };
+    case 'age':
+      return { age: Number(one) || undefined };
+    case 'weight':
+      return { weightKg: Number(one) || undefined };
+    case 'workStyle':
+      return { workStyle: (one as LifeProfile['workStyle']) || undefined };
+    case 'sleepQuality':
+      return { sleepQuality: (one as LifeProfile['sleepQuality']) || undefined };
+    case 'pressure':
+      return { pressure: (one as LifeProfile['pressure']) || undefined };
+    case 'moreOf':
+      return { moreOf: many };
+    case 'lessOf':
+      return { lessOf: many as BehaviourKey[] };
+    case 'existingHabits':
+      return { existingHabits: many.length > 0 ? (many as ExistingHabitKey[]) : undefined };
+    case 'trainingSetup':
+      return {
+        trainingPreference:
+          one === 'walking' ? 'outdoors' : ((one as LifeProfile['trainingPreference']) ?? 'mixed'),
+      };
+    case 'kidsCount':
+      return { kidsCount: Number(one) || undefined };
+    case 'household': {
+      // People are rebuilt rather than appended: answering this twice
+      // should not leave two partners in the household.
+      const people: Person[] = current.people.filter(
+        (p) => p.relation !== 'partner' && p.relation !== 'child',
+      );
+      if (many.includes('partner')) {
+        const existing = current.people.find((p) => p.relation === 'partner');
+        people.push({ id: existing?.id ?? newId('p'), name: existing?.name ?? 'Partner', relation: 'partner' });
+      }
+      if (many.includes('kids')) {
+        const existing = current.people.find((p) => p.relation === 'child');
+        people.push({ id: existing?.id ?? newId('p'), name: existing?.name ?? 'The kids', relation: 'child' });
+      }
+      return { people };
+    }
+    case 'partnerName': {
+      if (!one) return null;
+      const people = current.people.map((p) => (p.relation === 'partner' ? { ...p, name: one } : p));
+      // Naming a partner before saying there is one still means there is one.
+      if (!people.some((p) => p.relation === 'partner')) {
+        people.push({ id: newId('p'), name: one, relation: 'partner' });
+      }
+      return { people };
+    }
+    default:
+      return null;
+  }
+}
+
+/**
+ * Deferred answers that belong to a pathway's intake rather than the
+ * profile — the ones whose whole job is to change what that coach builds.
+ */
+export const PATH_ANSWER_FOR: Record<string, { path: PathId; key: string }> = {
+  trainingExperience: { path: 'training', key: 'experience' },
+  trainingSetup: { path: 'training', key: 'setup' },
+  age: { path: 'training', key: 'age' },
+  foodAim: { path: 'nutrition', key: 'aim' },
+  foodTrouble: { path: 'nutrition', key: 'trouble' },
+  weight: { path: 'nutrition', key: 'weightKg' },
+  money: { path: 'money', key: 'aim' },
+  moneyAutomation: { path: 'money', key: 'automation' },
+  workStyle: { path: 'work', key: 'style' },
+  sleepQuality: { path: 'recovery', key: 'sleepQuality' },
+  pressure: { path: 'recovery', key: 'pressure' },
+};

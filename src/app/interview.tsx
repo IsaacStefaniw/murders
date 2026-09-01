@@ -14,7 +14,7 @@ import { Chip } from '@/components/chip';
 import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { Spacing } from '@/constants/theme';
-import { activeSteps } from '@/features/onboarding/script';
+import { activeSteps, type InterviewAnswers } from '@/features/onboarding/script';
 import { useOnboardingStore } from '@/features/onboarding/state';
 
 /**
@@ -26,14 +26,26 @@ export default function Interview() {
   const { answers, setAnswer } = useOnboardingStore();
   const [stepIndex, setStepIndex] = useState(0);
   const [textDraft, setTextDraft] = useState('');
+  /**
+   * What the last answer changed, carried onto the next question.
+   *
+   * This is the whole reason a nine-question interview does not read as a
+   * form: each answer visibly moves the plan before the next question
+   * arrives. It is shown on the following screen rather than as an extra
+   * tap, so nobody pays for the reassurance with an interaction.
+   */
+  const [lastReveal, setLastReveal] = useState<string | null>(null);
 
   const steps = useMemo(() => activeSteps(answers), [answers]);
   const step = steps[Math.min(stepIndex, steps.length - 1)];
   const currentValue = answers[step.id];
   const selected: string[] = Array.isArray(currentValue) ? currentValue : [];
 
-  const advance = () => {
+  const advance = (justAnswered?: InterviewAnswers) => {
     setTextDraft('');
+    // Computed from the answers WITH this one applied — reading the store
+    // here would read the value before it landed.
+    setLastReveal(step.reveal?.(justAnswered ?? answers) ?? null);
     if (stepIndex >= steps.length - 1) {
       router.replace('/plan-review');
     } else {
@@ -42,6 +54,7 @@ export default function Interview() {
   };
 
   const back = () => {
+    setLastReveal(null);
     if (stepIndex === 0) {
       router.back();
     } else {
@@ -51,14 +64,15 @@ export default function Interview() {
   };
 
   const submitText = () => {
-    setAnswer(step.id, textDraft.trim() || undefined);
-    advance();
+    const value = textDraft.trim() || undefined;
+    setAnswer(step.id, value);
+    advance({ ...answers, [step.id]: value });
   };
 
   const toggleChip = (value: string) => {
     if (step.kind === 'single') {
       setAnswer(step.id, value);
-      advance();
+      advance({ ...answers, [step.id]: value });
       return;
     }
     const next = selected.includes(value)
@@ -90,6 +104,12 @@ export default function Interview() {
             {stepIndex + 1} of {steps.length}
           </AppText>
         </View>
+
+        {lastReveal ? (
+          <AppText variant="secondary" color="accent" style={styles.reveal}>
+            {lastReveal}
+          </AppText>
+        ) : null}
 
         <View style={styles.question}>
           <AppText variant="title">{step.prompt(answers)}</AppText>
@@ -133,7 +153,7 @@ export default function Interview() {
                 : 'Continue'
             }
             disabled={!canContinue}
-            onPress={step.kind === 'text' ? submitText : advance}
+            onPress={step.kind === 'text' ? submitText : () => advance()}
           />
         ) : null}
       </KeyboardAvoidingView>
@@ -143,6 +163,7 @@ export default function Interview() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  reveal: { paddingTop: Spacing.sm },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

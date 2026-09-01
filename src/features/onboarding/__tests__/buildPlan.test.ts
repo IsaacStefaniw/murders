@@ -1,5 +1,14 @@
-import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
-import type { InterviewAnswers } from '@/features/onboarding/script';
+import {
+  buildLifeOperatingPlan,
+  PATH_ANSWER_FOR,
+  profilePatchFor,
+} from '@/features/onboarding/buildPlan';
+import {
+  activeSteps,
+  deferredSteps,
+  INTERVIEW_STEPS,
+  type InterviewAnswers,
+} from '@/features/onboarding/script';
 
 const answers: InterviewAnswers = {
   name: 'Isaac',
@@ -255,5 +264,171 @@ describe('buildLifeOperatingPlan', () => {
     expect(fallback.profile.workDays).toEqual([1, 2, 3, 4, 5]);
     expect(fallback.profile.priorities.length).toBeGreaterThan(0);
     expect(fallback.routines.length).toBeGreaterThan(0);
+  });
+});
+
+describe('the interview spine', () => {
+  const answered: InterviewAnswers = {
+    name: 'Sam',
+    priorities: ['family', 'health'],
+    capacity: 'steady',
+    workDays: ['1', '2', '3', '4', '5'],
+    workHours: '09:00-17:30',
+    sleep: '06:30-22:30',
+    energy: 'morning',
+    trainingDays: '3',
+    ambition: 'Run a half marathon',
+  };
+
+  /**
+   * The whole trade. Twenty-eight questions before anyone had seen the app
+   * work was too long to survive and no more convincing for the length.
+   */
+  it('is short enough to finish before anyone has seen the app work', () => {
+    expect(activeSteps({}).length).toBeLessThanOrEqual(10);
+  });
+
+  /**
+   * The test for whether a question belongs in the spine: can the
+   * scheduler build a correct first week without it? These are the ones it
+   * cannot, and this is what stops the spine creeping back to twenty-eight.
+   */
+  it('contains exactly what the scheduler cannot work without', () => {
+    expect(activeSteps({}).map((s) => s.id)).toEqual([
+      'name',
+      'priorities',
+      'capacity',
+      'workDays',
+      'workHours',
+      'sleep',
+      'energy',
+      'trainingDays',
+      'existingHabits',
+      'ambition',
+    ]);
+  });
+
+  it('still produces a real plan, not a stub, from the spine alone', () => {
+    const plan = buildLifeOperatingPlan(answered);
+    expect(plan.profile.firstName).toBe('Sam');
+    expect(plan.profile.workDays).toEqual([1, 2, 3, 4, 5]);
+    expect(plan.profile.wakeTime).toBe('06:30');
+    expect(plan.profile.trainingDaysPerWeek).toBe(3);
+    expect(plan.routines.length).toBeGreaterThan(0);
+    expect(plan.goals.length).toBeGreaterThan(0);
+  });
+
+  /**
+   * Length is not the problem — unrewarded length is. Every spine question
+   * says what it just changed, which is what makes the interview read as
+   * the plan being built rather than as a form being filled.
+   */
+  it('tells you what changed after every answer that has an answer to show', () => {
+    const withoutReveal = activeSteps({})
+      .filter((s) => s.id !== 'name')
+      .filter((s) => s.reveal?.(answered) == null);
+    expect(withoutReveal.map((s) => s.id)).toEqual([]);
+  });
+
+  it('names your own numbers back to you rather than a generic confirmation', () => {
+    const sleep = activeSteps({}).find((s) => s.id === 'sleep')!;
+    expect(sleep.reveal!(answered)).toContain('22:30');
+  });
+});
+
+describe('the deferred questions', () => {
+  it('every one of them has somewhere to go', () => {
+    const orphans = INTERVIEW_STEPS.filter((s) => !s.core && !s.deferTo);
+    expect(orphans.map((s) => s.id)).toEqual([]);
+  });
+
+  it('are asked by the pathway that actually consumes them', () => {
+    const training = deferredSteps({}, 'training').map((s) => s.id);
+    expect(training).toContain('trainingExperience');
+    expect(training).toContain('trainingSetup');
+    expect(deferredSteps({}, 'nutrition').map((s) => s.id)).toContain('foodAim');
+    expect(deferredSteps({}, 'money').map((s) => s.id)).toContain('money');
+  });
+
+  it('stop being asked once answered', () => {
+    const before = deferredSteps({}, 'training').length;
+    const after = deferredSteps({ trainingExperience: 'consistent' }, 'training').length;
+    expect(after).toBe(before - 1);
+  });
+
+  it('respect the same skip rules the interview did', () => {
+    // Walking is training; asking a walker about barbell experience is not
+    // depth, it is a question that should never have been shown.
+    expect(deferredSteps({ trainingSetup: 'walking' }, 'training').map((s) => s.id)).not.toContain(
+      'trainingExperience',
+    );
+  });
+
+  it('leave nothing unreachable — every step is either core or deferred', () => {
+    const reachable = new Set([
+      ...activeSteps({}, 'all').filter((s) => s.core).map((s) => s.id),
+      ...(['training', 'nutrition', 'money', 'work', 'recovery', 'relationship', 'family', 'coaches'] as const)
+        .flatMap((t) => deferredSteps({}, t).map((s) => s.id)),
+    ]);
+    const unreachable = INTERVIEW_STEPS.filter((s) => !reachable.has(s.id) && !s.skipIf?.({}));
+    expect(unreachable.map((s) => s.id)).toEqual([]);
+  });
+});
+
+describe('answering a deferred question late', () => {
+  const base = buildLifeOperatingPlan({
+    name: 'Sam',
+    priorities: ['health'],
+    capacity: 'steady',
+    sleep: '06:30-22:30',
+    trainingDays: '3',
+  }).profile;
+
+  it('lands on the profile field the interview would have filled', () => {
+    expect(profilePatchFor('age', '45', base)).toEqual({ age: 45 });
+    expect(profilePatchFor('pressure', 'redline', base)).toEqual({ pressure: 'redline' });
+    expect(profilePatchFor('moreOf', ['Reading'], base)).toEqual({ moreOf: ['Reading'] });
+  });
+
+  /**
+   * Answering "who is in the household" twice should not leave two
+   * partners in it. The list is rebuilt rather than appended to.
+   */
+  it('does not duplicate the household when answered twice', () => {
+    const once = profilePatchFor('household', ['partner', 'kids'], base)!;
+    const twice = profilePatchFor('household', ['partner', 'kids'], {
+      ...base,
+      ...once,
+    } as typeof base)!;
+    expect(twice.people).toHaveLength(2);
+  });
+
+  it('keeps the partner’s name when the household answer is revisited', () => {
+    const named = profilePatchFor('partnerName', 'Anna', {
+      ...base,
+      people: [{ id: 'p1', name: 'Partner', relation: 'partner' }],
+    } as typeof base)!;
+    const after = profilePatchFor('household', ['partner'], {
+      ...base,
+      ...named,
+    } as typeof base)!;
+    expect(after.people?.[0].name).toBe('Anna');
+  });
+
+  it('treats naming a partner as saying there is one', () => {
+    const patch = profilePatchFor('partnerName', 'Anna', base)!;
+    expect(patch.people).toEqual([expect.objectContaining({ name: 'Anna', relation: 'partner' })]);
+  });
+
+  it('returns nothing for the answers that belong to a pathway instead', () => {
+    expect(profilePatchFor('foodAim', 'weight', base)).toBeNull();
+    expect(profilePatchFor('trainingExperience', 'consistent', base)).toBeNull();
+    expect(PATH_ANSWER_FOR.trainingExperience).toEqual({ path: 'training', key: 'experience' });
+  });
+
+  it('sends walking to the outdoors preference rather than dropping it', () => {
+    expect(profilePatchFor('trainingSetup', 'walking', base)).toEqual({
+      trainingPreference: 'outdoors',
+    });
   });
 });

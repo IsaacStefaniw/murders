@@ -15,6 +15,7 @@ import { MindHub } from '@/features/mind/MindHub';
 import { MoneyHub } from '@/features/money/MoneyHub';
 import { NutritionHub } from '@/features/nutrition/NutritionHub';
 import { PATHS, type PathId } from '@/features/paths/definitions';
+import { DeferredQuestions } from '@/features/onboarding/DeferredQuestions';
 import { TrainingHub } from '@/features/training/TrainingHub';
 import { WorkHub } from '@/features/work/WorkHub';
 import { formatTime } from '@/lib/dates';
@@ -169,6 +170,14 @@ export default function PathHub() {
           </AppText>
         </Card>
       ) : null}
+
+      {/* The depth the opening interview deferred, asked here where the
+          person has already chosen this coach — which is what makes it
+          configuration rather than interrogation. */}
+      <DeferredQuestions
+        target={def.id}
+        promise={`This changes what the ${def.title.toLowerCase()} coach builds for you.`}
+      />
 
       {def.id === 'training' ? (
         <>
