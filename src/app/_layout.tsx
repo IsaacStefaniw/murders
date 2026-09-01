@@ -21,9 +21,17 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const hydrated = useAppStore((s) => s.hydrated);
 
+  const markOpened = useAppStore((s) => s.markOpened);
+
   useEffect(() => {
     if (hydrated) SplashScreen.hideAsync();
   }, [hydrated]);
+
+  // Stamped once per launch, after hydration so the previous value is the
+  // real one rather than the empty default.
+  useEffect(() => {
+    if (hydrated) markOpened();
+  }, [hydrated, markOpened]);
 
   // Keeps the OS queue in step with what the app intends. No-ops entirely
   // while notifications are off, which is the default.

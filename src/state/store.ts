@@ -117,6 +117,18 @@ export interface AppState {
   updateProfile: (patch: Partial<LifeProfile>) => void;
 
   /**
+   * When the app was last opened, and the one before that.
+   *
+   * Two values because the first is overwritten on this launch: by the
+   * time anything renders, "last opened" is a second ago. The previous one
+   * is what says how long someone was actually away, which is the only
+   * version of this fact worth anything.
+   */
+  lastOpenedAt: string | null;
+  previousOpenAt: string | null;
+  markOpened: () => void;
+
+  /**
    * Every interview answer given so far, spine and deferred alike.
    *
    * Kept because the deferred questions are asked over weeks rather than
@@ -167,6 +179,14 @@ export interface AppState {
    * composer's streak and count rungs, and the adaptation engine exactly
    * like planned effort does. Returns the new item's id.
    */
+  /**
+   * Record something that happened and was never in the plan.
+   *
+   * Everything a day could contain used to be something INTENT had
+   * scheduled, which quietly made it a scoreboard for its own suggestions.
+   * A run the app did not think of earned no credit, the day read emptier
+   * than it was, and next week was then planned from that fiction.
+   */
   logCompletedActivity: (input: {
     title: string;
     area: PlanItem['area'];
@@ -176,6 +196,13 @@ export interface AppState {
     endedAt?: string;
     sessionType?: PlanItem['sessionType'];
     goalId?: string;
+    /**
+     * Set when the entry IS one of the person's own routines. Without it a
+     * logged "Morning walk" is a different thing from the scheduled one to
+     * every consumer downstream — adherence, streak rungs, the adaptation
+     * engine — and the routine reads as never done.
+     */
+    routineId?: string;
     note?: string;
   }) => string;
 
@@ -367,6 +394,8 @@ const initialData = {
   dismissedCheckins: {} as Record<string, string>,
   trainingProgramme: null as TrainingProgramme | null,
   interviewAnswers: {} as InterviewAnswers,
+  lastOpenedAt: null as string | null,
+  previousOpenAt: null as string | null,
   pathLevelStepBack: {} as Partial<Record<PathId, PathLevel>>,
   workBlock: null as WorkBlock | null,
   clockOffsetMs: 0,
@@ -534,6 +563,18 @@ export const useAppStore = create<AppState>()(
           if (patch && ('wakeTime' in patch || 'workDays' in patch || 'trainingPreference' in patch)) {
             get().regeneratePlan(todayKey());
           }
+        },
+
+        markOpened: () => {
+          const now = new Date().toISOString();
+          const last = get().lastOpenedAt;
+          // Reopening within the same hour is the same visit — a tab
+          // switch must not erase the gap that just ended.
+          if (last && Date.now() - Date.parse(last) < 3600e3) {
+            set({ lastOpenedAt: now });
+            return;
+          }
+          set({ previousOpenAt: last, lastOpenedAt: now });
         },
 
         updateProfile: (patch) => {
@@ -728,6 +769,7 @@ export const useAppStore = create<AppState>()(
             title: input.title,
             area: input.area,
             goalId: input.goalId,
+            routineId: input.routineId,
             sessionType: input.sessionType,
             tier: 'should',
             status: 'completed',

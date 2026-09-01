@@ -29,6 +29,8 @@ import {
   weekdayOf,
 } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
+import { LogDidIt } from '@/features/today/LogDidIt';
+import { WelcomeBack } from '@/features/today/WelcomeBack';
 import { QuickLog } from '@/features/today/QuickLog';
 import { useAppStore } from '@/state/store';
 import type { PlanItem } from '@/types/domain';
@@ -193,8 +195,9 @@ export default function Today() {
       */}
       <CheckinCard />
 
-      {/* Silent on the ordinary morning; that is what makes it worth
-          reading on the morning it appears. */}
+      {/* Both silent on an ordinary morning, which is what makes either
+          one worth reading on the morning it appears. */}
+      <WelcomeBack date={date} />
       <ReadinessCard />
 
       <SectionHeader title="Now" color="must" />
@@ -371,9 +374,19 @@ export default function Today() {
         <Chip label="Train" onPress={() => router.push('/session/workout' as never)} />
       </View>
 
-      {/* And the other direction: recording what already happened. */}
+      {/* And the other direction: recording what already happened. The
+          chips cover the eight common habits in one tap; anything else —
+          including your own routines — goes through the fuller entry
+          below, because the day has to be able to hold what actually
+          happened and not only what INTENT suggested. */}
       <SectionHeader title="Already done" />
       <QuickLog />
+      <View style={styles.didIt}>
+        <LogDidIt date={date} />
+      </View>
+      <View style={styles.didIt}>
+        <LogDidIt date={date} />
+      </View>
 
       {lookAheadHighlight ? (
         /* One emotionally useful future moment — Plan owns the full week. */
@@ -415,6 +428,7 @@ export default function Today() {
 }
 
 const styles = StyleSheet.create({
+  didIt: { marginTop: Spacing.md },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   coach: { marginTop: Spacing.xl, gap: Spacing.xs },
   coachWhy: { fontStyle: 'italic' },
