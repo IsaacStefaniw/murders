@@ -14,7 +14,12 @@ import { Chip } from '@/components/chip';
 import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { Spacing } from '@/constants/theme';
-import { activeSteps, type InterviewAnswers } from '@/features/onboarding/script';
+import {
+  activeSteps,
+  optionsFor,
+  placeholderFor,
+  type InterviewAnswers,
+} from '@/features/onboarding/script';
 import { useOnboardingStore } from '@/features/onboarding/state';
 
 /**
@@ -122,14 +127,14 @@ export default function Interview() {
               showLabel={false}
               value={textDraft}
               onChangeText={setTextDraft}
-              placeholder={step.placeholder}
+              placeholder={placeholderFor(step, answers)}
               autoFocus
               returnKeyType="done"
               onSubmitEditing={canContinue ? submitText : undefined}
             />
           ) : (
             <View style={styles.chips}>
-              {step.options?.map((option) => (
+              {optionsFor(step, answers).map((option) => (
                 <Chip
                   key={option.value}
                   label={option.label}

@@ -28,6 +28,32 @@ export type ExistingHabitKey =
   | 'cold'
   | 'journaling';
 
+/**
+ * Things the plan must work around. Captured at onboarding because they
+ * change what gets BUILT, not merely when it is scheduled.
+ *
+ * Deliberately coarse and self-reported. INTENT is not a clinician and
+ * must never behave like one: these steer movement selection towards the
+ * conservative option and nothing else. No diagnosis, no treatment, no
+ * advice — if something hurts, a professional is the right tool.
+ */
+export type PhysicalConstraint =
+  | 'joints'
+  | 'balance'
+  | 'heart'
+  | 'recovering'
+  | 'pregnancy'
+  | 'energy';
+
+/** How a person's week is shaped — see features/onboarding/markets.ts. */
+export type WeekShapeKey =
+  | 'employed'
+  | 'selfDirected'
+  | 'shift'
+  | 'study'
+  | 'caring'
+  | 'retired';
+
 export interface Person {
   id: string;
   name: string;
@@ -62,6 +88,10 @@ export interface LifeProfile {
   lessOf: BehaviourKey[];
   /** What's already part of their life — the foundations INTENT builds on. */
   existingHabits?: ExistingHabitKey[];
+  /** What the plan must work around. Steers movement, never diagnoses. */
+  constraints?: PhysicalConstraint[];
+  /** The shape of the week — decides whether work blocks exist at all. */
+  weekShape?: WeekShapeKey;
   /** Optional personal numbers, asked only where the maths uses them
    * (protein target, training guidance). Never required, never judged. */
   age?: number;

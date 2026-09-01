@@ -286,7 +286,20 @@ describe('the interview spine', () => {
    * work was too long to survive and no more convincing for the length.
    */
   it('is short enough to finish before anyone has seen the app work', () => {
-    expect(activeSteps({}).length).toBeLessThanOrEqual(10);
+    // Twelve, up from ten. Both additions were bought, not conceded:
+    // `weekShape` is what lets four of the six markets skip questions that
+    // do not apply to them, and `constraints` is what stops the app
+    // prescribing loaded squats to someone whose knee will not take them.
+    // Every question here is a single tap.
+    expect(activeSteps({}).length).toBeLessThanOrEqual(12);
+  });
+
+  it('never asks any market more than the spine allows', () => {
+    // The ceiling has to hold for the branches too, or "we only ask twelve"
+    // quietly becomes "we ask twelve, plus whatever your branch adds".
+    for (const shape of ['employed', 'selfDirected', 'shift', 'study', 'caring', 'retired']) {
+      expect(activeSteps({ weekShape: shape }).length).toBeLessThanOrEqual(12);
+    }
   });
 
   /**
@@ -297,6 +310,9 @@ describe('the interview spine', () => {
   it('contains exactly what the scheduler cannot work without', () => {
     expect(activeSteps({}).map((s) => s.id)).toEqual([
       'name',
+      // Which shape the week is decides whether the work questions are
+      // asked at all, so nothing correct can be built without it.
+      'weekShape',
       'priorities',
       'capacity',
       'workDays',
@@ -304,9 +320,26 @@ describe('the interview spine', () => {
       'sleep',
       'energy',
       'trainingDays',
+      'constraints',
       'existingHabits',
       'ambition',
     ]);
+  });
+
+  it('asks a retiree for their anchors instead of their working week', () => {
+    const ids = activeSteps({ weekShape: 'retired' }).map((s) => s.id);
+    expect(ids).not.toContain('workDays');
+    expect(ids).not.toContain('workHours');
+    expect(ids).toContain('weekAnchors');
+  });
+
+  it('keeps the working questions for every shape that has work', () => {
+    for (const shape of ['employed', 'selfDirected', 'shift', 'study', 'caring']) {
+      const ids = activeSteps({ weekShape: shape }).map((s) => s.id);
+      expect(ids).toContain('workDays');
+      expect(ids).toContain('workHours');
+      expect(ids).not.toContain('weekAnchors');
+    }
   });
 
   it('still produces a real plan, not a stub, from the spine alone', () => {

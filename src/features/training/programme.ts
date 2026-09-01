@@ -14,6 +14,14 @@
 import { estimate1Rm, latest, type MetricObservation } from '@/features/model/metrics';
 import type { PathLevel } from '@/features/paths/level';
 import { newId } from '@/lib/dates';
+import type { PhysicalConstraint } from '@/types/domain';
+
+import {
+  applyConstraints,
+  constraintNote,
+  intensityCeiling,
+  rulesOutComplexLifts,
+} from './constraints';
 
 export type TrainingGoal = 'strength' | 'hypertrophy' | 'fatloss' | 'general';
 export type TrainingExperience = 'new' | 'returning' | 'consistent';
@@ -46,6 +54,8 @@ export interface TrainingInputs {
   /** The lift the goal centres on, when the goal names one. */
   focusLift?: 'bench' | 'squat' | 'deadlift' | 'ohp';
   age?: number;
+  /** What the body will not do right now. Swaps movements, never removes. */
+  constraints?: PhysicalConstraint[];
 }
 
 export interface PrescribedExercise {
@@ -234,6 +244,7 @@ function prescribe(
   primary: boolean,
   restSec: number,
   tuning: LevelTuning,
+  ceiling: number,
 ): PrescribedExercise {
   const scheme = mainScheme(goal, week);
   const deload = week === 4;
@@ -254,8 +265,10 @@ function prescribe(
   if (base) {
     const pct = (primary ? scheme.pct : scheme.pct - 0.05) + pctDelta;
     // Clamped so no combination of goal, week and level can prescribe a
-    // load that is either a warm-up or a maximal attempt by accident.
-    const safePct = Math.min(0.9, Math.max(0.5, pct));
+    // load that is either a warm-up or a maximal attempt by accident. A
+    // constraint lowers the top of that range rather than shifting it, so
+    // several constraints together cannot drive the load below useful.
+    const safePct = Math.min(ceiling, Math.max(0.5, pct));
     return { name, sets, reps: scheme.reps, loadKg: round2p5(base * safePct), restSec };
   }
 
@@ -436,10 +449,16 @@ export function buildProgramme(
   const days = Math.min(Math.max(inputs.daysAvailable, 2), 5);
   const level = levelOf(inputs);
   const tuning = LEVEL_TUNING[level];
-  const menu = mains(inputs.equipment, tuning.complexLifts);
+  // A constraint rules the technical lifts out for the same reason
+  // foundation level does, and either alone is enough.
+  const allowComplex = tuning.complexLifts && !rulesOutComplexLifts(inputs.constraints);
+  const ceiling = intensityCeiling(inputs.constraints);
+  const menu = mains(inputs.equipment, allowComplex);
   const notes: string[] = [];
 
   notes.push(LEVEL_NOTE[level]);
+  const constraintLine = constraintNote(inputs.constraints);
+  if (constraintLine) notes.push(constraintLine);
 
   // Split from real availability, not aspiration.
   const split: ('upper' | 'lower' | 'full')[] =
@@ -460,7 +479,7 @@ export function buildProgramme(
   const weeks: ProgrammeWeek[] = PHASES.map((phase, i) => {
     const week = i + 1;
     const sessions: ProgrammeSession[] = split.map((kind, dayIdx) => {
-      const slots = [...menu[kind]];
+      const slots = applyConstraints([...menu[kind]], inputs.constraints);
       // Focus lift leads its sessions.
       if (inputs.focusLift) {
         const fi = slots.findIndex((s) => s.lift === inputs.focusLift);
@@ -476,6 +495,7 @@ export function buildProgramme(
           s.primary && si === 0,
           si === 0 ? 120 : 90,
           tuning,
+          ceiling,
         ),
       );
       // Week 3 heavy top set for a baselined focus lift — and only for a

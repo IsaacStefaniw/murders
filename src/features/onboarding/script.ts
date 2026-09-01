@@ -36,6 +36,16 @@
  * the questions the reveal rather than the toll before it.
  */
 
+import {
+  ambitionPlaceholder,
+  committedBlockLabel,
+  moneyOptions,
+  moreOfOptions,
+  visionPlaceholder,
+  worksSomewhere,
+  type WeekShape,
+} from './markets';
+
 export type StepKind = 'text' | 'single' | 'multi';
 
 export interface InterviewOption {
@@ -48,10 +58,17 @@ export interface InterviewStep {
   kind: StepKind;
   /** INTENT's message. Can reference earlier answers. */
   prompt: (answers: InterviewAnswers) => string;
-  options?: InterviewOption[];
+  /**
+   * Fixed options, or options computed from earlier answers.
+   *
+   * Computed is what makes "per market" real rather than cosmetic: a
+   * retiree and a student are not offered the same money answers, because
+   * the same four answers cannot describe both.
+   */
+  options?: InterviewOption[] | ((a: InterviewAnswers) => InterviewOption[]);
   /** For multi steps: cap on selections (order of selection is meaningful). */
   maxSelections?: number;
-  placeholder?: string;
+  placeholder?: string | ((a: InterviewAnswers) => string);
   optional?: boolean;
   /** Skip this step entirely based on earlier answers. */
   skipIf?: (answers: InterviewAnswers) => boolean;
@@ -110,6 +127,45 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     placeholder: 'Your first name',
   },
   {
+    /**
+     * Asked second, before anything else, because it routes the rest.
+     *
+     * The interview used to go straight from a name to "which days do you
+     * usually work?" — a question with no right answer for a retiree, a
+     * carer, or anyone between jobs, and the plan behind it assumed a
+     * Monday-to-Friday office either way. One tap here means nobody is
+     * asked to describe a working week they do not have.
+     */
+    id: 'weekShape',
+    core: true,
+    kind: 'single',
+    prompt: (a) => `Good to meet you, ${a.name}. What shape is your week?`,
+    options: [
+      { value: 'employed', label: 'Set hours, most weeks the same' },
+      { value: 'selfDirected', label: 'I set my own hours' },
+      { value: 'shift', label: 'Shifts, or hours that move' },
+      { value: 'study', label: 'Studying' },
+      { value: 'caring', label: 'At home, caring for family' },
+      { value: 'retired', label: 'Retired, or not working right now' },
+    ],
+    reveal: (a) => {
+      switch (a.weekShape) {
+        case 'retired':
+          return 'Then nothing gets planned around a job. We build the week out of what you already have in it.';
+        case 'caring':
+          return 'Then your caring hours go in as real commitments, and the rest of the plan works around them.';
+        case 'shift':
+          return 'Then the plan follows your roster rather than a fixed week — you can move anything, any day.';
+        case 'study':
+          return 'Then classes are fixed and the rest of the day is yours to shape.';
+        case 'selfDirected':
+          return 'Then the risk is work spreading into everything. The plan gives the rest of life a claim on the day first.';
+        default:
+          return 'Then the plan owns the edges of the day — before work, and after it.';
+      }
+    },
+  },
+  {
     id: 'priorities',
     core: true,
     reveal: (a) => {
@@ -121,7 +177,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     kind: 'multi',
     maxSelections: 3,
     prompt: (a) =>
-      `Good to meet you, ${a.name}. Which parts of life matter most right now? Pick up to three — order matters.`,
+      `Which parts of life matter most right now, ${a.name}? Pick up to three — order matters.`,
     options: [
       { value: 'family', label: 'Family' },
       { value: 'relationship', label: 'Relationship' },
@@ -139,16 +195,23 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     optional: true,
     prompt: () =>
       'If life is genuinely working three years from now — what does it look like? One or two lines, your words.',
-    placeholder: 'e.g. Business runs without me, fit at 50, present with the kids…',
+    placeholder: (a) => visionPlaceholder(a.weekShape as WeekShape | undefined),
   },
   {
     id: 'household',
     deferTo: 'family',
     kind: 'multi',
     prompt: () => "Who's at home with you?",
+    // Three options could not describe a student in a sharehouse, an adult
+    // living with their parents, or anyone caring for one — and the last of
+    // those is among the largest claims on a person's week there is.
     options: [
       { value: 'partner', label: 'Partner' },
       { value: 'kids', label: 'Kids' },
+      { value: 'grandkids', label: 'Grandchildren, often' },
+      { value: 'parent', label: 'A parent I care for' },
+      { value: 'housemates', label: 'Housemates' },
+      { value: 'family_home', label: 'My parents' },
       { value: 'solo', label: 'Just me' },
     ],
   },
@@ -204,7 +267,12 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
       { value: '35', label: '30s' },
       { value: '45', label: '40s' },
       { value: '55', label: '50s' },
-      { value: '65', label: '60s+' },
+      // '60s+' put a sixty-year-old and an eighty-five-year-old in one
+      // bucket, and training and recovery guidance differs more across
+      // those twenty-five years than across any other pair of decades here.
+      { value: '65', label: '60s' },
+      { value: '75', label: '70s' },
+      { value: '85', label: '80s or beyond' },
     ],
   },
   {
@@ -222,14 +290,29 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   {
     id: 'workDays',
     core: true,
+    // Nobody who is retired is asked to name their working days. The
+    // question has no honest answer, and the old code read the empty
+    // result as missing data and invented a Monday-to-Friday job.
+    skipIf: (a) => !worksSomewhere(a.weekShape as WeekShape | undefined),
     reveal: (a) => {
       const days = Array.isArray(a.workDays) ? a.workDays.length : 0;
-      return days > 0
-        ? `${days} working ${days === 1 ? 'day' : 'days'}. Nothing gets scheduled over them.`
-        : null;
+      if (days === 0) return null;
+      const noun = committedBlockLabel(a.weekShape as WeekShape | undefined).toLowerCase();
+      return `${days} ${noun} ${days === 1 ? 'day' : 'days'}. Nothing gets scheduled over them.`;
     },
     kind: 'multi',
-    prompt: () => 'Which days do you usually work?',
+    prompt: (a) => {
+      switch (a.weekShape) {
+        case 'caring':
+          return 'Which days are you on duty at home?';
+        case 'study':
+          return 'Which days do you have classes or work?';
+        case 'shift':
+          return 'Which days do you usually work? A rough answer is fine — you can move anything later.';
+        default:
+          return 'Which days do you usually work?';
+      }
+    },
     options: [
       { value: '1', label: 'Mon' },
       { value: '2', label: 'Tue' },
@@ -243,22 +326,73 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   {
     id: 'workHours',
     core: true,
+    skipIf: (a) => !worksSomewhere(a.weekShape as WeekShape | undefined),
     reveal: (a) => {
       const hours = typeof a.workHours === 'string' ? a.workHours.split('-') : null;
-      return hours
-        ? `Then your own time starts at ${hours[1]}, and that is where the evening plan goes.`
-        : null;
+      if (!hours) return null;
+      if (a.weekShape === 'shift') {
+        return `Planned around a ${hours[0]}–${hours[1]} shift for now. Move anything that lands wrong and the plan learns the pattern.`;
+      }
+      return `Then your own time starts at ${hours[1]}, and that is where the evening plan goes.`;
     },
     kind: 'single',
-    prompt: () => 'And roughly what hours?',
+    prompt: (a) =>
+      a.weekShape === 'shift'
+        ? 'Which shift do you work most often? Pick the usual one — the plan bends around the others.'
+        : a.weekShape === 'caring'
+          ? 'Roughly which hours are you on?'
+          : 'And roughly what hours?',
+    options: (a) =>
+      a.weekShape === 'shift'
+        ? [
+            { value: '06:00-14:00', label: 'Early (6 – 2)' },
+            { value: '07:00-19:00', label: 'Long day (7 – 7)' },
+            { value: '14:00-22:00', label: 'Afternoon (2 – 10)' },
+            { value: '19:00-07:00', label: 'Nights (7pm – 7am)' },
+            { value: '08:00-16:00', label: 'Days, mostly' },
+            { value: '09:00-17:00', label: 'It changes every week' },
+          ]
+        : [
+            { value: '07:00-15:00', label: '7 – 3' },
+            { value: '08:00-16:00', label: '8 – 4' },
+            { value: '09:00-17:30', label: '9 – 5:30' },
+            { value: '09:30-18:30', label: '9:30 – 6:30' },
+            { value: '08:30-17:00', label: 'I set my own hours' },
+            { value: '10:00-18:00', label: 'Later start' },
+          ],
+  },
+  {
+    /**
+     * What replaces the work questions for someone with no job.
+     *
+     * A retiree's week is not empty — it has a walking group, a Tuesday
+     * volunteering shift, the grandchildren on Thursdays, medical
+     * appointments. That IS the structure, and until it is asked for, the
+     * app has nothing to build around and hands back a blank week, which
+     * reads as "this is not for you".
+     */
+    id: 'weekAnchors',
+    core: true,
+    optional: true,
+    kind: 'multi',
+    skipIf: (a) => worksSomewhere(a.weekShape as WeekShape | undefined),
+    prompt: () =>
+      "What's already fixed in your week? These become the frame — everything else is planned around them.",
     options: [
-      { value: '07:00-15:00', label: '7 – 3' },
-      { value: '08:00-16:00', label: '8 – 4' },
-      { value: '09:00-17:30', label: '9 – 5:30' },
-      { value: '09:30-18:30', label: '9:30 – 6:30' },
-      { value: '08:30-17:00', label: 'I set my own hours' },
-      { value: '10:00-18:00', label: 'Later start' },
+      { value: 'family', label: 'Family or grandchildren' },
+      { value: 'volunteering', label: 'Volunteering or committee' },
+      { value: 'group', label: 'A class, club or group' },
+      { value: 'faith', label: 'Church or community' },
+      { value: 'appointments', label: 'Regular appointments' },
+      { value: 'care', label: 'Caring for someone' },
+      { value: 'work', label: 'A bit of paid work' },
     ],
+    reveal: (a) => {
+      const picked = Array.isArray(a.weekAnchors) ? a.weekAnchors : [];
+      return picked.length > 0
+        ? `Those go in first, and hold their place. The rest of the week is built around them.`
+        : 'Then we start with a light, open week and add shape as you go.';
+    },
   },
   {
     id: 'sleep',
@@ -270,11 +404,19 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
         : null;
     },
     kind: 'single',
-    prompt: () => 'When does a good day start and end for you?',
+    prompt: (a) =>
+      a.weekShape === 'shift'
+        ? 'On a normal day off, when do you get up and go to bed?'
+        : 'When does a good day start and end for you?',
+    // Three windows could not describe a 5am riser or a night-shift
+    // sleeper, and the earliest on offer still had someone up past nine
+    // thirty at night — which fits almost nobody over seventy.
     options: [
+      { value: '05:00-21:00', label: 'Early (5:00 – 9:00)' },
       { value: '05:30-21:45', label: 'Early riser (5:30 – 9:45)' },
       { value: '06:30-22:30', label: 'Standard (6:30 – 10:30)' },
       { value: '07:30-23:15', label: 'Later (7:30 – 11:15)' },
+      { value: '08:30-00:15', label: 'Night owl (8:30 – 12:15)' },
     ],
   },
   {
@@ -328,15 +470,61 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
         : `${n} sessions on an upper/lower split — every lift trained twice a week.`;
     },
     kind: 'single',
-    prompt: () => 'How many days a week do you want to train? Be honest, not ambitious.',
-    options: [
-      { value: '1', label: '1 — just starting' },
+    prompt: (a) =>
+      a.weekShape === 'retired'
+        ? 'How many days a week would you like to move? Walking counts, and so does the garden.'
+        : 'How many days a week do you want to train? Be honest, not ambitious.',
+    options: (a) => [
+      // Zero is a real answer, and it was not on offer. Someone recovering,
+      // in pain, or simply not interested had to claim at least one session
+      // a week to get past this screen — and the plan then held them to it.
+      { value: '0', label: 'None for now' },
+      { value: '1', label: a.weekShape === 'retired' ? '1' : '1 — just starting' },
       { value: '2', label: '2' },
       { value: '3', label: '3' },
       { value: '4', label: '4' },
       { value: '5', label: '5' },
       { value: '6', label: '6' },
     ],
+  },
+  {
+    /**
+     * Core despite being optional, on the same test that puts existing
+     * habits in the spine: it changes what gets BUILT, not merely when.
+     *
+     * Asked a fortnight later it would arrive after the app had already
+     * spent two weeks prescribing barbell squats to someone with a knee
+     * that will not take them — and the most likely outcome of that is not
+     * a corrected plan, it is a deleted app and a person who now believes
+     * this sort of thing is not for them.
+     */
+    id: 'constraints',
+    core: true,
+    optional: true,
+    kind: 'multi',
+    prompt: () =>
+      'Anything the plan should work around? Nothing here is medical advice — it just keeps the plan sensible.',
+    options: [
+      { value: 'joints', label: 'Sore joints or back' },
+      { value: 'balance', label: 'Balance is not what it was' },
+      { value: 'heart', label: 'A heart or breathing condition' },
+      { value: 'recovering', label: 'Recovering from injury or illness' },
+      { value: 'pregnancy', label: 'Pregnant or recently postpartum' },
+      { value: 'energy', label: 'Energy is unreliable' },
+    ],
+    reveal: (a) => {
+      const picked = Array.isArray(a.constraints) ? a.constraints : [];
+      if (picked.length === 0) {
+        return 'Good. You can add something here any time — the plan will adjust from that day.';
+      }
+      if (picked.includes('balance')) {
+        return 'Then movement stays low-impact and steady, and balance work goes in early rather than being an afterthought.';
+      }
+      if (picked.includes('joints')) {
+        return 'Then the loaded, jarring movements come out and are replaced, not simply removed.';
+      }
+      return 'Then the plan starts conservative and builds from what you can actually do. If something hurts, a professional beats an app.';
+    },
   },
   {
     id: 'trainingSetup',
@@ -451,17 +639,11 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     deferTo: 'coaches',
     kind: 'multi',
     prompt: () => 'What do you want more of in your weeks?',
-    options: [
-      { value: 'Time with the kids', label: 'Time with the kids' },
-      { value: 'Date nights', label: 'Date nights' },
-      { value: 'Seeing friends', label: 'Seeing friends' },
-      { value: 'Reading', label: 'Reading' },
-      { value: 'Time outdoors', label: 'Time outdoors' },
-      { value: 'Deep work', label: 'Deep work' },
-      { value: 'Adventure & travel', label: 'Adventure & travel' },
-      { value: 'Cooking real food', label: 'Cooking real food' },
-      { value: 'Creative time', label: 'Creative time' },
-    ],
+    options: (a) =>
+      moreOfOptions(
+        a.weekShape as WeekShape | undefined,
+        (a.household as string[] | undefined)?.includes('kids') ?? false,
+      ),
   },
   {
     id: 'lessOf',
@@ -486,12 +668,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     kind: 'single',
     optional: true,
     prompt: () => 'Money — want INTENT in the loop?',
-    options: [
-      { value: 'checkin', label: 'A short weekly check-in' },
-      { value: 'saving', label: "We're saving for something big" },
-      { value: 'debt', label: 'Getting out of debt' },
-      { value: 'none', label: 'Not yet' },
-    ],
+    options: (a) => moneyOptions(a.weekShape as WeekShape | undefined),
   },
   {
     id: 'moneyAutomation',
@@ -515,10 +692,30 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     kind: 'text',
     optional: true,
     prompt: () => "Last one. What's one thing you're working toward this year?",
-    placeholder:
-      'e.g. Grow the business to $2m · Save $50k · Run a marathon · Write the book · Japan with the kids',
+    placeholder: (a) => ambitionPlaceholder(a.weekShape as WeekShape | undefined),
   },
 ];
+
+/**
+ * The options for a step, whether it declares them fixed or computes them.
+ * Every renderer goes through here so no screen can accidentally read the
+ * static list and show a founder's answers to a retiree.
+ */
+export function optionsFor(step: InterviewStep, answers: InterviewAnswers): InterviewOption[] {
+  if (!step.options) return [];
+  return typeof step.options === 'function' ? step.options(answers) : step.options;
+}
+
+/** Same, for placeholders — they carry as much market signal as options. */
+export function placeholderFor(
+  step: InterviewStep,
+  answers: InterviewAnswers,
+): string | undefined {
+  if (!step.placeholder) return undefined;
+  return typeof step.placeholder === 'function'
+    ? step.placeholder(answers)
+    : step.placeholder;
+}
 
 /**
  * Steps that actually apply for a given answer set, in order.

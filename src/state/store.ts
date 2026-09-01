@@ -465,6 +465,10 @@ export function deriveTrainingInputs(
     equipment,
     focusLift,
     age: profile.age,
+    // Carried from the profile, not re-asked. Something answered once in
+    // onboarding must reach the place that acts on it, or the question was
+    // theatre.
+    constraints: profile.constraints,
   };
 }
 

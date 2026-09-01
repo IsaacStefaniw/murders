@@ -19,9 +19,11 @@ import type {
   LifeArea,
   LifeProfile,
   Person,
+  PhysicalConstraint,
   Routine,
   Weekday,
 } from '@/types/domain';
+import { worksSomewhere, type WeekShape } from './markets';
 import type { InterviewAnswers } from './script';
 
 export interface LifeOperatingPlan {
@@ -92,6 +94,16 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   if (hasKids) {
     people.push({ id: newId('p'), name: 'The kids', relation: 'child' });
   }
+  // Everyone named here becomes someone the app can plan around and refer
+  // to. An option that changed nothing would be worse than not offering it:
+  // it would ask about the person taking up most of someone's week and then
+  // behave as though they had said nothing.
+  if (household.includes('grandkids')) {
+    people.push({ id: newId('p'), name: 'The grandchildren', relation: 'family' });
+  }
+  if (household.includes('parent')) {
+    people.push({ id: newId('p'), name: 'The person I care for', relation: 'family' });
+  }
 
   const [workStart, workEnd] = (str(answers, 'workHours', '09:00-17:30') || '09:00-17:30').split(
     '-',
@@ -102,9 +114,18 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     LifeProfile['capacity']
   >;
   // The simulation's clearest lesson: plan to real capacity, not ambition.
-  const requestedTraining = Number(str(answers, 'trainingDays', '3')) || 3;
+  //
+  // Zero is a real answer and must survive. `Number(x) || 3` read '0' as
+  // falsy and handed back three sessions a week, so someone who said they
+  // did not want to train was given a training plan anyway — the exact
+  // failure for anyone whose body, or life, is not up for it right now.
+  const rawTraining = str(answers, 'trainingDays');
+  const parsedTraining = rawTraining === undefined || rawTraining === '' ? 3 : Number(rawTraining);
+  const requestedTraining =
+    Number.isFinite(parsedTraining) && parsedTraining >= 0 ? parsedTraining : 3;
   const trainingDaysPerWeek =
     capacity === 'minimal' ? Math.min(requestedTraining, 3) : requestedTraining;
+  const wantsTraining = trainingDaysPerWeek > 0;
   const lessOf = arr(answers, 'lessOf') as BehaviourKey[];
   const priorities = arr(answers, 'priorities') as LifeArea[];
 
@@ -117,8 +138,10 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     (str(answers, 'sleepQuality') as LifeProfile['sleepQuality']) || undefined;
   const pressure = (str(answers, 'pressure') as LifeProfile['pressure']) || undefined;
   const lifeVision = str(answers, 'vision') || undefined;
+  const weekShape = (str(answers, 'weekShape') || 'employed') as WeekShape;
   const walking = str(answers, 'trainingSetup') === 'walking';
   const existingHabits = arr(answers, 'existingHabits') as ExistingHabitKey[];
+  const constraints = arr(answers, 'constraints') as PhysicalConstraint[];
   const hasHabit = (h: ExistingHabitKey) => existingHabits.includes(h);
 
   const profile: LifeProfile = {
@@ -140,6 +163,8 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     moreOf: arr(answers, 'moreOf'),
     lessOf,
     existingHabits: existingHabits.length > 0 ? existingHabits : undefined,
+    constraints: constraints.length > 0 ? constraints : undefined,
+    weekShape,
     age,
     weightKg,
     kidsCount,
@@ -150,7 +175,16 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     createdAt: now,
     updatedAt: now,
   };
-  if (profile.workDays.length === 0) profile.workDays = [1, 2, 3, 4, 5];
+  // Only invent a working week for someone who told us they have one.
+  //
+  // This used to be unconditional, so anyone who is retired, caring at
+  // home, or between jobs had a Monday-to-Friday 9-to-5 written into their
+  // profile and blocked out of their calendar. Their whole first plan was
+  // then built around a job they do not have. An empty week is not missing
+  // data for those people — it is the answer.
+  if (worksSomewhere(weekShape) && profile.workDays.length === 0) {
+    profile.workDays = [1, 2, 3, 4, 5];
+  }
 
   const goals: Goal[] = [];
   const routines: Routine[] = [];
@@ -162,50 +196,104 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   const parsedAmbition = ambition ? parseGoal(ambition) : null;
   const ambitionOwnsTraining = !walking && parsedAmbition?.domain === 'fitness';
 
-  // Training goal → training routines. Walking is real training: it gets
-  // the daily-walk protocol at the asked-for cadence, not a gym program.
-  const trainingWindow = TRAINING_WINDOWS[energyProfile];
-  const trainingGoal: Goal = {
-    id: newId('g'),
-    title: walking ? `Walk ${trainingDaysPerWeek}× a week` : `Train ${trainingDaysPerWeek}× a week`,
-    area: 'health',
-    cadencePerWeek: trainingDaysPerWeek,
-    status: 'active',
-    createdAt: now,
-    routineIds: [],
-  };
-  if (walking) {
-    const walk = protocolById('daily-walk');
-    if (walk) {
-      const walkRoutine = toRoutine(walk, profile, trainingGoal.id);
-      walkRoutine.days = pickTrainingDays(Math.max(trainingDaysPerWeek, 3), profile.workDays);
-      trainingGoal.routineIds.push(walkRoutine.id);
-      routines.push(walkRoutine);
-    }
-  } else if (ambitionOwnsTraining) {
-    // The ambition's goal will carry the workout routine — no generic twin.
-  } else {
-    const trainingRoutine: Routine = {
-      id: newId('r'),
-      title: 'Strength workout',
+  // Someone who said they do not want to train does not get a training
+  // goal, a training routine, or a "Train 0× a week" card. Zero means
+  // zero; the rest of the plan carries on without it.
+  if (wantsTraining) {
+    // Training goal → training routines. Walking is real training: it gets
+    // the daily-walk protocol at the asked-for cadence, not a gym program.
+    const trainingWindow = TRAINING_WINDOWS[energyProfile];
+    const trainingGoal: Goal = {
+      id: newId('g'),
+      title: walking ? `Walk ${trainingDaysPerWeek}× a week` : `Train ${trainingDaysPerWeek}× a week`,
       area: 'health',
-      protocolId: 'strength',
-      goalId: trainingGoal.id,
-      days: pickTrainingDays(trainingDaysPerWeek, profile.workDays),
-      durationMin: profile.trainingDurationMin,
-      preferredStart: trainingWindow.start,
-      preferredEnd: trainingWindow.end,
-      energy: energyProfile,
-      flexible: true,
-      protected: false,
-      sessionType: 'workout',
-      tier: 'should',
-      active: true,
+      cadencePerWeek: trainingDaysPerWeek,
+      status: 'active',
+      createdAt: now,
+      routineIds: [],
     };
-    trainingGoal.routineIds.push(trainingRoutine.id);
-    routines.push(trainingRoutine);
+    if (walking) {
+      const walk = protocolById('daily-walk');
+      if (walk) {
+        const walkRoutine = toRoutine(walk, profile, trainingGoal.id);
+        walkRoutine.days = pickTrainingDays(Math.max(trainingDaysPerWeek, 3), profile.workDays);
+        trainingGoal.routineIds.push(walkRoutine.id);
+        routines.push(walkRoutine);
+      }
+    } else if (ambitionOwnsTraining) {
+      // The ambition's goal will carry the workout routine — no generic twin.
+    } else {
+      const trainingRoutine: Routine = {
+        id: newId('r'),
+        title: 'Strength workout',
+        area: 'health',
+        protocolId: 'strength',
+        goalId: trainingGoal.id,
+        days: pickTrainingDays(trainingDaysPerWeek, profile.workDays),
+        durationMin: profile.trainingDurationMin,
+        preferredStart: trainingWindow.start,
+        preferredEnd: trainingWindow.end,
+        energy: energyProfile,
+        flexible: true,
+        protected: false,
+        sessionType: 'workout',
+        tier: 'should',
+        active: true,
+      };
+      trainingGoal.routineIds.push(trainingRoutine.id);
+      routines.push(trainingRoutine);
+    }
+    if (!ambitionOwnsTraining) goals.push(trainingGoal);
   }
-  if (!ambitionOwnsTraining) goals.push(trainingGoal);
+
+  /**
+   * A week with no job still has a shape, and this is where it comes from.
+   *
+   * Without this, someone retired finished onboarding and got a plan
+   * containing a wind-down and not much else — an empty calendar that
+   * reads as "there is nothing here for you". Their week is not empty;
+   * it has a walking group on Tuesday and the grandchildren on Thursday.
+   * Asked for, those become the frame, and everything else is planned
+   * around them exactly as work is for everybody else.
+   *
+   * They go in FLEXIBLE and unprotected on purpose. These are the
+   * person's own commitments, already happening; the app's job is to know
+   * about them and plan around them, not to start reminding a
+   * seventy-year-old to attend their own bowls club.
+   */
+  const anchorPicks = arr(answers, 'weekAnchors');
+  if (!worksSomewhere(weekShape) && anchorPicks.length > 0) {
+    const ANCHORS: Record<
+      string,
+      { title: string; area: LifeArea; days: Weekday[]; durationMin: number; start: string }
+    > = {
+      family: { title: 'Time with family', area: 'family', days: [4], durationMin: 180, start: '10:00' },
+      volunteering: { title: 'Volunteering', area: 'growth', days: [2], durationMin: 180, start: '09:30' },
+      group: { title: 'Class or club', area: 'enjoyment', days: [3], durationMin: 90, start: '10:00' },
+      faith: { title: 'Church or community', area: 'growth', days: [0], durationMin: 120, start: '09:30' },
+      appointments: { title: 'Appointments', area: 'health', days: [1], durationMin: 90, start: '10:00' },
+      care: { title: 'Caring', area: 'family', days: [1, 3, 5], durationMin: 180, start: '09:00' },
+      work: { title: 'Paid work', area: 'work', days: [2, 4], durationMin: 240, start: '09:00' },
+    };
+    for (const pick of anchorPicks) {
+      const spec = ANCHORS[pick];
+      if (!spec) continue;
+      routines.push({
+        id: newId('r'),
+        title: spec.title,
+        area: spec.area,
+        days: spec.days,
+        durationMin: spec.durationMin,
+        preferredStart: spec.start,
+        preferredEnd: spec.start,
+        energy: 'any',
+        flexible: true,
+        protected: false,
+        tier: 'should',
+        active: true,
+      });
+    }
+  }
 
   // Family dinner: protected daily anchor when family is present.
   if (hasKids || hasPartner) {

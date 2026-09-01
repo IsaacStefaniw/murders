@@ -7,7 +7,12 @@ import { Chip } from '@/components/chip';
 import { Field } from '@/components/field';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
-import { deferredSteps, type DeferTarget } from '@/features/onboarding/script';
+import {
+  deferredSteps,
+  optionsFor,
+  placeholderFor,
+  type DeferTarget,
+} from '@/features/onboarding/script';
 import { useAppStore } from '@/state/store';
 
 interface DeferredQuestionsProps {
@@ -65,7 +70,7 @@ export function DeferredQuestions({ target, promise }: DeferredQuestionsProps) {
             showLabel={false}
             value={text}
             onChangeText={setText}
-            placeholder={step.placeholder}
+            placeholder={placeholderFor(step, answers)}
             returnKeyType="done"
             onSubmitEditing={() => submit(text.trim() || undefined)}
           />
@@ -78,7 +83,7 @@ export function DeferredQuestions({ target, promise }: DeferredQuestionsProps) {
       ) : (
         <View style={styles.stack}>
           <View style={styles.chips}>
-            {step.options?.map((option) => (
+            {optionsFor(step, answers).map((option) => (
               <Chip
                 key={option.value}
                 label={option.label}
