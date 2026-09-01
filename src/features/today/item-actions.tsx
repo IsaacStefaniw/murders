@@ -82,6 +82,38 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
 
   if (mode === 'move' || mode === 'choose') {
     const { options, allSlots } = smartMoveOptions(item, plan, profile, nowMinutes());
+    // A day with genuinely no room is a real answer, and saying so beats a
+    // menu whose only entry is Tomorrow with no explanation of why.
+    if (allSlots.length === 0) {
+      return (
+        <View style={styles.column}>
+          <AppText variant="caption" color="textTertiary">
+            Nothing free today that fits {duration} minutes — the day is full.
+          </AppText>
+          <View style={styles.chips}>
+            <Chip
+              label="Move to tomorrow"
+              onPress={() => {
+                moveItemToDate(date, item.id, addDays(date, 1));
+                finish();
+              }}
+            />
+            {duration > 20 ? (
+              <Chip
+                label="Shorten to 20 min"
+                hint="A shorter version may fit where the full one does not."
+                onPress={() => {
+                  shortenItem(date, item.id, 20);
+                  finish();
+                }}
+              />
+            ) : null}
+            <Chip label="Cancel" onPress={() => setMode('idle')} />
+          </View>
+        </View>
+      );
+    }
+
     return (
       <View style={styles.column}>
         <AppText variant="caption" color="textTertiary">

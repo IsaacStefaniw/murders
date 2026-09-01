@@ -133,13 +133,75 @@ export function availableStartsFor(
     .map((i) => ({ title: i.title, start: i.start, end: i.end }));
   const windows = computeFreeWindows(busy, profile.wakeTime, profile.sleepTime, 10);
 
-  const options: string[] = [];
-  for (const w of windows) {
-    for (let start = w.start; start + duration <= w.end; start += 60) {
+  // Quarter-hours, not whole hours. On a working day the only real gaps are
+  // an hour or two long, and stepping by 60 from a window that opens at
+  // 18:25 offered exactly one time in the entire evening.
+  const STEP_MIN = 15;
+
+  const perWindow = windows.map((w) => {
+    const starts: string[] = [];
+    // Start on the quarter-hour so options read as times a person would
+    // choose — 18:30, not 18:25.
+    const first = Math.ceil(w.start / STEP_MIN) * STEP_MIN;
+    for (let start = first; start + duration <= w.end; start += STEP_MIN) {
       const hhmm = toHHMM(start);
-      if (hhmm !== item.start) options.push(hhmm);
-      if (options.length >= maxOptions) return options;
+      if (hhmm !== item.start) starts.push(hhmm);
     }
+    return starts;
+  });
+
+  // Take one from each window before taking a second from any. Filling the
+  // list in order meant a wide morning gap could use up every slot and hide
+  // the fact that the evening was free at all.
+  const options: string[] = [];
+  for (let i = 0; options.length < maxOptions; i += 1) {
+    let added = false;
+    for (const starts of perWindow) {
+      if (i >= starts.length) continue;
+      options.push(starts[i]);
+      added = true;
+      if (options.length >= maxOptions) break;
+    }
+    if (!added) break;
   }
-  return options;
+  return options.sort((a, b) => toMinutes(a) - toMinutes(b));
+}
+
+/**
+ * The latest time at or before `endMin` where an activity of this length
+ * fits without overlapping anything already on the day.
+ *
+ * Logging something after the fact used to drop it at "now minus its
+ * duration" regardless of what was there. On a packed working day that is
+ * how three items ended up stacked on a single lunch break — and once they
+ * overlapped, every later calculation read the day as fuller than it was,
+ * which is what left nowhere to move anything to.
+ *
+ * Searching BACKWARDS matters: the thing already happened, so the honest
+ * placement is as close to the reported time as reality allows, never
+ * later. If nothing fits at all, the reported time is returned unchanged —
+ * a real event that overlaps is still better than a tidy fiction.
+ */
+export function freeEndAtOrBefore(
+  items: Pick<PlanItem, 'start' | 'end' | 'status'>[],
+  endMin: number,
+  durationMin: number,
+  earliestStart = 0,
+): number {
+  const busy = items
+    .filter((i) => i.status !== 'skipped')
+    .map((i) => ({ start: toMinutes(i.start), end: toMinutes(i.end) }))
+    .sort((a, b) => b.start - a.start);
+
+  let end = endMin;
+  // Each pass either clears the day or jumps behind the latest blocker, so
+  // this cannot run longer than the number of items.
+  for (let guard = 0; guard <= busy.length; guard += 1) {
+    const start = end - durationMin;
+    if (start < earliestStart) return endMin;
+    const clash = busy.find((b) => b.start < end && b.end > start);
+    if (!clash) return end;
+    end = clash.start;
+  }
+  return endMin;
 }

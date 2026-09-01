@@ -50,7 +50,11 @@ import {
   type PathLevel,
 } from '@/features/paths/level';
 import { trainingEvidence, TRAINING_STANDARD_TEXT } from '@/features/training/level';
-import { availableStartsFor, generateDailyPlan } from '@/features/planner/generate';
+import {
+  availableStartsFor,
+  freeEndAtOrBefore,
+  generateDailyPlan,
+} from '@/features/planner/generate';
 import { mergeRoutines } from '@/features/planner/mergeRoutines';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
@@ -761,11 +765,21 @@ export const useAppStore = create<AppState>()(
             1439,
             Math.max(input.durationMin, ended.getHours() * 60 + ended.getMinutes()),
           );
+          // Placed clear of what is already on the day. Dropping it at
+          // "now minus its duration" regardless is how three items ended up
+          // stacked on one lunch break: they overlapped each other, and the
+          // overlap then made the day look full to every later calculation.
+          const placedEnd = freeEndAtOrBefore(
+            get().plans[date]?.items ?? [],
+            endMin,
+            input.durationMin,
+            toMinutes(get().profile?.wakeTime ?? '00:00'),
+          );
           const item: PlanItem = {
             id: newId('pi'),
             date,
-            start: toHHMM(endMin - input.durationMin),
-            end: toHHMM(endMin),
+            start: toHHMM(placedEnd - input.durationMin),
+            end: toHHMM(placedEnd),
             title: input.title,
             area: input.area,
             goalId: input.goalId,
