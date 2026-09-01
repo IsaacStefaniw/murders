@@ -110,6 +110,9 @@ export function generateDailyPlan(
     sleepTime: profile.sleepTime,
     fixed,
     reservedFreeFraction,
+    // The answer to "which parts of life matter most" finally reaches the
+    // code that decides which of two things gets the hour.
+    priorities: profile.priorities,
     goalFocus: goalFocusMap(goals),
     // during-work routines are already in the fixed list — don't place twice.
     routines: routines.filter((r) => !r.duringWork),

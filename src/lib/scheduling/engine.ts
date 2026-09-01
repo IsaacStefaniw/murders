@@ -10,7 +10,7 @@
  */
 
 import { dateKeyToDate, toHHMM, toMinutes, newId, weekdayOf } from '@/lib/dates';
-import type { DailyPlan, PlanItem, PlanTier, Routine } from '@/types/domain';
+import type { DailyPlan, LifeArea, PlanItem, PlanTier, Routine } from '@/types/domain';
 
 export interface FixedCommitment {
   title: string;
@@ -40,6 +40,18 @@ export interface DayContext {
    * Days need slack; the engine refuses to fill every minute.
    */
   reservedFreeFraction?: number;
+  /**
+   * The user's life areas, most important first — the answer to the
+   * interview's second question.
+   *
+   * Until this existed, that answer was captured, shown back on the plan
+   * review, handed to an AI layer that is switched off, and then ignored by
+   * the only code that could act on it. The interview says, in as many
+   * words, "when two things want the same hour, family wins"; what actually
+   * decided was whichever routine happened to have the narrower preferred
+   * window. The promise was not merely unimplemented, it was contradicted.
+   */
+  priorities?: LifeArea[];
 }
 
 export interface Window {
@@ -96,17 +108,47 @@ interface Placement {
 }
 
 /**
+ * Where a routine's life area sits in what the user said matters.
+ *
+ * Anything outside the chosen three ranks last, and anything with no area
+ * ranks after that — an unclassified routine should never beat something
+ * the person explicitly named.
+ */
+export function areaRank(area: LifeArea | undefined, priorities: LifeArea[] = []): number {
+  if (!area) return priorities.length + 1;
+  const i = priorities.indexOf(area);
+  return i === -1 ? priorities.length : i;
+}
+
+/**
  * Place routines into free windows.
  *
- * Order: protected first (they anchor the day), then by tier, then by how
- * narrow their preferred window is (constrained items claim space first).
- * A routine that cannot fit is simply omitted — the plan reports it in
- * `unplaced` so the UI or AI layer can suggest trade-offs.
+ * Order: protected first (they anchor the day), then by tier, THEN by the
+ * user's stated life-area priority, then by how narrow the preferred window
+ * is. A routine that cannot fit is omitted and reported in `unplaced`.
+ *
+ * Between the tier and the area sits one more key: whether the routine
+ * serves an active goal. A goal is a specific commitment this person made;
+ * a life-area ranking is a general preference stated once at onboarding,
+ * and the specific should beat the general. This is not a refinement — the
+ * cohort simulation showed that ordering by area alone took goals still
+ * stalled after ten weeks from 25% to 33%, because goals living outside
+ * someone's top three areas were the first thing cut every single day. The
+ * app would then have nagged them about a goal its own scheduler starved.
+ *
+ * Priority is a tie-break WITHIN a tier, deliberately, and not above it.
+ * Tier encodes whether something is negotiable at all; if priority
+ * outranked it, a 'could' item in a favoured area would displace a 'must'
+ * elsewhere — a plan that drops the school pickup to protect a workout
+ * because health was ranked first. What the person actually meant is
+ * narrower and more sensible: when two things have equal claim on the same
+ * hour, the one in the area they care most about takes it.
  */
 export function placeRoutines(
   windows: Window[],
   routines: Routine[],
   bufferMin: number = DEFAULT_BUFFER_MIN,
+  priorities: LifeArea[] = [],
 ): { placements: Placement[]; unplaced: Routine[] } {
   const free = windows.map((w) => ({ ...w }));
   const placements: Placement[] = [];
@@ -116,6 +158,10 @@ export function placeRoutines(
     if (a.protected !== b.protected) return a.protected ? -1 : 1;
     const tier = TIER_ORDER[a.tier] - TIER_ORDER[b.tier];
     if (tier !== 0) return tier;
+    const goal = (a.goalId ? 0 : 1) - (b.goalId ? 0 : 1);
+    if (goal !== 0) return goal;
+    const rank = areaRank(a.area, priorities) - areaRank(b.area, priorities);
+    if (rank !== 0) return rank;
     const slackA = toMinutes(a.preferredEnd) - toMinutes(a.preferredStart);
     const slackB = toMinutes(b.preferredEnd) - toMinutes(b.preferredStart);
     return slackA - slackB;
@@ -232,14 +278,23 @@ export function buildDailyPlan(ctx: DayContext): DailyPlan & { unplaced: Routine
   const totalFree = windows.reduce((sum, w) => sum + (w.end - w.start), 0);
   const schedulable = Math.floor(totalFree * (1 - reserved));
 
-  const { placements, unplaced } = placeRoutines(windows, todaysRoutines, buffer);
+  const priorities = ctx.priorities ?? [];
+  const { placements, unplaced } = placeRoutines(windows, todaysRoutines, buffer, priorities);
 
   // Enforce slack: drop lowest-tier, non-protected placements until within budget.
   const kept: Placement[] = [];
   let used = 0;
+  // The same order decides what survives a full day. Dropping by tier alone
+  // meant that when the day overflowed, which of two equal items got cut was
+  // effectively arbitrary — and arbitrary is the one thing a plan built on
+  // someone's stated priorities must never be at the moment it has to choose.
   const byImportance = [...placements].sort((a, b) => {
     if (a.routine.protected !== b.routine.protected) return a.routine.protected ? -1 : 1;
-    return TIER_ORDER[a.routine.tier] - TIER_ORDER[b.routine.tier];
+    const tier = TIER_ORDER[a.routine.tier] - TIER_ORDER[b.routine.tier];
+    if (tier !== 0) return tier;
+    const goal = (a.routine.goalId ? 0 : 1) - (b.routine.goalId ? 0 : 1);
+    if (goal !== 0) return goal;
+    return areaRank(a.routine.area, priorities) - areaRank(b.routine.area, priorities);
   });
   for (const p of byImportance) {
     const dur = p.end - p.start;
