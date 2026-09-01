@@ -108,6 +108,25 @@ export default function PlanReview() {
         </View>
       ) : null}
 
+      {/*
+        A heading with nothing under it reads as a bug, and it is the first
+        thing some people see. Anyone who is not training and did not name
+        an ambition arrives here with no goals at all — which is a fine way
+        to start, and should look deliberate rather than broken.
+      */}
+      {plan.goals.length === 0 ? (
+        <>
+          <SectionHeader title="Goals" />
+          <Card>
+            <AppText variant="body">No goals yet, and that is a fine place to start.</AppText>
+            <AppText variant="caption" color="textTertiary">
+              The rhythm below is enough to begin with. Add something to work toward whenever
+              you want one — INTENT will build the steps.
+            </AppText>
+          </Card>
+        </>
+      ) : (
+        <>
       <SectionHeader title="Starting goals" />
       <View style={styles.stack}>
         {plan.goals.map((goal) => (
@@ -121,6 +140,8 @@ export default function PlanReview() {
           </Card>
         ))}
       </View>
+        </>
+      )}
 
       <SectionHeader title="Weekly rhythm" />
       <View style={styles.stack}>

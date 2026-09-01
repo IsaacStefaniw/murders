@@ -240,9 +240,15 @@ export default function Life() {
 
       <SectionHeader title="Working on" />
       {activeIntentions.length === 0 ? (
-        <AppText variant="secondary">
-          Nothing tracked. You can add behaviours to reduce from Settings.
-        </AppText>
+        // Telling someone where to go is a manual. Taking them there is a
+        // product. This was the only place left in the app that still gave
+        // directions instead of a button.
+        <EmptyState
+          title="Nothing you're cutting back on"
+          message="Drinking, scrolling, late nights — naming one is how INTENT knows to help at the moment it usually happens, rather than reporting on it afterwards."
+          actionTitle="Choose something"
+          onAction={() => router.push('/settings')}
+        />
       ) : (
         <View style={styles.stack}>
           {activeIntentions.map((intention) => {

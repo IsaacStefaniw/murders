@@ -121,6 +121,14 @@ export default function Today() {
     (i) => meaningful(i) && i.id !== nowItem?.id && toMinutes(i.start) >= EVENING_START,
   );
   const doneCount = plan.items.filter((i) => i.status === 'completed').length;
+  // True only until the very first thing is ever ticked off, across every
+  // day the app has planned.
+  // Not memoised: it sits after an early return, and `.some()` stops at
+  // the first completed item, which for anyone past their first day is the
+  // first item it looks at.
+  const neverCompletedAnything = !Object.values(plans).some((p) =>
+    p.items.some((i) => i.status === 'completed' || i.status === 'skipped'),
+  );
   const meaningfulCount = plan.items.filter(meaningful).length;
   const needsApproval = !plan.approvedAt && !isEvening;
 
@@ -164,6 +172,27 @@ export default function Today() {
         <AppText variant="secondary" style={styles.summary}>
           {plan.summary}
         </AppText>
+      ) : null}
+
+      {/*
+        The one thing a new person needs told, told once.
+
+        Every row here is tappable and opens three actions, and there is no
+        way to discover that by looking at it. That is exactly the gap a
+        user manual exists to fill — so the app fills it instead, in a
+        sentence, at the moment it is useful.
+
+        It is derived rather than stored: it disappears the moment anything
+        has ever been completed. Nobody has to dismiss it, it cannot come
+        back, and there is no flag to migrate or get wrong.
+      */}
+      {neverCompletedAnything ? (
+        <Card style={styles.firstRun}>
+          <AppText variant="secondary">
+            Tap any row below to start it, mark it done, or move it. Move something and
+            everything else shuffles around it — nothing here is fixed.
+          </AppText>
+        </Card>
       ) : null}
 
       {needsApproval ? (
@@ -433,6 +462,7 @@ const styles = StyleSheet.create({
   coach: { marginTop: Spacing.xl, gap: Spacing.xs },
   coachWhy: { fontStyle: 'italic' },
   summary: { marginTop: Spacing.xs },
+  firstRun: { marginTop: Spacing.lg },
   suggestion: { marginTop: Spacing.lg },
   stack: { gap: Spacing.sm },
   nowCard: { borderWidth: 1.5, padding: Spacing.xl },

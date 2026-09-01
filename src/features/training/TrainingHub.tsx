@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { effortWords } from '@/features/training/effort';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
@@ -76,7 +77,7 @@ export function TrainingHub() {
       {/* Your numbers — the simple, meaningful progress line. */}
       {knownLifts.length > 0 ? (
         <View>
-          <SectionHeader title="Your numbers (est. 1RM)" />
+          <SectionHeader title="Your strongest single lift" />
           <View style={styles.stack}>
             {knownLifts.map((l) => {
               const now = latest(metrics, l.key)!;
@@ -122,7 +123,7 @@ export function TrainingHub() {
                 {s.exercises[0].loadKg
                   ? ` @ ${s.exercises[0].loadKg} kg`
                   : s.exercises[0].rpe
-                    ? ` @ RPE ${s.exercises[0].rpe}`
+                    ? ` · ${effortWords(s.exercises[0].rpe)}`
                     : ''}
                 {' · ~'}
                 {s.estimatedMin} min
@@ -143,8 +144,8 @@ export function TrainingHub() {
             </AppText>
           ) : (
             <AppText variant="secondary">
-              Four phased weeks — build, build, peak, deload — sized to your days, your equipment
-              and your numbers. The more lifts INTENT knows, the more exact the loads.
+              Four weeks: two building, one peak, then an easier week to let it all catch up.
+              Sized to your days, your equipment and your numbers.
             </AppText>
           )}
           <Button
@@ -201,7 +202,8 @@ export function TrainingHub() {
         </View>
       ) : null}
       <AppText variant="caption" color="textTertiary" style={styles.hint}>
-        A working set is enough — INTENT estimates your 1RM and tracks the trend.
+        One normal set is enough. INTENT works out what you could lift once, and tracks
+        whether it is going up.
       </AppText>
     </View>
   );

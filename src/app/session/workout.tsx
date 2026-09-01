@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
+import { effortWords } from '@/features/training/effort';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
@@ -42,7 +43,7 @@ export default function WorkoutSession() {
   const metrics = useAppStore((s) => s.metrics);
   const addMetric = useAppStore((s) => s.addMetric);
 
-  // Cross-pathway: last night's sleep auto-regulates today's session.
+  // Cross-pathway: last night's sleep adjusts today's session.
   // With Apple Health connected the number arrives on its own.
   useEffect(() => {
     void syncAppleHealth();
@@ -84,7 +85,7 @@ export default function WorkoutSession() {
         exercises: adjusted.exercises.map((e) => ({
           name: e.name,
           sets: e.sets,
-          reps: `${e.reps}${e.loadKg ? ` @ ${e.loadKg} kg` : e.rpe ? ` @ RPE ${e.rpe}` : ''}`,
+          reps: `${e.reps}${e.loadKg ? ` @ ${e.loadKg} kg` : e.rpe ? ` · ${effortWords(e.rpe)}` : ''}`,
           restSec: e.restSec,
           // Carried through rather than baked into the label: the set
           // logger prefills from it, and a string cannot be prefilled from.
