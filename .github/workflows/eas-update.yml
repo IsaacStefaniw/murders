@@ -3,6 +3,11 @@
 # No rebuild, no App Store review, no waiting. Use this for anything that
 # lives in src/ — copy, layout, a coaching rule, a scheduling fix.
 #
+# Two things stop an update reaching a phone, and they look the same from
+# the phone: a runtime version that does not match, and a channel the build
+# does not listen to. Check the channel FIRST — it is the cheaper mistake to
+# make and the cheaper one to test. See the branch input below.
+#
 # It CANNOT ship a native change, and that is deliberate rather than a
 # limitation. Runtime versions are fingerprinted from the native project,
 # so an update built after adding a HealthKit type or a permission simply
@@ -23,7 +28,16 @@ on:
         type: string
         required: true
       branch:
-        description: Which channel to publish to
+        # An update reaches a build ONLY through the channel that build was
+        # cut with, and eas.json binds each build profile to a channel of the
+        # same name. TestFlight build 13 was built with the `production`
+        # profile, so it listens on `production` and nothing else. Publishing
+        # to `preview` is not a safer, quieter version of shipping — it is
+        # shipping to nobody, and it looks identical to a refused update from
+        # the phone. Confirm the target build's profile before choosing
+        # anything but the default; the "Diagnose update delivery" workflow
+        # prints it.
+        description: Which channel to publish to (build 13 listens on production)
         type: choice
         options:
           - production
