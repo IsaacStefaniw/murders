@@ -34,7 +34,7 @@ export default function WeekReportScreen() {
   const metrics = useAppStore((s) => s.metrics);
   const report = useMemo(() => buildWeekReport(today, plans, goals), [today, plans, goals]);
   const records = useMemo(() => recentRecords(metrics, 7), [metrics]);
-  const close = () => (router.canGoBack() ? router.back() : router.replace('/intent' as never));
+  const close = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/data' as never));
 
   const rate = report.planned > 0 ? Math.round((report.done / report.planned) * 100) : 0;
 

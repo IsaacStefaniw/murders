@@ -6,12 +6,26 @@ import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/**
+ * What each tab is called, and why these words.
+ *
+ * The bar used to read Today · Plan · Life · Data · Intent. Three of those
+ * were abstract nouns that could have covered any screen in the app, and
+ * one was the product's own name — a tab called Intent tells a first-time
+ * user precisely nothing about what is behind it, and it was also the
+ * thinnest of the five. Its contents answered the same question this
+ * "Progress" tab already asks, so it merged into it and the bar lost a
+ * word that needed explaining.
+ *
+ * The rule the remaining four follow: name the CONTENT, not the concept.
+ * "Week" is a calendar. "Coaches" is where the seven coaches live. Neither
+ * needs a sentence underneath it.
+ */
 const TAB_TITLES: Record<string, string> = {
   today: 'Today',
-  plan: 'Plan',
-  life: 'Life',
-  data: 'Data',
-  intent: 'Intent',
+  plan: 'Week',
+  life: 'Coaches',
+  data: 'Progress',
 };
 
 /** The slice of BottomTabBarProps this bar needs — structural, so we don't
@@ -80,7 +94,6 @@ export default function TabsLayout() {
       <Tabs.Screen name="plan" />
       <Tabs.Screen name="life" />
       <Tabs.Screen name="data" />
-      <Tabs.Screen name="intent" />
     </Tabs>
   );
 }

@@ -22,6 +22,7 @@ import { EmptyState } from '@/components/empty-state';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { BodyNumbers } from '@/features/health/BodyNumbers';
+import { WeeklyReviewPanel } from '@/features/review/WeeklyReviewPanel';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { behaviourInfo } from '@/features/behaviours/catalog';
@@ -99,7 +100,7 @@ export default function Data() {
   return (
     <Screen tabbed>
       <AppText variant="label" color="textTertiary">
-        Data
+        Progress
       </AppText>
       <AppText variant="title">What the numbers say</AppText>
 
@@ -272,6 +273,8 @@ export default function Data() {
           </View>
         </>
       ) : null}
+
+      <WeeklyReviewPanel />
 
       <AppText variant="caption" color="textTertiary" style={styles.note}>
         Every number here came from something you did or something your phone measured. Nothing is

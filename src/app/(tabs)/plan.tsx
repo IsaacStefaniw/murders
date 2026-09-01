@@ -37,7 +37,7 @@ export default function Plan() {
   return (
     <Screen tabbed>
       <AppText variant="label" color="textTertiary">
-        Plan
+        Week
       </AppText>
       <AppText variant="title">The week ahead</AppText>
 

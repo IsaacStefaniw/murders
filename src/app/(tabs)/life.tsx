@@ -109,7 +109,7 @@ export default function Life() {
   return (
     <Screen tabbed>
       <AppText variant="label" color="textTertiary">
-        Life
+        Coaches
       </AppText>
       <AppText variant="title">What you&apos;re building</AppText>
       {profile.lifeVision ? (

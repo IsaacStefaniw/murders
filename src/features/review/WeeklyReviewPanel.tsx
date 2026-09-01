@@ -3,12 +3,11 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { SuggestionCard } from '@/components/suggestion-card';
+import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { computeWeeklyStats } from '@/features/review/computeWeekly';
 import { buildWeeklyChanges } from '@/features/review/weeklyChanges';
@@ -16,8 +15,16 @@ import { weeklyNarrative } from '@/lib/ai/agents';
 import { todayKey, weekStartOf } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 
-/** INTENT's own surface: suggestions, the weekly review, system status. */
-export default function Intent() {
+/**
+ * The week's read, and what INTENT would change about the next one.
+ *
+ * This used to be its own tab, called "Intent" — the app's own name, which
+ * told nobody what was behind it. It was also the thinnest of the five, and
+ * everything on it answered the same question the Progress tab already
+ * asks: how did that go, and what should change. So it lives here now, and
+ * the tab bar lost the word that needed explaining.
+ */
+export function WeeklyReviewPanel() {
   const router = useRouter();
   const plans = useAppStore((s) => s.plans);
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
@@ -54,15 +61,10 @@ export default function Intent() {
   const open = suggestions.filter((s) => s.status === 'open');
 
   return (
-    <Screen tabbed>
-      <AppText variant="label" color="textTertiary">
-        Intent
-      </AppText>
-      <AppText variant="title">Working for you</AppText>
-
+    <View>
+      <SectionHeader title="This week" />
       <Card
         onPress={() => router.push('/report' as never)}
-        style={{ marginTop: Spacing.lg }}
         accessibilityLabel="Open this week's report"
       >
         <AppText variant="heading">This week, in evidence</AppText>
@@ -71,24 +73,21 @@ export default function Intent() {
         </AppText>
       </Card>
 
-      <SectionHeader title="Suggestions" />
-      {open.length === 0 ? (
-        <AppText variant="secondary">
-          Nothing right now. Suggestions appear when your plans and your reality drift apart —
-          each one tells you why.
-        </AppText>
-      ) : (
-        <View style={styles.stack}>
-          {open.map((s) => (
-            <SuggestionCard
-              key={s.id}
-              suggestion={s}
-              onAccept={() => acceptSuggestion(s.id)}
-              onDismiss={() => dismissSuggestion(s.id)}
-            />
-          ))}
-        </View>
-      )}
+      {open.length > 0 ? (
+        <>
+          <SectionHeader title="Suggestions" />
+          <View style={styles.stack}>
+            {open.map((s) => (
+              <SuggestionCard
+                key={s.id}
+                suggestion={s}
+                onAccept={() => acceptSuggestion(s.id)}
+                onDismiss={() => dismissSuggestion(s.id)}
+              />
+            ))}
+          </View>
+        </>
+      ) : null}
 
       <SectionHeader title="Weekly review" />
       {!reviewRequested ? (
@@ -185,14 +184,7 @@ export default function Intent() {
           <AppText variant="secondary">Couldn&apos;t build the review. Try again later.</AppText>
         </Card>
       )}
-
-      <Button
-        title="Settings"
-        variant="ghost"
-        onPress={() => router.push('/settings')}
-        style={styles.settings}
-      />
-    </Screen>
+    </View>
   );
 }
 
@@ -201,5 +193,4 @@ const styles = StyleSheet.create({
   reviewButton: { marginTop: Spacing.md },
   reviewSection: { marginTop: Spacing.lg, gap: Spacing.sm },
   reviewBlock: { gap: Spacing.xs },
-  settings: { marginTop: Spacing.xxl },
 });
