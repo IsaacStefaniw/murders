@@ -13,14 +13,16 @@
  */
 
 import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { BarChart, DotGrid, MetricRow, Sparkbars } from '@/components/charts';
+import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { EmptyState } from '@/components/empty-state';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
+import { computeCohortMetrics, shareableSummary } from '@/features/analytics/cohort';
 import { BodyNumbers } from '@/features/health/BodyNumbers';
 import { WeeklyReviewPanel } from '@/features/review/WeeklyReviewPanel';
 import { AppText } from '@/components/text';
@@ -60,11 +62,16 @@ export default function Data() {
   const goals = useAppStore((s) => s.goals);
   const metrics = useAppStore((s) => s.metrics);
   const plans = useAppStore((s) => s.plans);
+  const [shared, setShared] = useState(false);
   const workoutLogs = useAppStore((s) => s.workoutLogs);
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
 
   const today = todayKey();
+  const cohort = useMemo(
+    () => computeCohortMetrics(profile, plans, today),
+    [profile, plans, today],
+  );
 
   const trajectories = useMemo(() => allTrajectories(goals, metrics), [goals, metrics]);
 
@@ -276,6 +283,57 @@ export default function Data() {
 
       <WeeklyReviewPanel />
 
+      {/*
+        How it is actually going, for the person and for the product.
+
+        Every figure is arithmetic over plans already on this device — no
+        events, no SDK, no network. That is why there is nothing to opt out
+        of, and why these numbers describe the weeks already lived rather
+        than starting from zero the day measurement was added.
+
+        Sending them is a deliberate act, not a background upload.
+      */}
+      {cohort && cohort.daysSince >= 7 ? (
+        <>
+          <SectionHeader title="How it's going" />
+          <Card style={styles.stack}>
+            <Stat label="Days using INTENT" value={String(cohort.daysSince)} />
+            <Stat
+              label="Plans you kept"
+              value={
+                cohort.completionRate === null
+                  ? '—'
+                  : `${Math.round(cohort.completionRate * 100)}%`
+              }
+            />
+            <Stat label="Weeks in a row with something done" value={String(cohort.activeWeekStreak)} />
+            {cohort.daysToFirstWin !== null ? (
+              <Stat label="Days to your first win" value={String(cohort.daysToFirstWin)} />
+            ) : null}
+            <AppText variant="caption" color="textTertiary">
+              Worked out on this phone from your own plans. Nothing was tracked and nothing was
+              sent — if you want to tell us how it is going, the button below copies these
+              numbers and nothing else.
+            </AppText>
+            <Button
+              title={shared ? 'Copied ✓' : 'Copy my numbers'}
+              variant="secondary"
+              onPress={async () => {
+                try {
+                  await navigator.clipboard.writeText(
+                    shareableSummary(cohort, profile?.weekShape),
+                  );
+                  setShared(true);
+                  setTimeout(() => setShared(false), 2000);
+                } catch {
+                  // Clipboard unavailable — nothing here is load-bearing.
+                }
+              }}
+            />
+          </Card>
+        </>
+      ) : null}
+
       <AppText variant="caption" color="textTertiary" style={styles.note}>
         Every number here came from something you did or something your phone measured. Nothing is
         estimated on your behalf, and nothing here is a score.
@@ -284,7 +342,20 @@ export default function Data() {
   );
 }
 
+/** One label-and-number line. Plain on purpose: these are facts, not charts. */
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.statLine}>
+      <AppText variant="body" style={styles.grow}>
+        {label}
+      </AppText>
+      <AppText variant="body">{value}</AppText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  statLine: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.md },
   stack: { gap: Spacing.sm },
   row: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: Spacing.md },
   grow: { flexShrink: 1 },

@@ -369,6 +369,13 @@ export interface DailyPlan {
   lookForward?: string;
   /** Short engine/AI summary, e.g. "Busy morning. Protect your afternoon." */
   summary?: string;
+  /**
+   * What the day could not hold, and which area took the time instead.
+   *
+   * Optional so no stored plan needs migrating; absent means the plan was
+   * built before the app said this out loud, not that nothing was dropped.
+   */
+  displaced?: { title: string; area: LifeArea; lostTo?: LifeArea }[];
   approvedAt?: string;
 }
 

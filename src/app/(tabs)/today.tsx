@@ -32,6 +32,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { LogDidIt } from '@/features/today/LogDidIt';
 import { WelcomeBack } from '@/features/today/WelcomeBack';
 import { QuickLog } from '@/features/today/QuickLog';
+import { displacedLine } from '@/features/planner/displaced';
 import { useAppStore } from '@/state/store';
 import type { PlanItem } from '@/types/domain';
 
@@ -186,6 +187,27 @@ export default function Today() {
         has ever been completed. Nobody has to dismiss it, it cannot come
         back, and there is no flag to migrate or get wrong.
       */}
+      {/*
+        The arbitration, said out loud.
+
+        This one sentence is the difference between seven coaches and one
+        product. Everything else in the app can be found elsewhere and done
+        well; deciding that the evening goes to family rather than the gym,
+        because that is the order you gave, cannot — no single-domain app
+        holds enough of your life to make the call.
+
+        Placed above the day rather than below it: it is context for what
+        follows, not a footnote apologising for it.
+      */}
+      {displacedLine(plan.displaced ?? []) ? (
+        <Card style={styles.arbitration}>
+          <AppText variant="body">{displacedLine(plan.displaced ?? [])}</AppText>
+          <AppText variant="caption" color="textTertiary">
+            Nothing is lost — it goes back in the running tomorrow.
+          </AppText>
+        </Card>
+      ) : null}
+
       {neverCompletedAnything ? (
         <Card style={styles.firstRun}>
           <AppText variant="secondary">
@@ -463,6 +485,7 @@ const styles = StyleSheet.create({
   coachWhy: { fontStyle: 'italic' },
   summary: { marginTop: Spacing.xs },
   firstRun: { marginTop: Spacing.lg },
+  arbitration: { marginTop: Spacing.lg, gap: Spacing.xs },
   suggestion: { marginTop: Spacing.lg },
   stack: { gap: Spacing.sm },
   nowCard: { borderWidth: 1.5, padding: Spacing.xl },

@@ -8,6 +8,8 @@ import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
+import { computeCohortMetrics } from '@/features/analytics/cohort';
+import { selfComparison } from '@/features/analytics/comparison';
 import { recentRecords } from '@/features/model/metrics';
 import { buildWeekReport } from '@/features/review/weekReport';
 import { formatDateLong, todayKey } from '@/lib/dates';
@@ -32,8 +34,22 @@ export default function WeekReportScreen() {
   const plans = useAppStore((s) => s.plans);
   const goals = useAppStore((s) => s.goals);
   const metrics = useAppStore((s) => s.metrics);
+  const profile = useAppStore((s) => s.profile);
   const report = useMemo(() => buildWeekReport(today, plans, goals), [today, plans, goals]);
   const records = useMemo(() => recentRecords(metrics, 7), [metrics]);
+  /**
+   * How this week sits against this person's own history.
+   *
+   * The week in progress is dropped before comparing. Half a week measured
+   * against whole ones reports a decline every Monday morning, which is
+   * both wrong and the single most discouraging moment to be wrong at.
+   */
+  const comparison = useMemo(() => {
+    const cohort = computeCohortMetrics(profile, plans, today);
+    if (!cohort) return null;
+    const complete = cohort.weeks.filter((w) => w.to <= today);
+    return selfComparison(complete);
+  }, [profile, plans, today]);
   const close = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/data' as never));
 
   const rate = report.planned > 0 ? Math.round((report.done / report.planned) * 100) : 0;
@@ -71,6 +87,20 @@ export default function WeekReportScreen() {
           </AppText>
         </Card>
       </View>
+
+      {comparison?.line ? (
+        <Card style={styles.compare}>
+          <AppText variant="body">{comparison.line}</AppText>
+          {comparison.yourAverage !== null ? (
+            <AppText variant="caption" color="textTertiary">
+              Compared with your own weeks — nobody else&apos;s. Your usual is{' '}
+              {Math.round(comparison.yourAverage * 10) / 10} a week
+              {comparison.firstWeek !== null ? `, and your first week was ${comparison.firstWeek}` : ''}
+              .
+            </AppText>
+          ) : null}
+        </Card>
+      ) : null}
 
       {records.length > 0 ? (
         <View>
@@ -150,6 +180,7 @@ const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center' },
   grow: { flexGrow: 1 },
   sub: { marginTop: Spacing.sm },
+  compare: { marginTop: Spacing.lg, gap: Spacing.xs },
   statRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.lg },
   stat: { flex: 1, alignItems: 'center' },
   stack: { gap: Spacing.sm },

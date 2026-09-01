@@ -56,6 +56,7 @@ import {
   generateDailyPlan,
 } from '@/features/planner/generate';
 import { moveWithBump, type Displacement } from '@/features/planner/moveWithBump';
+import { describeDisplaced } from '@/features/planner/displaced';
 import { mergeRoutines } from '@/features/planner/mergeRoutines';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
@@ -611,16 +612,16 @@ export const useAppStore = create<AppState>()(
         regeneratePlan: (date) => {
           const { profile, routines, plans, goals } = get();
           if (!profile) throw new Error('Cannot plan without a profile');
-          const { unplaced: _unplaced, ...plan } = generateDailyPlan(
-            profile,
-            routines,
-            date,
-            [],
-            goals,
-          );
+          const { unplaced, ...plan } = generateDailyPlan(profile, routines, date, [], goals);
+          // What did not fit is the visible half of arbitration. It used to
+          // be destructured into `_unplaced` and dropped on the floor, which
+          // meant the engine made the product's defining decision and then
+          // told nobody about it.
+          const displaced = describeDisplaced(unplaced, plan.items, profile.priorities);
           const previous = plans[date];
           const next: DailyPlan = {
             ...plan,
+            displaced: displaced.length > 0 ? displaced : undefined,
             intention: previous?.intention,
             protectBehaviour: previous?.protectBehaviour,
             lookForward: previous?.lookForward,
