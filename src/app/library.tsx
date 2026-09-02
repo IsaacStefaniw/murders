@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
@@ -10,7 +11,9 @@ import { Spacing } from '@/constants/theme';
 import {
   EVIDENCE_LABELS,
   PILLAR_LABELS,
-  PROTOCOLS,
+  AUDIENCE_LABEL,
+  generalProtocols,
+  protocolsFor,
   type Pillar,
   type Protocol,
 } from '@/features/knowledge/protocols';
@@ -81,6 +84,7 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
 /** The knowledge base as a browsable library: evidence-based practices the
  * engine can put straight onto the calendar. */
 export default function Library() {
+  const [openAudience, setOpenAudience] = useState<'femaleAnatomy' | 'pregnancy' | 'menopause' | null>(null);
   const theme = useTheme();
   const router = useRouter();
   const close = () => (router.canGoBack() ? router.back() : router.replace('/life' as never));
@@ -105,7 +109,7 @@ export default function Library() {
       </AppText>
 
       {PILLAR_ORDER.map((pillar) => {
-        const items = PROTOCOLS.filter((p) => p.pillar === pillar);
+        const items = generalProtocols().filter((p) => p.pillar === pillar);
         if (items.length === 0) return null;
         return (
           <View key={pillar}>
@@ -116,6 +120,37 @@ export default function Library() {
           </View>
         );
       })}
+      {/* Practices for one body or life stage.
+          They used to sit unlabelled in the general lists, so a single tap
+          could put pelvic floor training into anybody's week — and the next
+          morning the coach note handed it the most prominent slot on the
+          Today screen. The app still does not ask anyone's sex and does not
+          start now: these are named for who they are for and opened on
+          purpose. Two taps for the person who wants one, none by accident. */}
+      <SectionHeader title="Practices for particular bodies" />
+      <AppText variant="caption" color="textTertiary" style={styles.disclaimer}>
+        Kept separate because they apply to some people and not others. IntentNorth does not ask
+        your sex and does not guess — open the one that is yours.
+      </AppText>
+      {(['femaleAnatomy', 'pregnancy', 'menopause'] as const).map((audience) => {
+        const items = protocolsFor(audience);
+        if (items.length === 0) return null;
+        const open = openAudience === audience;
+        return (
+          <View key={audience}>
+            <Button
+              title={`${AUDIENCE_LABEL[audience]} · ${items.length}`}
+              variant="secondary"
+              onPress={() => setOpenAudience(open ? null : audience)}
+              style={styles.audienceButton}
+            />
+            {open
+              ? items.map((p) => <ProtocolCard key={p.id} protocol={p} />)
+              : null}
+          </View>
+        );
+      })}
+
       <Button title="Done" variant="secondary" onPress={close} style={styles.doneBottom} />
       <View style={{ height: Spacing.xl, backgroundColor: theme.background }} />
     </Screen>
@@ -128,6 +163,7 @@ const styles = StyleSheet.create({
   intro: { marginTop: Spacing.sm },
   disclaimer: { marginTop: Spacing.sm },
   card: { marginBottom: Spacing.md, gap: Spacing.sm },
+  audienceButton: { marginTop: Spacing.sm },
   headerRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
   grow: { flexShrink: 1 },
   why: { fontStyle: 'italic' },

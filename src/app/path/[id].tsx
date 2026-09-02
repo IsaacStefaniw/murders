@@ -6,6 +6,7 @@ import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
+import { answered, answeredValues } from '@/features/knowledge/questionBank';
 import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
@@ -99,11 +100,31 @@ export default function PathHub() {
                 <Chip
                   key={o.value}
                   label={o.label}
-                  selected={answers[q.key] === o.value}
-                  onPress={() => setAnswers((prev) => ({ ...prev, [q.key]: o.value }))}
+                  selected={answered(answers, q.key, o.value)}
+                  onPress={() =>
+                    setAnswers((prev) => {
+                      if (!q.multi) return { ...prev, [q.key]: o.value };
+                      // Multi-answer: tapping toggles. Deselecting the last
+                      // one clears the key entirely rather than leaving an
+                      // empty string, which every builder reads as "unanswered"
+                      // and nothing has to special-case.
+                      const chosen = new Set(answeredValues(prev, q.key));
+                      if (chosen.has(o.value)) chosen.delete(o.value);
+                      else chosen.add(o.value);
+                      const next = { ...prev };
+                      if (chosen.size === 0) delete next[q.key];
+                      else next[q.key] = [...chosen].join(',');
+                      return next;
+                    })
+                  }
                 />
               ))}
             </View>
+            {q.multi ? (
+              <AppText variant="caption" color="textTertiary" style={styles.multiHint}>
+                Pick as many as are true.
+              </AppText>
+            ) : null}
           </View>
         ))}
 
@@ -309,6 +330,7 @@ const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center' },
   grow: { flexGrow: 1 },
   sub: { marginTop: Spacing.sm },
+  multiHint: { marginTop: Spacing.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   stack: { gap: Spacing.sm },
   why: { marginTop: Spacing.sm },

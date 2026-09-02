@@ -9,7 +9,7 @@
  */
 
 import { protocolById, type Protocol } from '@/features/knowledge/protocols';
-import { addDays } from '@/lib/dates';
+import { addDays, toMinutes } from '@/lib/dates';
 import type { DailyPlan, Goal, PlanItem, Routine } from '@/types/domain';
 
 export interface Momentum {
@@ -42,6 +42,11 @@ export interface CoachNote {
   protocolTitle: string;
   why: string;
   attribution: string;
+  /** The item this is about, and when it is — the note's anchor. */
+  itemTitle: string;
+  startsAt: string;
+  /** True when that block has not happened yet. */
+  upcoming: boolean;
 }
 
 /**
@@ -52,9 +57,10 @@ export function coachNote(
   date: string,
   items: PlanItem[],
   routines: Routine[],
+  nowMin = 0,
 ): CoachNote | null {
   const routineById = new Map(routines.map((r) => [r.id, r]));
-  const backed: Protocol[] = [];
+  const backed: { protocol: Protocol; item: PlanItem }[] = [];
   const seen = new Set<string>();
   for (const item of items) {
     const protocolId = item.routineId ? routineById.get(item.routineId)?.protocolId : undefined;
@@ -62,14 +68,24 @@ export function coachNote(
     const protocol = protocolById(protocolId);
     if (!protocol) continue;
     seen.add(protocolId);
-    backed.push(protocol);
+    backed.push({ protocol, item });
   }
   if (backed.length === 0) return null;
+
+  // Prefer something still ahead of them. The note read as a non-sequitur
+  // partly because it could be explaining a practice that finished nine
+  // hours ago, sitting under tonight's wind-down with nothing connecting
+  // the two. A note about the next thing is a note about the day.
+  const ahead = backed.filter(({ item }) => toMinutes(item.start) >= nowMin);
+  const pool = ahead.length > 0 ? ahead : backed;
   const seed = Array.from(date).reduce((a, c) => a + c.charCodeAt(0), 0);
-  const pick = backed[seed % backed.length];
+  const { protocol, item } = pool[seed % pool.length];
   return {
-    protocolTitle: pick.title,
-    why: pick.why,
-    attribution: pick.attribution.join(' · '),
+    protocolTitle: protocol.title,
+    why: protocol.why,
+    attribution: protocol.attribution.join(' · '),
+    itemTitle: item.title,
+    startsAt: item.start,
+    upcoming: toMinutes(item.start) >= nowMin,
   };
 }

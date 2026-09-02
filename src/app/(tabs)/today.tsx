@@ -89,7 +89,7 @@ export default function Today() {
     [behaviourIntentions, behaviourEvents, metrics, date],
   );
   const todayNote = useMemo(
-    () => (plans[date] ? coachNote(date, plans[date].items, routines) : null),
+    () => (plans[date] ? coachNote(date, plans[date].items, routines, nowMinutes()) : null),
     [date, plans, routines],
   );
   const now = nowMinutes();
@@ -409,7 +409,8 @@ export default function Today() {
             {todayNote.why}
           </AppText>
           <AppText variant="caption" color="textTertiary">
-            Behind today&apos;s {todayNote.protocolTitle.toLowerCase()} · after the public work of{' '}
+            {todayNote.upcoming ? 'Behind ' : 'Behind today’s '}
+            {todayNote.itemTitle} at {todayNote.startsAt} · after the public work of{' '}
             {todayNote.attribution}
           </AppText>
         </View>

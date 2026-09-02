@@ -11,7 +11,7 @@
 import { BEHAVIOUR_CATALOG, behaviourInfo } from '@/features/behaviours/catalog';
 import { buildGoalPlan, type GoalPlan, type ParsedGoal } from '@/features/goals/goalPlanner';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
-import { DOMAIN_QUESTIONS, type DomainQuestion } from '@/features/knowledge/questionBank';
+import { DOMAIN_QUESTIONS, answered, type DomainQuestion } from '@/features/knowledge/questionBank';
 import { newId } from '@/lib/dates';
 import type { BehaviourKey, LifeProfile, Routine } from '@/types/domain';
 
@@ -149,10 +149,10 @@ export const PATHS: Record<PathId, PathDefinition> = {
       } else {
         lines.push('Three days, main lifts first. The coach shrinks a session when time collapses — it never cancels it.');
       }
-      if (answers.limiter === 'time') {
+      if (answered(answers, 'limiter', 'time')) {
         lines.push('Time is your limiter, so nothing in this program needs more than 30–45 minutes, warm-up included.');
       }
-      if (answers.limiter === 'boredom') {
+      if (answered(answers, 'limiter', 'boredom')) {
         lines.push('Sessions rotate blocks so no two consecutive workouts repeat.');
       }
       if ((profile?.age ?? 0) >= 45) {
@@ -177,6 +177,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
           { value: 'energy', label: 'Steadier energy' },
           { value: 'weight', label: 'Lose some weight' },
           { value: 'muscle', label: 'Support training' },
+          { value: 'unsure', label: 'Not sure — just eat better than I do now' },
         ],
       },
       {
@@ -186,6 +187,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
           { value: 'quick', label: '15 minutes, tops' },
           { value: 'normal', label: 'Half an hour is fine' },
           { value: 'enjoy', label: 'I actually enjoy it' },
+          { value: 'varies', label: 'It depends entirely on the week' },
         ],
       },
     ],
@@ -336,6 +338,8 @@ export const PATHS: Record<PathId, PathDefinition> = {
           { value: 'maker', label: 'Deep, focused work' },
           { value: 'manager', label: 'People and meetings' },
           { value: 'mixed', label: 'Both, constantly' },
+          { value: 'physical', label: 'On my feet, hands-on work' },
+          { value: 'varies', label: 'No two weeks are the same' },
         ],
       },
     ],
@@ -390,13 +394,13 @@ export const PATHS: Record<PathId, PathDefinition> = {
       if (answers.style === 'manager') {
         lines.push('Your leverage is the weekly review: one lever named, one thing stopped, every week.');
       }
-      if (answers.bottleneck === 'sales') {
+      if (answered(answers, 'bottleneck', 'sales')) {
         lines.push('The growth block opens with the sales levers until that milestone is done.');
       }
-      if (answers.bottleneck === 'delivery') {
+      if (answered(answers, 'bottleneck', 'delivery')) {
         lines.push('Fix the delivery bottleneck before chasing growth — capacity first, then volume.');
       }
-      if (answers.bottleneck === 'focus') {
+      if (answered(answers, 'bottleneck', 'focus')) {
         lines.push('“No time to think” is a calendar problem. The deep-work block is the fix, and it’s protected.');
       }
       if (answers.meetingLoad === 'heavy') {
@@ -428,11 +432,13 @@ export const PATHS: Record<PathId, PathDefinition> = {
         key: 'trigger',
         question: 'When does it usually win?',
         options: [
-          { value: 'stress', label: 'Stress' },
-          { value: 'boredom', label: 'Boredom' },
-          { value: 'social', label: 'Social settings' },
-          { value: 'evening', label: 'Evenings, at home' },
-          { value: 'unsure', label: 'Honestly not sure' },
+          { value: 'stress', label: 'When the pressure is on' },
+          { value: 'boredom', label: 'When there is nothing to do' },
+          { value: 'social', label: 'When other people are doing it' },
+          { value: 'evening', label: 'Evenings at home, once things go quiet' },
+          { value: 'tired', label: 'When I am running on empty' },
+          { value: 'lowmood', label: 'When the day has gone badly' },
+          { value: 'unsure', label: 'Honestly not sure — help me find it' },
         ],
       },
       {
@@ -440,9 +446,11 @@ export const PATHS: Record<PathId, PathDefinition> = {
         question: 'What could stand in its place?',
         options: [
           { value: 'breathe', label: 'A two-minute breath reset' },
-          { value: 'walk', label: 'A short walk' },
-          { value: 'read', label: 'Reading' },
-          { value: 'message', label: 'Messaging someone real' },
+          { value: 'walk', label: 'A short walk, outside if I can' },
+          { value: 'read', label: 'Reading something on paper' },
+          { value: 'message', label: 'Messaging someone who knows' },
+          { value: 'tidy', label: 'Doing one small physical task' },
+          { value: 'water', label: 'Making tea, or a cold glass of water' },
           { value: 'unsure', label: 'Help me pick' },
         ],
       },

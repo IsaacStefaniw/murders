@@ -30,6 +30,11 @@ import { useAppStore } from '@/state/store';
 import { addDays, durationMinutes, todayKey, toMinutes } from '@/lib/dates';
 import type { InterviewAnswers } from '@/features/onboarding/script';
 import type { PlanItem } from '@/types/domain';
+import {
+  checkAudienceGating,
+  checkCoachNote,
+  type Finding,
+} from '@/features/sim/screens';
 
 export interface Violation {
   invariant: string;
@@ -183,6 +188,8 @@ function check(trace: string[], out: Violation[]): void {
 export interface JourneyResult {
   users: number;
   actions: number;
+  /** What the screens would have SAID, checked per person per day. */
+  findings: Finding[];
   violations: Violation[];
   /**
    * Completed practices that left no number behind.
@@ -286,10 +293,17 @@ export function runJourney(seed: number, days: number, trace: string[], out: Vio
 
 export function runJourneys(users: number, days: number): JourneyResult {
   const violations: Violation[] = [];
+  const findings: Finding[] = [];
   const silent = new Map<string, number>();
   let actions = 0;
   for (let i = 0; i < users; i += 1) {
     actions += runJourney(i, days, [], violations);
+    // The render pass: what this person's screens would have said. Run
+    // after their days so the plans, routines and metrics are real.
+    checkAudienceGating(findings);
+    for (const date of Object.keys(useAppStore.getState().plans)) {
+      checkCoachNote(date, findings);
+    }
     // Measured per person, after their run: a title that produced a metric
     // for anybody is covered, and only the ones that never do are silent.
     const { plans, metrics } = useAppStore.getState();
@@ -306,6 +320,7 @@ export function runJourneys(users: number, days: number): JourneyResult {
     users,
     actions,
     violations,
+    findings,
     silentPractices: [...silent.entries()]
       .map(([title, completions]) => ({ title, completions }))
       .sort((a, b) => b.completions - a.completions),
@@ -321,6 +336,14 @@ export function summarise(result: JourneyResult): string {
   const rows = [...byInvariant.entries()]
     .sort((a, b) => b[1].length - a[1].length)
     .map(([name, vs]) => `| ${name} | ${vs.length} | ${vs[0].detail} |`);
+  const byRule = new Map<string, Finding[]>();
+  for (const f of result.findings) {
+    byRule.set(f.rule, [...(byRule.get(f.rule) ?? []), f]);
+  }
+  const findingRows = [...byRule.entries()]
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([rule, fs]) => `| ${fs[0].screen} | ${rule} | ${fs.length} | ${fs[0].detail} |`);
+
   const silent = result.silentPractices
     .slice(0, 12)
     .map((s) => `| ${s.title} | ${s.completions} |`);
@@ -336,5 +359,11 @@ export function summarise(result: JourneyResult): string {
     '| practice | completions |',
     '|---|---|',
     ...(silent.length > 0 ? silent : ['| — | 0 |']),
+    '',
+    'Render pass — what the screens would say:',
+    '',
+    '| screen | rule | hits | first example |',
+    '|---|---|---|---|',
+    ...(findingRows.length > 0 ? findingRows : ['| — | — | 0 | none |']),
   ].join('\n');
 }

@@ -9,6 +9,7 @@
  */
 
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
+import { answered } from '@/features/knowledge/questionBank';
 import { newId } from '@/lib/dates';
 import type {
   Goal,
@@ -118,20 +119,20 @@ export function buildGoalPlan(
         milestone('Establish the current baseline'),
         milestone(parsed.target ? `Define the gap to ${parsed.target}` : 'Define the gap'),
         milestone(
-          answers.bottleneck === 'sales'
+          answered(answers, 'bottleneck', 'sales')
             ? 'Name the two biggest sales levers'
-            : answers.bottleneck === 'delivery'
+            : answered(answers, 'bottleneck', 'delivery')
               ? 'Fix the biggest delivery bottleneck'
-              : answers.bottleneck === 'visibility'
+              : answered(answers, 'bottleneck', 'visibility')
                 ? 'Make the work visible: share one win a week'
-                : answers.bottleneck === 'skills'
+                : answered(answers, 'bottleneck', 'skills')
                   ? 'Pick the one skill and book the learning time'
                   : 'Identify the two biggest growth levers',
         ),
         milestone('Set the monthly target'),
       ];
       // "No time to think" is a calendar problem — carve the thinking time.
-      if (answers.bottleneck === 'focus') {
+      if (answered(answers, 'bottleneck', 'focus')) {
         const deepWork = protocolById('deep-work');
         if (deepWork) routines.push(toRoutine(deepWork, profile, goalId));
       }
@@ -183,7 +184,7 @@ export function buildGoalPlan(
       // three aspirational ones. Time-limited: cap the session length.
       // Cadence honours what the user actually asked for in the interview.
       const fresh = answers.experience === 'new';
-      const shortOnTime = answers.limiter === 'time';
+      const shortOnTime = answered(answers, 'limiter', 'time');
       const cadence = fresh ? 2 : Math.min(Math.max(profile?.trainingDaysPerWeek ?? 3, 2), 6);
       const spread: Weekday[] = [1, 3, 5, 6, 2, 4, 0];
       milestones = fresh
@@ -247,13 +248,13 @@ export function buildGoalPlan(
       } else if (answers.automation === 'yes') {
         milestones.push(milestone('Automation audited — every transfer still right'));
       }
-      if (answers.leak === 'recurring') {
+      if (answered(answers, 'leak', 'recurring')) {
         milestones.push(milestone('Every subscription listed, three cancelled'));
-      } else if (answers.leak === 'impulse') {
+      } else if (answered(answers, 'leak', 'impulse')) {
         milestones.push(milestone('A 24-hour rule on anything unplanned'));
-      } else if (answers.leak === 'everyday') {
+      } else if (answered(answers, 'leak', 'everyday')) {
         milestones.push(milestone('Two weeks of everyday spend actually seen'));
-      } else if (answers.leak === 'unknown') {
+      } else if (answered(answers, 'leak', 'unknown')) {
         milestones.push(milestone('One month categorised — find out where it goes'));
       }
       if (answers.raise === 'absorbed' || answers.raise === 'some') {
@@ -275,9 +276,9 @@ export function buildGoalPlan(
       routines.push({
         ...routineBase(goalId, 'admin'),
         id: newId('r'),
-        title: answers.leak === 'unknown' ? 'Money check-in — categorise as you go' : 'Money check-in',
+        title: answered(answers, 'leak', 'unknown') ? 'Money check-in — categorise as you go' : 'Money check-in',
         days: [0],
-        durationMin: answers.leak === 'unknown' ? 40 : 30,
+        durationMin: answered(answers, 'leak', 'unknown') ? 40 : 30,
         preferredStart: '19:30',
         preferredEnd: '20:30',
         energy: 'evening',
