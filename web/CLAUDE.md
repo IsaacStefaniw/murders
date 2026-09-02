@@ -1,10 +1,16 @@
-# INTENT OS — Claude Development Handoff
+# IntentNorth — Claude Development Handoff
 
-This archive is the exact source behind the live INTENT OS marketing site at:
+This is the source of the IntentNorth marketing site. Its address is:
 
-https://intent-operating-system.isaac-stefaniw.chatgpt.site
+https://intentnorth.app
 
-The supplied source corresponds to the production release completed on 31 August 2026. Treat it as the approved baseline, not a concept mock-up.
+instinctnorth.app is held as an alias and 301s to that; see `worker/index.ts`.
+The old `intent-operating-system.isaac-stefaniw.chatgpt.site` preview host is
+gone, and the product was named INTENT OS before it was named IntentNorth —
+both still appear in image filenames and the Cloudflare worker name, which are
+deliberately left alone because renaming them breaks live URLs and deploys.
+
+Treat this source as the approved baseline, not a concept mock-up.
 
 ## Run locally
 
@@ -12,7 +18,10 @@ Requirements:
 
 - Node.js 22.13 or newer
 - npm
-- Linux is preferred because the supplied build scripts use `flock` and GNU `timeout`
+
+Nothing else. `dev`, `build`, `lint` and `test` run on Windows, macOS and Linux
+without a POSIX shell. Only `npm run install:ci` — a hardened single-install
+path used by hosted runners, not by contributors — is Linux-only.
 
 Commands:
 
@@ -39,11 +48,11 @@ npm test
 - `public/images/` — production image assets, including the two latest editorial WebP images
 - `tests/` — non-negotiable positioning, wording and asset-delivery guardrails
 
-The project uses Next.js 16, React 19, TypeScript, Vinext/Vite and Cloudflare-compatible output. Preserve `package-lock.json`, the existing build system and `.openai/hosting.json` unless the deployment platform is deliberately being changed.
+The project uses Next.js 16, React 19, TypeScript, Vinext/Vite and deploys to Cloudflare Workers. Preserve `package-lock.json` and the existing build system unless the deployment platform is deliberately being changed. The hosting platform's `.openai/hosting.json` no longer exists; the build reads `wrangler.jsonc`, whose worker name is pinned because changing it creates a second site rather than updating this one.
 
 ## Product positioning
 
-INTENT OS is not a calendar shaper, general life dashboard or readiness-score app.
+IntentNorth is not a calendar shaper, general life dashboard or readiness-score app.
 
 The core value proposition is:
 

@@ -27,14 +27,17 @@ jobs:
       - run: npm run lint
       - name: Build
         run: npm run build
+      # Named rather than globbed so the deploy gate is an explicit list.
+      # ui-components.test.mjs is excluded on purpose: it exercises a vendored
+      # component, not a product claim, and has been seen to hang.
       - name: Product-truth guardrails
-        run: node --test tests/rendered-html.test.mjs
-      # vinext deploy generates wrangler.jsonc (worker entry, ASSETS binding,
-      # nodejs_compat) and ships it. --skip-build reuses the build above, so a
-      # failing guardrail stops the deploy.
+        run: node --test tests/rendered-html.test.mjs tests/legal-pages.test.mjs tests/canonical-host.test.mjs
+      # --skip-build reuses the build above, so a failing guardrail stops the
+      # deploy. Worker name, compatibility date and flags come from the
+      # committed web/wrangler.jsonc; nothing here may override them.
       - name: Deploy to Cloudflare Workers
         if: ${{ inputs.confirm }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx vinext deploy --skip-build   # name comes from web/wrangler.jsonc
+        run: npx vinext deploy --skip-build
