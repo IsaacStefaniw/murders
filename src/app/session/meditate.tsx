@@ -12,7 +12,7 @@ import { Spacing } from '@/constants/theme';
 import { EVIDENCE_LABELS } from '@/features/knowledge/protocols';
 import { practiceState } from '@/features/mind/practice';
 import { cueAt, scriptsForLevel, type MeditationScript } from '@/features/mind/scripts';
-import { pickVoice } from '@/features/mind/voice';
+import { pickVoice, voiceShortlist, VOICE_SAMPLE, type VoiceOption } from '@/features/mind/voice';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
@@ -72,7 +72,14 @@ export default function MeditateSession() {
   const [startedAt, setStartedAt] = useState(0);
   const [now, setNow] = useState(0);
   const [voiceOn, setVoiceOn] = useState(true);
-  const [preferredVoiceId, setPreferredVoiceId] = useState<string | null>(null);
+  const [autoVoiceId, setAutoVoiceId] = useState<string | null>(null);
+  const [voices, setVoices] = useState<VoiceOption[]>([]);
+  const chosenVoiceId = useAppStore((s) => s.voicePreference);
+  const setVoicePreference = useAppStore((s) => s.setVoicePreference);
+  // A stored voice that no longer exists — after a restore, or an OS update
+  // that removed it — falls back rather than failing silent.
+  const available = voices.some((v) => v.identifier === chosenVoiceId);
+  const preferredVoiceId = (available ? chosenVoiceId : null) ?? autoVoiceId;
   /** The last cue spoken, so a re-render never repeats a line mid-breath. */
   const spokenRef = useRef<string | null>(null);
 
@@ -92,6 +99,7 @@ export default function MeditateSession() {
     [script, durationMin],
   );
   const cue = cueAt(cues, elapsed);
+  const shortlist = useMemo(() => voiceShortlist(voices, deviceLocale()), [voices]);
 
   // Asked once, not per cue: enumerating voices is a bridge call, and the
   // installed set does not change mid-session.
@@ -99,7 +107,9 @@ export default function MeditateSession() {
     let live = true;
     void Speech.getAvailableVoicesAsync()
       .then((voices) => {
-        if (live) setPreferredVoiceId(pickVoice(voices, deviceLocale()));
+        if (!live) return;
+        setVoices(voices);
+        setAutoVoiceId(pickVoice(voices, deviceLocale()));
       })
       // A device with no enumerable voices still speaks with the default.
       .catch(() => undefined);
@@ -223,6 +233,29 @@ export default function MeditateSession() {
             onPress={() => setVoiceOn((v) => !v)}
           />
         </View>
+        {voiceOn && shortlist.length > 1 ? (
+          <View style={styles.voicePick}>
+            <AppText variant="caption" color="textTertiary">
+              Tap a voice to hear it. The one you pick is remembered.
+            </AppText>
+            <View style={styles.voiceRow}>
+              {shortlist.map((v) => (
+                <Chip
+                  key={v.identifier}
+                  label={v.name || v.language}
+                  selected={preferredVoiceId === v.identifier}
+                  onPress={() => {
+                    setVoicePreference(v.identifier);
+                    // Speak on tap: a name tells you nothing, and choosing a
+                    // voice you have not heard is not choosing.
+                    void Speech.stop();
+                    Speech.speak(VOICE_SAMPLE, { rate: 0.82, pitch: 0.92, voice: v.identifier });
+                  }}
+                />
+              ))}
+            </View>
+          </View>
+        ) : null}
         <Button
           title="Begin"
           onPress={() => {
@@ -283,7 +316,8 @@ export default function MeditateSession() {
 const styles = StyleSheet.create({
   stack: { gap: Spacing.sm, marginTop: Spacing.lg },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.xl },
-  voiceRow: { flexDirection: 'row', marginBottom: Spacing.md },
+  voiceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.md },
+  voicePick: { gap: Spacing.sm, marginBottom: Spacing.md },
   hint: { marginTop: Spacing.xl },
   meta: { marginTop: Spacing.sm },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md, paddingHorizontal: Spacing.lg },

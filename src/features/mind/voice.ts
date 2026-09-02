@@ -35,6 +35,35 @@ function isMale(v: VoiceOption): boolean {
 }
 
 /**
+ * The voices worth putting in front of somebody.
+ *
+ * A device can expose eighty or more, most of them other languages, several
+ * of them the same voice at different qualities. A list that long is not a
+ * choice, it is a chore — so this narrows to the ones that can actually
+ * read this session, orders male first because that is the house default,
+ * and stops at a number a person will genuinely audition.
+ */
+export function voiceShortlist(voices: VoiceOption[], locale: string, limit = 6): VoiceOption[] {
+  const lang = locale.split('-')[0]?.toLowerCase() ?? 'en';
+  const speakable = voices.filter((v) => v.language?.toLowerCase().startsWith(lang));
+  const exact = speakable.filter((v) => v.language?.toLowerCase() === locale.toLowerCase());
+  const rest = speakable.filter((v) => v.language?.toLowerCase() !== locale.toLowerCase());
+  // Same voice installed twice at different qualities is one choice.
+  const seen = new Set<string>();
+  const ordered = [...exact, ...rest].filter((v) => {
+    const key = (v.name ?? v.identifier).toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return [...ordered.filter(isMale), ...ordered.filter((v) => !isMale(v))].slice(0, limit);
+}
+
+/** A line worth judging a voice on — the shape of real guidance, not "hello". */
+export const VOICE_SAMPLE =
+  'Settle. Let the shoulders drop, and let the breath find its own pace.';
+
+/**
  * The best available voice for a spoken practice.
  *
  * Order: a male voice in the exact locale, then a male voice in the same

@@ -1,4 +1,9 @@
-import { pickVoice, type VoiceOption } from '@/features/mind/voice';
+import {
+  pickVoice,
+  voiceShortlist as pickShortlist,
+  VOICE_SAMPLE as SAMPLE,
+  type VoiceOption,
+} from '@/features/mind/voice';
 
 const v = (identifier: string, name: string, language: string, gender?: string): VoiceOption => ({
   identifier, name, language, gender,
@@ -34,5 +39,45 @@ describe('picking a voice for spoken guidance', () => {
 
   it('returns null rather than guessing when nothing matches', () => {
     expect(pickVoice([], 'en-AU')).toBeNull();
+  });
+});
+
+describe('the shortlist a person actually chooses from', () => {
+  const many = [
+    v('a', 'Karen', 'en-AU', 'female'),
+    v('b', 'Lee', 'en-AU', 'male'),
+    v('c', 'Lee', 'en-AU', 'male'), // same voice, second quality tier
+    v('d', 'Daniel', 'en-GB', 'male'),
+    v('e', 'Amelie', 'fr-FR', 'female'),
+    v('f', 'Moira', 'en-IE', 'female'),
+    v('g', 'Rishi', 'en-IN', 'male'),
+    v('h', 'Samantha', 'en-US', 'female'),
+  ];
+
+  it('drops voices that cannot read this session', () => {
+    // A French voice reading English guidance is not a choice, it is a bug.
+    const list = pickShortlist(many, 'en-AU');
+    expect(list.map((x) => x.identifier)).not.toContain('e');
+  });
+
+  it('does not offer the same voice twice', () => {
+    // Installed at two quality tiers is one decision, not two.
+    const names = pickShortlist(many, 'en-AU').map((x) => x.name);
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it('puts the local voices first', () => {
+    expect(pickShortlist(many, 'en-AU')[0].language).toBe('en-AU');
+  });
+
+  it('stays short enough to audition', () => {
+    // Eighty voices is a chore, not a choice.
+    expect(pickShortlist(many, 'en-AU').length).toBeLessThanOrEqual(6);
+  });
+
+  it('gives a sample worth judging a voice on', () => {
+    // "Hello" tells you nothing about how a voice reads guidance.
+    expect(SAMPLE.split(' ').length).toBeGreaterThan(6);
+    expect(SAMPLE).toMatch(/breath|settle/i);
   });
 });

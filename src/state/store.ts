@@ -161,6 +161,22 @@ export interface AppState {
    */
   /** Record the measurable side of a completed practice (sauna, cold). */
   recordPracticeMetric: (item: PlanItem) => void;
+
+  /**
+   * The voice that reads a guided practice aloud.
+   *
+   * Null means "whatever the device picks for this locale" — the sensible
+   * default, and the only option before this existed. Choosing one is a
+   * preference, not a setting anyone should have to find: the picker sits
+   * on the session screen where the voice is about to speak, and the choice
+   * is remembered so nobody chooses twice.
+   *
+   * A voice identifier is device-specific. One that is missing after a
+   * restore or an OS update falls back to the default rather than failing
+   * silent, which is why the reader handles null as a normal state.
+   */
+  voicePreference: string | null;
+  setVoicePreference: (identifier: string | null) => void;
   moveItem: (
     date: string,
     itemId: string,
@@ -438,6 +454,7 @@ const initialData = {
   pathIntensityPush: {} as Partial<Record<PathId, boolean>>,
   workBlock: null as WorkBlock | null,
   clockOffsetMs: 0,
+  voicePreference: null as string | null,
 };
 
 /** Derive Training v2 inputs from everything IntentNorth already knows. */
@@ -720,6 +737,8 @@ export const useAppStore = create<AppState>()(
          * "Family dinner" and "Get stronger" are time and intent; inventing
          * a number for them would be worse than counting nothing.
          */
+        setVoicePreference: (identifier) => set({ voicePreference: identifier }),
+
         recordPracticeMetric: (item) => {
           const title = item.title.toLowerCase();
           const minutes = durationMinutes(item.start, item.end);
