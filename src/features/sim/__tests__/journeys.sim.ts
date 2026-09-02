@@ -15,7 +15,19 @@ jest.setTimeout(60 * 60 * 1000);
 
 it(`drives ${USERS} people through ${DAYS} days`, () => {
   const result = runJourneys(USERS, DAYS);
-  writeFileSync(join(OUT, 'journey-report.json'), JSON.stringify(result.violations.slice(0, 200), null, 2));
+  writeFileSync(
+    join(OUT, 'journey-report.json'),
+    JSON.stringify(
+      {
+        violationCounts: result.violationCounts,
+        findingCounts: result.findingCounts,
+        violations: result.violations,
+        findings: result.findings,
+      },
+      null,
+      2,
+    ),
+  );
    
   console.log('\n' + summarise(result));
   expect(result.actions).toBeGreaterThan(0);

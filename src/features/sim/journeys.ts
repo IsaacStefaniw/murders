@@ -185,11 +185,19 @@ function check(trace: string[], out: Violation[]): void {
   }
 }
 
+/**
+ * How many examples of any one problem are worth keeping.
+ *
+ * A 500-person run died on `JSON.stringify` with a heap overflow: every
+ * violation and every finding was retained in full, and the thousandth
+ * instance of the same rule teaches nothing the first ten did not. Counts
+ * are still exact — only the examples are capped.
+ */
+const MAX_EXAMPLES_PER_KIND = 10;
+
 export interface JourneyResult {
   users: number;
   actions: number;
-  /** What the screens would have SAID, checked per person per day. */
-  findings: Finding[];
   violations: Violation[];
   /**
    * Completed practices that left no number behind.
@@ -202,6 +210,11 @@ export interface JourneyResult {
    * decide which silences are correct.
    */
   silentPractices: { title: string; completions: number }[];
+  /** Exact counts; the violation and finding arrays hold capped examples. */
+  violationCounts: Record<string, number>;
+  findingCounts: Record<string, number>;
+  /** What the screens would have SAID, checked per person per day. */
+  findings: Finding[];
 }
 
 /**
@@ -294,6 +307,20 @@ export function runJourney(seed: number, days: number, trace: string[], out: Vio
 export function runJourneys(users: number, days: number): JourneyResult {
   const violations: Violation[] = [];
   const findings: Finding[] = [];
+  const violationCounts: Record<string, number> = {};
+  const findingCounts: Record<string, number> = {};
+  const keepCapped = <T,>(all: T[], counts: Record<string, number>, kindOf: (x: T) => string) => {
+    const seen: Record<string, number> = {};
+    const kept: T[] = [];
+    for (const x of all) {
+      const kind = kindOf(x);
+      counts[kind] = (counts[kind] ?? 0) + 1;
+      seen[kind] = (seen[kind] ?? 0) + 1;
+      if (seen[kind] <= MAX_EXAMPLES_PER_KIND) kept.push(x);
+    }
+    all.length = 0;
+    all.push(...kept);
+  };
   const silent = new Map<string, number>();
   let actions = 0;
   for (let i = 0; i < users; i += 1) {
@@ -304,6 +331,10 @@ export function runJourneys(users: number, days: number): JourneyResult {
     for (const date of Object.keys(useAppStore.getState().plans)) {
       checkCoachNote(date, findings);
     }
+    // Capped as we go rather than at the end: 500 people producing the same
+    // finding every day is what overflowed the heap in the first place.
+    keepCapped(findings, findingCounts, (f) => `${f.screen}|${f.rule}`);
+    keepCapped(violations, violationCounts, (v) => v.invariant);
     // Measured per person, after their run: a title that produced a metric
     // for anybody is covered, and only the ones that never do are silent.
     const { plans, metrics } = useAppStore.getState();
@@ -320,7 +351,9 @@ export function runJourneys(users: number, days: number): JourneyResult {
     users,
     actions,
     violations,
+    violationCounts,
     findings,
+    findingCounts,
     silentPractices: [...silent.entries()]
       .map(([title, completions]) => ({ title, completions }))
       .sort((a, b) => b.completions - a.completions),
@@ -329,26 +362,24 @@ export function runJourneys(users: number, days: number): JourneyResult {
 
 /** Violations grouped by invariant, most frequent first. */
 export function summarise(result: JourneyResult): string {
-  const byInvariant = new Map<string, Violation[]>();
-  for (const v of result.violations) {
-    byInvariant.set(v.invariant, [...(byInvariant.get(v.invariant) ?? []), v]);
-  }
-  const rows = [...byInvariant.entries()]
-    .sort((a, b) => b[1].length - a[1].length)
-    .map(([name, vs]) => `| ${name} | ${vs.length} | ${vs[0].detail} |`);
-  const byRule = new Map<string, Finding[]>();
-  for (const f of result.findings) {
-    byRule.set(f.rule, [...(byRule.get(f.rule) ?? []), f]);
-  }
-  const findingRows = [...byRule.entries()]
-    .sort((a, b) => b[1].length - a[1].length)
-    .map(([rule, fs]) => `| ${fs[0].screen} | ${rule} | ${fs.length} | ${fs[0].detail} |`);
+  const example = (pred: (v: Violation) => boolean) => result.violations.find(pred)?.detail ?? '';
+  const rows = Object.entries(result.violationCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, n]) => `| ${name} | ${n} | ${example((v) => v.invariant === name)} |`);
+  const findingRows = Object.entries(result.findingCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([kind, n]) => {
+      const [screen, rule] = kind.split('|');
+      const eg = result.findings.find((f) => f.screen === screen && f.rule === rule);
+      return `| ${screen} | ${rule} | ${n} | ${eg?.detail ?? ''} |`;
+    });
 
   const silent = result.silentPractices
     .slice(0, 12)
     .map((s) => `| ${s.title} | ${s.completions} |`);
+  const totalViolations = Object.values(result.violationCounts).reduce((a, b) => a + b, 0);
   return [
-    `${result.users} users · ${result.actions} actions · ${result.violations.length} violations`,
+    `${result.users} users · ${result.actions} actions · ${totalViolations} violations`,
     '',
     '| invariant | hits | first example |',
     '|---|---|---|',
