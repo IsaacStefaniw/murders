@@ -304,7 +304,32 @@ export function runJourney(seed: number, days: number, trace: string[], out: Vio
   return actions;
 }
 
+/**
+ * Stop the store persisting while the simulation runs.
+ *
+ * The OOM at 300 people was not the report — it was the persist
+ * middleware. Every `set()` re-serialises the entire store, and a person
+ * accumulates twenty-one days of plans, a metric per completion and an
+ * event per action, so the cost is the state size times the action count
+ * and the transient garbage buries the heap. Capping the examples was a
+ * real improvement and fixed a different problem; it did not fix this one,
+ * and reporting the run as if it had is what this whole exercise is about
+ * not doing.
+ *
+ * Test-only, and applied through zustand's own options API so nothing in
+ * the app changes to make its harness convenient.
+ */
+function pausePersistence(): void {
+  const persist = (useAppStore as unknown as {
+    persist?: { setOptions: (o: { storage: unknown }) => void };
+  }).persist;
+  persist?.setOptions({
+    storage: { getItem: () => null, setItem: () => undefined, removeItem: () => undefined },
+  });
+}
+
 export function runJourneys(users: number, days: number): JourneyResult {
+  pausePersistence();
   const violations: Violation[] = [];
   const findings: Finding[] = [];
   const violationCounts: Record<string, number> = {};

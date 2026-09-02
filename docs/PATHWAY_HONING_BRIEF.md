@@ -337,3 +337,74 @@ for either would be worse than counting none.
 - **Weekly load is unchecked across pathways.** Each pathway is audited
   alone; nobody has asked what a person holding four of them is being
   asked for in total.
+
+---
+
+# Round 3 — the render pass
+
+## Why a third harness
+
+Two harnesses existed. One read what `build()` returns. One drove the store
+through real actions. Between them they missed the two most embarrassing
+defects reported from a phone, because neither is a state bug — both are
+things the app **said**:
+
+- a meditation that told you to close your eyes and to glance at the screen
+- a pelvic floor practice given the most prominent editorial slot on a
+  man's Today screen
+
+`src/features/sim/screens.ts` asks what each screen would put in front of
+somebody and checks the text against rules that hold for everyone. It does
+not mount React: rendering React Native buys pixel layout and costs an
+order of magnitude in speed, and every defect in this class lives in the
+data a screen is handed rather than in how it is laid out.
+
+It runs two ways — standalone over every question and library entry, and
+inside the journey harness per person per day, where it sees what real
+plans produce.
+
+## Findings
+
+**Static pass: 44, across five rules.**
+
+| rule | hits |
+|---|---|
+| every question has an honest way out | 19 |
+| answers are phrases, not labels | 11 |
+| health practices state their limits | 11 |
+| one key, one question | 2 |
+| no manual required | 1 |
+
+**In the journey pass, one more that the static pass could not see:**
+"circadian" reaching the Today screen **5,306 times** in a 500-person run.
+The coach note quotes a protocol's `why` verbatim, so a word that reads
+fine in a library entry becomes the most-read text in the app. Swept.
+
+## The two rules I narrowed rather than satisfied
+
+Recorded because a rule quietly weakened is worse than a rule that failed.
+
+- **A taxonomy needs no phrases.** "Alcohol" is the clearest possible label
+  for alcohol, and lengthening it would make the list worse. Applies to the
+  habit, child-age and household questions only.
+- **A taxonomy needs no escape hatch.** Somebody choosing which habit to
+  work on is not unsure which one it is.
+
+Both exemptions are named constants in the harness, not silent conditions.
+
+## Harness scale, and a wrong diagnosis on the way
+
+A 500-person run died on `JSON.stringify` with a heap overflow. The first
+fix — capping retained examples at ten per kind, with exact counts kept
+separately — was a real improvement and fixed a different problem. The run
+still died at 300.
+
+The actual cause was the persist middleware: every `set()` re-serialises
+the whole store, and a person accumulates twenty-one days of plans, a
+metric per completion and an event per action, so the cost scales as state
+size times action count. The simulation now pauses persistence through
+zustand's own options API — test-only, with nothing in the app changed to
+suit its harness.
+
+**Final: 500 people · 44,320 actions · 0 violations · 0 silent practices ·
+0 render findings.**
