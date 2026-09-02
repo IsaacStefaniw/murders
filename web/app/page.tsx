@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   ArrowDown, ArrowRight, Brain, Check, ChevronRight, CircleDot,
   Dumbbell, ExternalLink, Footprints, Heart, Leaf, LineChart, LockKeyhole,
@@ -130,9 +131,9 @@ const evidence = [
 
 function Logo() {
   return (
-    <a className="brand" href="#top" aria-label="INTENT OS home">
+    <a className="brand" href="#top" aria-label="IntentNorth home">
       <span className="brand-mark" aria-hidden="true"><span /><span /></span>
-      <span>INTENT <em>OS</em></span>
+      <span>Intent<em>North</em></span>
     </a>
   );
 }
@@ -256,7 +257,7 @@ function PlanBuilder({ open, setOpen }: { open: boolean; setOpen: (open: boolean
         {step === 5 && !reserved && (
           <div className="plan-reveal">
             <div className="reveal-head"><span className="reveal-ready"><Sparkles /> YOUR PLAN ARCHITECTURE IS READY</span><DialogTitle>“{commitment || "I am ready to make the next 12 weeks count."}”</DialogTitle></div>
-            <div className="insight-card"><span>YOUR FIRST PERSONAL INSIGHT</span><strong>{chosenFriction ? `${chosenFriction.label} is not a character flaw. The leverage is changing the cue and making the replacement easier.` : Number.parseFloat(sleep) < 7 ? "Sleep is likely limiting both training progress and focused performance." : "Your greatest leverage is improving the feedback loop—not adding more activity."}</strong><p>{chosenFriction ? `First experiment: ${chosenFriction.replacement}.` : "INTENT OS would start by tuning today’s training to last night’s sleep, with the reason clearly stated."}</p></div>
+            <div className="insight-card"><span>YOUR FIRST PERSONAL INSIGHT</span><strong>{chosenFriction ? `${chosenFriction.label} is not a character flaw. The leverage is changing the cue and making the replacement easier.` : Number.parseFloat(sleep) < 7 ? "Sleep is likely limiting both training progress and focused performance." : "Your greatest leverage is improving the feedback loop—not adding more activity."}</strong><p>{chosenFriction ? `First experiment: ${chosenFriction.replacement}.` : "IntentNorth would start by tuning today’s training to last night’s sleep, with the reason clearly stated."}</p></div>
             <div className="architecture-card"><div><span>BUILT FROM</span><strong>{selectedGoals.length || 3} goals · {selectedFrictions.length} friction patterns · {selectedConstraints.length + 7} inputs</strong></div><div className="architecture-path"><span>PROFILE</span><ArrowRight /><span>PLAN</span><ArrowRight /><span>RESULT</span><ArrowRight /><span>IMPROVE</span></div></div>
             <div className="always-free"><Heart /><div><strong>Hardest-moment support stays free.</strong><p>Urge, reset and lapse-recovery support are never placed behind the premium unlock.</p></div></div>
             <div className="premium-card"><div><span>PREMIUM ACCESS</span><strong>Your complete programs and daily actions</strong><p>Premium pricing is not yet published. Exact terms will be shown before payment.</p></div><Button className="plan-next" onClick={saveProfilePreview}>Save my profile <ArrowRight /></Button></div>
@@ -265,7 +266,7 @@ function PlanBuilder({ open, setOpen }: { open: boolean; setOpen: (open: boolean
         )}
 
         {step === 5 && reserved && (
-          <div className="reserved-state"><span className="success-icon"><Check /></span><p className="section-kicker">PROFILE SAVED</p><DialogTitle>Your preview is saved on this device.</DialogTitle><DialogDescription>Premium checkout is not open here. Your profile remains in this browser so the journey can continue without pretending a payment flow exists.</DialogDescription><Button className="plan-next" onClick={resetAndClose}>Return to INTENT OS</Button></div>
+          <div className="reserved-state"><span className="success-icon"><Check /></span><p className="section-kicker">PROFILE SAVED</p><DialogTitle>Your preview is saved on this device.</DialogTitle><DialogDescription>Premium checkout is not open here. Your profile remains in this browser so the journey can continue without pretending a payment flow exists.</DialogDescription><Button className="plan-next" onClick={resetAndClose}>Return to IntentNorth</Button></div>
         )}
 
         {step > 0 && step < 5 && (
@@ -285,7 +286,7 @@ function PathwayDepth() {
       {Object.entries(pathwayContent).map(([key, pathway]) => (
         <TabsContent key={key} value={key} className="depth-panel">
           <div className="depth-summary"><p className="section-kicker">{pathway.eyebrow}</p><h3>{pathway.title}</h3><p>Specialist depth first. One operating profile throughout.</p><div className="depth-example"><span>ONE CONCRETE LOOP</span><strong>{pathway.example}</strong></div></div>
-          <div className="depth-list"><span>INTENT OS LEARNS</span>{pathway.inputs.map((item) => <p key={item}><Check />{item}</p>)}</div>
+          <div className="depth-list"><span>IntentNorth LEARNS</span>{pathway.inputs.map((item) => <p key={item}><Check />{item}</p>)}</div>
           <div className="depth-list output-list"><span>THE PLAN CHANGES</span>{pathway.outputs.map((item) => <p key={item}><ArrowRight />{item}</p>)}</div>
         </TabsContent>
       ))}
@@ -345,7 +346,7 @@ export default function Home() {
         <div className="category-intro"><p className="section-kicker light">THE CATEGORY DIFFERENCE</p><h2>Moving time is easy.<br />Changing the program is valuable.</h2></div>
         <article><span>AI CALENDAR</span><strong>Moves the action</strong><p>Protects time and rearranges a task.</p></article>
         <article><span>SPECIALIST APP</span><strong>Optimises one slice</strong><p>Understands its domain, often without the rest of your context.</p></article>
-        <article className="category-intent"><span>INTENT OS</span><strong>Changes the action</strong><p>The measured result changes the next load, target or protocol—with the reason shown.</p></article>
+        <article className="category-intent"><span>IntentNorth</span><strong>Changes the action</strong><p>The measured result changes the next load, target or protocol—with the reason shown.</p></article>
       </div></section>
 
       <section className="causality-section section-shell">
@@ -361,7 +362,7 @@ export default function Home() {
       </section>
 
       <section className="behaviour-section" id="change"><div className="section-shell">
-        <div className="behaviour-heading"><div><p className="section-kicker light">PERFORMANCE HAS TWO DIRECTIONS</p><h2>Build what helps.<br />Reduce what keeps winning.</h2><span className="direction-label">16 BEHAVIOURS · MECHANISM SHOWN · IN THE APP TODAY</span></div><p>Most systems only add another action. INTENT OS studies the cue, friction and reward behind a pattern—then makes a better response easier to repeat. Log something and it tells you the mechanism, never a verdict.</p></div>
+        <div className="behaviour-heading"><div><p className="section-kicker light">PERFORMANCE HAS TWO DIRECTIONS</p><h2>Build what helps.<br />Reduce what keeps winning.</h2><span className="direction-label">16 BEHAVIOURS · MECHANISM SHOWN · IN THE APP TODAY</span></div><p>Most systems only add another action. IntentNorth studies the cue, friction and reward behind a pattern—then makes a better response easier to repeat. Log something and it tells you the mechanism, never a verdict.</p></div>
         <BehaviourLoop />
         <div className="behaviour-example">
           <div className="behaviour-image"><Image src="/images/intent-os-behaviour-change-v2.webp" alt="A person placing a phone out of reach and choosing a prepared replacement action" width={1536} height={1024} loading="lazy" unoptimized sizes="(max-width: 900px) 92vw, 42vw" /></div>
@@ -379,7 +380,7 @@ export default function Home() {
       <section className="trajectory-section" id="trajectory"><div className="section-shell">
         <div className="trajectory-heading">
           <div><p className="section-kicker light">ARE YOU ACTUALLY GOING TO ARRIVE?</p><h2>At this rate you arrive in March.<br />You said January.</h2></div>
-          <p>Every other tool reports what happened. INTENT OS fits a line through everything you have recorded and tells you where it ends—while there is still time to change it.</p>
+          <p>Every other tool reports what happened. IntentNorth fits a line through everything you have recorded and tells you where it ends—while there is still time to change it.</p>
         </div>
         <div className="trajectory-grid">
           <article className="trajectory-card">
@@ -419,8 +420,8 @@ export default function Home() {
       </section>
 
       <section className="science-section section-shell" id="science">
-        <div className="science-heading"><p className="section-kicker">SCIENCE YOU CAN INSPECT</p><h2>Credibility lives in the source—and the limitation.</h2><p>Public educators can surface useful questions. INTENT OS does not treat a personality as evidence or imply endorsement; it links mechanisms to the underlying research and labels uncertainty.</p></div>
-        <div className="quote-row"><blockquote><p>“Alters people’s behaviour in a predictable way without forbidding any options.”</p><cite>Thaler & Sunstein · <em>Nudge</em></cite></blockquote><div className="science-principle"><Brain /><p><strong>Kahneman explained why fast, automatic judgement matters.</strong> Thaler and Sunstein developed choice architecture. INTENT OS uses these ideas to make the better action easier—not to manipulate choice.</p></div></div>
+        <div className="science-heading"><p className="section-kicker">SCIENCE YOU CAN INSPECT</p><h2>Credibility lives in the source—and the limitation.</h2><p>Public educators can surface useful questions. IntentNorth does not treat a personality as evidence or imply endorsement; it links mechanisms to the underlying research and labels uncertainty.</p></div>
+        <div className="quote-row"><blockquote><p>“Alters people’s behaviour in a predictable way without forbidding any options.”</p><cite>Thaler & Sunstein · <em>Nudge</em></cite></blockquote><div className="science-principle"><Brain /><p><strong>Kahneman explained why fast, automatic judgement matters.</strong> Thaler and Sunstein developed choice architecture. IntentNorth uses these ideas to make the better action easier—not to manipulate choice.</p></div></div>
         <div className="evidence-grid">{evidence.map((item) => <a key={item.title} href={item.href} target="_blank" rel="noreferrer" className="evidence-card"><span className="grade-pill">{item.type}</span><h3>{item.title}</h3><p>{item.finding}</p><span className="source-link">{item.source}<ExternalLink /></span></a>)}</div>
         <p className="communicator-note"><ShieldCheck /> Topics discussed by science communicators—including Andrew Huberman, Rhonda Patrick, David Sinclair and Sam Harris—are traced back to primary studies before appearing in a protocol. Names are never used as implied endorsement.</p>
       </section>
@@ -434,11 +435,11 @@ export default function Home() {
 
       <section className="founder-section section-shell"><div><p className="section-kicker">WHY THIS EXISTS</p><h2>Nothing would tell me what to change.</h2></div><p>“I had a ring telling me I slept badly, a training app that knew my bench and nothing else, and a calendar full of other people&rsquo;s priorities. Every one of them was right about its own slice and silent on the trade-off—so the plan never actually changed. I just felt worse about it. I wanted one thing that held all of it, decided what today should be, and told me why.”</p><span>— Isaac Stefaniw, founder</span></section>
 
-      <section className="faq-section section-shell"><div><p className="section-kicker">BEFORE YOU COMMIT</p><h2>Clear boundaries build better trust.</h2></div><div className="faq-grid"><article><strong>Is this a calendar?</strong><p>No. Time can be protected, but the differentiator is that measured outcomes change the program itself.</p></article><article><strong>What is real today?</strong><p>Deep pathway learning and sleep-informed training. Broader interaction management is direction, not staged proof.</p></article><article><strong>What remains free?</strong><p>Your profile, first insight, and recovery, urge and hardest-moment support—permanently.</p></article><article><strong>Is this medical or financial advice?</strong><p>No. INTENT OS provides education, structured experiments and progress support. Seek a qualified professional for personal advice.</p></article></div></section>
+      <section className="faq-section section-shell"><div><p className="section-kicker">BEFORE YOU COMMIT</p><h2>Clear boundaries build better trust.</h2></div><div className="faq-grid"><article><strong>Is this a calendar?</strong><p>No. Time can be protected, but the differentiator is that measured outcomes change the program itself.</p></article><article><strong>What is real today?</strong><p>Deep pathway learning and sleep-informed training. Broader interaction management is direction, not staged proof.</p></article><article><strong>What remains free?</strong><p>Your profile, first insight, and recovery, urge and hardest-moment support—permanently.</p></article><article><strong>Is this medical or financial advice?</strong><p>No. IntentNorth provides education, structured experiments and progress support. Seek a qualified professional for personal advice.</p></article></div></section>
 
       <section className="disclaimer-section section-shell"><ShieldCheck /><p><strong>Education, never diagnosis or personal advice.</strong> Training, nutrition, recovery, mindfulness and financial content is educational. Research links describe evidence and limitations; observational findings do not prove causation. If an urge or behaviour creates immediate risk, contact local emergency or professional support.</p></section>
 
-      <footer><div className="footer-inner section-shell"><Logo /><p>Your whole life. One system that learns.</p><button onClick={() => setPlanOpen(true)}>Build my profile <ArrowRight /></button></div></footer>
+      <footer><div className="footer-inner section-shell"><Logo /><p>Your whole life. One system that learns.</p><nav className="footer-links" aria-label="Legal and support"><Link href="/privacy">Privacy</Link><Link href="/support">Support</Link></nav><button onClick={() => setPlanOpen(true)}>Build my profile <ArrowRight /></button></div></footer>
       <div className="mobile-conversion"><span><strong>Your first insight is free</strong><small>Premium explained upfront</small></span><button onClick={() => setPlanOpen(true)}>Build profile <ArrowRight /></button></div>
     </main>
   );

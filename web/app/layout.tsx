@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "INTENT OS — Your results change what happens next.",
+  title: "IntentNorth — Your results change what happens next.",
   description:
     "One operating profile, specialist programs and a learning loop that builds helpful behaviours, reduces harmful patterns and changes the next action from your results.",
   icons: {
@@ -12,8 +12,8 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://intent-operating-system.isaac-stefaniw.chatgpt.site"),
   openGraph: {
     type: "website",
-    siteName: "INTENT OS",
-    title: "INTENT OS — Your whole life. One system that learns.",
+    siteName: "IntentNorth",
+    title: "IntentNorth — Your whole life. One system that learns.",
     description:
       "Seven specialists—training, food, habits, work, money, relationship and family—working from one operating profile. Every change carries its reason.",
     url: "/",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "INTENT OS — Your whole life. One system that learns.",
+    title: "IntentNorth — Your whole life. One system that learns.",
     description:
       "Seven specialists working from one operating profile. Every change carries its reason.",
     images: ["/images/intent-os-hero-family-transition-v2.webp"],
