@@ -15,7 +15,7 @@
 import { protocolDurationSec, BREATH_PROTOCOLS } from '@/features/modalities/breath/protocols';
 import { buildWorkout } from '@/features/modalities/gym/program';
 import { MODALITIES, sessionForItem } from '@/features/modalities/registry';
-import { toMinutes } from '@/lib/dates';
+import { durationMinutes } from '@/lib/dates';
 import type { Goal, PlanItem, SessionType } from '@/types/domain';
 
 export interface SessionOutcome {
@@ -63,7 +63,7 @@ export function runSessionForItem(
     // Contract: a stamped sessionType must resolve to a runnable route.
     if (!launch) violations += 1;
 
-    const durationMin = toMinutes(item.end) - toMinutes(item.start);
+    const durationMin = durationMinutes(item.start, item.end);
 
     if (type === 'workout') {
       const floor = MODALITIES.workout.shorteningFloorMin ?? 15;

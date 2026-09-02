@@ -22,6 +22,7 @@ import { Card } from '@/components/card';
 import { EmptyState } from '@/components/empty-state';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
+import { protocolById } from '@/features/knowledge/protocols';
 import { computeCohortMetrics, shareableSummary } from '@/features/analytics/cohort';
 import { BodyNumbers } from '@/features/health/BodyNumbers';
 import { WeeklyReviewPanel } from '@/features/review/WeeklyReviewPanel';
@@ -85,6 +86,32 @@ export default function Data() {
       return { def, readings };
     }).filter((m) => m.readings.length >= 2);
   }, [metrics]);
+
+  /**
+   * Consistency, practice by practice.
+   *
+   * "Your numbers" charts things that move — a lift, a weight, a savings
+   * rate. Most of what the app asks for is not like that: a wind-down, a
+   * morning walk, protein at breakfast. Their value is the count, and
+   * before this they had nowhere to be seen at all, so someone could hold a
+   * practice for a month and the app would show them nothing for it.
+   */
+  const practices = useMemo(() => {
+    const since = addDays(today, -27);
+    const counts = new Map<string, number>();
+    for (const m of metrics) {
+      if (!m.key.startsWith('practice.')) continue;
+      if (m.at.slice(0, 10) < since) continue;
+      counts.set(m.key, (counts.get(m.key) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([key, count]) => ({
+        key,
+        count,
+        title: protocolById(key.slice('practice.'.length))?.title ?? key.slice('practice.'.length),
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [metrics, today]);
 
   /** Last 28 days: did anything from the plan get done? */
   const adherenceDays = useMemo(() => {
@@ -211,6 +238,24 @@ export default function Data() {
             <AppText variant="caption" color="textTertiary" style={styles.gap}>
               {sessions.length} sessions in the last eight weeks.
             </AppText>
+          </Card>
+        </>
+      ) : null}
+
+      {practices.length > 0 ? (
+        <>
+          <SectionHeader title="Practices you kept" />
+          <Card>
+            <AppText variant="caption" color="textTertiary">
+              Times completed in the last 28 days. Counts, not scores — a practice you did nine
+              times is not a nine out of ten at anything.
+            </AppText>
+            <View style={styles.gap}>
+              <BarChart
+                data={practices.slice(0, 8).map((p) => ({ value: p.count, label: p.title }))}
+                format={(n) => `${n}\u00d7`}
+              />
+            </View>
           </Card>
         </>
       ) : null}

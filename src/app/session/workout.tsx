@@ -16,7 +16,7 @@ import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/traini
 import { defaultRepsFrom, SetLogger, topRepsFrom } from '@/features/training/SetLogger';
 import { readinessFrom } from '@/features/health/readiness';
 import { autoRegulate, weekOf } from '@/features/training/programme';
-import { dateKeyToDate, todayKey, toMinutes } from '@/lib/dates';
+import { dateKeyToDate, durationMinutes, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 import type { LoggedSet } from '@/types/domain';
@@ -36,7 +36,7 @@ export default function WorkoutSession() {
 
   const item = itemId && date ? plans[date]?.items.find((i) => i.id === itemId) : undefined;
   const availableMin = item
-    ? toMinutes(item.end) - toMinutes(item.start)
+    ? durationMinutes(item.start, item.end)
     : (profile?.trainingDurationMin ?? 45);
 
   const programme = useAppStore((s) => s.trainingProgramme);

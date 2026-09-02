@@ -12,7 +12,7 @@ import {
   candidateStartsFor,
   type Displacement,
 } from '@/features/planner/moveWithBump';
-import { addDays, formatTime, nowMinutes, toMinutes } from '@/lib/dates';
+import { addDays, durationMinutes, formatTime, nowMinutes } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 import type { DailyPlan, LifeProfile, PlanItem } from '@/types/domain';
 
@@ -48,7 +48,7 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
   const goal = item.goalId ? goals.find((g) => g.id === item.goalId) : undefined;
   const nextMilestone = goal?.milestones?.find((m) => !m.done);
 
-  const duration = toMinutes(item.end) - toMinutes(item.start);
+  const duration = durationMinutes(item.start, item.end);
   const isEffort = item.area === 'health' && duration >= 40;
   const isTogether = item.area === 'relationship' || item.area === 'family';
 

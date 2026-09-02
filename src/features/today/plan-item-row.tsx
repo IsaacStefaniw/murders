@@ -4,7 +4,7 @@ import { AppText } from '@/components/text';
 import { Radius, Spacing } from '@/constants/theme';
 import { ItemActions } from '@/features/today/item-actions';
 import { ItemGuidanceView } from '@/features/today/item-guidance-view';
-import { formatTime, toMinutes } from '@/lib/dates';
+import { durationMinutes, formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import type { DailyPlan, LifeProfile, PlanItem } from '@/types/domain';
 
@@ -24,7 +24,7 @@ interface PlanItemRowProps {
  * and its length was never what anybody was trying to work out.
  */
 function lengthLabel(item: PlanItem): string | null {
-  const mins = toMinutes(item.end) - toMinutes(item.start);
+  const mins = durationMinutes(item.start, item.end);
   if (mins < 30) return null;
   const h = Math.floor(mins / 60);
   const m = mins % 60;

@@ -237,3 +237,103 @@ money.
 **Insight coverage is thinnest where the ladder is deepest.** Family
 averages 1.72 personal lines against money's 4.04. Not a failure, but the
 family hub says least at exactly the point the plan asks most.
+
+---
+
+# Round 2 — the journey harness
+
+## Why a second harness
+
+Five defects were reported from a real phone in one message, and the
+pathway audit could not have found any of them. It inspected what `build()`
+RETURNS. It never logged a set, never finished a session, never pressed
+Move, never asked what a screen would show.
+
+`src/features/sim/journeys.ts` does the other thing. It seeds profiles,
+runs days, and performs the actions a person performs — tick, move, skip,
+log, finish — against the real store, checking invariants after every one.
+Actions are chosen at random from those the UI actually offers for that
+item's state, because a sequence no test author would think to write is
+exactly where composition bugs live. Every violation carries the action
+trace that produced it, so it replays by hand.
+
+```
+J_USERS=400 J_DAYS=21 npx jest --testMatch "<rootDir>/src/features/sim/__tests__/journeys.sim.ts"
+```
+
+## What it found on the first run
+
+**400 people, 35,838 actions.** One invariant failed, 1,191 times:
+
+> **Every block has a positive duration.**
+> `Wind down, screens away 23:40–00:00`
+
+Not a rendering quirk. Ten places in the app computed duration as
+`toMinutes(end) - toMinutes(start)`, which is correct until an item crosses
+midnight and then returns **minus 1,420 minutes**. A negative duration does
+not throw; it poisons whatever it touches:
+
+- `moveItem` recomputed the end as start plus a negative number, producing
+  an item that ends before it begins.
+- `shortenItem` compared the requested length against a negative original,
+  concluded it was longer, and returned without shortening anything.
+- The workout screen fitted a session into negative available minutes.
+- The new sauna metric recorded a completed session as zero minutes.
+
+Fixed with one shared `durationMinutes(start, end)` in `lib/dates`, used in
+all ten places. It wraps only for spans under twelve hours: `09:00` to
+`05:00` is far likelier to be reversed fields than a twenty-hour
+commitment, and returning 1,200 minutes would let one bad row swallow a
+day.
+
+**This is the strongest candidate for the reported Move defect** and was
+found by the harness, not by reading the Move code — which is the point.
+
+## Coverage: practices that recorded nothing
+
+Separate from violations, the harness lists completed practices that left
+no number behind. Not a failure by itself — plenty of blocks are simply
+time — but the shape of the sauna defect, generalised.
+
+First run, 250 people:
+
+| practice | completions with no record |
+|---|---|
+| Wind down, screens away | 777 |
+| Protein at breakfast | 591 |
+| Two-minute reset | 529 |
+| Shutdown: name tomorrow's first thing | 387 |
+| Morning light | 356 |
+| Post-meal walk | 344 |
+| Strength workout | 310 |
+
+Sauna was reported from a phone; it was never the only one. Someone could
+hold a wind-down every night for a month and Progress would show them
+nothing for it.
+
+Fixed generically rather than one metric at a time — twenty hand-written
+metrics drift out of date the first time a protocol is renamed. Any item
+backed by a routine now records a count; sauna additionally records
+minutes and cold records exposures, because those units mean something. A
+first pass counted only protocol-backed practices and left the ladder rungs
+and urge answers silent — another 3,000 completions the app had asked for,
+watched happen and had nothing to show for. The line that matters is
+whether the app SCHEDULED it, not where it came from.
+
+Blocks with no routine behind them still record nothing, deliberately.
+"Family dinner" is time and "Get stronger" is intent; inventing a number
+for either would be worse than counting none.
+
+**After: 400 people, 35,838 actions, 0 violations, 0 silent practices.**
+
+## Still open
+
+- **The Move defect is not confirmed fixed.** The midnight bug is a strong
+  candidate and is definitely real, but it was found independently. Until
+  the reported behaviour is reproduced, it stays open.
+- **The harness drives the store, not the screens.** It would still miss a
+  contradiction between two pieces of copy — which is exactly what the
+  meditation defect was. A render pass over every screen is the next layer.
+- **Weekly load is unchecked across pathways.** Each pathway is audited
+  alone; nobody has asked what a person holding four of them is being
+  asked for in total.

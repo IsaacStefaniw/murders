@@ -21,7 +21,7 @@
  */
 
 import { computeFreeWindows, type FixedCommitment } from '@/lib/scheduling/engine';
-import { toHHMM, toMinutes } from '@/lib/dates';
+import { durationMinutes, toHHMM, toMinutes } from '@/lib/dates';
 import type { DailyPlan, PlanItem, PlanTier } from '@/types/domain';
 
 const TIER_ORDER: Record<PlanTier, number> = { must: 0, should: 1, could: 2 };
@@ -46,7 +46,7 @@ export interface MoveOutcome {
 export const isImmovable = (item: PlanItem): boolean =>
   item.fixed || item.status === 'completed';
 
-const durationOf = (item: PlanItem): number => toMinutes(item.end) - toMinutes(item.start);
+const durationOf = (item: PlanItem): number => durationMinutes(item.start, item.end);
 
 const busyFrom = (items: PlanItem[]): FixedCommitment[] =>
   items.map((i) => ({ title: i.title, start: i.start, end: i.end }));

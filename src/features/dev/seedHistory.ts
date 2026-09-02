@@ -14,7 +14,7 @@
  */
 
 import { generateDailyPlan } from '@/features/planner/generate';
-import { addDays, newId, todayKey, toHHMM, toMinutes } from '@/lib/dates';
+import { addDays, durationMinutes, newId, toHHMM, toMinutes, todayKey } from '@/lib/dates';
 import type {
   BehaviourEvent,
   BehaviourIntention,
@@ -57,7 +57,7 @@ export function buildSeededHistory(
       // Workouts: the user keeps moving them to the evening — and they happen there.
       if (item.sessionType === 'workout' && back <= 10) {
         workoutMoves += 1;
-        const duration = toMinutes(item.end) - toMinutes(item.start);
+        const duration = durationMinutes(item.start, item.end);
         planEvents.push({
           id: newId('pe'),
           at,

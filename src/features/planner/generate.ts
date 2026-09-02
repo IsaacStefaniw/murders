@@ -11,7 +11,7 @@
 
 import { buildDailyPlan, computeFreeWindows } from '@/lib/scheduling/engine';
 import type { FixedCommitment, MovedPlacement } from '@/lib/scheduling/engine';
-import { toMinutes, toHHMM, weekdayOf } from '@/lib/dates';
+import { durationMinutes, toHHMM, toMinutes, weekdayOf } from '@/lib/dates';
 import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine } from '@/types/domain';
 
 const LUNCH_START = 12 * 60;
@@ -130,7 +130,7 @@ export function availableStartsFor(
   profile: LifeProfile,
   maxOptions = 6,
 ): string[] {
-  const duration = toMinutes(item.end) - toMinutes(item.start);
+  const duration = durationMinutes(item.start, item.end);
   const busy: FixedCommitment[] = plan.items
     .filter((i) => i.id !== item.id && i.status !== 'skipped')
     .map((i) => ({ title: i.title, start: i.start, end: i.end }));

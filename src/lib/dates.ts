@@ -39,6 +39,29 @@ export function toHHMM(minutes: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
+/**
+ * Minutes between two clock times, across midnight if it has to be.
+ *
+ * `toMinutes(end) - toMinutes(start)` is correct until an item crosses
+ * midnight, and then it is catastrophically wrong: a wind-down at
+ * 23:40–00:00 comes back as MINUS 1420 minutes. Ten places computed it
+ * that way, and a negative duration does not throw — it quietly poisons
+ * whatever it touches. A move recomputed the end as start plus a negative
+ * number and produced an item ending before it began; `shortenItem`
+ * compared the requested length against a negative original, decided it
+ * was longer, and returned without shortening anything; the workout screen
+ * fitted a session into negative available minutes.
+ *
+ * A block spanning more than half a day is far likelier to be a data error
+ * than a real intention, so the wrap only applies below that threshold.
+ */
+export function durationMinutes(start: string, end: string): number {
+  const raw = toMinutes(end) - toMinutes(start);
+  if (raw >= 0) return raw;
+  const wrapped = raw + 1440;
+  return wrapped <= 720 ? wrapped : 0;
+}
+
 /** Local date as "YYYY-MM-DD". */
 export function toDateKey(date: Date): string {
   const y = date.getFullYear();

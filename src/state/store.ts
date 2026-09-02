@@ -73,15 +73,7 @@ import {
 } from '@/lib/scheduling/adaptation';
 import { MODALITIES } from '@/features/modalities/registry';
 import { buildSeededHistory } from '@/features/dev/seedHistory';
-import {
-  addDays,
-  newId,
-  nowDate,
-  setClockOffsetMs,
-  todayKey,
-  toHHMM,
-  toMinutes,
-} from '@/lib/dates';
+import { addDays, durationMinutes, newId, nowDate, setClockOffsetMs, toHHMM, toMinutes, todayKey } from '@/lib/dates';
 import type {
   BehaviourEvent,
   BehaviourIntention,
@@ -709,26 +701,50 @@ export const useAppStore = create<AppState>()(
         /**
          * Turn a completed practice into a number.
          *
-         * Sauna and cold exposure were schedulable, tickable, and produced
-         * no record of any kind — a year of Sunday saunas left Progress with
-         * nothing to show. A practice the app puts in the plan and then
-         * never counts teaches the person it does not matter.
+         * The journey simulation completed 15,488 items across 250 people
+         * and found that most practices the app schedules record nothing at
+         * all: a wind-down done 777 times, protein at breakfast 591, the
+         * urge reset 529 — all invisible on Progress. Sauna was the case
+         * that got reported, but it was never the only one. A practice the
+         * app puts in the plan and then never counts teaches the person it
+         * does not matter.
          *
-         * Matched on title because these practices arrive from protocols,
-         * one-off logs and the habit foundation alike, and only the title is
-         * common to all three. Deliberately narrow: an unrecognised item
-         * records nothing rather than guessing at a number.
+         * The general fix is a COUNT per protocol rather than a bespoke
+         * metric per practice: twenty hand-written metrics would drift out
+         * of date the first time a protocol was renamed, and a count is the
+         * honest unit for something whose value is that it happened at all.
+         * Where a practice has a genuinely meaningful unit — minutes in a
+         * sauna, exposures to cold — that is recorded as well.
+         *
+         * Blocks with no protocol behind them record nothing, on purpose.
+         * "Family dinner" and "Get stronger" are time and intent; inventing
+         * a number for them would be worse than counting nothing.
          */
         recordPracticeMetric: (item) => {
           const title = item.title.toLowerCase();
-          const minutes = Math.max(0, toMinutes(item.end) - toMinutes(item.start));
+          const minutes = durationMinutes(item.start, item.end);
+          const routine = item.routineId
+            ? get().routines.find((r) => r.id === item.routineId)
+            : undefined;
+          const protocolId = routine?.protocolId;
+
           if (title.includes('sauna') || title.includes('heat')) {
             get().addMetric('recovery.saunaMinutes', minutes, item.title);
-          } else if (title.includes('cold') || title.includes('ice bath')) {
-            // Counted as exposures, not minutes: two minutes and four
-            // minutes are the same practice, and charting the seconds would
-            // invite people to race them.
+          }
+          if (title.includes('cold') || title.includes('ice bath')) {
+            // Counted as exposures, not minutes: two minutes and four are
+            // the same practice, and charting the seconds would invite
+            // people to race them.
             get().addMetric('recovery.coldExposures', 1, item.title);
+          }
+          // Keyed by protocol where there is one, and by the routine
+          // otherwise. A first pass counted only protocol-backed practices
+          // and left the ladder rungs and the urge answers silent — 3,000
+          // completions in the simulation that the app had asked for,
+          // watched happen, and then had nothing to show for. The line that
+          // matters is whether the app SCHEDULED it, not where it came from.
+          if (routine) {
+            get().addMetric(`practice.${protocolId ?? routine.id}`, 1, item.title);
           }
         },
 
@@ -784,7 +800,7 @@ export const useAppStore = create<AppState>()(
           const newStart =
             [...slots].sort((a, b) => Math.abs(toMinutes(a) - target) - Math.abs(toMinutes(b) - target))[0] ??
             item.start;
-          const duration = toMinutes(item.end) - toMinutes(item.start);
+          const duration = durationMinutes(item.start, item.end);
           const movedItem: PlanItem = {
             ...item,
             id: newId('pi'),
@@ -809,7 +825,7 @@ export const useAppStore = create<AppState>()(
         shortenItem: (date, itemId, newDurationMin) => {
           const item = get().plans[date]?.items.find((i) => i.id === itemId);
           if (!item || item.fixed) return;
-          const originalDuration = toMinutes(item.end) - toMinutes(item.start);
+          const originalDuration = durationMinutes(item.start, item.end);
           if (newDurationMin >= originalDuration) return;
           updatePlanItems(date, (items) =>
             items.map((i) =>
