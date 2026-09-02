@@ -335,6 +335,25 @@ export function levelProgress(
 }
 
 /**
+ * What a pathway's own log proves, for the six pathways with no
+ * discipline-specific standard to measure.
+ *
+ * Training can ask "is this person actually strong?" because strength is a
+ * number. Money, family and the rest cannot, so their evidence is the only
+ * honest thing available: work this pathway asked for, that actually got
+ * done, spread across real weeks. `standardsMet` is false by construction —
+ * there is nothing to prove, and inventing a proxy would be dressing a
+ * guess as a measurement.
+ */
+export function completionEvidence(doneDates: string[]): LevelEvidence {
+  return {
+    sessions: doneDates.length,
+    weeks: distinctWeeks(doneDates),
+    standardsMet: false,
+  };
+}
+
+/**
  * Distinct ISO weeks touched by a set of date keys.
  *
  * Counting weeks rather than days is what makes the gate about

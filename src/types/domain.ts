@@ -266,6 +266,17 @@ export interface Routine {
    * carve-out of the work day instead of being placed into free time.
    */
   duringWork?: boolean;
+  /**
+   * Programme structure introduced by a pathway rung, rather than an
+   * evidence-based practice from the protocol library.
+   *
+   * Every routine must trace back to something: either a graded protocol
+   * (a practice, with a source and a limitation) or a rung (structure — a
+   * review, a planning block, a shutdown). What must never exist is a
+   * routine that traces back to nothing, because that is a block the app
+   * cannot explain when the user asks why it is there.
+   */
+  ladderRung?: boolean;
   /** The modality session that runs this routine, if one exists. */
   sessionType?: SessionType;
   /** Anchored on something the user already does — IntentNorth is organising

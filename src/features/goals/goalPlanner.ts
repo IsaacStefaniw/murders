@@ -230,12 +230,54 @@ export function buildGoalPlan(
                 milestone('Know the current baseline'),
                 milestone('Automate the transfer'),
               ];
+      // `leak` and `raise` were both asked and both ignored — dead across
+      // the whole audit sample, while the intake screen promises every
+      // answer changes the plan. They are the two questions that say WHERE
+      // the money goes and WHETHER a rise ever survives, which is most of
+      // what a money coach would want to know.
+      // `automation` was the last dead question in the audit: asked on the
+      // intake, used only for a sentence of advice. What someone has already
+      // automated decides where the first move is — there is no point
+      // prescribing "automate one transfer" to a person whose transfers
+      // already run.
+      if (answers.automation === 'no') {
+        milestones.push(milestone('One transfer automated on payday'));
+      } else if (answers.automation === 'partial') {
+        milestones.push(milestone('Every recurring decision automated or deleted'));
+      } else if (answers.automation === 'yes') {
+        milestones.push(milestone('Automation audited — every transfer still right'));
+      }
+      if (answers.leak === 'recurring') {
+        milestones.push(milestone('Every subscription listed, three cancelled'));
+      } else if (answers.leak === 'impulse') {
+        milestones.push(milestone('A 24-hour rule on anything unplanned'));
+      } else if (answers.leak === 'everyday') {
+        milestones.push(milestone('Two weeks of everyday spend actually seen'));
+      } else if (answers.leak === 'unknown') {
+        milestones.push(milestone('One month categorised — find out where it goes'));
+      }
+      if (answers.raise === 'absorbed' || answers.raise === 'some') {
+        // Lifestyle creep is the single largest leak in a rising income and
+        // the only defence that works is deciding before the money lands.
+        milestones.push(milestone('Next rise: split decided before it arrives'));
+        routines.push({
+          ...routineBase(goalId, 'admin'),
+          id: newId('r'),
+          title: 'Pay-rise rule: where the next extra dollar goes',
+          days: [0],
+          durationMin: 15,
+          preferredStart: '19:00',
+          preferredEnd: '20:30',
+          energy: 'evening',
+          tier: 'could',
+        });
+      }
       routines.push({
         ...routineBase(goalId, 'admin'),
         id: newId('r'),
-        title: 'Money check-in',
+        title: answers.leak === 'unknown' ? 'Money check-in — categorise as you go' : 'Money check-in',
         days: [0],
-        durationMin: 30,
+        durationMin: answers.leak === 'unknown' ? 40 : 30,
         preferredStart: '19:30',
         preferredEnd: '20:30',
         energy: 'evening',
@@ -245,6 +287,16 @@ export function buildGoalPlan(
       break;
 
     case 'relationship':
+      // Relationship and family were the two domains that produced no
+      // milestones at all — 2,000 of 2,000 in the pathway audit. A goal
+      // with no rungs has nothing for the weekly report to write back to
+      // and nothing for the hub to show as progress, so the pathway just
+      // sat there. Kept deliberately small: these are the two domains
+      // where a long checklist reads as homework.
+      milestones = [
+        milestone('One ritual kept for four weeks'),
+        milestone('One conversation you had been putting off'),
+      ];
       routines.push({
         ...routineBase(goalId, 'relationship'),
         id: newId('r'),
@@ -258,6 +310,10 @@ export function buildGoalPlan(
       break;
 
     case 'family':
+      milestones = [
+        milestone('One outing that actually happened'),
+        milestone('One-on-one time with each of them'),
+      ];
       routines.push({
         ...routineBase(goalId, 'family'),
         id: newId('r'),

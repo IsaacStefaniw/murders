@@ -15,6 +15,7 @@ import { MindHub } from '@/features/mind/MindHub';
 import { MoneyHub } from '@/features/money/MoneyHub';
 import { NutritionHub } from '@/features/nutrition/NutritionHub';
 import { PATHS, type PathId } from '@/features/paths/definitions';
+import { LevelCard } from '@/features/paths/LevelCard';
 import { DeferredQuestions } from '@/features/onboarding/DeferredQuestions';
 import { TrainingHub } from '@/features/training/TrainingHub';
 import { WorkHub } from '@/features/work/WorkHub';
@@ -42,6 +43,9 @@ export default function PathHub() {
   const startPath = useAppStore((s) => s.startPath);
   const updateProfile = useAppStore((s) => s.updateProfile);
   const setMilestoneDone = useAppStore((s) => s.setMilestoneDone);
+  const pathLevelState = useAppStore((s) => s.pathLevelState);
+  const setPathLevelStepBack = useAppStore((s) => s.setPathLevelStepBack);
+  const setPathIntensityPush = useAppStore((s) => s.setPathIntensityPush);
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [numbers, setNumbers] = useState<Record<string, string>>({});
@@ -144,6 +148,7 @@ export default function PathHub() {
   const sessionRoute =
     def.id === 'work' && goal ? `/session/review/${goal.id}` : def.sessionRoute;
   const sessionLabel = def.id === 'work' ? 'Run the weekly review' : def.sessionLabel;
+  const levelState = pathLevelState(def.id);
 
   return (
     <Screen>
@@ -212,6 +217,27 @@ export default function PathHub() {
       {def.id === 'money' ? <MoneyHub /> : null}
       {def.id === 'work' ? <WorkHub /> : null}
       {def.id === 'recovery' ? <MindHub /> : null}
+
+      {/* The ladder, on every pathway. It was described in LEVEL_BLURB for
+          all seven and rendered on the training hub alone, so six
+          pathways promised a progression nobody could see. Training keeps
+          its own card inside TrainingHub, which knows about strength
+          standards this generic one cannot. */}
+      {def.id !== 'training' ? (
+        <>
+          <SectionHeader title="Where you are" />
+          <LevelCard
+            path={def.id}
+            level={levelState.level}
+            evidence={levelState.evidence}
+            progress={levelState.progress}
+            steppedBack={levelState.steppedBack}
+            onStepBack={(l) => setPathLevelStepBack(def.id, l)}
+            pushing={levelState.pushing}
+            onPush={(push) => setPathIntensityPush(def.id, push)}
+          />
+        </>
+      ) : null}
 
       <SectionHeader title="Yours, specifically" />
       <View style={styles.stack}>

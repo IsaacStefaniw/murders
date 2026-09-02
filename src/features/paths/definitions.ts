@@ -15,6 +15,9 @@ import { DOMAIN_QUESTIONS, type DomainQuestion } from '@/features/knowledge/ques
 import { newId } from '@/lib/dates';
 import type { BehaviourKey, LifeProfile, Routine } from '@/types/domain';
 
+import { fitLadderToBudget, ladderFor } from './programme';
+import { LEVEL_ORDER, type PathLevel } from './level';
+
 export type PathId =
   | 'training'
   | 'nutrition'
@@ -55,6 +58,72 @@ const parsed = (title: string, domain: ParsedGoal['domain'], area: ParsedGoal['a
   area,
 });
 
+/**
+ * The level a build is for.
+ *
+ * Threaded through `answers` rather than added as a parameter because the
+ * answers object is what every caller already carries — the store, the
+ * hub, the simulation and the tests — and a new positional argument would
+ * have been silently dropped by all of them. An unrecognised or absent
+ * value means foundation: a person we know nothing about gets the thin
+ * programme, never the heavy one.
+ */
+function levelFromAnswers(answers: Record<string, string>): PathLevel {
+  const raw = answers.level as PathLevel | undefined;
+  return raw && LEVEL_ORDER.includes(raw) ? raw : 'foundation';
+}
+
+/**
+ * Every pathway's build runs through here.
+ *
+ * Before this existed, an audit of 7,000 profiles found 100% of builds
+ * identical across all four levels in all seven pathways: `LEVEL_BLURB`
+ * promised the user something specific changed at each rung and nothing
+ * did. Applying the ladder centrally is what stops that regressing the
+ * next time a pathway is added.
+ */
+function withLadder(
+  path: PathId,
+  plan: PathBuild,
+  answers: Record<string, string>,
+  profile: LifeProfile | null,
+  /**
+   * The pathway has already decided to be small on purpose.
+   *
+   * The relationship pathway shrinks itself when someone says things are
+   * hard or that there is no window, and that rule predates the ladder and
+   * outranks it: a person telling us it is bad does not need three more
+   * calendar blocks. The first version of the ladder added to those plans
+   * anyway, and the existing journey tests caught it.
+   */
+  suppress = false,
+): PathBuild {
+  if (suppress) return plan;
+  const level = levelFromAnswers(answers);
+  const ladder = ladderFor(path, level, profile, plan.goal.id);
+  const existingTitles = new Set(plan.routines.map((r) => r.title));
+  const existingProtocols = new Set(
+    plan.routines.map((r) => r.protocolId).filter((id): id is string => Boolean(id)),
+  );
+  const added = ladder.routines.filter((r, i) => {
+    if (existingTitles.has(r.title)) return false;
+    // A rung must not re-prescribe a practice the pathway already
+    // scheduled under a different name.
+    const covers = ladder.covers[i] ?? [];
+    return !covers.some((c) => existingProtocols.has(c));
+  });
+  const routines = [...plan.routines, ...fitLadderToBudget(added, level)];
+  return {
+    ...plan,
+    routines,
+    goal: {
+      ...plan.goal,
+      milestones: [...(plan.goal.milestones ?? []), ...ladder.milestones],
+      routineIds: routines.map((r) => r.id),
+    },
+  };
+}
+
 export const PATHS: Record<PathId, PathDefinition> = {
   training: {
     id: 'training',
@@ -70,7 +139,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
       },
     ],
     build: (answers, profile) =>
-      buildGoalPlan(parsed('Training that sticks', 'fitness', 'health'), profile, undefined, answers),
+      withLadder('training', buildGoalPlan(parsed('Training that sticks', 'fitness', 'health'), profile, undefined, answers), answers, profile),
     insights: (answers, profile) => {
       const lines: string[] = [];
       if (answers.experience === 'new') {
@@ -135,7 +204,47 @@ export const PATHS: Record<PathId, PathDefinition> = {
         const kitchen = protocolById('kitchen-closed');
         if (kitchen) plan.routines.push(toRoutine(kitchen, profile, plan.goal.id));
       }
-      return plan;
+      // `cooking` was asked and then ignored — dead across the whole audit
+      // sample. Someone who never cooks does not need a cook-ahead block;
+      // they need the decision made before they are hungry.
+      if (answers.cooking === 'quick') {
+        plan.routines.push({
+          id: newId('r'),
+          goalId: plan.goal.id,
+          title: 'Decide tomorrow\u2019s food before you are hungry',
+          area: 'health',
+          days: [1, 2, 3, 4, 5],
+          durationMin: 5,
+          preferredStart: '20:30',
+          preferredEnd: '22:00',
+          energy: 'evening',
+          flexible: true,
+          protected: false,
+          tier: 'should',
+          active: true,
+        });
+        plan.goal.milestones = [
+          ...(plan.goal.milestones ?? []),
+          { id: newId('ms'), title: 'Five weeknights decided in advance', done: false },
+        ];
+      } else if (answers.cooking === 'enjoy') {
+        plan.routines.push({
+          id: newId('r'),
+          goalId: plan.goal.id,
+          title: 'Batch one protein source for the week',
+          area: 'health',
+          days: [0],
+          durationMin: 40,
+          preferredStart: '15:00',
+          preferredEnd: '18:00',
+          energy: 'evening',
+          flexible: true,
+          protected: false,
+          tier: 'could',
+          active: true,
+        });
+      }
+      return withLadder('nutrition', plan, answers, profile);
     },
     insights: (answers, profile) => {
       const lines: string[] = [];
@@ -179,7 +288,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
       },
     ],
     build: (answers, profile) =>
-      buildGoalPlan(parsed('Money, running itself', 'finance', 'admin'), profile, undefined, answers),
+      withLadder('money', buildGoalPlan(parsed('Money, running itself', 'finance', 'admin'), profile, undefined, answers), answers, profile),
     insights: (answers) => {
       const lines: string[] = [];
       if (answers.mode !== 'debt') {
@@ -238,7 +347,40 @@ export const PATHS: Record<PathId, PathDefinition> = {
         const deepWork = protocolById('deep-work');
         if (deepWork) plan.routines.push(toRoutine(deepWork, profile, plan.goal.id));
       }
-      return plan;
+      // `team` and `bigBet` were both asked and both ignored. Someone
+      // leading people and someone working alone need different weeks, and
+      // a named big bet is the only thing that makes a growth block about
+      // something rather than about working.
+      if (answers.team === 'directs' || answers.team === 'leaders') {
+        plan.routines.push({
+          id: newId('r'),
+          goalId: plan.goal.id,
+          title: 'One-on-ones \u2014 the work only you can do',
+          area: 'work',
+          days: [2],
+          durationMin: 45,
+          preferredStart: '10:00',
+          preferredEnd: '15:00',
+          energy: 'midday',
+          flexible: true,
+          protected: false,
+          duringWork: true,
+          tier: 'should',
+          active: true,
+        });
+        plan.goal.milestones = [
+          ...(plan.goal.milestones ?? []),
+          { id: newId('ms'), title: 'Every direct report has a standing slot', done: false },
+        ];
+      }
+      if (answers.bigBet === 'signing' || answers.bigBet === 'maybe') {
+        plan.goal.milestones = [
+          ...(plan.goal.milestones ?? []),
+          { id: newId('ms'), title: 'The big bet written in one sentence', done: false },
+          { id: newId('ms'), title: 'First visible progress on it', done: false },
+        ];
+      }
+      return withLadder('work', plan, answers, profile);
     },
     insights: (answers) => {
       const lines: string[] = [];
@@ -345,7 +487,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
         active: true,
       };
 
-      return {
+      const built: PathBuild = {
         goal: {
           id: goalId,
           title: info.intentionTemplate,
@@ -364,6 +506,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
         routines: [routine],
         behaviour,
       };
+      return { ...withLadder('recovery', built, answers, profile), behaviour };
     },
     insights: (answers) => {
       const lines: string[] = [];
@@ -424,10 +567,13 @@ export const PATHS: Record<PathId, PathDefinition> = {
       if (answers.window === 'weekend') {
         for (const r of routines) r.days = r.days.filter((d) => d === 0 || d === 6);
       }
-      return {
-        goal: { ...plan.goal, routineIds: routines.map((r) => r.id) },
-        routines,
-      };
+      return withLadder(
+        'relationship',
+        { goal: { ...plan.goal, routineIds: routines.map((r) => r.id) }, routines },
+        answers,
+        profile,
+        hard || noWindow,
+      );
     },
     insights: (answers) => {
       const lines: string[] = [];
@@ -492,10 +638,40 @@ export const PATHS: Record<PathId, PathDefinition> = {
           routines.push(toRoutine(trip, profile, plan.goal.id));
         }
       }
-      return {
-        goal: { ...plan.goal, routineIds: routines.map((r) => r.id) },
-        routines,
+      // `goodWeekend` was asked and then ignored across the whole audit
+      // sample. It is the one answer that says what this family actually
+      // enjoys, and a plan that ignores it prescribes somebody else's
+      // Saturday.
+      const weekendShape: Record<string, { title: string; durationMin: number; start: string; end: string }> = {
+        outdoors: { title: 'Get outside together \u2014 anywhere green', durationMin: 90, start: '09:00', end: '12:00' },
+        slow: { title: 'A slow morning nobody has to be anywhere for', durationMin: 90, start: '08:30', end: '11:00' },
+        people: { title: 'Have someone over \u2014 low effort, real company', durationMin: 120, start: '11:00', end: '15:00' },
+        making: { title: 'Build or make something together', durationMin: 75, start: '10:00', end: '14:00' },
       };
+      const wk = answers.goodWeekend ? weekendShape[answers.goodWeekend] : undefined;
+      if (wk) {
+        routines.push({
+          id: newId('r'),
+          goalId: plan.goal.id,
+          title: wk.title,
+          area: 'family',
+          days: [6],
+          durationMin: wk.durationMin,
+          preferredStart: wk.start,
+          preferredEnd: wk.end,
+          energy: 'morning',
+          flexible: true,
+          protected: false,
+          tier: 'should',
+          active: true,
+        });
+      }
+      return withLadder(
+        'family',
+        { goal: { ...plan.goal, routineIds: routines.map((r) => r.id) }, routines },
+        answers,
+        profile,
+      );
     },
     insights: (answers) => {
       const lines: string[] = [];

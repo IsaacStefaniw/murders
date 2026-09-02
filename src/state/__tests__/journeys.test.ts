@@ -334,10 +334,14 @@ describe('journey: the new pathways', () => {
       const goalId = useAppStore.getState().paths[id]!.goalId;
       const routines = useAppStore.getState().routines.filter((r) => r.goalId === goalId);
       expect(routines.length).toBeGreaterThan(0);
-      // Every routine traces back to a graded protocol — no orphan blocks.
+      // Every routine traces back to something — no orphan blocks. Either a
+      // graded protocol (a practice, with a source and a stated limitation)
+      // or a pathway rung (structure: a review, a planning block, a
+      // shutdown). A rung makes no health claim, so it needs no evidence
+      // grade; what must never exist is a block the app cannot explain.
       for (const r of routines) {
-        expect(r.protocolId).toBeTruthy();
-        expect(protocolById(r.protocolId!)).toBeDefined();
+        expect(Boolean(r.protocolId) || r.ladderRung === true).toBe(true);
+        if (r.protocolId) expect(protocolById(r.protocolId)).toBeDefined();
       }
     }
   });

@@ -43,6 +43,7 @@ import { answersFromProfile, PATH_ANSWER_FOR, profilePatchFor } from '@/features
 import type { InterviewAnswers } from '@/features/onboarding/script';
 import { buildExecutiveBlock, type WorkBlock, type WorkInputs } from '@/features/work/programme';
 import {
+  completionEvidence,
   levelFor,
   levelProgress,
   type LevelEvidence,
@@ -319,6 +320,21 @@ export interface AppState {
    */
   pathIntensityPush: Partial<Record<PathId, boolean>>;
   setPathIntensityPush: (path: PathId, push: boolean) => void;
+  /**
+   * The same ladder, for any pathway.
+   *
+   * Six of the seven pathways had a ladder described in LEVEL_BLURB, none
+   * of it built and none of it shown — the level card rendered on the
+   * training hub alone. This is what lets every hub show the rung the
+   * person is on and what the next one costs.
+   */
+  pathLevelState: (path: PathId) => {
+    level: PathLevel;
+    evidence: LevelEvidence;
+    progress: LevelProgress;
+    steppedBack: boolean;
+    pushing: boolean;
+  };
   /** Level, evidence and what unlocks the next rung, for the training hub. */
   trainingLevelState: () => {
     level: PathLevel;
@@ -1052,6 +1068,36 @@ export const useAppStore = create<AppState>()(
           // the programme is too hard should not have to wait a week to
           // see an easier one.
           if (path === 'training') get().buildTrainingBlock();
+        },
+
+        pathLevelState: (path) => {
+          if (path === 'training') return get().trainingLevelState();
+          const { paths, plans, routines, goals, pathLevelStepBack, pathIntensityPush } = get();
+          const goalId = paths[path]?.goalId;
+          // A pathway's own completed work, and nothing else. Counting any
+          // completed item would let a busy week in one part of life buy a
+          // harder programme in another.
+          const mine = new Set(
+            routines.filter((r) => r.goalId && r.goalId === goalId).map((r) => r.title),
+          );
+          const goalTitle = goals.find((g) => g.id === goalId)?.title;
+          const doneDates: string[] = [];
+          for (const plan of Object.values(plans)) {
+            const hit = plan.items.some(
+              (i) => i.status === 'completed' && (mine.has(i.title) || i.title === goalTitle),
+            );
+            if (hit) doneDates.push(plan.date);
+          }
+          const evidence = completionEvidence(doneDates);
+          const stepBack = pathLevelStepBack[path] ?? null;
+          const level = levelFor(path, null, evidence, stepBack);
+          return {
+            level,
+            evidence,
+            progress: levelProgress(path, level, evidence),
+            steppedBack: stepBack != null,
+            pushing: stepBack == null && pathIntensityPush[path] === true,
+          };
         },
 
         trainingLevelState: () => {
