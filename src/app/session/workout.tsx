@@ -13,7 +13,7 @@ import { Radius, Spacing } from '@/constants/theme';
 import { syncAppleHealth } from '@/features/health/healthkit';
 import { buildWorkout } from '@/features/modalities/gym/program';
 import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/training/log';
-import { defaultRepsFrom, SetLogger } from '@/features/training/SetLogger';
+import { defaultRepsFrom, SetLogger, topRepsFrom } from '@/features/training/SetLogger';
 import { readinessFrom } from '@/features/health/readiness';
 import { autoRegulate, weekOf } from '@/features/training/programme';
 import { dateKeyToDate, todayKey, toMinutes } from '@/lib/dates';
@@ -236,10 +236,12 @@ export default function WorkoutSession() {
       <View style={styles.stack}>
         {session.exercises.map((e) => {
           const targetReps = defaultRepsFrom(e.reps);
+          // Load moves on the TOP of the range, not the bottom.
+          const topReps = topRepsFrom(e.reps);
           const last = lastPerformance(workoutLogs, e.name, log?.id);
           const next =
-            targetReps !== undefined
-              ? suggestNext(workoutLogs, e.name, targetReps, e.sets)
+            topReps !== undefined
+              ? suggestNext(workoutLogs, e.name, topReps, e.sets, log?.id)
               : null;
           // What the person walks in wanting to know, in priority order: what
           // the programme says today, else what they did last time.

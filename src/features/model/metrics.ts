@@ -72,6 +72,16 @@ export const METRICS: MetricDefinition[] = [
   { key: 'work.deepHours', label: 'Deep-work hours', unit: 'h/wk', domain: 'work', direction: 'higher' },
   { key: 'mind.minutes', label: 'Stillness minutes', unit: 'min/wk', domain: 'mind', direction: 'higher' },
   { key: 'finance.savingsRate', label: 'Savings rate', unit: '%', domain: 'finance', direction: 'higher' },
+  /**
+   * Heat and cold exposure.
+   *
+   * Both were completable in the plan and produced no record of any kind:
+   * a sauna session could be ticked every week for a year and Progress had
+   * nothing to show for it. A practice the app schedules and never counts
+   * teaches people it does not matter.
+   */
+  { key: 'recovery.saunaMinutes', label: 'Sauna minutes', unit: 'min/wk', domain: 'sleep', direction: 'higher' },
+  { key: 'recovery.coldExposures', label: 'Cold exposures', unit: '/wk', domain: 'sleep', direction: 'higher' },
 ];
 
 export const metricDef = (key: string): MetricDefinition | undefined =>

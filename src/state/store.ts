@@ -167,6 +167,8 @@ export interface AppState {
    * there. Returns what else moved so the person can be told — a plan that
    * rearranges itself silently is worse than one that refuses.
    */
+  /** Record the measurable side of a completed practice (sauna, cold). */
+  recordPracticeMetric: (item: PlanItem) => void;
   moveItem: (
     date: string,
     itemId: string,
@@ -694,12 +696,39 @@ export const useAppStore = create<AppState>()(
           );
           if (status === 'completed') {
             record(eventFor(item, date, 'completed', { evidence: finalEvidence }));
+            get().recordPracticeMetric(item);
             // A completed session can finish a count or streak rung.
             get().assessGoals();
           } else if (status === 'skipped') {
             record(eventFor(item, date, 'skipped'));
           } else if (status === 'planned' && item.status !== 'planned') {
             record(eventFor(item, date, 'reopened'));
+          }
+        },
+
+        /**
+         * Turn a completed practice into a number.
+         *
+         * Sauna and cold exposure were schedulable, tickable, and produced
+         * no record of any kind — a year of Sunday saunas left Progress with
+         * nothing to show. A practice the app puts in the plan and then
+         * never counts teaches the person it does not matter.
+         *
+         * Matched on title because these practices arrive from protocols,
+         * one-off logs and the habit foundation alike, and only the title is
+         * common to all three. Deliberately narrow: an unrecognised item
+         * records nothing rather than guessing at a number.
+         */
+        recordPracticeMetric: (item) => {
+          const title = item.title.toLowerCase();
+          const minutes = Math.max(0, toMinutes(item.end) - toMinutes(item.start));
+          if (title.includes('sauna') || title.includes('heat')) {
+            get().addMetric('recovery.saunaMinutes', minutes, item.title);
+          } else if (title.includes('cold') || title.includes('ice bath')) {
+            // Counted as exposures, not minutes: two minutes and four
+            // minutes are the same practice, and charting the seconds would
+            // invite people to race them.
+            get().addMetric('recovery.coldExposures', 1, item.title);
           }
         },
 

@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import * as Speech from 'expo-speech';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
@@ -11,6 +12,7 @@ import { Spacing } from '@/constants/theme';
 import { EVIDENCE_LABELS } from '@/features/knowledge/protocols';
 import { practiceState } from '@/features/mind/practice';
 import { cueAt, scriptsForLevel, type MeditationScript } from '@/features/mind/scripts';
+import { pickVoice } from '@/features/mind/voice';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
@@ -21,7 +23,37 @@ import { useAppStore } from '@/state/store';
  * than counted by a ticking timer — the same approach as `breathe.tsx`.
  * Nothing accumulates drift, and an app backgrounded mid-session comes back
  * to where the session actually is rather than where it stopped counting.
+ *
+ * ── Why this speaks ─────────────────────────────────────────────────────
+ *
+ * The session was text-only and told the person to open their eyes at the
+ * end — which only makes sense if they were closed — while the setup screen
+ * invited them to "glance at it when you like". Both cannot be true, and
+ * the one that loses is the practice: every glance at a screen is the
+ * attention leaving the thing it was asked to rest on.
+ *
+ * The cues are now spoken. The silence between them is the practice and is
+ * left alone — nothing is said just to fill it. Text stays on screen for
+ * anyone who wants it, for a muted phone, and for anyone who cannot hear
+ * the audio; the voice is the default, not the only channel.
+ *
+ * Synthesis rather than recordings: it works offline, adds no megabytes,
+ * ships in every language the device speaks, and — the part that matters
+ * here — never sends a word off the phone.
  */
+/**
+ * The device's locale, without pulling in another native module — every
+ * added dependency changes the build fingerprint and cuts installed apps
+ * off from over-the-air updates until they take a new binary.
+ */
+function deviceLocale(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().locale || 'en-AU';
+  } catch {
+    return 'en-AU';
+  }
+}
+
 export default function MeditateSession() {
   const router = useRouter();
   const theme = useTheme();
@@ -39,6 +71,10 @@ export default function MeditateSession() {
   const [durationMin, setDurationMin] = useState<number | null>(null);
   const [startedAt, setStartedAt] = useState(0);
   const [now, setNow] = useState(0);
+  const [voiceOn, setVoiceOn] = useState(true);
+  const [preferredVoiceId, setPreferredVoiceId] = useState<string | null>(null);
+  /** The last cue spoken, so a re-render never repeats a line mid-breath. */
+  const spokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!startedAt) return;
@@ -56,6 +92,34 @@ export default function MeditateSession() {
     [script, durationMin],
   );
   const cue = cueAt(cues, elapsed);
+
+  // Asked once, not per cue: enumerating voices is a bridge call, and the
+  // installed set does not change mid-session.
+  useEffect(() => {
+    let live = true;
+    void Speech.getAvailableVoicesAsync()
+      .then((voices) => {
+        if (live) setPreferredVoiceId(pickVoice(voices, deviceLocale()));
+      })
+      // A device with no enumerable voices still speaks with the default.
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  // Speak each cue once, as it arrives. A lower rate and pitch than the
+  // system default: guidance read at conversational speed pulls attention
+  // forward, which is the opposite of the job.
+  useEffect(() => {
+    if (!startedAt || !voiceOn || !cue?.text) return;
+    if (spokenRef.current === cue.text) return;
+    spokenRef.current = cue.text;
+    Speech.speak(cue.text, { rate: 0.82, pitch: 0.92, voice: preferredVoiceId ?? undefined });
+  }, [cue?.text, startedAt, voiceOn, preferredVoiceId]);
+
+  // Leaving mid-session must not leave a voice talking to an empty room.
+  useEffect(() => () => { void Speech.stop(); }, []);
 
   const close = (completed: boolean) => {
     if (completed && durationMin) {
@@ -148,9 +212,17 @@ export default function MeditateSession() {
         </AppText>
         <AppText variant="title">Get comfortable.</AppText>
         <AppText variant="secondary" style={styles.hint}>
-          The guidance appears on screen — no sound, so this works anywhere. You can put the phone
-          face down and glance at it when you like.
+          {voiceOn
+            ? 'The guidance is spoken, so you can close your eyes and leave them closed. Put the phone down — the words are also on screen if you ever want them.'
+            : 'Sound is off, so the guidance stays on screen. Glance at it when a new cue is due.'}
         </AppText>
+        <View style={styles.voiceRow}>
+          <Chip
+            label={voiceOn ? 'Voice on' : 'Voice off'}
+            selected={voiceOn}
+            onPress={() => setVoiceOn((v) => !v)}
+          />
+        </View>
         <Button
           title="Begin"
           onPress={() => {
@@ -211,6 +283,7 @@ export default function MeditateSession() {
 const styles = StyleSheet.create({
   stack: { gap: Spacing.sm, marginTop: Spacing.lg },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.xl },
+  voiceRow: { flexDirection: 'row', marginBottom: Spacing.md },
   hint: { marginTop: Spacing.xl },
   meta: { marginTop: Spacing.sm },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md, paddingHorizontal: Spacing.lg },

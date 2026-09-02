@@ -160,6 +160,29 @@ export interface NextSuggestion {
   increased: boolean;
 }
 
+/** Reps written as a range or a note; the first number is the useful default. */
+export function defaultRepsFrom(prescribed: string): number | undefined {
+  const match = prescribed.match(/\d+/);
+  return match ? Number(match[0]) : undefined;
+}
+
+/**
+ * The TOP of a prescribed rep range — the number that earns more load.
+ *
+ * Double progression works one way round: you stay at a load until you can
+ * hit the top of the range on every working set, and only then add weight.
+ * The progression rule was reading `defaultRepsFrom`, which returns the
+ * FIRST number in the string — the bottom — so "6–10" meant load went up
+ * the moment six reps were cleared. A lifter grinding 7, 7, 6 out of a
+ * 6–10 range was told "you hit every rep, up 5 kg" while visibly failing
+ * to progress, which is how a stall becomes an injury.
+ */
+export function topRepsFrom(prescribed: string): number | undefined {
+  const nums = prescribed.match(/\d+/g);
+  if (!nums || nums.length === 0) return undefined;
+  return Math.max(...nums.map(Number));
+}
+
 /**
  * Progressive overload, the boring version that works.
  *
@@ -171,21 +194,44 @@ export interface NextSuggestion {
 export function suggestNext(
   logs: WorkoutLog[],
   exercise: string,
+  /**
+   * The TOP of the prescribed range. Passing the bottom makes this add load
+   * the moment the minimum is cleared, which is the opposite of double
+   * progression — see `topRepsFrom`.
+   */
   targetReps: number,
   targetSets: number,
+  /**
+   * The session being logged right now.
+   *
+   * Without it, "last time" was the set you had just typed: the screen
+   * showed "Same 60 kg — last time was 7/7/7 reps" while 7/7/7 sat directly
+   * above it. Every caller must pass this; the parameter is last so the
+   * existing call sites fail loudly in review rather than silently.
+   */
+  excludeLogId?: string,
 ): NextSuggestion | null {
-  const last = lastPerformance(logs, exercise);
+  const last = lastPerformance(logs, exercise, excludeLogId);
   if (!last || !last.set.weightKg) return null;
   const load = last.set.weightKg;
 
   const workingSets = last.sets.filter((s) => (s.weightKg ?? 0) >= load);
-  const hitEverything =
+  const clearedTop =
     workingSets.length >= targetSets && workingSets.every((s) => s.reps >= targetReps);
+  // Reps that fall away across the session are the body saying the load is
+  // already at its limit, even when every set technically cleared the
+  // number. A coach watching 10, 9, 7 does not reach for a heavier bar.
+  const held =
+    workingSets.length < 2 ||
+    workingSets[workingSets.length - 1].reps >= workingSets[0].reps - 1;
 
-  if (!hitEverything) {
+  if (!clearedTop || !held) {
+    const reps = last.sets.map((s) => s.reps).join('/');
     return {
       weightKg: load,
-      reason: `Same ${load} kg — last time was ${last.sets.map((s) => s.reps).join('/')} reps.`,
+      reason: clearedTop
+        ? `Same ${load} kg — reps fell away last time (${reps}). Own it at this weight first.`
+        : `Same ${load} kg — last time was ${reps} reps. ${targetReps} across every set earns the next jump.`,
       increased: false,
     };
   }
@@ -196,7 +242,7 @@ export function suggestNext(
   const step = lift === 'squat' || lift === 'deadlift' ? 5 : 2.5;
   return {
     weightKg: load + step,
-    reason: `You hit every rep at ${load} kg. Up ${step}.`,
+    reason: `${targetReps} on every set at ${load} kg. Up ${step}.`,
     increased: true,
   };
 }

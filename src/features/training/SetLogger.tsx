@@ -21,6 +21,9 @@ import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { LoggedSet } from '@/types/domain';
 
+import { defaultRepsFrom } from './log';
+export { defaultRepsFrom, topRepsFrom } from './log';
+
 interface Props {
   exercise: string;
   /** How many sets the session prescribes. */
@@ -37,12 +40,6 @@ interface Props {
   onAddSet: (reps: number, weightKg?: number) => void;
   onEditSet: (setId: string, patch: Partial<LoggedSet>) => void;
   onRemoveSet: (setId: string) => void;
-}
-
-/** Reps written as a range or a note; the first number is the useful default. */
-export function defaultRepsFrom(prescribed: string): number | undefined {
-  const match = prescribed.match(/\d+/);
-  return match ? Number(match[0]) : undefined;
 }
 
 export function SetLogger({
