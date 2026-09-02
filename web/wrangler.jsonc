@@ -1,6 +1,9 @@
+// Deploy target for the website. The worker name must stay
+// "intent-operating-system" — that is the live worker; changing it creates a
+// second site rather than updating this one.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "intent-os",
+  "name": "intent-operating-system",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": [
     "nodejs_compat"
