@@ -54,6 +54,19 @@ the account does not hold fails every subsequent deploy, including deploys
 that have nothing to do with domains. Add it once all four are attached and
 verified, if you want config to own them.
 
+### 3. Mail on intentnorth.app
+
+`support@intentnorth.app` and `privacy@intentnorth.app` are published on the
+support and privacy pages, and both need to reach a person before launch.
+Cloudflare Email Routing forwards them to an existing inbox without running a
+mail server; it needs the MX and TXT records it offers to add for you.
+
+This is a release dependency. App Store review emails the support address, and
+a user emailing it is usually describing something they would rather not have
+to describe twice. `tests/legal-pages.test.mjs` asserts that every published
+address sits on a domain the product owns — it cannot check that the mailbox
+is answered.
+
 ## Deploying
 
 1. Actions → **Deploy website** → Run workflow.

@@ -46,7 +46,7 @@ test("serves the privacy policy Apple requires, and states what is true", async 
 test("serves the support page with a route out to real help", async () => {
   const { response, html } = await render("/support");
   assert.equal(response.status, 200);
-  assert.match(html, /support@intentnorth\.com/);
+  assert.match(html, /support@intentnorth\.app/);
   // Crisis routing must come before any product answer on this page.
   assert.match(html, /Lifeline/);
   assert.match(html, /13 11 14/);
@@ -60,4 +60,29 @@ test("every page carries the privacy and support links", async () => {
   const { html } = await render("/");
   assert.match(html, /href="\/privacy"/);
   assert.match(html, /href="\/support"/);
+});
+
+test("the contact addresses are on a domain the product owns", async () => {
+  // These pages once published support@ and privacy@ at intentnorth.com, which
+  // is held by a parker. That is not a dead link — it is mail addressed to
+  // someone else, sent by users describing a habit they are trying to break,
+  // and by an App Store reviewer whose reply never arrives. An address is a
+  // promise that someone is on the other end of it.
+  //
+  // Every address on these pages must sit on a domain listed here. Adding a
+  // domain to this list is a claim that it is registered to IntentNorth and
+  // that its mail is routed somewhere a person reads.
+  const OWNED = new Set(["intentnorth.app", "instinctnorth.app"]);
+
+  for (const path of ["/privacy", "/support"]) {
+    const { html } = await render(path);
+    const addresses = [...html.matchAll(/mailto:[^"'\s>]+@([A-Za-z0-9.-]+)/g)];
+    assert.ok(addresses.length > 0, `${path} should offer a way to make contact`);
+    for (const [, domain] of addresses) {
+      assert.ok(
+        OWNED.has(domain.toLowerCase()),
+        `${path} publishes an address at ${domain}, which IntentNorth does not own`,
+      );
+    }
+  }
 });
