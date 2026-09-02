@@ -63,6 +63,22 @@ export function durationMinutes(start: string, end: string): number {
 }
 
 /** Local date as "YYYY-MM-DD". */
+/**
+ * Where a clock time falls within a waking day that may run past midnight.
+ *
+ * A day is not 00:00–23:59. Someone who wakes at 06:30 and sleeps at 00:30
+ * has a 00:00 block that is the END of their day, but raw minutes call it
+ * the earliest moment of it — which is how a block moved to midnight
+ * landed under "Earlier — did it happen?" three minutes after it was
+ * scheduled. Same root as the duration bug: clock arithmetic that assumes
+ * the day and the date change at the same instant.
+ */
+export function dayMinutes(hhmm: string, wakeTime: string): number {
+  const m = toMinutes(hhmm);
+  const wake = toMinutes(wakeTime);
+  return m >= wake ? m - wake : m + 1440 - wake;
+}
+
 export function toDateKey(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');

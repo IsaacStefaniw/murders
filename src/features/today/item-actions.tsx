@@ -12,7 +12,7 @@ import {
   candidateStartsFor,
   type Displacement,
 } from '@/features/planner/moveWithBump';
-import { addDays, durationMinutes, formatTime, nowMinutes } from '@/lib/dates';
+import { addDays, durationMinutes, formatTime, nowMinutes, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 import type { DailyPlan, LifeProfile, PlanItem } from '@/types/domain';
 
@@ -101,12 +101,40 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
     const { options, allSlots } = smartMoveOptions(item, plan, profile, nowMinutes());
     // Every time of day, each priced by what it would displace — so the
     // choice belongs to the person rather than to the scheduler.
+    // Only times still ahead. Offering the morning at 3pm was the whole of
+    // the reported "moving it marks it done" defect: the chosen window was
+    // already behind the current minute, so Today filed it under
+    // "Earlier — did it happen?" and the move read as a verdict. On any
+    // other day's plan every time is still ahead, so the day opens fully.
     const candidates = candidateStartsFor(plan, item.id, {
       wakeTime: profile.wakeTime,
       sleepTime: profile.sleepTime,
+      notBefore: date === todayKey() ? nowMinutes() : undefined,
     });
     // A day with genuinely no room is a real answer, and saying so beats a
     // menu whose only entry is Tomorrow with no explanation of why.
+    // Late enough that nothing more fits before bed. Tomorrow is the only
+    // honest answer, and saying so beats a picker with nothing in it.
+    if (mode === 'choose' && candidates.length === 0) {
+      return (
+        <View style={styles.column}>
+          <AppText variant="caption" color="textTertiary">
+            No time left today that fits {duration} minutes.
+          </AppText>
+          <View style={styles.chips}>
+            <Chip
+              label="Move to tomorrow"
+              onPress={() => {
+                moveItemToDate(date, item.id, addDays(date, 1));
+                finish();
+              }}
+            />
+            <Chip label="Cancel" onPress={() => setMode('idle')} />
+          </View>
+        </View>
+      );
+    }
+
     if (allSlots.length === 0) {
       return (
         <View style={styles.column}>

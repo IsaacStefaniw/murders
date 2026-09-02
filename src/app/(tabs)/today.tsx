@@ -21,10 +21,12 @@ import { ItemActions } from '@/features/today/item-actions';
 import { PlanItemRow } from '@/features/today/plan-item-row';
 import {
   addDays,
+  dayMinutes,
   formatDateLong,
   formatTime,
   nowMinutes,
   todayKey,
+  toHHMM,
   toMinutes,
   weekdayOf,
 } from '@/lib/dates';
@@ -99,12 +101,19 @@ export default function Today() {
 
   if (!profile || !plan) return <Screen tabbed />;
 
+  // Positions within THIS person's waking day, not raw clock minutes. For
+  // anyone whose day ends after midnight a 00:15 block is the last thing
+  // tonight, and comparing raw minutes filed it as the first thing this
+  // morning — already gone, three minutes after it was scheduled.
+  const dayMin = (t: string) => dayMinutes(t, profile.wakeTime);
+  const nowDay = dayMin(toHHMM(now));
+
   const pending = plan.items.filter((i) => i.status === 'planned' && meaningful(i));
   // NOW means now: only an item whose window contains this minute. A future
   // item is never manufactured into urgency — "nothing needs you right now"
   // is a real, deliberate state.
   const nowItem =
-    pending.find((i) => toMinutes(i.start) <= now && toMinutes(i.end) > now) ?? null;
+    pending.find((i) => dayMin(i.start) <= nowDay && dayMin(i.end) > nowDay) ?? null;
   // The day's ledger: items whose window has passed, resolved or not.
   // Unresolved ones need an honest answer (the adaptation engine needs the
   // skip data as much as the user needs closure); resolved ones stay put so
@@ -113,10 +122,10 @@ export default function Today() {
     (i) =>
       meaningful(i) &&
       i.id !== nowItem?.id &&
-      toMinutes(i.end) <= now &&
+      dayMin(i.end) <= nowDay &&
       toMinutes(i.start) < EVENING_START,
   );
-  const upcoming = pending.filter((i) => i.id !== nowItem?.id && toMinutes(i.start) > now);
+  const upcoming = pending.filter((i) => i.id !== nowItem?.id && dayMin(i.start) > nowDay);
   const nextItems = upcoming.filter((i) => toMinutes(i.start) < EVENING_START).slice(0, 3);
   const tonightItems = plan.items.filter(
     (i) => meaningful(i) && i.id !== nowItem?.id && toMinutes(i.start) >= EVENING_START,

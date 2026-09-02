@@ -27,7 +27,8 @@
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { useAppStore } from '@/state/store';
-import { addDays, durationMinutes, todayKey, toMinutes } from '@/lib/dates';
+import { candidateStartsFor } from '@/features/planner/moveWithBump';
+import { addDays, dayMinutes, durationMinutes, nowMinutes, todayKey, toHHMM, toMinutes } from '@/lib/dates';
 import type { InterviewAnswers } from '@/features/onboarding/script';
 import type { PlanItem } from '@/types/domain';
 import {
@@ -274,26 +275,70 @@ export function runJourney(seed: number, days: number, trace: string[], out: Vio
         useAppStore.getState().setItemStatus(date, item.id, 'skipped');
         trace.push(`skip:${item.title}@${date}`);
       } else if (roll < 0.75) {
-        // The action the field report was about. A move is a move: it must
-        // not resolve the item, and it must not lose it.
-        const before = useAppStore.getState().plans[date]?.items.find((i) => i.id === item.id);
-        const target = pick(rng, ['07:15', '12:30', '17:45', '20:15']);
-        useAppStore.getState().moveItem(date, item.id, target);
-        trace.push(`move:${item.title}@${date}->${target}`);
-        const after = useAppStore.getState().plans[date]?.items.find((i) => i.id === item.id);
-        if (before && !after) {
-          out.push({
-            invariant: 'a move never loses the item',
-            detail: `${item.title} vanished from ${date} after a move`,
-            trace: [...trace],
-          });
-        }
-        if (before && after && before.status === 'planned' && after.status !== 'planned') {
-          out.push({
-            invariant: 'a move never resolves the item',
-            detail: `${item.title} became "${after.status}" from a move on ${date}`,
-            trace: [...trace],
-          });
+        // The action the field report was about.
+        //
+        // The target comes from the picker, not from a hardcoded list.
+        // That is the whole point: the first version of this called
+        // moveItem with a fixed time, so it could never see a picker
+        // offering a window that had already closed — which is exactly
+        // what shipped. A harness that skips the choosing cannot test the
+        // choice.
+        const plan = useAppStore.getState().plans[date];
+        const profile = useAppStore.getState().profile;
+        // Day 0 is today, where the clock rules out the morning. Every
+        // later day is wide open, as the app treats it.
+        const nowMin = date === start ? nowMinutes() : undefined;
+        const candidates =
+          plan && profile
+            ? candidateStartsFor(plan, item.id, {
+                wakeTime: profile.wakeTime,
+                sleepTime: profile.sleepTime,
+                notBefore: nowMin,
+              })
+            : [];
+        if (candidates.length > 0) {
+          const before = plan?.items.find((i) => i.id === item.id);
+          // Prefer a time that collides with nothing. The picker does
+          // offer "during work" slots, but it labels them and makes the
+          // person opt in; a harness that takes them at random invents
+          // overlaps no user would have chosen.
+          const clean = candidates.filter((c) => !c.hitsFixed && c.bumps === 0);
+          const target = pick(rng, clean.length > 0 ? clean : candidates).start;
+          useAppStore.getState().moveItem(date, item.id, target);
+          trace.push(`move:${item.title}@${date}->${target}`);
+          const after = useAppStore.getState().plans[date]?.items.find((i) => i.id === item.id);
+          if (before && !after) {
+            out.push({
+              invariant: 'a move never loses the item',
+              detail: `${item.title} vanished from ${date} after a move`,
+              trace: [...trace],
+            });
+          }
+          if (before && after && before.status === 'planned' && after.status !== 'planned') {
+            out.push({
+              invariant: 'a move never resolves the item',
+              detail: `${item.title} became "${after.status}" from a move on ${date}`,
+              trace: [...trace],
+            });
+          }
+          // The defect that got through every earlier run: nothing marked
+          // the item done, so a status check saw nothing wrong. The move
+          // put its whole window behind the clock, and Today files a
+          // passed window under "Earlier — did it happen?" — so the move
+          // read as the app deciding it had happened.
+          const wake = profile?.wakeTime ?? '06:00';
+          if (
+            nowMin !== undefined &&
+            after &&
+            profile &&
+            dayMinutes(after.end, wake) <= dayMinutes(toHHMM(nowMin), wake)
+          ) {
+            out.push({
+              invariant: 'a move never lands in a window that has already closed',
+              detail: `${item.title} moved to ${after.start}–${after.end} on ${date}, already past at ${nowMin} minutes`,
+              trace: [...trace],
+            });
+          }
         }
       }
       actions += 1;
@@ -334,32 +379,53 @@ export function runJourneys(users: number, days: number): JourneyResult {
   const findings: Finding[] = [];
   const violationCounts: Record<string, number> = {};
   const findingCounts: Record<string, number> = {};
-  const keepCapped = <T,>(all: T[], counts: Record<string, number>, kindOf: (x: T) => string) => {
-    const seen: Record<string, number> = {};
-    const kept: T[] = [];
-    for (const x of all) {
+  /**
+   * Fold one person's new entries into the running totals, keeping a few
+   * examples of each kind.
+   *
+   * Counting used to walk the KEPT array once per person, so every example
+   * still being held was counted again on every subsequent person: once a
+   * kind saturated its ten examples it scored roughly ten more per person
+   * regardless of what happened. Forty people turned twenty-eight real
+   * events into three hundred and forty-seven. Zero stayed zero, which is
+   * why every clean run was still true — but no non-zero count this
+   * harness ever printed was.
+   *
+   * Counting the new entries only, once, is the whole fix.
+   */
+  const absorb = <T,>(
+    fresh: T[],
+    all: T[],
+    counts: Record<string, number>,
+    seen: Record<string, number>,
+    kindOf: (x: T) => string,
+  ) => {
+    for (const x of fresh) {
       const kind = kindOf(x);
       counts[kind] = (counts[kind] ?? 0) + 1;
       seen[kind] = (seen[kind] ?? 0) + 1;
-      if (seen[kind] <= MAX_EXAMPLES_PER_KIND) kept.push(x);
+      if (seen[kind] <= MAX_EXAMPLES_PER_KIND) all.push(x);
     }
-    all.length = 0;
-    all.push(...kept);
   };
+  const violationsSeen: Record<string, number> = {};
+  const findingsSeen: Record<string, number> = {};
   const silent = new Map<string, number>();
   let actions = 0;
   for (let i = 0; i < users; i += 1) {
-    actions += runJourney(i, days, [], violations);
+    // Each person's own entries, so the fold below sees only what is new.
+    const mine: Violation[] = [];
+    actions += runJourney(i, days, [], mine);
     // The render pass: what this person's screens would have said. Run
     // after their days so the plans, routines and metrics are real.
-    checkAudienceGating(findings);
+    const myFindings: Finding[] = [];
+    checkAudienceGating(myFindings);
     for (const date of Object.keys(useAppStore.getState().plans)) {
-      checkCoachNote(date, findings);
+      checkCoachNote(date, myFindings);
     }
-    // Capped as we go rather than at the end: 500 people producing the same
-    // finding every day is what overflowed the heap in the first place.
-    keepCapped(findings, findingCounts, (f) => `${f.screen}|${f.rule}`);
-    keepCapped(violations, violationCounts, (v) => v.invariant);
+    // Folded in as we go rather than at the end: 500 people producing the
+    // same finding every day is what overflowed the heap in the first place.
+    absorb(myFindings, findings, findingCounts, findingsSeen, (f) => `${f.screen}|${f.rule}`);
+    absorb(mine, violations, violationCounts, violationsSeen, (v) => v.invariant);
     // Measured per person, after their run: a title that produced a metric
     // for anybody is covered, and only the ones that never do are silent.
     const { plans, metrics } = useAppStore.getState();
