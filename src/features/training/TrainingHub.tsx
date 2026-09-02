@@ -36,6 +36,7 @@ export function TrainingHub() {
   const buildTrainingBlock = useAppStore((s) => s.buildTrainingBlock);
   const trainingLevelState = useAppStore((s) => s.trainingLevelState);
   const setPathLevelStepBack = useAppStore((s) => s.setPathLevelStepBack);
+  const setPathIntensityPush = useAppStore((s) => s.setPathIntensityPush);
   // Recomputed whenever a log or a metric lands, which is exactly when the
   // ladder can have moved.
   const logCount = useAppStore((s) => s.workoutLogs.length);
@@ -72,6 +73,8 @@ export function TrainingHub() {
         progress={levelState.progress}
         steppedBack={levelState.steppedBack}
         onStepBack={(l) => setPathLevelStepBack('training', l)}
+        pushing={levelState.pushing}
+        onPush={(push) => setPathIntensityPush('training', push)}
       />
 
       {/* Your numbers — the simple, meaningful progress line. */}

@@ -308,12 +308,24 @@ export interface AppState {
    */
   pathLevelStepBack: Partial<Record<PathId, PathLevel>>;
   setPathLevelStepBack: (path: PathId, level: PathLevel | null) => void;
+  /**
+   * The other half of the same control — "this is too easy".
+   *
+   * Kept separate from the step-back rather than folded into one signed
+   * number, because they are not opposites. Stepping back changes which
+   * LEVEL is built; pushing changes the DOSE at the level you are already
+   * on, and must never become a way to buy the advanced block's top
+   * singles and overreach week with a tap.
+   */
+  pathIntensityPush: Partial<Record<PathId, boolean>>;
+  setPathIntensityPush: (path: PathId, push: boolean) => void;
   /** Level, evidence and what unlocks the next rung, for the training hub. */
   trainingLevelState: () => {
     level: PathLevel;
     evidence: LevelEvidence;
     progress: LevelProgress;
     steppedBack: boolean;
+    pushing: boolean;
   };
 
   /** Work & Leadership v2 — the current four-week executive block. */
@@ -413,6 +425,7 @@ const initialData = {
   lastOpenedAt: null as string | null,
   previousOpenAt: null as string | null,
   pathLevelStepBack: {} as Partial<Record<PathId, PathLevel>>,
+  pathIntensityPush: {} as Partial<Record<PathId, boolean>>,
   workBlock: null as WorkBlock | null,
   clockOffsetMs: 0,
 };
@@ -1010,9 +1023,24 @@ export const useAppStore = create<AppState>()(
         buildTrainingBlock: () => {
           const { profile, paths, goals, metrics } = get();
           if (!profile) return;
-          const { level } = get().trainingLevelState();
+          const { level, pushing } = get().trainingLevelState();
           const inputs = deriveTrainingInputs(profile, paths.training?.answers, goals, level);
-          set({ trainingProgramme: buildProgramme(inputs, baselinesFrom(metrics)) });
+          set({
+            trainingProgramme: buildProgramme(
+              { ...inputs, pushHarder: pushing },
+              baselinesFrom(metrics),
+            ),
+          });
+        },
+
+        setPathIntensityPush: (path, push) => {
+          const next = { ...get().pathIntensityPush };
+          if (push) next[path] = true;
+          else delete next[path];
+          set({ pathIntensityPush: next });
+          // Same reasoning as the step-back: someone who has just said the
+          // block is too easy should see a harder one now, not next week.
+          if (path === 'training') get().buildTrainingBlock();
         },
 
         setPathLevelStepBack: (path, level) => {
@@ -1027,7 +1055,7 @@ export const useAppStore = create<AppState>()(
         },
 
         trainingLevelState: () => {
-          const { paths, workoutLogs, metrics, pathLevelStepBack } = get();
+          const { paths, workoutLogs, metrics, pathLevelStepBack, pathIntensityPush } = get();
           const evidence = trainingEvidence(workoutLogs, metrics);
           const claim = paths.training?.answers?.experience;
           const claimed =
@@ -1041,6 +1069,10 @@ export const useAppStore = create<AppState>()(
             evidence,
             progress: levelProgress('training', level, evidence, TRAINING_STANDARD_TEXT),
             steppedBack: stepBack != null,
+            // A step-back and a push are mutually exclusive by construction:
+            // someone who has just asked for an easier level is not also
+            // asking for more work at it.
+            pushing: stepBack == null && pathIntensityPush.training === true,
           };
         },
 

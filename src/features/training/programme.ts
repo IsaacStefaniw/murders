@@ -56,6 +56,21 @@ export interface TrainingInputs {
   age?: number;
   /** What the body will not do right now. Swaps movements, never removes. */
   constraints?: PhysicalConstraint[];
+  /**
+   * The person said this block is too easy.
+   *
+   * Raises the DOSE — a set, a little load, one more accessory, one more
+   * point of effort — and changes no STRUCTURE. It never grants the
+   * barbell lifts to someone at foundation, never adds a top single, and
+   * never adds the overreach week, because those are the parts of an
+   * advanced block that hurt a person who is not there yet, and a button
+   * press is not evidence that they are.
+   *
+   * Any load it produces still passes through the constraint ceiling, so
+   * someone training around a heart condition or a pregnancy cannot push
+   * past the limit their own answers set.
+   */
+  pushHarder?: boolean;
 }
 
 export interface PrescribedExercise {
@@ -186,6 +201,28 @@ const LEVEL_TUNING: Record<PathLevel, LevelTuning> = {
     technicalFocus: false,
   },
 };
+
+/**
+ * The tuning actually used, after the person's own "this is too easy".
+ *
+ * Deliberately additive on the four dosage fields and silent on the four
+ * structural ones. An `advanced` lifter who pushes gets a genuinely harder
+ * block; a `foundation` lifter who pushes gets more work at their own
+ * movements, which is what they were asking for.
+ */
+export function tuningFor(level: PathLevel, pushHarder = false): LevelTuning {
+  const base = LEVEL_TUNING[level];
+  if (!pushHarder) return base;
+  return {
+    ...base,
+    setsDelta: base.setsDelta + 1,
+    pctDelta: base.pctDelta + 0.025,
+    // Nine is the top of the scale the app uses anywhere: one clean rep
+    // left in the tank. Nothing here can prescribe a grinding failure.
+    rpeCap: Math.min(9, base.rpeCap + 1),
+    accessoryDelta: base.accessoryDelta + 1,
+  };
+}
 
 /**
  * The level a set of inputs builds at. Explicit when the ladder set it;
@@ -448,17 +485,32 @@ export function buildProgramme(
 ): TrainingProgramme {
   const days = Math.min(Math.max(inputs.daysAvailable, 2), 5);
   const level = levelOf(inputs);
-  const tuning = LEVEL_TUNING[level];
+  const tuning = tuningFor(level, inputs.pushHarder);
   // A constraint rules the technical lifts out for the same reason
   // foundation level does, and either alone is enough.
   const allowComplex = tuning.complexLifts && !rulesOutComplexLifts(inputs.constraints);
   const ceiling = intensityCeiling(inputs.constraints);
+  // Any stated constraint rules out near-maximal singles. Not a scaled-down
+  // version of one — none at all.
+  const maximalAllowed = (inputs.constraints?.length ?? 0) === 0;
   const menu = mains(inputs.equipment, allowComplex);
   const notes: string[] = [];
 
   notes.push(LEVEL_NOTE[level]);
+  // Say the bump out loud. A block that silently got harder is a block the
+  // person blames themselves for struggling with.
+  if (inputs.pushHarder) {
+    notes.push(
+      'You asked for more: an extra set on the main work, a little more load, one more accessory. Structure is unchanged — say the word and it goes straight back.',
+    );
+  }
   const constraintLine = constraintNote(inputs.constraints);
   if (constraintLine) notes.push(constraintLine);
+  if (!maximalAllowed && LEVEL_TUNING[level].topSingle && inputs.focusLift) {
+    notes.push(
+      'No heavy single this block. Near-maximal work does not belong beside what you told us you are managing, and a lighter version of it would not be the same movement.',
+    );
+  }
 
   // Split from real availability, not aspiration.
   const split: ('upper' | 'lower' | 'full')[] =
@@ -501,14 +553,37 @@ export function buildProgramme(
       // Week 3 heavy top set for a baselined focus lift — and only for a
       // level where a near-maximal single is a training tool rather than a
       // test of nerve.
-      if (tuning.topSingle && week === 3 && inputs.focusLift && baselines[inputs.focusLift] && slots[0]?.lift === inputs.focusLift) {
-        exercises.unshift({
-          name: `${exercises[0].name} — heavy top single`,
-          sets: 1,
-          reps: '1',
-          loadKg: round2p5(baselines[inputs.focusLift]! * 0.9),
-          restSec: 180,
-        });
+      //
+      // It is also the one prescription in the block that a constraint
+      // must veto outright rather than scale. Every other movement here
+      // passes its percentage through `ceiling`, and this one did not —
+      // so a person managing a heart condition, a pregnancy or an injury
+      // was handed a 90% single, the single heaviest thing in the block,
+      // with the limit their own answers set silently ignored.
+      //
+      // Scaling it would not fix that. A "heavy top single" at the 0.7
+      // ceiling is a warm-up wearing the wrong name, and the point of the
+      // movement is the near-maximal effort. So it is dropped, and the
+      // programme says why rather than leaving a hole.
+      if (
+        tuning.topSingle &&
+        week === 3 &&
+        inputs.focusLift &&
+        baselines[inputs.focusLift] &&
+        slots[0]?.lift === inputs.focusLift
+      ) {
+        if (maximalAllowed) {
+          exercises.unshift({
+            name: `${exercises[0].name} — heavy top single`,
+            sets: 1,
+            reps: '1',
+            // Clamped as well as gated. If a future change ever offers
+            // this under a constraint, it comes back capped rather than
+            // uncapped.
+            loadKg: round2p5(baselines[inputs.focusLift]! * Math.min(0.9, ceiling)),
+            restSec: 180,
+          });
+        }
       }
       const accessoryBudget = Math.max(
         1,

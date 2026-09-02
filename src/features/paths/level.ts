@@ -114,6 +114,56 @@ export interface LevelThreshold {
 
 const NO_GATE: LevelThreshold = { sessions: 0, weeks: 0 };
 
+/**
+ * The advanced gate for someone whose logged lifts already meet the
+ * standard.
+ *
+ * Forty weeks exists to defeat one specific failure: a person who selects
+ * "advanced" optimistically and is handed top singles and an overreach
+ * week they cannot absorb. A logged e1RM at the standard rules that out by
+ * itself — it is the evidence the long wait was a proxy for, and making
+ * someone who already lifts the number wait ten months to be programmed
+ * for it is not caution, it is the app being wrong for a year.
+ *
+ * The shorter gate is still a real one, and it still sits ABOVE the
+ * established gate rather than beside it. The ladder is walked one rung at
+ * a time — a gate below the rung beneath it would simply never be reached,
+ * because the loop stops at the first threshold that is not met — and more
+ * to the point, nobody should arrive at the top rung without having spent
+ * time on the one below it. Twenty weeks of logged work is a training
+ * history, not a keen fortnight, so the persistence property the ladder is
+ * built on survives; it is roughly five months instead of ten.
+ */
+const PROVEN_ADVANCED_GATE: Record<PathId, LevelThreshold | null> = {
+  training: { sessions: 48, weeks: 20 },
+  // Only training has a standard that can be proven from a log. The rest
+  // gate on volume alone, so there is nothing to shorten.
+  nutrition: null,
+  money: null,
+  work: null,
+  recovery: null,
+  relationship: null,
+  family: null,
+};
+
+/**
+ * The threshold actually applied for a level, given what the log proves.
+ *
+ * Never returns a gate looser than the standard one for anything except a
+ * proven advanced, and never for a pathway with no provable standard.
+ */
+export function gateFor(
+  path: PathId,
+  level: PathLevel,
+  evidence: LevelEvidence,
+): LevelThreshold {
+  if (level === 'advanced' && evidence.standardsMet) {
+    const proven = PROVEN_ADVANCED_GATE[path];
+    if (proven) return proven;
+  }
+  return LEVEL_GATES[path][level];
+}
+
 export const LEVEL_GATES: Record<PathId, Record<PathLevel, LevelThreshold>> = {
   training: {
     foundation: NO_GATE,
@@ -181,11 +231,10 @@ const meets = (ev: LevelEvidence, gate: LevelThreshold): boolean =>
  * person said about themselves.
  */
 export function earnedLevel(path: PathId, evidence: LevelEvidence): PathLevel {
-  const gates = LEVEL_GATES[path];
   let earned: PathLevel = 'foundation';
   for (const level of LEVEL_ORDER) {
     if (level === 'advanced' && !evidence.standardsMet) break;
-    if (meets(evidence, gates[level])) earned = level;
+    if (meets(evidence, gateFor(path, level, evidence))) earned = level;
     else break;
   }
   return earned;
@@ -259,7 +308,7 @@ export function levelProgress(
     };
   }
 
-  const gate = LEVEL_GATES[path][next];
+  const gate = gateFor(path, next, evidence);
   const sessionsToGo = Math.max(0, gate.sessions - evidence.sessions);
   const weeksToGo = Math.max(0, gate.weeks - evidence.weeks);
   const volumeMet = sessionsToGo === 0 && weeksToGo === 0;

@@ -10,9 +10,9 @@ import { useTheme } from '@/hooks/use-theme';
 
 import {
   LEVEL_BLURB,
-  LEVEL_GATES,
   LEVEL_LABEL,
   LEVEL_ORDER,
+  gateFor,
   levelRank,
   type LevelEvidence,
   type LevelProgress,
@@ -27,6 +27,9 @@ interface LevelCardProps {
   progress: LevelProgress;
   steppedBack: boolean;
   onStepBack: (level: PathLevel | null) => void;
+  /** The dose has been raised at this level on the person's own say-so. */
+  pushing: boolean;
+  onPush: (push: boolean) => void;
 }
 
 /**
@@ -47,12 +50,14 @@ export function LevelCard({
   progress,
   steppedBack,
   onStepBack,
+  pushing,
+  onPush,
 }: LevelCardProps) {
   const theme = useTheme();
   const [adjusting, setAdjusting] = useState(false);
 
   const next = progress.next;
-  const gate = next ? LEVEL_GATES[path][next] : null;
+  const gate = next ? gateFor(path, next, evidence) : null;
   // Two bars rather than one: they measure different things, and a single
   // merged number would hide which half is actually outstanding.
   const sessionFrac = gate?.sessions ? Math.min(1, evidence.sessions / gate.sessions) : 1;
@@ -111,6 +116,13 @@ export function LevelCard({
         </AppText>
       ) : null}
 
+      {pushing ? (
+        <AppText variant="caption" color="textTertiary" style={styles.blurb}>
+          You asked for more, so every session carries an extra set, a little more load and one
+          more accessory. The movements and the shape of the block are unchanged.
+        </AppText>
+      ) : null}
+
       {adjusting ? (
         <View style={styles.adjust}>
           <AppText variant="caption" color="textTertiary">
@@ -142,15 +154,32 @@ export function LevelCard({
           </View>
           <Button title="Cancel" variant="ghost" onPress={() => setAdjusting(false)} />
         </View>
-      ) : lower.length > 0 || steppedBack ? (
-        <Button
-          title="This is too hard"
-          variant="ghost"
-          hint="Choose an easier level. Nothing you have logged is lost."
-          onPress={() => setAdjusting(true)}
-          style={styles.adjustButton}
-        />
-      ) : null}
+      ) : (
+        <View style={styles.controls}>
+          {lower.length > 0 || steppedBack ? (
+            <Button
+              title="This is too hard"
+              variant="ghost"
+              hint="Choose an easier level. Nothing you have logged is lost."
+              onPress={() => setAdjusting(true)}
+              style={styles.adjustButton}
+            />
+          ) : null}
+          {steppedBack ? null : (
+            <Button
+              title={pushing ? 'Back to the normal dose' : 'This is too easy'}
+              variant="ghost"
+              hint={
+                pushing
+                  ? 'Return to the standard prescription for this level.'
+                  : 'Add a set, a little load and one more accessory. The movements stay the same.'
+              }
+              onPress={() => onPush(!pushing)}
+              style={styles.adjustButton}
+            />
+          )}
+        </View>
+      )}
     </Card>
   );
 }
@@ -198,5 +227,9 @@ const styles = StyleSheet.create({
   fill: { height: 6, borderRadius: Radius.full },
   adjust: { marginTop: Spacing.md, gap: Spacing.sm },
   adjustButton: { marginTop: Spacing.sm, alignSelf: 'flex-start', paddingHorizontal: 0 },
+  // Wraps rather than shrinks: at the largest accessibility text size two
+  // full sentences will not sit on one line, and a truncated control that
+  // reads "This is too" is worse than a stacked one.
+  controls: { flexDirection: 'row', flexWrap: 'wrap', columnGap: Spacing.lg },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
 });
