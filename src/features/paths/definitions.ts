@@ -271,7 +271,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
     id: 'recovery',
     title: 'Habits & urges',
     promise:
-      'Not willpower — engineering. Name the moment the urge usually wins, put a rehearsed answer in that exact window, and let INTENT learn your real triggers from what you log.',
+      'Not willpower — engineering. Name the moment the urge usually wins, put a rehearsed answer in that exact window, and let IntentNorth learn your real triggers from what you log.',
     questions: [
       {
         key: 'behaviour',
@@ -372,10 +372,10 @@ export const PATHS: Record<PathId, PathDefinition> = {
         boredom: 'Boredom urges want stimulation, not sedation — the replacement gives your hands and mind something real.',
         social: 'Social triggers are decided in advance: know your drink, your line, and your exit before you arrive.',
         evening: 'Evening at home is the classic window. The replacement is scheduled right into it — same time, every night.',
-        unsure: 'Not sure of the trigger? Log each urge with one tap and INTENT will find the pattern within two weeks.',
+        unsure: 'Not sure of the trigger? Log each urge with one tap and IntentNorth will find the pattern within two weeks.',
       };
       lines.push(triggerLine[answers.trigger ?? 'unsure']);
-      lines.push('One miss is noise. Two in a row is the fork — that’s when INTENT steps in, not with shame, with a plan.');
+      lines.push('One miss is noise. Two in a row is the fork — that’s when IntentNorth steps in, not with shame, with a plan.');
       if (answers.wave === 'evening') {
         lines.push('Your urges run long, so the answer isn’t outlasting one wave — it’s changing the evening’s shape before it starts.');
       } else {

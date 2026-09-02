@@ -68,7 +68,7 @@ describe('what a block can tell you', () => {
 
   /**
    * Not everything should open a screen. Something the person put in their
-   * own diary needs no explanation, and INTENT explaining their dinner
+   * own diary needs no explanation, and IntentNorth explaining their dinner
    * back to them would be the more embarrassing failure.
    */
   it('exempts a fixed commitment, which needs no explaining', () => {
@@ -96,7 +96,7 @@ describe('the generated week', () => {
 
   /**
    * The whole audit, run against the real generator rather than a fixture:
-   * every block INTENT puts in someone's day can say what doing it means,
+   * every block IntentNorth puts in someone's day can say what doing it means,
    * why it is there, or both.
    */
   it('never produces a block with nothing behind it', () => {

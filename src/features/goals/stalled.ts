@@ -5,7 +5,7 @@
  * one, but nothing ever produced it — a goal whose milestones stopped
  * moving was simply invisible. The cohort simulator's goal-progression
  * layer exposed this: milestone-bearing goals routinely went quiet for
- * weeks and INTENT never said a word.
+ * weeks and IntentNorth never said a word.
  *
  * A goal is stalled when it is active, has an undone milestone, and no
  * milestone has been completed for STALL_DAYS (counting from the goal's

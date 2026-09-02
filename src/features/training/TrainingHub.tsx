@@ -202,7 +202,7 @@ export function TrainingHub() {
         </View>
       ) : null}
       <AppText variant="caption" color="textTertiary" style={styles.hint}>
-        One normal set is enough. INTENT works out what you could lift once, and tracks
+        One normal set is enough. IntentNorth works out what you could lift once, and tracks
         whether it is going up.
       </AppText>
     </View>

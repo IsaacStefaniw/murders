@@ -5,7 +5,7 @@
  * send themselves) arrives with the backend. What works today, offline:
  * the week's shared moments in one place, a one-tap babysitter reminder
  * placed ahead of date night, and a copy-ready summary of the week to
- * text your partner — which is also how INTENT spreads: family first.
+ * text your partner — which is also how IntentNorth spreads: family first.
  */
 
 import { addDays, dateKeyToDate, formatTime } from '@/lib/dates';
@@ -52,10 +52,10 @@ export function shareWeekText(profile: LifeProfile, entries: TogetherEntry[]): s
   const partner = profile.people.find((p) => p.relation === 'partner')?.name;
   const header = partner ? `Our week, ${partner}:` : 'Our week:';
   if (entries.length === 0) {
-    return `${header}\nNothing on the shared calendar yet — pick something?\n\n— planned with INTENT`;
+    return `${header}\nNothing on the shared calendar yet — pick something?\n\n— planned with IntentNorth`;
   }
   const lines = entries.map((e) => `• ${e.when} ${formatTime(e.start)} — ${e.title}`);
-  return `${header}\n${lines.join('\n')}\n\n— planned with INTENT`;
+  return `${header}\n${lines.join('\n')}\n\n— planned with IntentNorth`;
 }
 
 export function nextDateNight(entries: TogetherEntry[]): TogetherEntry | null {

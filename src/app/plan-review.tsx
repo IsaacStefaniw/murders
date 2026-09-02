@@ -121,7 +121,7 @@ export default function PlanReview() {
             <AppText variant="body">No goals yet, and that is a fine place to start.</AppText>
             <AppText variant="caption" color="textTertiary">
               The rhythm below is enough to begin with. Add something to work toward whenever
-              you want one — INTENT will build the steps.
+              you want one — IntentNorth will build the steps.
             </AppText>
           </Card>
         </>
@@ -171,7 +171,7 @@ export default function PlanReview() {
       </View>
 
       <AppText variant="caption" color="textTertiary" style={styles.progressive}>
-        This is a starting point, not a questionnaire&apos;s worth of homework — INTENT asks the
+        This is a starting point, not a questionnaire&apos;s worth of homework — IntentNorth asks the
         rest one question at a time, at the moments the answers matter.
       </AppText>
 

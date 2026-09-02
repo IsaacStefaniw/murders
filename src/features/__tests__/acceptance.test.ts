@@ -1,7 +1,7 @@
 /**
  * THE acceptance test.
  *
- * A user tells INTENT: spouse, two kids, demanding job, business growth,
+ * A user tells IntentNorth: spouse, two kids, demanding job, business growth,
  * strength training, reducing alcohol/vaping, staying close to friends,
  * more fun and adventure. Across the generated week, the calendar must
  * visibly resemble that life. If any stated priority leaves no trace in

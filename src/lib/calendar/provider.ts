@@ -1,13 +1,13 @@
 /**
  * Calendar provider — the seam the first native milestone fills in.
  *
- * Per external review, the loop that turns INTENT from sophisticated
+ * Per external review, the loop that turns IntentNorth from sophisticated
  * prototype into product is:
  *
  *   calendar → planner → Today → Move → calendar update
  *
  * The critical test: a meeting lands at 12:00 → the workout no longer
- * fits → INTENT notices → proposes 4:30 → the user accepts → both plan
+ * fits → IntentNorth notices → proposes 4:30 → the user accepts → both plan
  * and calendar reflect it.
  *
  * The web build has no calendar access, so the Null provider returns
@@ -30,7 +30,7 @@ export interface CalendarProvider {
   available(): boolean;
   requestAccess(): Promise<boolean>;
   getEvents(date: string): Promise<CalendarEvent[]>;
-  /** Write-back for user-approved moves of INTENT-owned events. */
+  /** Write-back for user-approved moves of IntentNorth-owned events. */
   updateEvent(externalId: string, start: string, end: string): Promise<boolean>;
 }
 

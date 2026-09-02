@@ -1,5 +1,5 @@
 /**
- * Who INTENT is for, expressed as something the app can act on.
+ * Who IntentNorth is for, expressed as something the app can act on.
  *
  * ── Why "week shape" and not "persona" ──────────────────────────────────
  *
@@ -24,7 +24,7 @@
  *
  *   selfDirected  Founder, executive, freelancer. Hours are theirs, which
  *                 is the problem: without a plan, work expands to fill
- *                 everything. The case INTENT was originally built for,
+ *                 everything. The case IntentNorth was originally built for,
  *                 and the reason everything else fitted badly.
  *
  *   shift         Nurses, trades, hospitality, emergency services, FIFO.

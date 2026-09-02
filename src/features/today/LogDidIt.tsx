@@ -13,7 +13,7 @@ import type { LifeArea } from '@/types/domain';
 /**
  * "I did this" — for the thing that happened without being asked.
  *
- * Everything a day could contain used to be something INTENT had
+ * Everything a day could contain used to be something IntentNorth had
  * scheduled, which quietly made it a scoreboard for its own suggestions.
  * Someone who went for a run the app did not think of got no credit for
  * it, the day read emptier than it was, and next week was then planned

@@ -4,7 +4,7 @@
  * Everything meaningful (windowing, merging, dedupe) lives in
  * summarise.ts, which is pure and tested. On non-iOS platforms the
  * underlying library exports safe no-ops, so the web preview and tests
- * never touch native code. Read-only: INTENT never writes to Health.
+ * never touch native code. Read-only: IntentNorth never writes to Health.
  */
 
 import {

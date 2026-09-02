@@ -10,7 +10,7 @@
  * So the chosen time is granted, and everything flexible is re-laid around
  * it. Two rules keep that from becoming vandalism:
  *
- * WHAT INTENT ARRANGED, INTENT MAY REARRANGE. What reality imposes, it may
+ * WHAT IntentNorth ARRANGED, IntentNorth MAY REARRANGE. What reality imposes, it may
  * not. Fixed commitments — work, real calendar events — are never bumped,
  * and neither is anything already done: a completed item is a record of
  * what happened and moving it would be a lie.

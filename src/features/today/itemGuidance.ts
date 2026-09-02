@@ -75,7 +75,7 @@ export function guidanceFor(
  * Blocks with nothing behind them.
  *
  * A fixed calendar event is exempt: it is something the person put in
- * their own diary, and INTENT explaining their dinner back to them would
+ * their own diary, and IntentNorth explaining their dinner back to them would
  * be the more embarrassing failure.
  */
 export function bareItems(

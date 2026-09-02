@@ -16,7 +16,7 @@ import { todayKey, weekStartOf } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 
 /**
- * The week's read, and what INTENT would change about the next one.
+ * The week's read, and what IntentNorth would change about the next one.
  *
  * This used to be its own tab, called "Intent" — the app's own name, which
  * told nobody what was behind it. It was also the thinnest of the five, and

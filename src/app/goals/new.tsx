@@ -24,7 +24,7 @@ import { useAppStore } from '@/state/store';
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 /**
- * Conversational goal creation: the user writes one sentence, INTENT does
+ * Conversational goal creation: the user writes one sentence, IntentNorth does
  * the structuring — domain, milestones, the recurring behaviour — and asks
  * only what it genuinely needs (the why). The user edits and approves.
  */
@@ -84,7 +84,7 @@ export default function NewGoal() {
         <Field
           label="What do you want to be true?"
           showLabel={false}
-          hint="Describe the goal in your own words. INTENT reads it and drafts the milestones."
+          hint="Describe the goal in your own words. IntentNorth reads it and drafts the milestones."
           value={text}
           onChangeText={setText}
           placeholder="e.g. Grow the business to $2m revenue"
@@ -279,7 +279,7 @@ export default function NewGoal() {
         <Card>
           <AppText variant="body">
             This one runs through behaviour tracking rather than the calendar — add it under
-            Settings → behaviours, and INTENT will help you protect against it daily.
+            Settings → behaviours, and IntentNorth will help you protect against it daily.
           </AppText>
         </Card>
       ) : (
@@ -300,7 +300,7 @@ export default function NewGoal() {
 
       <SectionHeader title="By when?" />
       <AppText variant="caption" color="textTertiary">
-        Optional. With a date, INTENT can tell you whether your current rate actually arrives in
+        Optional. With a date, IntentNorth can tell you whether your current rate actually arrives in
         time — without one it still tracks everything, it just has no date to measure
         against.
       </AppText>

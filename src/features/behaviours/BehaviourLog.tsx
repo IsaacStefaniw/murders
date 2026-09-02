@@ -138,7 +138,7 @@ export function BehaviourLog({ intention, onDone }: Props) {
         ) : null}
         {pattern.intervention ? (
           <AppText variant="caption" color="textTertiary" style={styles.gap}>
-            {pattern.intervention.line} That is where INTENT will put something else in front of
+            {pattern.intervention.line} That is where IntentNorth will put something else in front of
             you, rather than a message after the fact.
           </AppText>
         ) : null}

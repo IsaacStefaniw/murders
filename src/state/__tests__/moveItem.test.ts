@@ -58,12 +58,12 @@ describe('moving something through the store', () => {
   });
 
   /**
-   * A bump is INTENT rearranging its own plan, not the person choosing that
+   * A bump is IntentNorth rearranging its own plan, not the person choosing that
    * time. The adaptation layer reads these events to learn preferences, and
    * must not conclude someone likes 6:40pm walks because a training session
    * pushed one there.
    */
-  it('records a bump as INTENT-initiated, not as the user choosing it', () => {
+  it('records a bump as IntentNorth-initiated, not as the user choosing it', () => {
     seed([
       at('18:00', '18:30', 'Walk', { id: 'walk' }),
       at('12:00', '13:00', 'Training', { id: 'training' }),

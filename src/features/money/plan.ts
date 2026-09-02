@@ -6,7 +6,7 @@
  * raise the rate. The user's answers (mode, automation, buffer) mark
  * steps already done and put exactly one step under the spotlight. One
  * number is measured — the savings rate — and the trend, not a good or
- * bad month, is what INTENT reads.
+ * bad month, is what IntentNorth reads.
  *
  * Education, never financial advice.
  */

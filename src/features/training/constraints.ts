@@ -12,7 +12,7 @@
  *
  * ── What this is not ────────────────────────────────────────────────────
  *
- * Not screening, not diagnosis, not treatment, not clearance. INTENT has
+ * Not screening, not diagnosis, not treatment, not clearance. IntentNorth has
  * no idea why someone's shoulder hurts and must never behave as if it
  * does. These are the conservative default an experienced coach would pick
  * knowing only one sentence about someone, and the app says so plainly
@@ -161,5 +161,5 @@ export function constraintNote(
   }
 
   const what = reasons.length > 0 ? `${reasons.join(', and ')}.` : '';
-  return `${what} This is a sensible default, not an assessment — INTENT does not know your history. Anything that hurts, or any condition you are managing, is a conversation for a professional.`.trim();
+  return `${what} This is a sensible default, not an assessment — IntentNorth does not know your history. Anything that hurts, or any condition you are managing, is a conversation for a professional.`.trim();
 }

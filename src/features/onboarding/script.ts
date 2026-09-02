@@ -1,7 +1,7 @@
 /**
  * Life Interview script.
  *
- * A deterministic conversational flow: INTENT asks, the user answers with
+ * A deterministic conversational flow: IntentNorth asks, the user answers with
  * quick chips or short text. Every answer maps to structured profile data —
  * the interview never relies on parsing free conversation. An AI
  * interview processor (lib/ai) can later enrich this, but the structured
@@ -56,7 +56,7 @@ export interface InterviewOption {
 export interface InterviewStep {
   id: string;
   kind: StepKind;
-  /** INTENT's message. Can reference earlier answers. */
+  /** IntentNorth's message. Can reference earlier answers. */
   prompt: (answers: InterviewAnswers) => string;
   /**
    * Fixed options, or options computed from earlier answers.
@@ -248,7 +248,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
           : 'A full week with slack left in it, so one bad day does not take the rest with it.',
     kind: 'single',
     prompt: () =>
-      'Honestly — how full is life right now? INTENT plans to your real capacity, not your ambitions.',
+      'Honestly — how full is life right now? IntentNorth plans to your real capacity, not your ambitions.',
     options: [
       { value: 'minimal', label: 'Running on fumes — keep it minimal' },
       { value: 'steady', label: 'Full, but functional' },
@@ -574,7 +574,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     kind: 'multi',
     optional: true,
     prompt: () =>
-      "What's already part of your life? INTENT builds on what you do — never prescribes it back to you as if it were new.",
+      "What's already part of your life? IntentNorth builds on what you do — never prescribes it back to you as if it were new.",
     options: [
       { value: 'workout', label: 'Gym training' },
       { value: 'walking', label: 'Walking' },
@@ -667,7 +667,7 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     deferTo: 'money',
     kind: 'single',
     optional: true,
-    prompt: () => 'Money — want INTENT in the loop?',
+    prompt: () => 'Money — want IntentNorth in the loop?',
     options: (a) => moneyOptions(a.weekShape as WeekShape | undefined),
   },
   {

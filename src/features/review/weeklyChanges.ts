@@ -1,6 +1,6 @@
 /**
  * Weekly review → applied change. Insight without action is a diary;
- * INTENT offers to make the change, and one tap applies it to next week.
+ * IntentNorth offers to make the change, and one tap applies it to next week.
  * Deterministic, derived from what actually happened.
  */
 

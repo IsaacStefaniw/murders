@@ -1,12 +1,12 @@
 /**
  * The knowledge base — evidence-informed practices, structured for planning.
  *
- * Each protocol is a practice distilled *in INTENT's own words* from the
+ * Each protocol is a practice distilled *in IntentNorth's own words* from the
  * public, evidence-based teaching of well-known communicators (Tim Ferriss,
  * Andrew Huberman, Peter Attia, Rhonda Patrick, Jordan Peterson, David
  * Sinclair) and the research they discuss. No transcript text is
  * reproduced; `attribution` credits whose public work popularised the
- * practice and implies no endorsement of INTENT. Sourcing policy:
+ * practice and implies no endorsement of IntentNorth. Sourcing policy:
  * docs/KNOWLEDGE.md.
  *
  * Protocols are machine-plannable: `toRoutine` turns one into a Routine
@@ -80,7 +80,7 @@ interface Anchor {
 }
 
 /**
- * Evidence quality — not all protocols are equally certain, and INTENT
+ * Evidence quality — not all protocols are equally certain, and IntentNorth
  * says so. Expert communicators are discovery sources; the level grades
  * the underlying research, not the fame of the messenger.
  */
@@ -890,7 +890,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '18:00', windowMin: 120 },
     energy: 'evening',
     tier: 'should',
-    safety: 'Where the money lands — account type, product, tax treatment — is a licensed adviser or accountant question. INTENT helps you build the habit of the transfer, nothing more. Education, never financial advice.',
+    safety: 'Where the money lands — account type, product, tax treatment — is a licensed adviser or accountant question. IntentNorth helps you build the habit of the transfer, nothing more. Education, never financial advice.',
   },
   {
     id: 'raise-precommit',
@@ -1440,14 +1440,14 @@ export const PROTOCOLS: Protocol[] = [
     area: 'health',
     goalDomains: ['health', 'fitness'],
     summary: 'Five Sunday minutes naming any niggle — the same one two weeks running gets a professional.',
-    why: 'Most small training aches settle on their own within a couple of weeks, so the useful question is not what it is — INTENT cannot know that and will not guess — but how long it has been there and whether it is heading the right way. Weekly surveillance work in athletes turned up far more ongoing complaints than injury reports ever captured, because someone asked every week instead of waiting for people to stop. The two-week mark is a convention borrowed from ordinary clinical practice rather than a tested threshold, and it errs deliberately towards getting looked at sooner.',
+    why: 'Most small training aches settle on their own within a couple of weeks, so the useful question is not what it is — IntentNorth cannot know that and will not guess — but how long it has been there and whether it is heading the right way. Weekly surveillance work in athletes turned up far more ongoing complaints than injury reports ever captured, because someone asked every week instead of waiting for people to stop. The two-week mark is a convention borrowed from ordinary clinical practice rather than a tested threshold, and it errs deliberately towards getting looked at sooner.',
     attribution: ['Benjamin Clarsen', 'Roald Bahr'],
     days: [0],
     durationMin: 5,
     anchor: { kind: 'fixed', start: '11:30', windowMin: 180 },
     energy: 'any',
     tier: 'should',
-    safety: 'INTENT is not a clinician and this is not an assessment — nothing here names what is wrong with you or tells you how to fix it. Pain that persists past a couple of weeks, keeps worsening, wakes you at night, follows a fall or an impact, or arrives with numbness, giving way, or a joint that will not take weight is a doctor’s or physiotherapist’s job, not an app’s. Go sooner if you are worried, and go now rather than in two weeks for anything sudden and severe.',
+    safety: 'IntentNorth is not a clinician and this is not an assessment — nothing here names what is wrong with you or tells you how to fix it. Pain that persists past a couple of weeks, keeps worsening, wakes you at night, follows a fall or an impact, or arrives with numbness, giving way, or a joint that will not take weight is a doctor’s or physiotherapist’s job, not an app’s. Go sooner if you are worried, and go now rather than in two weeks for anything sudden and severe.',
   },
   {
     id: 'deload-week',
@@ -1663,7 +1663,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'sleep', offsetMin: 5, windowMin: 20 },
     energy: 'evening',
     tier: 'could',
-    safety: 'This is one piece of a structured programme, not the programme. Cognitive behavioural therapy for insomnia is the front-line approach clinicians recommend for persistent sleeplessness, and INTENT does not deliver it — if bad nights have run for weeks, see a doctor or a sleep clinician.',
+    safety: 'This is one piece of a structured programme, not the programme. Cognitive behavioural therapy for insomnia is the front-line approach clinicians recommend for persistent sleeplessness, and IntentNorth does not deliver it — if bad nights have run for weeks, see a doctor or a sleep clinician.',
   },
 
   // ── Mobility, flexibility & joint health ──────────────────────────────
@@ -2341,7 +2341,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '09:00', windowMin: 240 },
     energy: 'morning',
     tier: 'could',
-    safety: 'Which tests belong in your year is a medical judgement resting on your age, history and family — your doctor orders them and your doctor interprets them with you. INTENT never says what to test for, what a result means, or what to do next; it only keeps the appointment in your calendar. Educational structure, not medical advice.',
+    safety: 'Which tests belong in your year is a medical judgement resting on your age, history and family — your doctor orders them and your doctor interprets them with you. IntentNorth never says what to test for, what a result means, or what to do next; it only keeps the appointment in your calendar. Educational structure, not medical advice.',
   },
   {
     id: 'step-floor',
@@ -2384,7 +2384,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'any',
     tier: 'should',
     sessionType: 'meal_plan',
-    safety: 'One lever, chosen by you, and no target number attached to it — INTENT never sets a calorie figure, a weight to reach, or a rate to lose at, because those belong to a doctor or a registered dietitian who knows your history. Skip this and the rest of this group entirely if you have ever had an eating disorder or think you might now: structured food planning is a known trigger. If choosing a lever turns into rules that keep multiplying, stop and talk to your GP or a dietitian rather than trying harder.',
+    safety: 'One lever, chosen by you, and no target number attached to it — IntentNorth never sets a calorie figure, a weight to reach, or a rate to lose at, because those belong to a doctor or a registered dietitian who knows your history. Skip this and the rest of this group entirely if you have ever had an eating disorder or think you might now: structured food planning is a known trigger. If choosing a lever turns into rules that keep multiplying, stop and talk to your GP or a dietitian rather than trying harder.',
   },
   {
     id: 'weekly-weight-trend',
@@ -2418,7 +2418,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '12:30', windowMin: 120 , timeAnchored: true},
     energy: 'midday',
     tier: 'should',
-    safety: 'An anchor to build around, not a rule to obey, and no food is off the plate because of it. Kidney or liver conditions, pregnancy, and any medical eating plan mean your doctor or dietitian sets your protein intake, not INTENT. If ordering your plate by macronutrient starts to feel like a set of rules you can fail, drop the protocol — that shift is the early shape of disordered eating.',
+    safety: 'An anchor to build around, not a rule to obey, and no food is off the plate because of it. Kidney or liver conditions, pregnancy, and any medical eating plan mean your doctor or dietitian sets your protein intake, not IntentNorth. If ordering your plate by macronutrient starts to feel like a set of rules you can fail, drop the protocol — that shift is the early shape of disordered eating.',
   },
   {
     id: 'slow-plate',
@@ -2453,7 +2453,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'any',
     tier: 'should',
     sessionType: 'meal_plan',
-    safety: 'Maintenance here means the behaviours you keep and a trend line that sits flat — INTENT does not name a weight to hold, a range to stay inside, or a shape to aim at. A flat trend that wobbles is what maintaining looks like; it is not a failed change phase. If the idea of stopping active weight loss feels intolerable, that is worth saying out loud to a GP or registered dietitian, because it is one of the more reliable early signs of disordered eating.',
+    safety: 'Maintenance here means the behaviours you keep and a trend line that sits flat — IntentNorth does not name a weight to hold, a range to stay inside, or a shape to aim at. A flat trend that wobbles is what maintaining looks like; it is not a failed change phase. If the idea of stopping active weight loss feels intolerable, that is worth saying out loud to a GP or registered dietitian, because it is one of the more reliable early signs of disordered eating.',
   },
   {
     id: 'meal-photo-log',
@@ -2538,7 +2538,7 @@ export const PROTOCOLS: Protocol[] = [
     area: 'health',
     goalDomains: ['health', 'behaviour'],
     summary: 'Name the drink-free days before the week starts — three is a good default — and keep alcohol to the days you chose rather than the days you fancied it.',
-    why: 'Start with what INTENT will not tell you. The comfortable story that a moderate amount protects the heart has been substantially undermined: much of the apparent benefit came from counting people who had stopped drinking because they were already unwell as non-drinkers, and a meta-analysis found that once studies handled those biases, low intake showed no mortality advantage over lifetime abstention. Genetic studies that sidestep lifestyle confounding find no protective signal either. So there is no healthy amount for us to name, and we will not invent one. What is well supported is direction: less is better. The reason to schedule days rather than set a weekly number is behavioural — a rule decided in advance removes a nightly decision that tends to resolve one way.',
+    why: 'Start with what IntentNorth will not tell you. The comfortable story that a moderate amount protects the heart has been substantially undermined: much of the apparent benefit came from counting people who had stopped drinking because they were already unwell as non-drinkers, and a meta-analysis found that once studies handled those biases, low intake showed no mortality advantage over lifetime abstention. Genetic studies that sidestep lifestyle confounding find no protective signal either. So there is no healthy amount for us to name, and we will not invent one. What is well supported is direction: less is better. The reason to schedule days rather than set a weekly number is behavioural — a rule decided in advance removes a nightly decision that tends to resolve one way.',
     attribution: ['Tim Stockwell', 'Peter Attia'],
     days: [1, 2, 3],
     durationMin: 5,
@@ -2621,7 +2621,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'evening',
     tier: 'should',
     sessionType: 'journal',
-    safety: 'The log is data, never a scorecard, and INTENT does not charge for it. If what it shows you is daily use, amounts creeping upward, or that you cannot go a day without, that is a doctor’s conversation rather than a tracking problem.',
+    safety: 'The log is data, never a scorecard, and IntentNorth does not charge for it. If what it shows you is daily use, amounts creeping upward, or that you cannot go a day without, that is a doctor’s conversation rather than a tracking problem.',
   },
   {
     id: 'cue-audit',
@@ -2656,7 +2656,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'evening',
     tier: 'should',
     sessionType: 'breathe',
-    safety: 'Riding out a craving is not the same as riding out withdrawal, and neither is a stand-in for professional help. Dependence on alcohol, drugs or gambling is a clinical matter: a doctor is the right first call, and free confidential helplines exist in most countries — a doctor or pharmacist can point you to the one where you live. INTENT’s urge support is free forever, and nothing here is ever locked.',
+    safety: 'Riding out a craving is not the same as riding out withdrawal, and neither is a stand-in for professional help. Dependence on alcohol, drugs or gambling is a clinical matter: a doctor is the right first call, and free confidential helplines exist in most countries — a doctor or pharmacist can point you to the one where you live. IntentNorth’s urge support is free forever, and nothing here is ever locked.',
   },
   {
     id: 'lapse-review',
@@ -2666,7 +2666,7 @@ export const PROTOCOLS: Protocol[] = [
     area: 'growth',
     goalDomains: ['behaviour', 'personal', 'health'],
     summary: 'Within a day of a slip, ten written minutes: what the moment actually was, what you would change about the setup, and then the next ordinary day resumes — nothing restarts from zero.',
-    why: 'One slip rarely does the damage by itself. What predicts the collapse is the account given of it — that the run is dead, that this proves something permanent, so the rest of the night may as well go the same way. Rewriting it as a single event with a fixable cause keeps the next hour available. Graded C on purpose: the effect is well described and matches what people report, but the evidence is largely observational and retrospective, and no large trial has shown that changing the interpretation alone changes what happens next. Two things follow regardless: streak counters that reset to zero hand the story its ending, so INTENT does not keep one, and a lapse is information about the setup, which is the part you can change.',
+    why: 'One slip rarely does the damage by itself. What predicts the collapse is the account given of it — that the run is dead, that this proves something permanent, so the rest of the night may as well go the same way. Rewriting it as a single event with a fixable cause keeps the next hour available. Graded C on purpose: the effect is well described and matches what people report, but the evidence is largely observational and retrospective, and no large trial has shown that changing the interpretation alone changes what happens next. Two things follow regardless: streak counters that reset to zero hand the story its ending, so IntentNorth does not keep one, and a lapse is information about the setup, which is the part you can change.',
     attribution: ['G. Alan Marlatt', 'Katie Witkiewitz'],
     days: [0],
     durationMin: 10,
@@ -2809,7 +2809,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'evening',
     tier: 'could',
     sessionType: 'journal',
-    safety: 'INTENT has no view on where your values come from or what they should be — the exercise works on whatever you already hold, and the app never supplies the list. It is also not a way to write around a real problem. If the honest answer on the page is that nothing much matters any more, or that has been true for weeks, that belongs with a doctor or a therapist rather than a journal.',
+    safety: 'IntentNorth has no view on where your values come from or what they should be — the exercise works on whatever you already hold, and the app never supplies the list. It is also not a way to write around a real problem. If the honest answer on the page is that nothing much matters any more, or that has been true for weeks, that belongs with a doctor or a therapist rather than a journal.',
   },
   {
     id: 'purpose-review',
@@ -2983,7 +2983,7 @@ export const PROTOCOLS: Protocol[] = [
   // hormone therapy, and any medication — all substances or clinical
   // judgement. Also absent on evidence grounds: the cycle-phase training
   // template, and any claim to predict a cycle or a fertile window.
-  // INTENT records what you tell it; it forecasts nothing.
+  // IntentNorth records what you tell it; it forecasts nothing.
   {
     id: 'cycle-symptom-log',
     evidenceLevel: 'C',
@@ -3001,7 +3001,7 @@ export const PROTOCOLS: Protocol[] = [
     tier: 'could',
     sessionType: 'journal',
     neverNag: true,
-    safety: 'A private record, never a forecast and never an assessment: INTENT cannot tell you what a pattern means, cannot predict a cycle, and has nothing to say about contraception, conception or any medication — those belong with a doctor. Periods that are very heavy or very painful, bleeding that has newly changed, or symptoms that flatten you every month are a doctor’s question rather than something to log around.',
+    safety: 'A private record, never a forecast and never an assessment: IntentNorth cannot tell you what a pattern means, cannot predict a cycle, and has nothing to say about contraception, conception or any medication — those belong with a doctor. Periods that are very heavy or very painful, bleeding that has newly changed, or symptoms that flatten you every month are a doctor’s question rather than something to log around.',
   },
   {
     id: 'train-to-symptoms',
@@ -3038,7 +3038,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'any',
     tier: 'should',
     sessionType: 'workout',
-    safety: 'Progressive means across months, technique before weight, and coaching is worth more here than almost anywhere else. Known osteoporosis or low bone density, a previous fragility fracture, or back, hip or joint trouble changes what loading is appropriate — that is a doctor or physiotherapist call before you start. INTENT says nothing at all about hormone therapy, medication or supplements. Broken sleep through this period is common and real: the wind-down, anchored wake time and twenty-minute-rule protocols are the behavioural tools for it, and months of bad nights belong with a doctor.',
+    safety: 'Progressive means across months, technique before weight, and coaching is worth more here than almost anywhere else. Known osteoporosis or low bone density, a previous fragility fracture, or back, hip or joint trouble changes what loading is appropriate — that is a doctor or physiotherapist call before you start. IntentNorth says nothing at all about hormone therapy, medication or supplements. Broken sleep through this period is common and real: the wind-down, anchored wake time and twenty-minute-rule protocols are the behavioural tools for it, and months of bad nights belong with a doctor.',
   },
   {
     id: 'pelvic-floor-training',
@@ -3055,7 +3055,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'wake', offsetMin: 90, windowMin: 240 },
     energy: 'any',
     tier: 'should',
-    safety: 'Learn the contraction from a pelvic health physiotherapist first — that is what makes the evidence transfer, and it is the necessary step if leaking, heaviness, pain, or anything that changed after a birth is part of the picture. Those things are assessed by a clinician; INTENT assesses nothing. Stop if the practice itself hurts. After a birth, begin what your midwife or doctor clears at your postnatal check and follow their timing over ours.',
+    safety: 'Learn the contraction from a pelvic health physiotherapist first — that is what makes the evidence transfer, and it is the necessary step if leaking, heaviness, pain, or anything that changed after a birth is part of the picture. Those things are assessed by a clinician; IntentNorth assesses nothing. Stop if the practice itself hurts. After a birth, begin what your midwife or doctor clears at your postnatal check and follow their timing over ours.',
   },
   {
     id: 'pregnancy-keep-moving',
@@ -3065,7 +3065,7 @@ export const PROTOCOLS: Protocol[] = [
     area: 'health',
     goalDomains: ['health'],
     summary: 'Ask your midwife, obstetrician or doctor what activity suits your pregnancy or your recovery, then hold the smallest version of it — usually a daily walk you can talk through.',
-    why: 'Guidelines across several countries converge: in an uncomplicated pregnancy, regular moderate activity is beneficial rather than risky, and the pooled trials behind them point to lower odds of gestational diabetes and of excessive weight gain, with no signal of harm. That is a statement about populations. Whether it describes you depends on things only your maternity team knows, and the guidelines are built around individual clearance for exactly that reason. So we ship the two parts we can honestly hold: the prompt to have the conversation, and a habit small enough to survive a trimester or a newborn. What INTENT will never do is write you a programme.',
+    why: 'Guidelines across several countries converge: in an uncomplicated pregnancy, regular moderate activity is beneficial rather than risky, and the pooled trials behind them point to lower odds of gestational diabetes and of excessive weight gain, with no signal of harm. That is a statement about populations. Whether it describes you depends on things only your maternity team knows, and the guidelines are built around individual clearance for exactly that reason. So we ship the two parts we can honestly hold: the prompt to have the conversation, and a habit small enough to survive a trimester or a newborn. What IntentNorth will never do is write you a programme.',
     attribution: ['Michelle Mottola', 'Kari Bø'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 20,
@@ -3073,7 +3073,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'any',
     tier: 'should',
     neverNag: true,
-    safety: 'Your midwife, obstetrician or doctor decides what is safe for your pregnancy and for your recovery afterwards. INTENT does not know your history and cannot know it, and this protocol has no view on intensity, load, position, or how far along you are — their instructions replace anything here, including this note. Stop and contact your maternity team for bleeding, fluid leaking, regular painful contractions, chest pain, calf pain or swelling, dizziness or headache. After a birth, nothing restarts before your postnatal check clears it.',
+    safety: 'Your midwife, obstetrician or doctor decides what is safe for your pregnancy and for your recovery afterwards. IntentNorth does not know your history and cannot know it, and this protocol has no view on intensity, load, position, or how far along you are — their instructions replace anything here, including this note. Stop and contact your maternity team for bleeding, fluid leaking, regular painful contractions, chest pain, calf pain or swelling, dizziness or headache. After a birth, nothing restarts before your postnatal check clears it.',
   },
 
   // ── Connection: the craft of parenting ────────────────────────────────
@@ -3375,7 +3375,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '18:30', windowMin: 90 },
     energy: 'evening',
     tier: 'could',
-    safety: 'For some people, parting with things is genuinely distressing rather than merely tedious — enough that rooms stop being usable. Difficulty discarding possessions is a recognised clinical condition with real help available, and it belongs with your doctor rather than with a tidying schedule. INTENT cannot tell which situation you are in and this is not an assessment. Never run a pass on someone else’s belongings without their agreement.',
+    safety: 'For some people, parting with things is genuinely distressing rather than merely tedious — enough that rooms stop being usable. Difficulty discarding possessions is a recognised clinical condition with real help available, and it belongs with your doctor rather than with a tidying schedule. IntentNorth cannot tell which situation you are in and this is not an assessment. Never run a pass on someone else’s belongings without their agreement.',
   },
 ];
 
@@ -3487,7 +3487,7 @@ export const LEARNING_ANTIPATTERNS =
   'much for what you can recall later. And the idea that people learn better ' +
   'when material is matched to their "learning style" has been tested directly ' +
   'several times and the predicted benefit has not shown up — preferences are ' +
-  'real, but matching to them does not appear to be what helps. INTENT ' +
+  'real, but matching to them does not appear to be what helps. IntentNorth ' +
   'schedules recall, spacing and mixed practice instead.';
 
 /** The pillars that serve a goal domain — the natural prompt scope. */

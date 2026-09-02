@@ -3,11 +3,11 @@
  *
  * ── Why this is the most important screen in the app ────────────────────
  *
- * INTENT holds seven coaches. To anyone looking at it, that is seven
+ * IntentNorth holds seven coaches. To anyone looking at it, that is seven
  * half-apps competing with specialists that each do one thing better. The
  * single answer to that is cross-domain arbitration: when training and
  * family and work all want the same evening, something has to give, and
- * INTENT is the only one of them that can decide, because it is the only
+ * IntentNorth is the only one of them that can decide, because it is the only
  * one holding all three.
  *
  * That arbitration now works. It has, until this file, been completely

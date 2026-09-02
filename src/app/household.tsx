@@ -156,7 +156,7 @@ export default function Household() {
       <Card style={{ borderStyle: 'dashed', borderWidth: 1, borderColor: theme.border, marginTop: Spacing.xl }}>
         <AppText variant="heading">Partner accounts — coming with sync</AppText>
         <AppText variant="caption" color="textTertiary">
-          {partner ? `${partner.name} gets their own INTENT` : 'Your partner gets their own INTENT'}
+          {partner ? `${partner.name} gets their own IntentNorth` : 'Your partner gets their own IntentNorth'}
           , date nights coordinate themselves, and shared plans stay in step. Private by default,
           shared only by explicit choice.
         </AppText>

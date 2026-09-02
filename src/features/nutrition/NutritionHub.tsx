@@ -103,7 +103,7 @@ export function NutritionHub() {
         />
       </View>
       <AppText variant="caption" color="textTertiary" style={styles.hint}>
-        Two or three a week, same time of day. INTENT only ever reads the trend — a heavy day is
+        Two or three a week, same time of day. IntentNorth only ever reads the trend — a heavy day is
         water, not truth.
       </AppText>
 

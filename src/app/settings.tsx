@@ -198,7 +198,7 @@ export default function Settings() {
         </AppText>
       </Card>
 
-      <SectionHeader title="INTENT Plus" />
+      <SectionHeader title="IntentNorth Plus" />
       <Card onPress={() => router.push('/upgrade' as never)}>
         <AppText variant="heading">Your whole life, one co-pilot</AppText>
         <AppText variant="caption" color="textTertiary">
@@ -239,7 +239,7 @@ export default function Settings() {
           <AppText variant="caption" color="textTertiary">
             Connect Apple Health and a short night automatically adjusts today&apos;s workout,
             weigh-ins feed the nutrition trend, and resting heart rate adds recovery context.
-            Read-only — INTENT never writes to Health.
+            Read-only — IntentNorth never writes to Health.
           </AppText>
           <Button
             title={connectingHealth ? 'Waiting for permission…' : 'Connect Apple Health'}
@@ -276,7 +276,7 @@ export default function Settings() {
       <SectionHeader title="Notifications" />
       <AppText variant="caption" color="textTertiary">
         {notifPermission === 'denied'
-          ? 'Turned off for INTENT in iOS Settings. Enable them there first, then come back.'
+          ? 'Turned off for IntentNorth in iOS Settings. Enable them there first, then come back.'
           : notifPermission === 'unavailable'
             ? 'Not available in this build.'
             : `At most ${notifications.dailyCap} a day, never during your quiet hours, and nothing at all until you turn one of these on. An app that says four things a day gets muted in a fortnight.`}
@@ -325,7 +325,7 @@ export default function Settings() {
         </View>
       ))}
       <AppText variant="caption" color="textTertiary" style={styles.note}>
-        INTENT tracks these supportively — occurrences are data, never failures. Nothing here is
+        IntentNorth tracks these supportively — occurrences are data, never failures. Nothing here is
         medical advice; if something feels bigger than a habit, professional support is the right
         tool.
       </AppText>

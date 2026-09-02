@@ -3,7 +3,7 @@
  *
  * Each simulated user has a *stated* profile (what they tell the Life
  * Interview) and a *hidden* ground truth (when they actually complete
- * things, how they respond to suggestions). INTENT never sees the ground
+ * things, how they respond to suggestions). IntentNorth never sees the ground
  * truth — the whole point is measuring whether the system converges on it
  * from behaviour alone.
  */
@@ -23,7 +23,7 @@ export interface GroundTruth {
   adherence: number;
   /** When a slot mismatch bites, probability the user moves vs. just skips. */
   moveTendency: number;
-  /** Probability of accepting an INTENT suggestion. */
+  /** Probability of accepting an IntentNorth suggestion. */
   acceptProb: number;
   /** Probability of applying the weekly review's changes. */
   applyReviewProb: number;

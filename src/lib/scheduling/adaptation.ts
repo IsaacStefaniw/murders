@@ -103,7 +103,7 @@ export function applyMoveRoutine(routines: Routine[], suggestion: Suggestion): R
  * "Don't miss twice" — the anti-fragile alternative to streaks.
  *
  * A single miss is noise and is never surfaced. Two consecutive misses are
- * the fork where habits tend to unravel, so INTENT offers to protect the
+ * the fork where habits tend to unravel, so IntentNorth offers to protect the
  * next session (raising it to Must). There is deliberately nothing to
  * "break": misses carry no loss, only a pattern worth resetting.
  */
@@ -150,7 +150,7 @@ export interface ManualMove {
  *   > general completion behaviour by time.
  *
  * "You moved 6 of your last 8 workouts to the evening — and completed 5 of
- * them. Make evenings the default?" This is INTENT working.
+ * them. Make evenings the default?" This is IntentNorth working.
  */
 export function detectMoveOutcome(
   moves: ManualMove[],

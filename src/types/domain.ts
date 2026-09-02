@@ -1,5 +1,5 @@
 /**
- * INTENT domain model — the client-side shape of the Personal Life Graph.
+ * IntentNorth domain model — the client-side shape of the Personal Life Graph.
  *
  * These types mirror the database schema in supabase/migrations. Keep them in
  * sync via docs/DATA_MODEL.md when either changes.
@@ -16,7 +16,7 @@ export type LifeArea =
 
 export type EnergyProfile = 'morning' | 'midday' | 'evening' | 'any';
 
-/** Practices the user ALREADY does — captured at onboarding so INTENT
+/** Practices the user ALREADY does — captured at onboarding so IntentNorth
  * builds on established behaviour instead of prescribing from zero. */
 export type ExistingHabitKey =
   | 'fasting'
@@ -32,7 +32,7 @@ export type ExistingHabitKey =
  * Things the plan must work around. Captured at onboarding because they
  * change what gets BUILT, not merely when it is scheduled.
  *
- * Deliberately coarse and self-reported. INTENT is not a clinician and
+ * Deliberately coarse and self-reported. IntentNorth is not a clinician and
  * must never behave like one: these steer movement selection towards the
  * conservative option and nothing else. No diagnosis, no treatment, no
  * advice — if something hurts, a professional is the right tool.
@@ -86,7 +86,7 @@ export interface LifeProfile {
   moreOf: string[];
   /** Behaviour catalog keys the user wants less of. */
   lessOf: BehaviourKey[];
-  /** What's already part of their life — the foundations INTENT builds on. */
+  /** What's already part of their life — the foundations IntentNorth builds on. */
   existingHabits?: ExistingHabitKey[];
   /** What the plan must work around. Steers movement, never diagnoses. */
   constraints?: PhysicalConstraint[];
@@ -268,7 +268,7 @@ export interface Routine {
   duringWork?: boolean;
   /** The modality session that runs this routine, if one exists. */
   sessionType?: SessionType;
-  /** Anchored on something the user already does — INTENT is organising
+  /** Anchored on something the user already does — IntentNorth is organising
    * and upgrading an existing habit, not prescribing a new one. */
   established?: boolean;
   /**
@@ -334,7 +334,7 @@ export interface PlanItem {
 /**
  * The behavioural event stream — every reschedule, shorten, skip and
  * completion, who initiated it, and with what evidence. This dataset is
- * what lets INTENT eventually say "you've moved 7 of your last 9 morning
+ * what lets IntentNorth eventually say "you've moved 7 of your last 9 morning
  * workouts to the evening and completed 6 — make evenings the default?"
  */
 export interface PlanActionEvent {
@@ -352,7 +352,7 @@ export interface PlanActionEvent {
   newDate?: string;
   originalDurationMin?: number;
   newDurationMin?: number;
-  /** Whether INTENT suggested this change or the user initiated it. */
+  /** Whether IntentNorth suggested this change or the user initiated it. */
   initiatedBy: 'user' | 'intent';
   reason?: string;
   evidence?: CompletionEvidence;

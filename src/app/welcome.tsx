@@ -15,14 +15,17 @@ export default function Welcome() {
   return (
     <Screen scroll={false}>
       <View style={styles.hero}>
+        {/* The wordmark. Full name on the first screen anyone sees; the
+            copy below shortens to "IntentNorth" and people will shorten it
+            again to "Intent", which is fine and is why the name kept it. */}
         <AppText variant="label" color="accent">
-          Intent
+          IntentNorth
         </AppText>
         <AppText variant="display" style={styles.headline}>
           Build a life you actually follow.
         </AppText>
         <AppText variant="secondary" style={{ color: theme.textSecondary }}>
-          Three minutes of questions. Then INTENT plans your days around what you say matters —
+          Three minutes of questions. Then IntentNorth plans your days around what you say matters —
           and keeps learning as you live them.
         </AppText>
       </View>

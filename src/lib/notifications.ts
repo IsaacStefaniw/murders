@@ -83,7 +83,7 @@ async function load(): Promise<NotificationsModule | null> {
     // iPhone-first does not mean iPhone-only, and a silent drop is a bug
     // that only appears on someone else's phone.
     await cached.setNotificationChannelAsync?.('default', {
-      name: 'INTENT',
+      name: 'IntentNorth',
       importance: 4,
       sound: null,
       vibrationPattern: [0, 250],

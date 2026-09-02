@@ -429,7 +429,7 @@ export default function Today() {
           chips cover the eight common habits in one tap; anything else —
           including your own routines — goes through the fuller entry
           below, because the day has to be able to hold what actually
-          happened and not only what INTENT suggested. */}
+          happened and not only what IntentNorth suggested. */}
       <SectionHeader title="Already done" />
       <QuickLog />
       <View style={styles.didIt}>

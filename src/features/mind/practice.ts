@@ -65,7 +65,7 @@ export function practiceLevel(
 ): PracticeLevel {
   const monthMinutes = windowMinutes(metrics, 28);
   const earned = [...PRACTICE_LEVELS].reverse().find((l) => monthMinutes >= l.minutesFor)!;
-  // An existing meditation habit starts at "five steady minutes" — INTENT
+  // An existing meditation habit starts at "five steady minutes" — IntentNorth
   // never talks to an established meditator like a beginner.
   if (establishedMeditator && earned.level < 2) return PRACTICE_LEVELS[1];
   return earned;

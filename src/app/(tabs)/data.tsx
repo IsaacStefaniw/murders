@@ -297,7 +297,7 @@ export default function Data() {
         <>
           <SectionHeader title="How it's going" />
           <Card style={styles.stack}>
-            <Stat label="Days using INTENT" value={String(cohort.daysSince)} />
+            <Stat label="Days using IntentNorth" value={String(cohort.daysSince)} />
             <Stat
               label="Plans you kept"
               value={

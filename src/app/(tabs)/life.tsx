@@ -123,7 +123,7 @@ export default function Life() {
           answered rather than sitting there as a permanent chore. */}
       <DeferredQuestions
         target="coaches"
-        promise="One more thing INTENT can use across every coach."
+        promise="One more thing IntentNorth can use across every coach."
       />
 
       <SectionHeader title="Paths" />
@@ -245,7 +245,7 @@ export default function Life() {
         // directions instead of a button.
         <EmptyState
           title="Nothing you're cutting back on"
-          message="Drinking, scrolling, late nights — naming one is how INTENT knows to help at the moment it usually happens, rather than reporting on it afterwards."
+          message="Drinking, scrolling, late nights — naming one is how IntentNorth knows to help at the moment it usually happens, rather than reporting on it afterwards."
           actionTitle="Choose something"
           onAction={() => router.push('/settings')}
         />

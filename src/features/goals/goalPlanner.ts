@@ -1,5 +1,5 @@
 /**
- * Goal planner — INTENT does the structuring, not the user.
+ * Goal planner — IntentNorth does the structuring, not the user.
  *
  * From one sentence ("Grow the business to $2m revenue") this module infers
  * the domain, extracts target and timeframe, and produces a domain-shaped

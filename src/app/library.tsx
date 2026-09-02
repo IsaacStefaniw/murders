@@ -71,7 +71,7 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
       />
       {active ? (
         <AppText variant="caption" color="success">
-          INTENT schedules this into your week automatically.
+          IntentNorth schedules this into your week automatically.
         </AppText>
       ) : null}
     </Card>
@@ -94,14 +94,14 @@ export default function Library() {
       </View>
       <AppText variant="title">Evidence-based practices</AppText>
       <AppText variant="secondary" style={styles.intro}>
-        Practices distilled, in INTENT&apos;s own words, from the public evidence-based teaching
+        Practices distilled, in IntentNorth&apos;s own words, from the public evidence-based teaching
         of Tim Ferriss, Andrew Huberman, Peter Attia, Rhonda Patrick, Jordan Peterson and David
-        Sinclair. Add one and INTENT plans it into your real week — and adapts it like anything
+        Sinclair. Add one and IntentNorth plans it into your real week — and adapts it like anything
         else you do.
       </AppText>
       <AppText variant="caption" color="textTertiary" style={styles.disclaimer}>
         Educational structure, not medical advice. Attribution credits public work and implies no
-        endorsement of INTENT.
+        endorsement of IntentNorth.
       </AppText>
 
       {PILLAR_ORDER.map((pillar) => {

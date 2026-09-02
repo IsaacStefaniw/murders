@@ -289,7 +289,7 @@ export function runUser(
     // Keep detector input windowed like the store does.
     delete plans[addDays(date, -HISTORY_DAYS - 1)];
 
-    // INTENT reacts — same evidence hierarchy as the store.
+    // IntentNorth reacts — same evidence hierarchy as the store.
     const history = Object.values(plans).flatMap((p) => p.items);
     const claimed = new Set<string | undefined>();
     const fresh: Suggestion[] = [];

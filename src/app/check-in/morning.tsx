@@ -28,7 +28,7 @@ export default function MorningCheckIn() {
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
   const goals = useAppStore((s) => s.goals);
 
-  // INTENT proposes the intention; the user approves or overrides.
+  // IntentNorth proposes the intention; the user approves or overrides.
   const [proposal] = useState(() =>
     plan
       ? proposeIntention({ plan, behaviourIntentions, behaviourEvents, goals })

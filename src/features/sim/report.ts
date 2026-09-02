@@ -229,14 +229,14 @@ const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
 export function renderMarkdown(rep: CohortReport): string {
   const lines = [
-    `# INTENT cohort simulation — ${rep.users} users × ${rep.weeks} weeks`,
+    `# IntentNorth cohort simulation — ${rep.users} users × ${rep.weeks} weeks`,
     '',
     `Personas: ${Object.entries(rep.personas)
       .map(([k, v]) => `${k} ${v}`)
       .join(' · ')}`,
     `Engine health: ${rep.errors} errors · ${rep.overlapViolations} overlap violations · ${rep.avgUnplacedPerWeek.toFixed(2)} unplaced/user-week`,
     '',
-    '## Does INTENT learn?',
+    '## Does IntentNorth learn?',
     `- Weekly completion: ${pct(rep.completion.early)} (wk 1–2) → ${pct(rep.completion.mid)} (mid) → ${pct(rep.completion.late)} (final month) — **${rep.completion.liftPts >= 0 ? '+' : ''}${rep.completion.liftPts.toFixed(1)} pts**`,
     `- Things actually done: ${rep.completionsPerUserWeek.early.toFixed(1)} → ${rep.completionsPerUserWeek.late.toFixed(1)} per user-week (${rep.completionsPerUserWeek.late >= rep.completionsPerUserWeek.early ? '+' : ''}${(((rep.completionsPerUserWeek.late - rep.completionsPerUserWeek.early) / rep.completionsPerUserWeek.early) * 100).toFixed(1)}%)`,
     `- Schedule↔life alignment (flexible minutes in the user's true best slot): ${pct(rep.alignment.early)} → ${pct(rep.alignment.late)} — **${rep.alignment.liftPts >= 0 ? '+' : ''}${rep.alignment.liftPts.toFixed(1)} pts**`,

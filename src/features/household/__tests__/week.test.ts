@@ -81,7 +81,7 @@ describe('buildTogetherWeek', () => {
     expect(text).toContain('Our week, Anna:');
     expect(text).toContain('• Friday');
     expect(text).toContain('Date night');
-    expect(text).toContain('planned with INTENT');
+    expect(text).toContain('planned with IntentNorth');
   });
 
   it('stays warm on an empty week', () => {

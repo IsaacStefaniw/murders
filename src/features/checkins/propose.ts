@@ -1,5 +1,5 @@
 /**
- * Morning intention proposer — INTENT does the cognitive work.
+ * Morning intention proposer — IntentNorth does the cognitive work.
  *
  * The check-in should be approvals, not authorship: from behaviour
  * intentions, recent triggers and today's plan, propose one specific

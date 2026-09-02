@@ -3,7 +3,7 @@
  *
  * ── The problem, and why the obvious solution was wrong ─────────────────
  *
- * Nobody could tell whether INTENT works. Not the person using it, not the
+ * Nobody could tell whether IntentNorth works. Not the person using it, not the
  * person building it. There was no activation funnel, no retention curve,
  * no completion trend — which means no way to improve deliberately and no
  * evidence to show anyone.

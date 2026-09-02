@@ -1,7 +1,7 @@
 /**
  * Behaviour catalog — supportive, neutral, non-shaming.
  *
- * INTENT is a wellbeing product, not a diagnosis or treatment product.
+ * IntentNorth is a wellbeing product, not a diagnosis or treatment product.
  * Copy never moralises. Occurrences are data, not failures.
  *
  * The hard rule in this file is about `effects`. Someone who logs something
@@ -124,7 +124,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     safetyNote:
       'If cutting down feels hard, or stopping suddenly causes shakes, sweating or anxiety, ' +
       'talk to a doctor before making big changes — stopping abruptly can be unsafe for some ' +
-      'people. Support exists and it works. INTENT will pace changes gradually.',
+      'people. Support exists and it works. IntentNorth will pace changes gradually.',
     effects: [
       {
         withinHoursOfSleep: 4,
@@ -174,7 +174,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     safetyNote:
       'Quitting is far easier with support than alone. Your GP or a national quitline can ' +
       'offer nicotine replacement and a plan — both roughly double the odds of it sticking. ' +
-      'INTENT is here for the pattern, not instead of that.',
+      'IntentNorth is here for the pattern, not instead of that.',
     effects: [
       {
         withinHoursOfSleep: 3,
@@ -226,7 +226,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     detailHint: 'e.g. late, alone, restless',
     safetyNote:
       'This one carries a lot of shame for a lot of people, and shame is the part that makes ' +
-      'it harder to change. INTENT logs it flatly and says nothing about what it means about ' +
+      'it harder to change. IntentNorth logs it flatly and says nothing about what it means about ' +
       'you. If it is affecting your relationship or your work, a therapist is a better tool ' +
       'than an app.',
   },
@@ -249,7 +249,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
       'Gambling is the one habit in this list where the right next step is usually a person, ' +
       'not an app. Free, confidential help exists in most countries — in Australia, Gambling ' +
       'Help Online (1800 858 858) is 24/7. Bank card gambling blocks and self-exclusion ' +
-      'schemes work better than intention alone. INTENT will not track amounts or losses.',
+      'schemes work better than intention alone. IntentNorth will not track amounts or losses.',
     effects: [
       {
         text: 'Near-misses activate the same reward circuitry as wins, which is why machines and apps are designed to produce them. The pull after a near-miss is engineered, not a personal failing.',

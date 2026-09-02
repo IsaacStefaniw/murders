@@ -10,7 +10,7 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
- * INTENT Plus — preview of the paywall arc (docs/MONETIZATION.md).
+ * IntentNorth Plus — preview of the paywall arc (docs/MONETIZATION.md).
  * SCAFFOLDED: no billing is wired; this screen designs the moment so the
  * product carries its shape before payments exist. Placement doctrine:
  * shown once, right after "Paths starting today" — never mid-session,
@@ -25,13 +25,13 @@ export default function Upgrade() {
     <Screen>
       <View style={styles.topRow}>
         <AppText variant="label" color="textTertiary" style={styles.grow}>
-          INTENT Plus
+          IntentNorth Plus
         </AppText>
         <Button title="Done" variant="ghost" onPress={close} />
       </View>
       <AppText variant="title">Your whole life, one co-pilot.</AppText>
       <AppText variant="secondary" style={styles.sub}>
-        Free INTENT gives you a complete week: the interview, one active path, the adaptive plan,
+        Free IntentNorth gives you a complete week: the interview, one active path, the adaptive plan,
         every session. Plus runs every part of your life at once — and learns faster.
       </AppText>
 
@@ -46,7 +46,7 @@ export default function Upgrade() {
         {[
           ['All five paths, together', 'Training, nutrition, money, work and habits running as one plan — the trade-offs handled for you.'],
           ['Apple Health', 'Sleep, resting heart rate and weight read straight in, so last night shapes today’s session without you typing anything.'],
-          ['Timed interventions', 'INTENT works out when a habit usually wins and puts something else in front of you before that window, not after.'],
+          ['Timed interventions', 'IntentNorth works out when a habit usually wins and puts something else in front of you before that window, not after.'],
           ['Full history & weekly reports', 'Every week you’ve won, and what actually changed.'],
         ].map(([title, body]) => (
           <Card key={title}>

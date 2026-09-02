@@ -2,7 +2,7 @@
  * Progressive Question Engine — depth without questionnaire fatigue.
  *
  * Every possible question declares its domain, importance, information
- * gain, burden and where the answer could come from. INTENT asks ONE
+ * gain, burden and where the answer could come from. IntentNorth asks ONE
  * next-best question at a time ("I can make your training more accurate
  * if I know your current bench press. Add it?") and never asks for what
  * it already knows — from the profile, from a metric observation, from a
@@ -375,7 +375,7 @@ export function isAnswered(q: QuestionDef, ctx: QuestionContext): boolean {
   return false;
 }
 
-/** The single next-best question, or null when INTENT knows enough. */
+/** The single next-best question, or null when IntentNorth knows enough. */
 export function nextQuestion(ctx: QuestionContext): QuestionDef | null {
   const cooldown = new Date(Date.now() - ASK_COOLDOWN_DAYS * 86400e3).toISOString();
   const candidates = QUESTIONS.filter((q) => {

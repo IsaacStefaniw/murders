@@ -198,7 +198,7 @@ export interface AppState {
   /**
    * Record something that happened and was never in the plan.
    *
-   * Everything a day could contain used to be something INTENT had
+   * Everything a day could contain used to be something IntentNorth had
    * scheduled, which quietly made it a scoreboard for its own suggestions.
    * A run the app did not think of earned no credit, the day read emptier
    * than it was, and next week was then planned from that fiction.
@@ -417,7 +417,7 @@ const initialData = {
   clockOffsetMs: 0,
 };
 
-/** Derive Training v2 inputs from everything INTENT already knows. */
+/** Derive Training v2 inputs from everything IntentNorth already knows. */
 export function deriveTrainingInputs(
   profile: LifeProfile,
   pathAnswers: Record<string, string> | undefined,
@@ -473,7 +473,7 @@ export function deriveTrainingInputs(
   };
 }
 
-/** Derive Work & Leadership v2 inputs from everything INTENT already knows. */
+/** Derive Work & Leadership v2 inputs from everything IntentNorth already knows. */
 export function deriveWorkInputs(
   profile: LifeProfile,
   pathAnswers: Record<string, string> | undefined,
@@ -682,7 +682,7 @@ export const useAppStore = create<AppState>()(
 
           // The chosen time is granted and the flexible day re-laid around
           // it. Choosing a time is a statement about priority; answering
-          // "something else is there" mistakes INTENT's own arrangement for
+          // "something else is there" mistakes IntentNorth's own arrangement for
           // a fact about the person's life.
           const outcome = moveWithBump(plan, itemId, newStart, {
             wakeTime: profile.wakeTime,
@@ -698,7 +698,7 @@ export const useAppStore = create<AppState>()(
             }),
           );
           // Each knock-on move is recorded as its own reschedule, initiated
-          // by INTENT rather than the user — the learning layer should not
+          // by IntentNorth rather than the user — the learning layer should not
           // read a bump as the person choosing that time.
           for (const d of outcome.displaced) {
             const moved = plan.items.find((i) => i.id === d.id);

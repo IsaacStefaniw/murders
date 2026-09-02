@@ -3,7 +3,7 @@ import '@/global.css';
 import { Platform } from 'react-native';
 
 /**
- * INTENT design tokens.
+ * IntentNorth design tokens.
  *
  * The product should feel calm, premium, warm and deliberate. Warm paper
  * background, ink text, a single restrained accent (deep sage green), and
