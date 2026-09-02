@@ -105,6 +105,17 @@ interface Placement {
   routine: Routine;
   start: number;
   end: number;
+  /**
+   * Where the routine ASKED to go, when it did not get it.
+   *
+   * The visible half of arbitration is almost never a drop. A day rarely
+   * refuses something outright — flexible routines simply spill into
+   * whatever gap is left, so five things competing for one evening all get
+   * placed and the person is told nothing. What actually happened is that
+   * four of them MOVED, and which one kept its hour is the decision worth
+   * naming.
+   */
+  movedFrom?: number;
 }
 
 /**
@@ -173,13 +184,29 @@ export function placeRoutines(
       unplaced.push(routine);
       continue;
     }
-    placements.push({ routine, start: spot, end: spot + routine.durationMin });
+    const wanted = toMinutes(routine.preferredStart);
+    placements.push({
+      routine,
+      start: spot,
+      end: spot + routine.durationMin,
+      // A minute or two of drift is scheduling, not a decision. Only a
+      // move large enough for a person to notice is worth explaining.
+      movedFrom: Math.abs(spot - wanted) >= NOTICEABLE_MOVE_MIN ? wanted : undefined,
+    });
     carveOut(free, spot - bufferMin, spot + routine.durationMin + bufferMin);
   }
 
   placements.sort((a, b) => a.start - b.start);
   return { placements, unplaced };
 }
+
+/**
+ * The smallest move worth telling someone about.
+ *
+ * Half an hour: below that the plan is just settling, and narrating it
+ * would turn a useful sentence into noise that people learn to ignore.
+ */
+const NOTICEABLE_MOVE_MIN = 30;
 
 /**
  * How far outside its window a flexible routine may be pushed.
@@ -268,7 +295,18 @@ function carveOut(free: Window[], from: number, to: number): void {
  * routines, respecting the reserved-free-time rule. When placements would
  * consume too much of the day, lowest-tier items are dropped first.
  */
-export function buildDailyPlan(ctx: DayContext): DailyPlan & { unplaced: Routine[] } {
+/** A routine that got a place, but not the one it asked for. */
+export interface MovedPlacement {
+  routine: Routine;
+  /** Minutes from midnight it wanted. */
+  from: number;
+  /** Minutes from midnight it got. */
+  to: number;
+}
+
+export function buildDailyPlan(
+  ctx: DayContext,
+): DailyPlan & { unplaced: Routine[]; moved: MovedPlacement[] } {
   const buffer = ctx.bufferMin ?? DEFAULT_BUFFER_MIN;
   const reserved = ctx.reservedFreeFraction ?? DEFAULT_RESERVED_FRACTION;
   const weekday = weekdayOf(ctx.date);
@@ -306,6 +344,9 @@ export function buildDailyPlan(ctx: DayContext): DailyPlan & { unplaced: Routine
     }
   }
   kept.sort((a, b) => a.start - b.start);
+  const moved: MovedPlacement[] = kept
+    .filter((p) => p.movedFrom !== undefined)
+    .map((p) => ({ routine: p.routine, from: p.movedFrom!, to: p.start }));
 
   const items: PlanItem[] = [
     ...ctx.fixed.map(
@@ -349,6 +390,7 @@ export function buildDailyPlan(ctx: DayContext): DailyPlan & { unplaced: Routine
     items,
     summary: summarise(items, totalFree, ctx.date),
     unplaced,
+    moved,
   };
 }
 

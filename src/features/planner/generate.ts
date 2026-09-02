@@ -10,7 +10,7 @@
  */
 
 import { buildDailyPlan, computeFreeWindows } from '@/lib/scheduling/engine';
-import type { FixedCommitment } from '@/lib/scheduling/engine';
+import type { FixedCommitment, MovedPlacement } from '@/lib/scheduling/engine';
 import { toMinutes, toHHMM, weekdayOf } from '@/lib/dates';
 import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine } from '@/types/domain';
 
@@ -96,7 +96,7 @@ export function generateDailyPlan(
   date: string,
   calendarEvents: FixedCommitment[] = [],
   goals: Goal[] = [],
-): DailyPlan & { unplaced: Routine[] } {
+): DailyPlan & { unplaced: Routine[]; moved: MovedPlacement[] } {
   // Real calendar events are truth; modelled work hours are the fallback
   // for work days the calendar knows nothing about.
   const fixed =
