@@ -3,8 +3,11 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# The environment lives in sites-env.mjs so there is one definition of it for
+# every platform. This installer stays bash because it is deliberately
+# Linux-only: it depends on flock and /proc to guarantee a single install.
 if [[ "${SITES_ENV_READY:-}" != "1" ]]; then
-  exec "${script_dir}/sites-env.sh" -- "$0" "$@"
+  exec node "${script_dir}/sites-env.mjs" -- bash "$0" "$@"
 fi
 
 command -v flock || {
