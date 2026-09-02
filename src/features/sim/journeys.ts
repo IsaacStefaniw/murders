@@ -34,6 +34,7 @@ import type { PlanItem } from '@/types/domain';
 import {
   checkAudienceGating,
   checkCoachNote,
+  checkTone,
   type Finding,
 } from '@/features/sim/screens';
 
@@ -419,6 +420,11 @@ export function runJourneys(users: number, days: number): JourneyResult {
     // after their days so the plans, routines and metrics are real.
     const myFindings: Finding[] = [];
     checkAudienceGating(myFindings);
+    // Every line the app volunteered to this person, read as writing.
+    for (const s of useAppStore.getState().suggestions) {
+      checkTone(s.message, 'suggestion', myFindings);
+      if (s.reason) checkTone(s.reason, 'suggestion', myFindings);
+    }
     for (const date of Object.keys(useAppStore.getState().plans)) {
       checkCoachNote(date, myFindings);
     }

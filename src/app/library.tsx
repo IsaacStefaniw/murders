@@ -12,7 +12,8 @@ import {
   EVIDENCE_LABELS,
   PILLAR_LABELS,
   AUDIENCE_LABEL,
-  generalProtocols,
+  listedProtocols,
+  optInAudiencesFor,
   protocolsFor,
   type Pillar,
   type Protocol,
@@ -87,6 +88,12 @@ export default function Library() {
   const [openAudience, setOpenAudience] = useState<'femaleAnatomy' | 'pregnancy' | 'menopause' | null>(null);
   const theme = useTheme();
   const router = useRouter();
+  // What this person's anatomy makes relevant. Unanswered or withheld means
+  // the app does not know, and shows the opt-ins rather than deciding.
+  const sexAtBirth = useAppStore((s) => s.profile?.sexAtBirth);
+  const updateProfile = useAppStore((st) => st.updateProfile);
+  const listed = listedProtocols(sexAtBirth);
+  const optIn = optInAudiencesFor(sexAtBirth);
   const close = () => (router.canGoBack() ? router.back() : router.replace('/life' as never));
   return (
     <Screen>
@@ -109,7 +116,7 @@ export default function Library() {
       </AppText>
 
       {PILLAR_ORDER.map((pillar) => {
-        const items = generalProtocols().filter((p) => p.pillar === pillar);
+        const items = listed.filter((p) => p.pillar === pillar);
         if (items.length === 0) return null;
         return (
           <View key={pillar}>
@@ -120,19 +127,56 @@ export default function Library() {
           </View>
         );
       })}
-      {/* Practices for one body or life stage.
-          They used to sit unlabelled in the general lists, so a single tap
+      {/* Life stages, not anatomy.
+          These used to sit unlabelled in the general lists, so a single tap
           could put pelvic floor training into anybody's week — and the next
           morning the coach note handed it the most prominent slot on the
-          Today screen. The app still does not ask anyone's sex and does not
-          start now: these are named for who they are for and opened on
-          purpose. Two taps for the person who wants one, none by accident. */}
-      <SectionHeader title="Practices for particular bodies" />
-      <AppText variant="caption" color="textTertiary" style={styles.disclaimer}>
-        Kept separate because they apply to some people and not others. IntentNorth does not ask
-        your sex and does not guess — open the one that is yours.
-      </AppText>
-      {(['femaleAnatomy', 'pregnancy', 'menopause'] as const).map((audience) => {
+          Today screen. Labelling them was the first fix and it was not
+          enough: a man still found them and reasonably wondered what else
+          the app had wrong about him. Now the interview asks, and this
+          section holds only what is a stage rather than a state — opened on
+          purpose by the person it might apply to, and absent entirely for
+          anyone it cannot. */}
+      {/* Asked here rather than in the interview, because the scheduler can
+          build a correct first week without it and the spine is reserved for
+          what it cannot. One tap, and only for someone who came looking. */}
+      {sexAtBirth === undefined ? (
+        <View>
+          <SectionHeader title="Anything that depends on anatomy" />
+          <AppText variant="caption" color="textTertiary" style={styles.disclaimer}>
+            A few practices here — pelvic floor, cycle and menopause guidance — only apply to
+            some bodies, so IntentNorth holds them back until it knows. Nothing else changes.
+          </AppText>
+          <View style={styles.audienceRow}>
+            {(
+              [
+                ['female', 'Female'],
+                ['male', 'Male'],
+                ['preferNotToSay', 'Rather not say'],
+              ] as const
+            ).map(([value, label]) => (
+              <Button
+                key={value}
+                title={label}
+                variant="secondary"
+                onPress={() => updateProfile({ sexAtBirth: value })}
+                style={styles.audienceButton}
+              />
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {optIn.length > 0 ? (
+        <>
+          <SectionHeader title="For a particular stage" />
+          <AppText variant="caption" color="textTertiary" style={styles.disclaimer}>
+            Kept separate because these apply during one stage of life rather than all of it.
+            Open the one that is yours.
+          </AppText>
+        </>
+      ) : null}
+      {optIn.map((audience) => {
         const items = protocolsFor(audience);
         if (items.length === 0) return null;
         const open = openAudience === audience;
@@ -163,6 +207,7 @@ const styles = StyleSheet.create({
   intro: { marginTop: Spacing.sm },
   disclaimer: { marginTop: Spacing.sm },
   card: { marginBottom: Spacing.md, gap: Spacing.sm },
+  audienceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   audienceButton: { marginTop: Spacing.sm },
   headerRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
   grow: { flexShrink: 1 },

@@ -93,7 +93,7 @@ export function buildLookingAhead(
         key: `gap-${date}`,
         when: WEEKDAYS[weekday],
         date,
-        title: 'Nothing planned yet',
+        title: 'Open',
         kind: 'gap',
       });
       break; // one gap invitation at a time
@@ -136,7 +136,11 @@ export function detectAnticipationGap(
   return {
     id: newId('sug'),
     kind: 'connection',
-    message: `Nothing to look forward to this week. ${weekdayName} morning is open — ${idea.toLowerCase()}?`,
+    // Opening on the absence contradicted the rest of the sentence — it
+    // announced there was nothing to look forward to and then named
+    // something to look forward to — and led with a deficit besides. The
+    // open morning IS the good news; say that and stop.
+    message: `${weekdayName} morning is wide open — ${idea.toLowerCase()}?`,
     reason:
       'A good week needs more than obligations done well. You said this matters; the time exists.',
     payload: {

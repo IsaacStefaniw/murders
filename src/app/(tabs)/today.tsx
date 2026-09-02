@@ -468,7 +468,7 @@ export default function Today() {
           </AppText>
           <AppText variant="heading" style={styles.aheadTitle}>
             {lookAheadHighlight.kind === 'gap'
-              ? 'Nothing planned yet — want something to look forward to?'
+              ? 'Yours to spend — want to put something in it?'
               : `${lookAheadHighlight.title}${lookAheadHighlight.start ? ` · ${formatTime(lookAheadHighlight.start)}` : ''}`}
           </AppText>
           {planningGap === lookAheadHighlight.date ? (

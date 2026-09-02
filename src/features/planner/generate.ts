@@ -11,6 +11,7 @@
 
 import { buildDailyPlan, computeFreeWindows } from '@/lib/scheduling/engine';
 import type { FixedCommitment, MovedPlacement } from '@/lib/scheduling/engine';
+import { withProtocolBounds } from '@/features/knowledge/protocols';
 import { durationMinutes, toHHMM, toMinutes, weekdayOf } from '@/lib/dates';
 import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine } from '@/types/domain';
 
@@ -115,7 +116,8 @@ export function generateDailyPlan(
     priorities: profile.priorities,
     goalFocus: goalFocusMap(goals),
     // during-work routines are already in the fixed list — don't place twice.
-    routines: routines.filter((r) => !r.duringWork),
+    // Bounds are stamped here rather than trusted from each producer.
+    routines: withProtocolBounds(routines.filter((r) => !r.duringWork)),
   });
 }
 
