@@ -9,7 +9,10 @@ export const metadata: Metadata = {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
   },
-  metadataBase: new URL("https://intent-operating-system.isaac-stefaniw.chatgpt.site"),
+  // The site's own address, now that one exists. Open Graph and Twitter
+  // cards resolve their relative image URLs against this, so a stale value
+  // means every shared link previews a broken image.
+  metadataBase: new URL("https://intentnorth.app"),
   openGraph: {
     type: "website",
     siteName: "IntentNorth",
