@@ -1,5 +1,6 @@
 import { availableStartsFor, freeEndAtOrBefore } from '@/features/planner/generate';
 import { smartMoveOptions } from '@/features/planner/moveOptions';
+import { toMinutes } from '@/lib/dates';
 import type { DailyPlan, LifeProfile, PlanItem } from '@/types/domain';
 
 const at = (start: string, end: string, title: string, patch: Partial<PlanItem> = {}): PlanItem => ({
@@ -110,5 +111,43 @@ describe('logging something after it happened', () => {
   it('ignores skipped items, which are not occupying anything', () => {
     const withSkip = [at('11:00', '12:00', 'Skipped thing', { id: 's', status: 'skipped' })];
     expect(freeEndAtOrBefore(withSkip, 12 * 60, 60)).toBe(12 * 60);
+  });
+});
+
+/**
+ * Same defect as the picker, one option down: "Tonight" searched from 5pm
+ * regardless of the current time, so at 8pm it could offer 5:15pm — a
+ * window that has already closed, which Today then files under
+ * "Earlier — did it happen?". Only "Next free window" was reading the clock.
+ */
+describe('no option offers a time that has already gone', () => {
+  // A long work block and a wide-open evening, so "Tonight" and "Next free
+  // window" resolve to genuinely different times and neither is deduped.
+  const openEvening: DailyPlan = {
+    date: '2026-09-01',
+    items: [
+      at('08:00', '17:00', 'Work', { fixed: true, area: 'work', id: 'work' }),
+      at('12:00', '13:00', 'Strength training', { id: 'training' }),
+    ],
+  };
+  const item = openEvening.items.find((i) => i.id === 'training')!;
+
+  it('never returns a start before now', () => {
+    const evening = 20 * 60;
+    const { options } = smartMoveOptions(item, openEvening, profile, evening);
+    const slots = options.filter((o) => o.kind === 'slot');
+    expect(slots.length).toBeGreaterThan(0);
+    for (const o of slots) {
+      expect(toMinutes(o.start!)).toBeGreaterThanOrEqual(evening);
+    }
+  });
+
+  // "Tonight" is deliberately not offered as a second chip when the
+  // evening already IS the next free window — one chip, not two for the
+  // same time. What matters is that the evening stays reachable.
+  it('still reaches the evening earlier in the day', () => {
+    const { options } = smartMoveOptions(item, openEvening, profile, 9 * 60);
+    const slots = options.filter((o) => o.kind === 'slot');
+    expect(slots.some((o) => toMinutes(o.start!) >= 17 * 60)).toBe(true);
   });
 });

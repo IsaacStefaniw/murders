@@ -171,20 +171,28 @@ export interface TimeCandidate {
 export function candidateStartsFor(
   plan: DailyPlan,
   itemId: string,
-  ctx: { wakeTime: string; sleepTime: string; stepMin?: number },
+  ctx: { wakeTime: string; sleepTime: string; stepMin?: number; notBefore?: number },
 ): TimeCandidate[] {
   const step = ctx.stepMin ?? 30;
   const item = plan.items.find((i) => i.id === itemId);
   if (!item) return [];
   const duration = durationOf(item);
 
+  // The waking day, and whether it runs past midnight. This decision has
+  // to be made from wake and sleep alone: folding "now" in here made a
+  // 23:35 clock look like a bedtime already passed, so the day gained a
+  // whole extra 1440 minutes and the picker offered 00:00 and 16:00 —
+  // times it presented as later today.
   const dayStart = toMinutes(ctx.wakeTime);
   let dayEnd = toMinutes(ctx.sleepTime);
   if (dayEnd <= dayStart) dayEnd += 1440;
 
   const others = plan.items.filter((i) => i.id !== itemId);
   const out: TimeCandidate[] = [];
-  const first = Math.ceil(dayStart / step) * step;
+  // Now is a floor on where the offers start, never a redefinition of the
+  // day. Past it entirely and there is simply nothing left to offer.
+  const from = Math.max(dayStart, ctx.notBefore ?? 0);
+  const first = Math.ceil(from / step) * step;
 
   for (let start = first; start + duration <= dayEnd; start += step) {
     const end = start + duration;

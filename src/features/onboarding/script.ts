@@ -527,6 +527,44 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     },
   },
   {
+    /**
+     * Asked, and asked early, because the alternative was worse.
+     *
+     * The first design refused to ask and instead hid anatomy-specific
+     * practices behind a labelled section in the library. That protected
+     * privacy and failed the person: a man opened the app and found pelvic
+     * floor training in it, which is both useless to him and a reason to
+     * doubt everything else the app claims to know. Guidance that depends
+     * on anatomy has to know the anatomy or not be offered at all.
+     *
+     * Sex at birth, not gender, because it is the physiology the guidance
+     * turns on — and "rather not say" is a real answer that costs nothing
+     * except the handful of things that genuinely cannot be shown without
+     * it.
+     */
+    id: 'sexAtBirth',
+    deferTo: 'training',
+    kind: 'single',
+    optional: true,
+    prompt: () =>
+      'Sex at birth? A few things depend on it — pelvic floor and cycle guidance, and the reference ranges for some health numbers. IntentNorth uses it to decide what NOT to show you.',
+    options: [
+      { value: 'female', label: 'Female' },
+      { value: 'male', label: 'Male' },
+      { value: 'preferNotToSay', label: 'Rather not say' },
+    ],
+    reveal: (a) => {
+      if (a.sexAtBirth === 'preferNotToSay') {
+        return 'Then nothing anatomy-specific is offered, and you can open it yourself in the library any time.';
+      }
+      if (a.sexAtBirth === 'female') {
+        return 'Then cycle, pelvic floor and menopause guidance is available where it fits.';
+      }
+      if (a.sexAtBirth === 'male') return 'Then guidance that does not apply to you stays out of your way.';
+      return null;
+    },
+  },
+  {
     id: 'trainingSetup',
     deferTo: 'training',
     kind: 'single',

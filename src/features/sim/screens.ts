@@ -25,7 +25,7 @@
 import { coachNote } from '@/features/today/coach';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { DOMAIN_QUESTIONS, type DomainQuestion } from '@/features/knowledge/questionBank';
-import { PROTOCOLS } from '@/features/knowledge/protocols';
+import { PROTOCOLS, audiencesFor } from '@/features/knowledge/protocols';
 import { useAppStore } from '@/state/store';
 import { toMinutes } from '@/lib/dates';
 
@@ -107,15 +107,63 @@ export function checkCoachNote(date: string, out: Finding[]): void {
 /**
  * Practices that apply to some bodies must never arrive unasked.
  *
- * The app does not know anybody's sex and must not guess. The protection is
- * therefore structural: nothing carrying `appliesTo` may be reachable
- * except by someone deliberately opening that group.
+ * The app now asks, but asking is not the protection — the protection is
+ * structural. Nothing carrying `appliesTo` may reach the plan except for
+ * someone the answer says it applies to, and never at all before the
+ * question has been answered.
  */
+/**
+ * Copy that opens on what the person does NOT have.
+ *
+ * "Nothing to look forward to this week. Saturday morning is open — dinner
+ * somewhere new?" managed to be wrong twice in one sentence: it announced
+ * an absence and then immediately named the thing it said was absent, and
+ * it led with the deficit. An open morning is good news. The rule is about
+ * where a sentence STARTS — plenty of honest copy mentions an absence, but
+ * opening on it sets the tone for everything after it.
+ */
+const DEFICIT_OPENERS = [
+  /^nothing\b/i,
+  /^no one\b/i,
+  /^you have n(o|othing)\b/i,
+  /^you haven't\b/i,
+  /^you still haven't\b/i,
+  /^you failed\b/i,
+  /^you missed\b/i,
+];
+
+export function checkTone(text: string, screen: string, out: Finding[]): void {
+  const opener = text.trim();
+  for (const pattern of DEFICIT_OPENERS) {
+    if (pattern.test(opener)) {
+      out.push({
+        screen,
+        rule: 'copy does not open on what is missing',
+        detail: opener.slice(0, 120),
+      });
+      return;
+    }
+  }
+  // The same sentence asserting an absence and then naming an instance of
+  // it. This is the contradiction, not merely the tone.
+  if (/^nothing\b/i.test(opener) && /—|-\s/.test(opener)) {
+    out.push({
+      screen,
+      rule: 'copy does not contradict itself',
+      detail: opener.slice(0, 120),
+    });
+  }
+}
+
 export function checkAudienceGating(out: Finding[]): void {
-  const { routines } = useAppStore.getState();
-  const gated = new Set(PROTOCOLS.filter((p) => p.appliesTo).map((p) => p.id));
+  const { routines, profile } = useAppStore.getState();
+  const allowed = new Set(audiencesFor(profile?.sexAtBirth));
+  const gated = new Map(
+    PROTOCOLS.filter((p) => p.appliesTo).map((p) => [p.id, p.appliesTo!] as const),
+  );
   for (const r of routines) {
-    if (r.protocolId && gated.has(r.protocolId)) {
+    const audience = r.protocolId ? gated.get(r.protocolId) : undefined;
+    if (audience && !allowed.has(audience)) {
       out.push({
         screen: 'plan',
         rule: 'a body-specific practice is never scheduled unasked',

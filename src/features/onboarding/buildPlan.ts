@@ -130,6 +130,8 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   const priorities = arr(answers, 'priorities') as LifeArea[];
 
   const age = Number(str(answers, 'age')) || undefined;
+  const sexAtBirth =
+    (str(answers, 'sexAtBirth') as LifeProfile['sexAtBirth']) || undefined;
   const weightKg = Number(str(answers, 'weight')) || undefined;
   const kidsCount = Number(str(answers, 'kidsCount')) || (hasKids ? 1 : undefined);
   const workStyle =
@@ -166,6 +168,7 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     constraints: constraints.length > 0 ? constraints : undefined,
     weekShape,
     age,
+    sexAtBirth,
     weightKg,
     kidsCount,
     workStyle,
@@ -832,6 +835,7 @@ export function answersFromProfile(profile: LifeProfile): InterviewAnswers {
 
   if (profile.lifeVision) answers.vision = profile.lifeVision;
   if (profile.age) answers.age = String(profile.age);
+  if (profile.sexAtBirth) answers.sexAtBirth = profile.sexAtBirth;
   if (profile.weightKg) answers.weight = String(profile.weightKg);
   if (profile.workStyle) answers.workStyle = profile.workStyle;
   if (profile.sleepQuality) answers.sleepQuality = profile.sleepQuality;

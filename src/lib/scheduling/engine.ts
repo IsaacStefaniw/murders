@@ -160,6 +160,8 @@ export function placeRoutines(
   routines: Routine[],
   bufferMin: number = DEFAULT_BUFFER_MIN,
   priorities: LifeArea[] = [],
+  /** Bedtime, in minutes past the day's start, for routines bounded by it. */
+  dayEnd?: number,
 ): { placements: Placement[]; unplaced: Routine[] } {
   const free = windows.map((w) => ({ ...w }));
   const placements: Placement[] = [];
@@ -179,7 +181,7 @@ export function placeRoutines(
   });
 
   for (const routine of ordered) {
-    const spot = findSpot(free, routine);
+    const spot = findSpot(free, routine, dayEnd);
     if (!spot) {
       unplaced.push(routine);
       continue;
@@ -243,10 +245,17 @@ function windowLength(prefStart: number, prefEnd: number): number {
 }
 
 /** Earliest valid start within the preferred window; a bounded drift if flexible. */
-function findSpot(free: Window[], routine: Routine): number | null {
+function findSpot(free: Window[], routine: Routine, dayEnd?: number): number | null {
   const prefStart = toMinutes(routine.preferredStart);
   const prefEnd = toMinutes(routine.preferredEnd);
   const dur = routine.durationMin;
+  // A hard ceiling, separate from the preferred window: the drift pass may
+  // move things when the day is full, but not across this.
+  const hardLatestStart =
+    routine.finishBeforeSleepMin !== undefined && dayEnd !== undefined
+      ? dayEnd - routine.finishBeforeSleepMin - dur
+      : Infinity;
+  const withinBound = (start: number) => start <= hardLatestStart;
   // Compared against the raw stored end, a wrapped window (start 1380, end
   // 30) failed every pass-1 test and fell through to the drift pass — so
   // late-evening routines were the most likely of all to be misplaced.
@@ -255,7 +264,7 @@ function findSpot(free: Window[], routine: Routine): number | null {
   // Pass 1: start inside the preferred window.
   for (const w of free) {
     const start = Math.max(w.start, prefStart);
-    if (start <= latestStart && start + dur <= w.end) return start;
+    if (start <= latestStart && start + dur <= w.end && withinBound(start)) return start;
   }
   if (!routine.flexible) return null;
 
@@ -265,14 +274,20 @@ function findSpot(free: Window[], routine: Routine): number | null {
   const drift = routine.timeAnchored
     ? Math.min(MAX_DRIFT_MIN, Math.max(MIN_DRIFT_MIN, latestStart - prefStart))
     : Infinity;
-  const earliest = prefStart - drift;
+  // A bedtime bound says "not late". It does not say "not at all" — and
+  // dropping the session was measurably worse than moving it: clipping the
+  // late side alone pushed stalled goals from a quarter to a third. So a
+  // bounded routine may drift as far EARLIER as the day allows, and the
+  // free windows keep that honest by starting at wake time.
+  const earliest =
+    hardLatestStart === Infinity ? prefStart - drift : prefStart - Math.max(drift, 180);
   const latest = latestStart + drift;
 
   let best: { start: number; distance: number } | null = null;
   for (const w of free) {
     if (w.end - w.start < dur) continue;
     const start = Math.min(Math.max(w.start, prefStart), w.end - dur);
-    if (start < earliest || start > latest) continue;
+    if (start < earliest || start > latest || !withinBound(start)) continue;
     const distance = Math.abs(start - prefStart);
     if (!best || distance < best.distance) best = { start, distance };
   }
@@ -317,7 +332,18 @@ export function buildDailyPlan(
   const schedulable = Math.floor(totalFree * (1 - reserved));
 
   const priorities = ctx.priorities ?? [];
-  const { placements, unplaced } = placeRoutines(windows, todaysRoutines, buffer, priorities);
+  // Bedtime as the engine sees it, so a routine bounded by it is bounded by
+  // the same number the free windows were built from.
+  const sleepMin = toMinutes(ctx.sleepTime);
+  const wakeMin = toMinutes(ctx.wakeTime);
+  const dayEnd = sleepMin <= wakeMin ? sleepMin + 1440 : sleepMin;
+  const { placements, unplaced } = placeRoutines(
+    windows,
+    todaysRoutines,
+    buffer,
+    priorities,
+    dayEnd,
+  );
 
   // Enforce slack: drop lowest-tier, non-protected placements until within budget.
   const kept: Placement[] = [];

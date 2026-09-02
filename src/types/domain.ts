@@ -95,6 +95,12 @@ export interface LifeProfile {
   /** Optional personal numbers, asked only where the maths uses them
    * (protein target, training guidance). Never required, never judged. */
   age?: number;
+  /**
+   * Sex at birth, where the person chose to say. Drives what anatomy-specific
+   * guidance is offered at all — never a label shown back to them, and never
+   * used to decide what they are capable of.
+   */
+  sexAtBirth?: 'male' | 'female' | 'preferNotToSay';
   weightKg?: number;
   kidsCount?: number;
   /** What the workday mostly demands — shapes the work path. */
@@ -261,6 +267,17 @@ export interface Routine {
   flexible: boolean;
   /** Protected routines (family dinner, wind-down) are never displaced. */
   protected: boolean;
+  /**
+   * Minutes before bedtime this must have FINISHED by.
+   *
+   * The scheduler's drift pass will move a time-anchored routine up to a
+   * window-length past its latest start when the day is full, which put
+   * Zone 2 cardio at 8:45pm for someone going to bed at 10:30. Preferred
+   * times are preferences and drift is usually the right answer; this is
+   * the separate thing — a bound the day being busy is not a reason to
+   * cross. Absent means no such bound.
+   */
+  finishBeforeSleepMin?: number;
   /**
    * Happens during work hours (deep-work blocks): scheduled as a fixed
    * carve-out of the work day instead of being placed into free time.

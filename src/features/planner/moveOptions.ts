@@ -21,7 +21,7 @@ export function smartMoveOptions(
   profile: LifeProfile,
   nowMin: number,
 ): { options: MoveOption[]; allSlots: string[] } {
-  const allSlots = availableStartsFor(item, plan, profile, 12);
+  const allSlots = availableStartsFor(item, plan, profile, 12, Math.max(nowMin, 0));
   const after = (min: number) => allSlots.find((s) => toMinutes(s) >= min);
 
   const options: MoveOption[] = [];
@@ -37,7 +37,11 @@ export function smartMoveOptions(
     }
   }
 
-  const tonight = after(17 * 60);
+  // From 5pm or now, whichever is later. Searching from a flat 5pm meant
+  // that at 8pm "Tonight" could offer 5:15pm — a window already closed,
+  // which Today files under "Earlier — did it happen?", so the move read
+  // as the app deciding the thing was done.
+  const tonight = after(Math.max(17 * 60, nowMin));
   if (tonight && !options.some((o) => o.start === tonight)) {
     options.push({ label: 'Tonight', kind: 'slot', start: tonight });
   }

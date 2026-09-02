@@ -1,4 +1,5 @@
 import { candidateStartsFor, moveWithBump } from '@/features/planner/moveWithBump';
+import { toMinutes } from '@/lib/dates';
 import type { DailyPlan, PlanItem } from '@/types/domain';
 
 const at = (start: string, end: string, title: string, patch: Partial<PlanItem> = {}): PlanItem => ({
@@ -149,5 +150,43 @@ describe('the times offered', () => {
     for (const c of candidateStartsFor(plan, 'training', ctx)) {
       expect(c.start <= '21:30').toBe(true);
     }
+  });
+});
+
+/**
+ * The reported defect: move something and it appears under "Earlier — did
+ * it happen?", which reads as the app having decided it was done.
+ *
+ * Nothing marked it done. The picker offered every half-hour from wake
+ * time, past times included, so choosing one put the item's whole window
+ * behind the current minute — and the Today screen files a passed window
+ * in the day's ledger. The smart options were already now-aware; only the
+ * full "Choose time" list was not.
+ */
+describe('a move is a plan, not a record', () => {
+  const plan = day(
+    at('09:00', '12:00', 'Work', { id: 'work', fixed: true }),
+    at('18:00', '18:30', 'Walk', { id: 'walk' }),
+    at('12:30', '13:30', 'Training', { id: 'training' }),
+  );
+
+  it('never offers a time whose window has already passed', () => {
+    // 14:00. A 60-minute block started at 13:30 has already ended.
+    const candidates = candidateStartsFor(plan, 'training', { ...ctx, notBefore: 14 * 60 });
+    expect(candidates.length).toBeGreaterThan(0);
+    for (const c of candidates) {
+      expect(toMinutes(c.start)).toBeGreaterThanOrEqual(14 * 60);
+    }
+  });
+
+  it('still offers the whole day when no current minute is given', () => {
+    // Moving something on tomorrow's plan: every time is still ahead.
+    const candidates = candidateStartsFor(plan, 'training', ctx);
+    expect(candidates[0].start).toBe('06:30');
+  });
+
+  it('runs out of times rather than offering the past, late in the day', () => {
+    const candidates = candidateStartsFor(plan, 'training', { ...ctx, notBefore: 22 * 60 });
+    expect(candidates).toEqual([]);
   });
 });

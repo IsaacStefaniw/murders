@@ -11,6 +11,7 @@
 
 import { buildDailyPlan, computeFreeWindows } from '@/lib/scheduling/engine';
 import type { FixedCommitment, MovedPlacement } from '@/lib/scheduling/engine';
+import { withProtocolBounds } from '@/features/knowledge/protocols';
 import { durationMinutes, toHHMM, toMinutes, weekdayOf } from '@/lib/dates';
 import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine } from '@/types/domain';
 
@@ -115,7 +116,8 @@ export function generateDailyPlan(
     priorities: profile.priorities,
     goalFocus: goalFocusMap(goals),
     // during-work routines are already in the fixed list — don't place twice.
-    routines: routines.filter((r) => !r.duringWork),
+    // Bounds are stamped here rather than trusted from each producer.
+    routines: withProtocolBounds(routines.filter((r) => !r.duringWork)),
   });
 }
 
@@ -129,6 +131,17 @@ export function availableStartsFor(
   plan: DailyPlan,
   profile: LifeProfile,
   maxOptions = 6,
+  /**
+   * Minutes past midnight before which a start is no longer offerable —
+   * the current time, when the plan is today's. Omitted for any other
+   * day, where every time is still ahead.
+   *
+   * Without it the sample was drawn from wake time and capped, so by
+   * evening every slot it returned was already behind the clock: the
+   * caller either offered a time that had gone or, once those were
+   * filtered, offered nothing at all on a wide-open evening.
+   */
+  notBefore?: number,
 ): string[] {
   const duration = durationMinutes(item.start, item.end);
   const busy: FixedCommitment[] = plan.items
@@ -145,7 +158,7 @@ export function availableStartsFor(
     const starts: string[] = [];
     // Start on the quarter-hour so options read as times a person would
     // choose — 18:30, not 18:25.
-    const first = Math.ceil(w.start / STEP_MIN) * STEP_MIN;
+    const first = Math.ceil(Math.max(w.start, notBefore ?? 0) / STEP_MIN) * STEP_MIN;
     for (let start = first; start + duration <= w.end; start += STEP_MIN) {
       const hhmm = toHHMM(start);
       if (hhmm !== item.start) starts.push(hhmm);

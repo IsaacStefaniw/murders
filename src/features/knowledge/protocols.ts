@@ -138,13 +138,23 @@ export interface Protocol {
    * floor training into a man's week and, a day later, the coach note gave
    * it the most prominent editorial slot on the Today screen.
    *
-   * The app deliberately does not ask anybody's sex, and this does not
-   * start: it is a LABEL, not a filter on the person. These practices are
-   * named for who they are for, kept out of the default browse, and reached
-   * on purpose rather than stumbled into. Someone who wants one still gets
-   * it in two taps; nobody gets one by accident.
+   * The app now asks, once, in a place the answer is easy to give and easy
+   * to withhold — because labelling these and leaving them in front of
+   * everybody was not enough. A man found pelvic floor training in his
+   * library, and content that plainly does not apply is a reason to doubt
+   * the content beside it. See audiencesFor().
    */
   appliesTo?: 'femaleAnatomy' | 'pregnancy' | 'menopause';
+  /**
+   * Minutes before bedtime this should have finished by.
+   *
+   * The scheduler drifts things when the day is full, which is usually
+   * right and was not right for Zone 2 cardio at 8:45pm. A preferred
+   * window says where something belongs; this says where it must not go
+   * however busy the day gets. Set only where there is a reason to — most
+   * practices have none.
+   */
+  finishBeforeSleepMin?: number;
 }
 
 export const PROTOCOLS: Protocol[] = [
@@ -188,6 +198,10 @@ export const PROTOCOLS: Protocol[] = [
   // ── Training ──────────────────────────────────────────────────────────
   {
     id: 'strength',
+    // Hard resistance work raises core temperature and arousal for a while
+    // afterwards. Evening lifting is common and mostly fine; the hour before
+    // bed is the part worth keeping clear.
+    finishBeforeSleepMin: 60,
     evidenceLevel: 'A',
     title: 'Strength training',
     pillar: 'training',
@@ -206,6 +220,11 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'zone2',
+    // The consistent signal is about the last hour before bed, and about
+    // vigorous work rather than moderate. An hour clear is what the evidence
+    // supports; ninety minutes was caution dressed as a finding, and it cost
+    // real sessions — stalled goals went from a quarter to a third.
+    finishBeforeSleepMin: 60,
     evidenceLevel: 'B',
     title: 'Zone 2 cardio',
     pillar: 'training',
@@ -223,6 +242,9 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'vo2-intervals',
+    // Vigorous intervals are the case where evening timing most consistently
+    // shows up in sleep-onset data, so this one keeps a wider margin.
+    finishBeforeSleepMin: 120,
     evidenceLevel: 'B',
     title: 'VO₂ intervals',
     pillar: 'training',
@@ -294,6 +316,9 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'cold-finish',
+    // Cold exposure is alerting — that is most of why people use it, and why
+    // it does not belong near bedtime.
+    finishBeforeSleepMin: 90,
     evidenceLevel: 'C',
     title: 'Cold-shower finish',
     pillar: 'training',
@@ -498,6 +523,8 @@ export const PROTOCOLS: Protocol[] = [
   // ── Longevity ─────────────────────────────────────────────────────────
   {
     id: 'sauna',
+    // Heat exposure ending an hour or more before bed is the timing that helps sleep; ending right before it does not.
+    finishBeforeSleepMin: 60,
     evidenceLevel: 'C',
     title: 'Sauna sessions',
     pillar: 'longevity',
@@ -3431,6 +3458,55 @@ export function protocolsFor(appliesTo: NonNullable<Protocol['appliesTo']>): Pro
   return PROTOCOLS.filter((p) => p.appliesTo === appliesTo);
 }
 
+export type ProtocolAudience = NonNullable<Protocol['appliesTo']>;
+
+/**
+ * Which anatomy-specific practices this person may be offered at all.
+ *
+ * Empty for a man: pelvic floor training, cycle guidance and the menopause
+ * transition are not things he should have to scroll past, decline, or
+ * wonder why an app that claims to know him is showing him. That was the
+ * field report, and hiding them behind a labelled section was not enough —
+ * they were still there.
+ *
+ * Also empty when nobody has been asked yet, which is the reversal. The
+ * first reading was that not knowing is a reason to show everything and
+ * let the person sort it out; the field says not knowing is a reason to
+ * show nothing and offer the question instead. Unasked is not a licence.
+ *
+ * Withheld is different from unasked: someone who chose "rather not say"
+ * has been asked and answered, and gets the opt-ins so the choice stays
+ * theirs rather than becoming a refusal to serve them.
+ */
+export function audiencesFor(sexAtBirth?: 'male' | 'female' | 'preferNotToSay'): ProtocolAudience[] {
+  if (sexAtBirth === 'male' || sexAtBirth === undefined) return [];
+  return ['femaleAnatomy', 'pregnancy', 'menopause'];
+}
+
+/**
+ * What the pillar lists themselves show.
+ *
+ * Practices tied to female anatomy stop being a separate opt-in once the
+ * app knows they apply — a woman should find pelvic floor work where she
+ * would look for it, not behind a button naming her. Pregnancy and the
+ * menopause transition stay opt-in even then: they are life stages, not
+ * anatomy, and most women are in neither at any given moment.
+ */
+export function listedProtocols(sexAtBirth?: 'male' | 'female' | 'preferNotToSay'): Protocol[] {
+  if (sexAtBirth === 'female') {
+    return PROTOCOLS.filter((p) => !p.appliesTo || p.appliesTo === 'femaleAnatomy');
+  }
+  return generalProtocols();
+}
+
+/** Audiences still worth offering as an opt-in, given what is already listed. */
+export function optInAudiencesFor(
+  sexAtBirth?: 'male' | 'female' | 'preferNotToSay',
+): ProtocolAudience[] {
+  const listed = new Set(listedProtocols(sexAtBirth).map((p) => p.appliesTo).filter(Boolean));
+  return audiencesFor(sexAtBirth).filter((a) => !listed.has(a));
+}
+
 export const AUDIENCE_LABEL: Record<NonNullable<Protocol['appliesTo']>, string> = {
   femaleAnatomy: 'For women',
   pregnancy: 'Pregnancy and after',
@@ -3466,6 +3542,23 @@ export function spreadDays(days: Weekday[], count: number): Weekday[] {
   return [...picked].sort((a, b) => a - b);
 }
 
+/**
+ * Stamp every routine with its protocol's bedtime bound.
+ *
+ * toRoutine() copies it, but toRoutine is not the only way a routine gets
+ * made: onboarding and the pathway ladders build some by hand, and those
+ * were the ones that reached the evening. A guarantee that depends on
+ * every producer remembering is not a guarantee — so it is applied once,
+ * where the plan is generated, from the protocol the routine names.
+ */
+export function withProtocolBounds(routines: Routine[]): Routine[] {
+  return routines.map((r) => {
+    if (!r.protocolId || r.finishBeforeSleepMin !== undefined) return r;
+    const bound = protocolById(r.protocolId)?.finishBeforeSleepMin;
+    return bound === undefined ? r : { ...r, finishBeforeSleepMin: bound };
+  });
+}
+
 /** A protocol as a schedulable routine, anchored to the user's real day. */
 export function toRoutine(p: Protocol, profile: LifeProfile | null, goalId?: string): Routine {
   const start = startFor(p, profile);
@@ -3490,6 +3583,7 @@ export function toRoutine(p: Protocol, profile: LifeProfile | null, goalId?: str
     // is time-anchored by definition; a fixed anchor has to declare it.
     timeAnchored: p.anchor.timeAnchored ?? p.anchor.kind !== 'fixed',
     protected: false,
+    finishBeforeSleepMin: p.finishBeforeSleepMin,
     duringWork: p.duringWork,
     sessionType: p.sessionType,
     tier: p.tier,
