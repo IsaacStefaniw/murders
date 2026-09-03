@@ -48,11 +48,29 @@ Attach each one in the dashboard: **Workers & Pages → intent-operating-system
 → Settings → Domains & Routes → Add → Custom domain**. Cloudflare creates the
 DNS record and issues the certificate; allow a few minutes for the cert.
 
+`www.intentnorth.app` is not a domain anyone owns or buys — it is a record
+inside the `intentnorth.app` zone. Registrar will correctly say you do not have
+it. Add it in the Domains & Routes panel above, typing the full hostname, or
+skip it: the apex is canonical and the site is complete without it.
+
+`.app` is on the HSTS preload list, so the whole TLD is HTTPS-only at the
+browser level with no http fallback. In the minute or two before the
+certificate finishes issuing, browsers show a hard security error rather than a
+warning you can click past. That is the cert minting, not a broken attach.
+
+**Status: `intentnorth.app` is attached and serving** (confirmed 3 Sep 2026 —
+apex and `/privacy` both 200). `instinctnorth.app` is not attached, and it is
+not known whether that zone is on this Cloudflare account.
+
 The alternative is a `routes` array in `wrangler.jsonc`, which puts the wiring
-in version control. It is deliberately not committed: an entry naming a zone
-the account does not hold fails every subsequent deploy, including deploys
-that have nothing to do with domains. Add it once all four are attached and
-verified, if you want config to own them.
+in version control. It is deliberately not committed, for two reasons that both
+still hold. An entry naming a zone the account does not hold fails every
+subsequent deploy, including deploys that have nothing to do with domains — so
+`instinctnorth.app` must be confirmed on this account first. And attaching a
+custom domain needs more than the `Workers Scripts: Edit` scope the deploy
+token was created with; it needs zone-level Workers Routes permission too, so
+adding routes to config before widening the token converts a working deploy
+into a failing one. Move the wiring into config when both are true.
 
 ### 3. Mail on intentnorth.app
 
@@ -84,7 +102,7 @@ Check in this order. Each step rules out a different failure.
 
 ```bash
 # 1. The Worker itself, before DNS is involved.
-curl -sS -o /dev/null -w '%{http_code}\n' https://intent-operating-system.<subdomain>.workers.dev/
+curl -sS -o /dev/null -w '%{http_code}\n' https://intent-operating-system.isaacstef.workers.dev/
 
 # 2. The canonical domain serves the site.
 curl -sS -o /dev/null -w '%{http_code}\n' https://intentnorth.app/
@@ -105,6 +123,22 @@ redirect.
 
 Step 4 is a release dependency, not a nicety. App Store review rejects a
 submission whose privacy policy or support URL 404s, and it rejects it late.
+
+## The live site is deployed from a branch
+
+Run 5 deployed from `claude/website-journey-powershell-nite39`, not from the
+repository's default branch. `workflow_dispatch` takes whatever ref you give
+it, and it does not care which one is default.
+
+That leaves a live trap. The default branch does **not** contain the website
+work — the rename, the legal pages, the canonical-host redirect, the film or
+the library section. Dispatching this workflow from the default branch would
+therefore not "redeploy the current site"; it would silently roll the live site
+back to the August build, and `/privacy` and `/support` would start 404ing
+again mid-App-Store-review.
+
+Merge the branch into the default branch, or check the ref every time you
+dispatch. The first is safer, because the second only has to be forgotten once.
 
 ## Worth knowing
 
