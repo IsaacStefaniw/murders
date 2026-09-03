@@ -107,6 +107,7 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
     developing: {
       routines: [
         {
+          covers: ['zone2'],
           title: 'Easy aerobic session — conversational pace',
           durationMin: 30,
           days: WEEKEND,
@@ -123,6 +124,7 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
     established: {
       routines: [
         {
+          covers: ['zone2'],
           title: 'Second aerobic session',
           durationMin: 40,
           days: [3],
@@ -255,35 +257,29 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       note: 'A savings rate, a buffer target, and the first debt put in the right order.',
     },
     established: {
-      routines: [
-        {
-          title: 'Monthly money hour',
-          durationMin: 60,
-          days: SUNDAY,
-          preferredStart: '15:00',
-          preferredEnd: '18:00',
-          area: 'admin',
-          energy: 'evening',
-          tier: 'could',
-        },
+      // A "monthly" hour scheduled every Sunday is a monthly hour twelve
+      // times over. Routines have no cadence longer than a week, so the
+      // month has to live in a milestone rather than in the calendar —
+      // otherwise the title says one thing and the plan does another, and
+      // the person is the one who has to notice.
+      routines: [],
+      milestones: [
+        'Three months of buffer banked',
+        'An invested percentage you chose on purpose',
+        'A full money hour done this month',
       ],
-      milestones: ['Three months of buffer banked', 'An invested percentage you chose on purpose'],
       note: 'The full ladder — buffer, debt, invested percentage — tracked monthly rather than felt vaguely.',
     },
     advanced: {
-      routines: [
-        {
-          title: 'Quarterly allocation review',
-          durationMin: 45,
-          days: SUNDAY,
-          preferredStart: '15:00',
-          preferredEnd: '18:00',
-          area: 'admin',
-          energy: 'evening',
-          tier: 'could',
-        },
+      // Same as the month above: a quarterly review cannot be a weekly
+      // block, so it is something to have done rather than something on
+      // every Sunday.
+      routines: [],
+      milestones: [
+        'Allocation set across accounts',
+        'A drawdown plan written down',
+        'Allocation reviewed this quarter',
       ],
-      milestones: ['Allocation set across accounts', 'A drawdown plan written down'],
       note: 'Allocation across accounts and a drawdown plan, reviewed quarterly. Education, never financial advice.',
     },
   },
@@ -340,8 +336,14 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
     advanced: {
       routines: [
         {
-          title: 'Quarterly arc — the week built backwards',
-          durationMin: 60,
+          // Was "Quarterly arc", sixty minutes, every Sunday — a quarterly
+          // review scheduled fifty-two times a year. Routines have no
+          // cadence longer than a week, so the title was writing a cheque
+          // the scheduler could not cash. This is the weekly version that
+          // is actually true: not the quarter's review, one question asked
+          // against it.
+          title: 'The quarter’s one outcome — did this week serve it?',
+          durationMin: 15,
           days: SUNDAY,
           preferredStart: '15:00',
           preferredEnd: '18:00',
@@ -472,19 +474,13 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       note: 'Rituals, repair, and a plan you both agreed to rather than one of you assumed.',
     },
     advanced: {
-      routines: [
-        {
-          title: 'Seasonal review — what are we building',
-          durationMin: 45,
-          days: SUNDAY,
-          preferredStart: '15:00',
-          preferredEnd: '18:00',
-          area: 'relationship',
-          energy: 'evening',
-          tier: 'could',
-        },
+      // A seasonal review every Sunday is not seasonal. The season lives
+      // in the milestone; the calendar keeps what a week can actually hold.
+      routines: [],
+      milestones: [
+        'The long arc named together',
+        'Revisited at the turn of a season',
       ],
-      milestones: ['The long arc named together', 'Revisited at the turn of a season'],
       note: 'The long arc — what you are building over years, revisited each season instead of assumed.',
     },
   },
