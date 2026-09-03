@@ -493,6 +493,7 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
     foundation: {
       routines: [
         {
+          covers: ['family-adventure'],
           title: 'One outing in the diary before the week starts',
           durationMin: 15,
           days: SUNDAY,
@@ -526,6 +527,7 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
     established: {
       routines: [
         {
+          covers: ['family-adventure', 'family-ritual-anchor'],
           title: 'Protected family evening',
           durationMin: 90,
           days: [5],
@@ -543,6 +545,7 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
     advanced: {
       routines: [
         {
+          covers: ['family-adventure'],
           title: 'The family year — seasons and trips',
           durationMin: 60,
           days: SUNDAY,
