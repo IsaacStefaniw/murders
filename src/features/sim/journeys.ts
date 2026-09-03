@@ -24,6 +24,7 @@
  * app contradicting itself rather than disagreeing with me.
  */
 
+import { grantedEntitlement } from '@/features/plus/entitlement';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { useAppStore } from '@/state/store';
@@ -247,6 +248,9 @@ export function runJourney(seed: number, days: number, trace: string[], out: Vio
   store.resetAll();
 
   const built = buildLifeOperatingPlan(answersFor(rng));
+  // Simulated people are Plus: the harness measures what the coaches do,
+  // and without Plus the coaches do not run.
+  useAppStore.setState({ entitlement: grantedEntitlement() });
   useAppStore.getState().completeOnboarding({
     profile: built.profile,
     goals: built.goals,

@@ -55,7 +55,9 @@ export default function PlanReview() {
     // carries tailored milestones, check-ins and advice, not just blocks.
     for (const start of plan.pathStarts) startPath(start.id, start.answers);
     resetOnboarding();
-    router.replace('/(tabs)/today');
+    // The first insight is free; running it is Plus. The paywall sits
+    // here, once, and never again mid-session.
+    router.replace('/upgrade?from=onboarding' as never);
   };
 
   const toggleRoutine = (id: string) => {

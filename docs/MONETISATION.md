@@ -1,18 +1,16 @@
 # Monetisation — the model for 1.1
 
-1.0 ships free with the Plus tier hidden, because a paywall with nothing
-behind it is a review rejection and because the Paid Applications agreement
-is the slowest item on any launch path. That decision only works if 1.1's
-model is designed now. This is it, with the reasoning, so it can be argued
-with rather than re-derived.
+1.0 was going to ship free with Plus hidden. It no longer does: build 15,
+the free one, is not to be submitted, and the next build carries StoreKit.
+This document is the model with its reasoning, so it can be argued with
+rather than re-derived.
 
-Revision 2 (2026-09-03): the first draft's free tier was more generous than
-what the website and the app already disclose. Isaac's direction — a first
-week, then everything visible and locked — is the line the site has promised
-since launch ("Your profile and first personal insight are free. Complete
-daily programs and ongoing optimisation are premium.") and the line the
-app's own upgrade screen describes ("a complete week"). This revision
-follows that.
+Revision 3 (2026-09-03): Isaac's decision — **people pay from day one, in
+1.0**. No free week, no grandfathering of 1.0 installs. The interview, the
+profile and the first insight are free (the website's promise since
+launch); the coaches running the day are Plus from the first day. The
+sections below that describe a week or a 1.0 cohort are kept as the
+record of what was considered and are superseded by §10.
 
 Principles that are already promises — on the website, in the app, in the
 privacy policy — and therefore constraints, not options:
@@ -207,8 +205,19 @@ Agreed by Isaac:
 - Prices as in §4: monthly AU$14.99, annual AU$89.99 with a seven-day
   introductory offer, lifetime AU$249. Confirm the comparables in the
   store before the products are created, then create them at these.
-- The 1.0 cohort: twelve months of Plus, computed on-device from the
-  original purchase date, then the normal line.
+- No free week and no grandfathering: 1.0 charges from the first day.
+  The line is the interview, the profile and the first insight free; the
+  coaches running the day are Plus. Free permanently: the day's shape,
+  every urge/reset/lapse tool, breathing and the two-minute practices,
+  backup and restore, and a full view by name of every coach, rung and
+  protocol (five per pillar open to read, 5 of 177 on the library card).
+- Built in 1.0: `expo-iap` (StoreKit 2, on-device entitlements, no
+  RevenueCat), the three products, the paywall after the first insight
+  with Apple's live prices, restore, and locks on Today, Life, every
+  pathway, the library, the weekly report, projections and guided sits.
+  Isaac's side: Paid Applications agreement, banking, tax, Small Business
+  Program, then the three products in App Store Connect (identifiers in
+  docs/APP_STORE.md) before the build is submitted.
 - Funnel events: in, for 1.1, on the terms of §7. The client
   (`src/lib/telemetry.ts`) is written and tested now with a closed list of
   eight events and a four-field payload; it is off in every build until

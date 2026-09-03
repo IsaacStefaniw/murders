@@ -15,6 +15,7 @@ import { buildWeekReport } from '@/features/review/weekReport';
 import { formatDateLong, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import { LockedCard } from '@/features/plus/Locked';
 
 const AREA_LABELS: Record<string, string> = {
   family: 'Family',
@@ -35,6 +36,7 @@ export default function WeekReportScreen() {
   const goals = useAppStore((s) => s.goals);
   const metrics = useAppStore((s) => s.metrics);
   const profile = useAppStore((s) => s.profile);
+  const plus = useAppStore((s) => s.entitlement.plus);
   const report = useMemo(() => buildWeekReport(today, plans, goals), [today, plans, goals]);
   const records = useMemo(() => recentRecords(metrics, 7), [metrics]);
   /**
@@ -51,6 +53,24 @@ export default function WeekReportScreen() {
     return selfComparison(complete);
   }, [profile, plans, today]);
   const close = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/data' as never));
+
+  if (!plus) {
+    return (
+      <Screen>
+        <View style={styles.topRow}>
+          <AppText variant="label" color="textTertiary" style={styles.grow}>
+            Weekly report
+          </AppText>
+          <Button title="Done" variant="ghost" onPress={close} />
+        </View>
+        <AppText variant="title">Your week, in evidence</AppText>
+        <AppText variant="secondary" style={styles.sub}>
+          What happened this week against your own weeks — done, moved, kept, and what changed.
+        </AppText>
+        <LockedCard title="The weekly report" body="Seven days at a time, compared with nobody but you." />
+      </Screen>
+    );
+  }
 
   const rate = report.planned > 0 ? Math.round((report.done / report.planned) * 100) : 0;
 

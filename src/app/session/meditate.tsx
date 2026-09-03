@@ -21,6 +21,7 @@ import {
 } from '@/features/mind/voice';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import { meditationLengthNeedsPlus } from '@/features/plus/entitlement';
 
 /**
  * Guided meditation.
@@ -65,6 +66,7 @@ export default function MeditateSession() {
   const theme = useTheme();
   const { itemId, date } = useLocalSearchParams<{ itemId?: string; date?: string }>();
   const setItemStatus = useAppStore((s) => s.setItemStatus);
+  const plus = useAppStore((s) => s.entitlement.plus);
   const logCompletedActivity = useAppStore((s) => s.logCompletedActivity);
   const addMetric = useAppStore((s) => s.addMetric);
   const metrics = useAppStore((s) => s.metrics);
@@ -202,9 +204,13 @@ export default function MeditateSession() {
         </AppText>
         <AppText variant="title">How long have you got?</AppText>
         <View style={styles.chips}>
-          {script.durationsMin.map((min) => (
-            <Chip key={min} label={`${min} min`} onPress={() => setDurationMin(min)} />
-          ))}
+          {script.durationsMin.map((min) =>
+            meditationLengthNeedsPlus(min, plus) ? (
+              <Chip key={min} label={`${min} min · Plus`} onPress={() => router.push('/upgrade' as never)} />
+            ) : (
+              <Chip key={min} label={`${min} min`} onPress={() => setDurationMin(min)} />
+            ),
+          )}
         </View>
         {script.safety ? (
           <AppText variant="caption" color="textTertiary" style={styles.hint}>

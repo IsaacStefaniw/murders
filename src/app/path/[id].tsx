@@ -23,6 +23,7 @@ import { WorkHub } from '@/features/work/WorkHub';
 import { formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import { LockedCard } from '@/features/plus/Locked';
 
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -38,6 +39,7 @@ export default function PathHub() {
   const def = PATHS[id as PathId];
 
   const profile = useAppStore((s) => s.profile);
+  const plus = useAppStore((s) => s.entitlement.plus);
   const paths = useAppStore((s) => s.paths);
   const goals = useAppStore((s) => s.goals);
   const routines = useAppStore((s) => s.routines);
@@ -288,6 +290,12 @@ export default function PathHub() {
       ) : null}
 
       <SectionHeader title="Your week, and why" />
+      {!plus && def.id !== 'recovery' ? (
+        <LockedCard
+          title="These sessions run with Plus"
+          body="Built from your answers and shown in full. Plus places them into your real days and adapts them."
+        />
+      ) : null}
       <View style={styles.stack}>
         {pathRoutines.map((r) => {
           const why = r.protocolId ? protocolById(r.protocolId)?.why : undefined;

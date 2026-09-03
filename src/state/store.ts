@@ -22,6 +22,7 @@ import { detectGoalUnderserved } from '@/features/goals/underserved';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
+import { NO_ENTITLEMENT, runningRoutines, type Entitlement } from '@/features/plus/entitlement';
 import {
   EMPTY_FOOD_PREFERENCES,
   type EnjoymentRating,
@@ -99,6 +100,8 @@ import type {
 export interface AppState {
   hydrated: boolean;
   onboarded: boolean;
+  /** Is this person Plus. Decided on the phone from what StoreKit says this Apple ID owns. */
+  entitlement: Entitlement;
   profile: LifeProfile | null;
   goals: Goal[];
   routines: Routine[];
@@ -417,6 +420,12 @@ export interface AppState {
 
   resetAll: () => void;
   setHydrated: () => void;
+  /**
+   * Record what StoreKit answered. Today and every later unapproved day
+   * are re-planned, because the coaches either just started running or
+   * just stopped — a cached plan from the other side of that line lies.
+   */
+  setEntitlement: (entitlement: Entitlement) => void;
 
   /** Preview Lab — compress the learning loop for testing. */
   clockOffsetMs: number;
@@ -428,6 +437,7 @@ export interface AppState {
 
 const initialData = {
   onboarded: false,
+  entitlement: NO_ENTITLEMENT as Entitlement,
   profile: null as LifeProfile | null,
   goals: [] as Goal[],
   routines: [] as Routine[],
@@ -665,9 +675,14 @@ export const useAppStore = create<AppState>()(
         },
 
         regeneratePlan: (date) => {
-          const { profile, routines, plans, goals } = get();
+          const { profile, routines, plans, goals, entitlement } = get();
           if (!profile) throw new Error('Cannot plan without a profile');
-          const { unplaced, moved, ...plan } = generateDailyPlan(profile, routines, date, [], goals);
+          // The line. Without Plus the day keeps its shape — sleep, work,
+          // meals, whatever was fixed — and the coaches do not run, except
+          // the Habits & urges pathway, which is never charged for. What
+          // the others would have run is shown, locked, by the Today screen.
+          const running = runningRoutines(routines, entitlement.plus, get().paths.recovery?.goalId);
+          const { unplaced, moved, ...plan } = generateDailyPlan(profile, running, date, [], goals);
           // What did not fit is the visible half of arbitration. It used to
           // be destructured into `_unplaced` and dropped on the floor, which
           // meant the engine made the product's defining decision and then
@@ -1661,6 +1676,16 @@ export const useAppStore = create<AppState>()(
           setClockOffsetMs(0);
           set({ ...initialData });
         },
+        setEntitlement: (entitlement) => {
+          const before = get().entitlement.plus;
+          set({ entitlement });
+          if (before === entitlement.plus || !get().profile) return;
+          const today = todayKey();
+          for (const date of Object.keys(get().plans)) {
+            if (date >= today && !get().plans[date]?.approvedAt) get().regeneratePlan(date);
+          }
+        },
+
         setHydrated: () => {
           setClockOffsetMs(get().clockOffsetMs);
           set({ hydrated: true });

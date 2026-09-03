@@ -8,6 +8,7 @@ import { useColorScheme } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { useAppStore } from '@/state/store';
+import { listenForPurchases } from '@/lib/purchases';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,6 +33,13 @@ export default function RootLayout() {
   useEffect(() => {
     if (hydrated) markOpened();
   }, [hydrated, markOpened]);
+
+  // StoreKit, for the life of the app: renewals, restores and purchases
+  // finished elsewhere arrive here, and the entitlement is re-read.
+  useEffect(() => {
+    if (!hydrated) return undefined;
+    return listenForPurchases();
+  }, [hydrated]);
 
   // Keeps the OS queue in step with what the app intends. No-ops entirely
   // while notifications are off, which is the default.

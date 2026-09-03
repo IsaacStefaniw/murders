@@ -36,6 +36,7 @@ import { QuickLog } from '@/features/today/QuickLog';
 import { displacedLine } from '@/features/planner/displaced';
 import { useAppStore } from '@/state/store';
 import type { PlanItem } from '@/types/domain';
+import { LockedSessions } from '@/features/plus/LockedSessions';
 
 const EVENING_START = 17 * 60;
 
@@ -49,6 +50,8 @@ export default function Today() {
 
   const profile = useAppStore((s) => s.profile);
   const routines = useAppStore((s) => s.routines);
+  const plus = useAppStore((s) => s.entitlement.plus);
+  const recoveryGoalId = useAppStore((s) => s.paths.recovery?.goalId);
   const goals = useAppStore((s) => s.goals);
   const plans = useAppStore((s) => s.plans);
   const ensurePlan = useAppStore((s) => s.ensurePlan);
@@ -301,6 +304,8 @@ export default function Today() {
           <QuickAdd date={date} profile={profile} />
         </Card>
       )}
+
+      {!plus ? <LockedSessions routines={routines} date={date} recoveryGoalId={recoveryGoalId} /> : null}
 
       {overdueItems.length > 0 ? (
         <View>

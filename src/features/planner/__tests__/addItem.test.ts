@@ -12,6 +12,7 @@
  * chosen time is granted and the flexible day re-laid around it.
  */
 
+import { grantedEntitlement } from '@/features/plus/entitlement';
 import { useAppStore } from '@/state/store';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { todayKey, toMinutes } from '@/lib/dates';
@@ -32,6 +33,7 @@ const setup = () => {
     trainingDays: '3',
     capacity: 'steady',
   });
+  useAppStore.setState({ entitlement: grantedEntitlement() });
   useAppStore.getState().completeOnboarding({
     profile: built.profile,
     goals: built.goals,

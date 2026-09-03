@@ -47,10 +47,20 @@ describe('claims match the code', () => {
    * beside features that exist. Selling three things the build cannot do is
    * a promise the first week breaks.
    */
-  it('the paywall separates what runs from what does not', () => {
+  it('the paywall sells only what runs, types no price, and always offers restore', () => {
     const upgrade = read('src/app/upgrade.tsx');
-    expect(upgrade).toContain('Not built yet');
-    expect(upgrade).toContain('Partner sync');
-    expect(upgrade).toContain('Calendar');
+    // The old preview listed "not built yet" features beside real ones. The
+    // real paywall lists what Plus runs from one shared source and nothing else.
+    expect(upgrade).not.toContain('Not built yet');
+    expect(upgrade).not.toContain("isn't wired");
+    expect(upgrade).toContain('PLUS_RUNS');
+    // Prices come from Apple, never from code — a typed price drifts.
+    expect(upgrade).not.toMatch(/\$\s?\d/);
+    // What App Review reads on every subscription screen.
+    expect(upgrade).toContain('Restore purchases');
+    expect(upgrade).toContain('Terms of use');
+    expect(upgrade).toContain('Privacy policy');
+    expect(upgrade).toContain('Not now');
+    expect(upgrade).toMatch(/renew/i);
   });
 });

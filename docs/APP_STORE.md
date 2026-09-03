@@ -12,11 +12,13 @@ Found by auditing the TestFlight build against the App Review Guidelines:
   ungated.** "Seed two weeks of history" sat in Settings for any reviewer to
   find. The lab is now behind `__DEV__`, which is false in every EAS build, so
   it compiles out.
-- **A "Plus" tier that could not be bought.** No StoreKit library, no
-  products, and a screen saying "billing isn't wired yet" — placeholder
-  content under guideline 2.1, and a metadata mismatch under 2.3. Hidden
-  behind `PLUS_AVAILABLE = false`. **Version 1.0 ships free.** Flip the
-  constant when products exist; that is a later version and a later build.
+- **A "Plus" tier that could not be bought.** Was hidden for a free 1.0;
+  Isaac's decision on 2026-09-03 is that people pay from day one, so 1.0
+  now carries StoreKit 2 through `expo-iap`, three real products, a paywall
+  after the first insight and restore-purchases. See "In-app purchases"
+  below — the products must exist in App Store Connect and be attached to
+  the version before review, or the paywall shows "the App Store did not
+  answer" and the reviewer rejects under 2.1.
 - **Settings said "Demo mode".** To a reviewer that reads as a demo. It now
   says what is true: everything lives on this device.
 - **The backup button did nothing on iOS** — `navigator.clipboard`, a web
@@ -36,7 +38,7 @@ Found by auditing the TestFlight build against the App Review Guidelines:
 | Subtitle (30) | Seven coaches. One profile. |
 | Primary category | Health & Fitness |
 | Secondary category | Productivity |
-| Price | Free — no in-app purchases in 1.0 |
+| Price | Free to download; IntentNorth Plus by in-app purchase (see below) |
 | Bundle ID | com.isaacstefaniw.intentos |
 | Version | 1.0.0 (build number set by EAS) |
 | Copyright | 2026 Isaac Stefaniw |
@@ -45,9 +47,39 @@ Found by auditing the TestFlight build against the App Review Guidelines:
 | Privacy Policy URL | https://intentnorth.app/privacy |
 | Content rights | Does not contain third-party content requiring rights |
 
-Because 1.0 is free with no IAP, the **Paid Applications agreement, banking
-and tax forms are not needed** for this submission. That removes the slowest
-blocker there is.
+## In-app purchases — must exist before the build is submitted
+
+The **Paid Applications agreement, banking and tax forms** in App Store
+Connect → Agreements, Tax and Banking must be *Active* before products can be
+created, and the products must be attached to version 1.0 when it is
+submitted, so Apple reviews them with the binary. Enrol in the **Small
+Business Program** before the first sale (15% instead of 30%).
+
+Create one subscription group, **IntentNorth Plus**, and three products with
+these exact identifiers — the app asks StoreKit for them by name:
+
+| Product | Type | Identifier | Price (AUD) |
+|---|---|---|---|
+| Plus — Yearly | Auto-renewable, 1 year, in group "IntentNorth Plus", rank 1 | `app.intentnorth.plus.annual` | 89.99 |
+| Plus — Monthly | Auto-renewable, 1 month, same group, rank 2 | `app.intentnorth.plus.monthly` | 14.99 |
+| Plus — Lifetime | Non-consumable | `app.intentnorth.plus.lifetime` | 249 |
+
+Optional, no code change: a 7-day free introductory offer on Yearly. Prices
+are Apple's and are shown in the app exactly as Apple returns them —
+nothing is typed in code. Each product needs a display name, a description
+and one review screenshot (the paywall itself will do). Every product's
+localisation must be complete or the whole submission stalls at "Missing
+Metadata".
+
+Sandbox: App Store Connect → Users and Access → Sandbox Testers; sign into
+that Apple ID under Settings → App Store → Sandbox Account on a test iPhone.
+Sandbox subscriptions renew on a compressed clock (a year ≈ one hour).
+
+What is free is what the site has promised since launch: the interview,
+the profile, the first insight, the day's shape, every urge/reset/lapse
+tool, breathing and the two-minute practices, backup and restore, and a
+full view — by name — of every coach, rung and protocol. Everything that
+*runs* is Plus.
 
 ## Promotional text (170)
 
@@ -110,7 +142,8 @@ device. Audited against the code, one thing is:
 |---|---|---|
 | **Identifiers → Device ID** | **Yes** — App Functionality, not linked to the user, not used for tracking | `expo-updates` sends `EAS-Client-ID`, a per-install UUID, with every update check (`FileDownloader.swift:442`). The privacy page's line "carries none of your plan, health or personal data" is true, but it omits this identifier — see the correction below. |
 | Health & Fitness | No | Read from HealthKit, used on-device, never transmitted |
-| Contact info, user content, usage data, diagnostics, location, purchases, browsing, search, financial, sensitive info | No | Nothing collects them — no account, no analytics SDK, no server |
+| Purchases | No | StoreKit on-device; Apple is the merchant and IntentNorth receives nothing about the purchase. "Purchase history" is collected only if the developer transmits it, which the app does not |
+| Contact info, user content, usage data, diagnostics, location, browsing, search, financial, sensitive info | No | Nothing collects them — no account, no analytics SDK, no server |
 | Tracking | No | — |
 
 "Data Not Collected" would be the easy label and it would be **wrong** by
@@ -134,7 +167,7 @@ personal data."* That makes the page match the label.
 >
 > To see the app in two minutes: complete the nine-question interview on first launch (any answers), which builds the week; "Today" shows the day's plan with the reason for each item; "Life" opens the seven pathways — open Training to see the level card and a built four-week block, and tap into a session to see sets, reps and rest decided. Settings → Practice library shows the graded evidence library. The app contains no AI or generated content; every sentence is deterministic.
 >
-> Recovery, urge and hardest-moment support is free permanently and is never placed behind a purchase. This version contains no in-app purchases.
+> In-app purchases: after the interview the app shows IntentNorth Plus with three products (yearly and monthly auto-renewable subscriptions, and a lifetime non-consumable), priced by the App Store. Tap "Not now" to continue without buying: the day's shape, every urge and reset tool, the two-minute practices, backup and a full view of every coach and protocol remain usable; the coaches' sessions show locked. "Restore purchases" is on the paywall and in Settings. Recovery, urge and hardest-moment support is free permanently and is never placed behind a purchase.
 >
 > Content is educational and the app states throughout that it is not medical, psychological or financial advice.
 
@@ -172,9 +205,11 @@ branch, so the binary embeds them.
 2. Dispatch `eas-release.yml` from this branch (`submit: true`). ~7 minutes to
    build, ~15 for Apple to process.
 3. In App Store Connect: the app record already exists (the workflow
-   resolves its id). Create version **1.0**, attach the processed build, fill
-   every field from this document, upload the screenshots, answer the age
-   rating and App Privacy questionnaires as above, paste the review notes.
+   resolves its id). Agreements first (above), then the three products,
+   then create version **1.0**, attach the processed build, add the three
+   in-app purchases to the version, fill every field from this document,
+   upload the screenshots, answer the age rating and App Privacy
+   questionnaires as above, paste the review notes.
 4. Submit for review. Typical first-review turnaround is one to three days;
    a HealthKit app occasionally draws a question about Health usage, which
    the privacy page and the notes already answer.
@@ -184,7 +219,7 @@ branch, so the binary embeds them.
 
 ## Decisions Isaac owns
 
-- Ship 1.0 free with Plus hidden — done in code, reversible by one constant.
+- Pay from day one — decided 2026-09-03; 1.0 carries the paywall.
 - The trademark search.
 - The reviewer contact details.
 - Whether the founder quote on the site stays under his name.

@@ -20,6 +20,8 @@ import {
 } from '@/features/knowledge/protocols';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import { FREE_PROTOCOLS_PER_PILLAR, splitLibrary } from '@/features/plus/entitlement';
+import { LockedCard, LockedRow } from '@/features/plus/Locked';
 
 const PILLAR_ORDER: Pillar[] = [
   'sleep',
@@ -93,6 +95,8 @@ export default function Library() {
   const sexAtBirth = useAppStore((s) => s.profile?.sexAtBirth);
   const updateProfile = useAppStore((st) => st.updateProfile);
   const listed = listedProtocols(sexAtBirth);
+  const plus = useAppStore((s) => s.entitlement.plus);
+  const { open, openCount, total } = splitLibrary(listed, plus);
   const optIn = optInAudiencesFor(sexAtBirth);
   const close = () => (router.canGoBack() ? router.back() : router.replace('/life' as never));
   return (
@@ -110,6 +114,12 @@ export default function Library() {
         Sinclair. Add one and IntentNorth plans it into your real week — and adapts it like anything
         else you do.
       </AppText>
+      {!plus ? (
+        <LockedCard
+          title={`${openCount} of ${total} open`}
+          body={`The first ${FREE_PROTOCOLS_PER_PILLAR} in every pillar are open to read and add. The other ${total - openCount} are listed by name and run with Plus.`}
+        />
+      ) : null}
       <AppText variant="caption" color="textTertiary" style={styles.disclaimer}>
         Educational structure, not medical advice. Attribution credits public work and implies no
         endorsement of IntentNorth.
@@ -121,9 +131,13 @@ export default function Library() {
         return (
           <View key={pillar}>
             <SectionHeader title={PILLAR_LABELS[pillar]} />
-            {items.map((p) => (
-              <ProtocolCard key={p.id} protocol={p} />
-            ))}
+            {items.map((p) =>
+              open.has(p.id) ? (
+                <ProtocolCard key={p.id} protocol={p} />
+              ) : (
+                <LockedRow key={p.id} title={p.title} meta={`${p.durationMin} min`} />
+              ),
+            )}
           </View>
         );
       })}
@@ -179,17 +193,19 @@ export default function Library() {
       {optIn.map((audience) => {
         const items = protocolsFor(audience);
         if (items.length === 0) return null;
-        const open = openAudience === audience;
+        const openHere = openAudience === audience;
         return (
           <View key={audience}>
             <Button
               title={`${AUDIENCE_LABEL[audience]} · ${items.length}`}
               variant="secondary"
-              onPress={() => setOpenAudience(open ? null : audience)}
+              onPress={() => setOpenAudience(openHere ? null : audience)}
               style={styles.audienceButton}
             />
-            {open
-              ? items.map((p) => <ProtocolCard key={p.id} protocol={p} />)
+            {openHere
+              ? items.map((p) =>
+                  plus ? <ProtocolCard key={p.id} protocol={p} /> : <LockedRow key={p.id} title={p.title} meta={`${p.durationMin} min`} />,
+                )
               : null}
           </View>
         );
