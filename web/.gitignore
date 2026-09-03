@@ -47,5 +47,19 @@ next-env.d.ts
 # blob — it adds to it, and every clone pays for it from then on.
 public/video/*.webm
 public/video/*.mp4
+public/video/*.jpg
 !public/video/intentnorth-coaching-45s.webm
+!public/video/intentnorth-coaching-45s.mp4
+!public/video/intentnorth-coaching-45s-poster.jpg
 !public/video/intentnorth-coaching-16s-vertical.webm
+!public/video/intentnorth-coaching-16s-vertical.mp4
+!public/video/intentnorth-coaching-16s-vertical-poster.jpg
+# Nothing that is not media belongs under public/ — the handover README
+# deployed to intentnorth.app/video/README.md and sat live with internal
+# legal notes in it. The website branch has a build guard for md/txt/log;
+# this blocks the sources it does not cover.
+public/**/*.py
+public/**/*.md
+public/**/*.txt
+public/**/*.sh
+public/**/*.mjs
