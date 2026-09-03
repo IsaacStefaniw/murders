@@ -93,7 +93,9 @@ export default function Library() {
   // What this person's anatomy makes relevant. Unanswered or withheld means
   // the app does not know, and shows the opt-ins rather than deciding.
   const sexAtBirth = useAppStore((s) => s.profile?.sexAtBirth);
-  const updateProfile = useAppStore((st) => st.updateProfile);
+  // Answered as the interview step it is, so the profile and the interview
+  // record agree and the training hub does not ask a second time.
+  const answerDeferredQuestion = useAppStore((st) => st.answerDeferredQuestion);
   const listed = listedProtocols(sexAtBirth);
   const plus = useAppStore((s) => s.entitlement.plus);
   const { open, openCount, total } = splitLibrary(listed, plus);
@@ -173,7 +175,7 @@ export default function Library() {
                 key={value}
                 title={label}
                 variant="secondary"
-                onPress={() => updateProfile({ sexAtBirth: value })}
+                onPress={() => answerDeferredQuestion('sexAtBirth', value)}
                 style={styles.audienceButton}
               />
             ))}
