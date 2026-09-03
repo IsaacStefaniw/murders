@@ -201,7 +201,7 @@ export interface AppState {
       durationMin: number;
       goalId?: string;
     },
-  ) => void;
+  ) => Displacement[];
 
   /**
    * Record something that ALREADY happened — an unscheduled workout, a
@@ -895,6 +895,34 @@ export const useAppStore = create<AppState>()(
             fixed: false,
           };
           updatePlanItems(date, (items) => [...items, item]);
+
+          // Adding is a move that starts from nowhere, and it has to obey
+          // the same rule: the chosen time is granted and the flexible day
+          // re-laid around it. Appending alone let an added block sit on
+          // top of a deep-work block — fifty-two overlaps across eighty
+          // simulated people, none of which any screen would have shown as
+          // a conflict.
+          const plan = get().plans[date];
+          const profile = get().profile;
+          if (!plan || !profile) return [];
+          const outcome = moveWithBump(plan, item.id, input.start, {
+            wakeTime: profile.wakeTime,
+            sleepTime: profile.sleepTime,
+          });
+          updatePlanItems(date, () => outcome.items);
+          for (const d of outcome.displaced) {
+            const moved = plan.items.find((i) => i.id === d.id);
+            if (!moved || !d.to) continue;
+            record(
+              eventFor(moved, date, 'rescheduled', {
+                originalStart: d.from,
+                newStart: d.to,
+                initiatedBy: 'intent',
+              }),
+            );
+          }
+          get().refreshSuggestions();
+          return outcome.displaced;
         },
 
         logCompletedActivity: (input) => {

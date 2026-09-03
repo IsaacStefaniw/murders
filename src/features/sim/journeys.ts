@@ -28,7 +28,7 @@ import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { useAppStore } from '@/state/store';
 import { candidateStartsFor } from '@/features/planner/moveWithBump';
-import { addDays, durationMinutes, nowMinutes, todayKey, toMinutes } from '@/lib/dates';
+import { addDays, durationMinutes, nowMinutes, todayKey, toHHMM, toMinutes } from '@/lib/dates';
 import type { InterviewAnswers } from '@/features/onboarding/script';
 import type { PlanItem } from '@/types/domain';
 import {
@@ -226,6 +226,21 @@ export interface JourneyResult {
  * that item's state, which is the point: a sequence no test author would
  * think to write is exactly where composition bugs live.
  */
+/**
+ * When a block ends, in minutes, counting a midnight end as the end of the
+ * day rather than the start of it.
+ *
+ * The same wrap that made durationMinutes report minus 1420: an item
+ * running 23:30–00:00 has an end of zero, which is less than every clock
+ * reading there is, so any check of the form "has this finished?" says yes
+ * the moment it is written. Caught at 00:30 by an invariant reporting a
+ * block twenty-three hours in the FUTURE as already past.
+ */
+function endMinutes(item: { start: string; end: string }): number {
+  const end = toMinutes(item.end);
+  return end <= toMinutes(item.start) ? end + 1440 : end;
+}
+
 export function runJourney(seed: number, days: number, trace: string[], out: Violation[]): number {
   const rng = mulberry32(9_000_003 * (seed + 1));
   const store = useAppStore.getState();
@@ -327,7 +342,7 @@ export function runJourney(seed: number, days: number, trace: string[], out: Vio
           // put its whole window behind the clock, and Today files a
           // passed window under "Earlier — did it happen?" — so the move
           // read as the app deciding it had happened.
-          if (nowMin !== undefined && after && toMinutes(after.end) <= nowMin) {
+          if (nowMin !== undefined && after && endMinutes(after) <= nowMin) {
             out.push({
               invariant: 'a move never lands in a window that has already closed',
               detail: `${item.title} moved to ${after.start}–${after.end} on ${date}, already past at ${nowMin} minutes`,
@@ -339,6 +354,75 @@ export function runJourney(seed: number, days: number, trace: string[], out: Vio
       actions += 1;
       check(trace, out);
       if (trace.length > 400) trace.splice(0, 200);
+    }
+
+    // Adding something to the day — the action Quick Add introduced, and
+    // one nothing had ever simulated. It goes through the same picker a
+    // move does, so the same invariants have to hold for it.
+    if (rng() < 0.2) {
+      const dayPlan = useAppStore.getState().plans[date];
+      const person = useAppStore.getState().profile;
+      if (dayPlan && person) {
+        const nowMin = date === start ? nowMinutes() : undefined;
+        const probeStart = person.wakeTime;
+        const probe = {
+          date,
+          items: [
+            ...dayPlan.items,
+            {
+              id: '__probe__',
+              date,
+              start: probeStart,
+              end: toHHMM(toMinutes(probeStart) + 30),
+              title: '',
+              area: 'enjoyment' as const,
+              tier: 'should' as const,
+              status: 'planned' as const,
+              fixed: false,
+            },
+          ],
+        };
+        const slots = candidateStartsFor(probe, '__probe__', {
+          wakeTime: person.wakeTime,
+          sleepTime: person.sleepTime,
+          notBefore: nowMin,
+        });
+        // Same as a move: prefer a time that collides with nothing. The
+        // picker labels the "during work" slots and makes the person opt
+        // in, so a harness taking them at random invents overlaps nobody
+        // chose — and then reports them as the app's fault.
+        const cleanSlots = slots.filter((c) => !c.hitsFixed && c.bumps === 0);
+        const usable = cleanSlots.length > 0 ? cleanSlots : [];
+        if (usable.length > 0) {
+          const at = pick(rng, usable).start;
+          useAppStore.getState().addPlanItem(date, {
+            title: 'Coffee with a friend',
+            area: 'enjoyment',
+            start: at,
+            durationMin: 30,
+          });
+          trace.push(`add:${date}@${at}`);
+          const added = useAppStore
+            .getState()
+            .plans[date]?.items.find((i) => i.title === 'Coffee with a friend');
+          if (!added) {
+            out.push({
+              invariant: 'something added to a day is on that day',
+              detail: `nothing landed on ${date} after an add at ${at}`,
+              trace: [...trace],
+            });
+          }
+          if (nowMin !== undefined && added && endMinutes(added) <= nowMin) {
+            out.push({
+              invariant: 'a move never lands in a window that has already closed',
+              detail: `added block sits at ${added.start}–${added.end} on ${date}, already past at ${nowMin} minutes`,
+              trace: [...trace],
+            });
+          }
+          actions += 1;
+          check(trace, out);
+        }
+      }
     }
   }
   return actions;

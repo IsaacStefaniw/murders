@@ -22,6 +22,8 @@ interface ItemActionsProps {
   profile: LifeProfile;
   date: string;
   onDone?: () => void;
+  /** Open straight into a mode — a long press goes to 'move'. */
+  initialMode?: 'idle' | 'move';
 }
 
 /**
@@ -29,7 +31,14 @@ interface ItemActionsProps {
  * Shorten where it makes sense, and Skip that offers recovery before
  * surrender. Optimises for recovery, never guilt.
  */
-export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsProps) {
+export function ItemActions({
+  item,
+  plan,
+  profile,
+  date,
+  onDone,
+  initialMode = 'idle',
+}: ItemActionsProps) {
   const router = useRouter();
   const setItemStatus = useAppStore((s) => s.setItemStatus);
   const moveItem = useAppStore((s) => s.moveItem);
@@ -38,7 +47,7 @@ export function ItemActions({ item, plan, profile, date, onDone }: ItemActionsPr
   const goals = useAppStore((s) => s.goals);
 
   const setMilestoneDone = useAppStore((s) => s.setMilestoneDone);
-  const [mode, setMode] = useState<'idle' | 'move' | 'choose' | 'skip' | 'milestone'>('idle');
+  const [mode, setMode] = useState<'idle' | 'move' | 'choose' | 'skip' | 'milestone'>(initialMode);
   /** What else moved to make room. Shown once, then cleared on the next action. */
   const [knockOn, setKnockOn] = useState<Displacement[]>([]);
   const session = item.status === 'planned' ? sessionForItem(item, goals) : null;

@@ -19,6 +19,7 @@ import { coachNote, weekMomentum } from '@/features/today/coach';
 import { availableStartsFor } from '@/features/planner/generate';
 import { ItemActions } from '@/features/today/item-actions';
 import { PlanItemRow } from '@/features/today/plan-item-row';
+import { QuickAdd } from '@/features/today/QuickAdd';
 import {
   addDays,
   formatDateLong,
@@ -62,6 +63,8 @@ export default function Today() {
   const metrics = useAppStore((s) => s.metrics);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  /** Set by a long press, so the row opens on the move picker. */
+  const [moveId, setMoveId] = useState<string | null>(null);
   const [planningGap, setPlanningGap] = useState<string | null>(null);
 
   useEffect(() => {
@@ -293,6 +296,9 @@ export default function Today() {
           {meaningfulCount > 0 ? (
             <AppText variant="secondary">Nothing left that needs you.</AppText>
           ) : null}
+          {/* The moment someone most wants to put something on the day is
+              the moment the day is clear. There was no way to. */}
+          <QuickAdd date={date} profile={profile} />
         </Card>
       )}
 
@@ -308,7 +314,15 @@ export default function Today() {
                 profile={profile}
                 date={date}
                 expanded={expandedId === item.id}
-                onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                onToggle={() => {
+                  setExpandedId(expandedId === item.id ? null : item.id);
+                  setMoveId(null);
+                }}
+                moveOnOpen={moveId === item.id}
+                onLongPress={() => {
+                  setExpandedId(item.id);
+                  setMoveId(item.id);
+                }}
               />
             ))}
           </View>
@@ -327,7 +341,15 @@ export default function Today() {
                 profile={profile}
                 date={date}
                 expanded={expandedId === item.id}
-                onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                onToggle={() => {
+                  setExpandedId(expandedId === item.id ? null : item.id);
+                  setMoveId(null);
+                }}
+                moveOnOpen={moveId === item.id}
+                onLongPress={() => {
+                  setExpandedId(item.id);
+                  setMoveId(item.id);
+                }}
               />
             ))}
           </View>
@@ -371,7 +393,15 @@ export default function Today() {
             profile={profile}
             date={date}
             expanded={expandedId === item.id}
-            onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+            onToggle={() => {
+              setExpandedId(expandedId === item.id ? null : item.id);
+              setMoveId(null);
+            }}
+            moveOnOpen={moveId === item.id}
+            onLongPress={() => {
+              setExpandedId(item.id);
+              setMoveId(item.id);
+            }}
           />
         ))}
         <Card

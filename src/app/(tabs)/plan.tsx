@@ -8,6 +8,7 @@ import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { Spacing } from '@/constants/theme';
 import { PlanItemRow } from '@/features/today/plan-item-row';
+import { QuickAdd } from '@/features/today/QuickAdd';
 import { addDays, formatDateLong, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 
@@ -25,6 +26,8 @@ export default function Plan() {
   const [openDate, setOpenDate] = useState(today);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [rebuiltDate, setRebuiltDate] = useState<string | null>(null);
+  /** Set by a long press, so the row opens on the move picker. */
+  const [moveId, setMoveId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -90,11 +93,20 @@ export default function Plan() {
                           profile={profile}
                           date={date}
                           expanded={expandedId === item.id}
-                          onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                          onToggle={() => {
+                            setExpandedId(expandedId === item.id ? null : item.id);
+                            setMoveId(null);
+                          }}
+                          moveOnOpen={moveId === item.id}
+                          onLongPress={() => {
+                            setExpandedId(item.id);
+                            setMoveId(item.id);
+                          }}
                         />
                       ) : null,
                     )
                   )}
+                  <QuickAdd date={date} profile={profile} />
                   <Button
                     title="Rebuild this day"
                     variant="secondary"

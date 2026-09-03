@@ -15,6 +15,14 @@ interface PlanItemRowProps {
   date: string;
   expanded: boolean;
   onToggle: () => void;
+  /**
+   * Opened by a long press, so the row lands on the move picker rather
+   * than the action list. "Tap and hold to move things around" was three
+   * taps deep behind an expand — the gesture people reached for did
+   * nothing at all.
+   */
+  moveOnOpen?: boolean;
+  onLongPress?: () => void;
 }
 
 /** A compact plan row. Tier is engine detail — the row shows time and title only. */
@@ -32,7 +40,16 @@ function lengthLabel(item: PlanItem): string | null {
   return m === 0 ? `${h}h` : `${h}h ${m}m`;
 }
 
-export function PlanItemRow({ item, plan, profile, date, expanded, onToggle }: PlanItemRowProps) {
+export function PlanItemRow({
+  item,
+  plan,
+  profile,
+  date,
+  expanded,
+  onToggle,
+  moveOnOpen = false,
+  onLongPress,
+}: PlanItemRowProps) {
   const theme = useTheme();
   const done = item.status === 'completed';
   const skipped = item.status === 'skipped';
@@ -59,10 +76,14 @@ export function PlanItemRow({ item, plan, profile, date, expanded, onToggle }: P
     >
       <Pressable
         onPress={onToggle}
+        onLongPress={item.fixed || done || skipped ? undefined : onLongPress}
+        delayLongPress={300}
         accessibilityRole="button"
         accessibilityLabel={`${item.title}, ${formatTime(item.start)}${
           length ? `, ${length}` : ''
-        }${done ? ', done' : ''}`}
+        }${done ? ', done' : ''}${
+          item.fixed || done || skipped ? '' : '. Press and hold to move it.'
+        }`}
       >
         <View style={styles.main}>
           <View style={styles.time}>
@@ -107,7 +128,14 @@ export function PlanItemRow({ item, plan, profile, date, expanded, onToggle }: P
       {expanded ? (
         <View style={styles.actions}>
           <ItemGuidanceView item={item} />
-          <ItemActions item={item} plan={plan} profile={profile} date={date} onDone={onToggle} />
+          <ItemActions
+            item={item}
+            plan={plan}
+            profile={profile}
+            date={date}
+            onDone={onToggle}
+            initialMode={moveOnOpen ? 'move' : 'idle'}
+          />
         </View>
       ) : null}
     </View>
