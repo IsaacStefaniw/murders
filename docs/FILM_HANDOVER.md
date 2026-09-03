@@ -132,3 +132,73 @@ The vertical cut shows no named figures and is unchanged.
 Both are transcodes of a VP8 original and carry that generation of loss. A
 re-export from the master, with the disclaimer done in the source project,
 would beat what is here.
+
+## Where this file lives, and why it moved
+
+It used to sit in `web/public/video/`, which is the site's static asset root —
+so it was being served at `https://intentnorth.app/video/README.md`. A document
+listing the claims we decided were misleading, citing our own s18 exposure, and
+recording that PRODUCT.md once sold an "AI-powered" product the build could not
+deliver, was published on the marketing site. Nothing in `web/public/` is
+private; treat that directory as the public internet, because it is.
+
+`web/tests/public-assets.test.mjs` now fails the build if a Markdown file
+appears under `web/public/` again.
+
+## Disclaimer text — for the film re-cut
+
+The 45s film shows six named educators as chips on its own overlay. Under
+`CLAUDE.md` rule 9 that needs a visible no-endorsement line beside them, at a
+size a viewer actually reads — not only the small grey line inside the phone
+mock.
+
+The website session composited this in as an interim fix. **If the film is
+re-cut, the caption must be rebuilt in the source project**, because a re-cut
+replaces the footage the caption was burned into.
+
+### The line, verbatim
+
+```
+Attribution credits public work and implies no endorsement of IntentNorth.
+```
+
+Use exactly that wording. It is copied from `src/app/library.tsx`, so the app,
+the film and the website all make the same statement in the same words. Do not
+reword it per surface — a disclaimer that varies looks drafted rather than
+meant.
+
+The app pairs it with a first sentence that the film's own narration already
+covers, so the film needs only the attribution half:
+
+```
+Educational structure, not medical advice. Attribution credits public work and
+implies no endorsement of IntentNorth.
+```
+
+### Placement, as currently composited
+
+Measured off the footage rather than estimated — the chip region's brightness
+was sampled across the segment to find the real boundaries.
+
+| Property | Value |
+|---|---|
+| Frame | 1280×720 |
+| Chips fade in | 17.3s |
+| Chips fully visible | 17.8s – 21.0s |
+| Chips gone | 21.2s |
+| Caption visible | 17.6s – 21.1s, fading in at 17.8s and out from 20.6s (0.4s each) |
+| Position | x = 86px (aligned to the headline and the chip row), y = 536px (below the second chip row) |
+| Size | 19px — the same size as the film's own body text, deliberately not smaller |
+| Colour | `#a8baaf`, sampled from the film's existing muted green-grey |
+
+The size is the point. A disclaimer set smaller than the claim it qualifies is
+a disclaimer designed not to be read, and that is the thing rule 9 exists to
+prevent.
+
+### If the names are cut instead
+
+Also fine, and simpler. The attribution belongs in the app's library screen,
+where a reader has arrived deliberately and can see each practice's source,
+evidence grade and limits. On a marketing film the names do more work for
+credibility than they are worth in exposure. Dropping the chips removes the
+requirement entirely.
