@@ -199,3 +199,20 @@ rewritten first.
 4. Website session: pricing published only once the products exist; the
    privacy page and label updated in the same release as the events, never
    before.
+
+## 10. Decisions (2026-09-03)
+
+Agreed by Isaac:
+
+- Prices as in §4: monthly AU$14.99, annual AU$89.99 with a seven-day
+  introductory offer, lifetime AU$249. Confirm the comparables in the
+  store before the products are created, then create them at these.
+- The 1.0 cohort: twelve months of Plus, computed on-device from the
+  original purchase date, then the normal line.
+- Funnel events: in, for 1.1, on the terms of §7. The client
+  (`src/lib/telemetry.ts`) is written and tested now with a closed list of
+  eight events and a four-field payload; it is off in every build until
+  `EXPO_PUBLIC_TELEMETRY_URL` is set, which happens in the same release as
+  the privacy page and App Privacy label changes. The receiving route on
+  the website's Worker is the website session's to build; the contract is
+  a POST of `{event, install, build, at}` and a 204.
