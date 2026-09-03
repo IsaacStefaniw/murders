@@ -8,8 +8,16 @@ approved to appear on the site.
 
 | File | Aspect | Resolution | Length | Size |
 |---|---|---|---|---|
-| `intentnorth-coaching-45s.webm` | 16:9 | 1280×720 | ~45s | 5.2 MB |
-| `intentnorth-coaching-16s-vertical.webm` | 9:16 | 720×1280 | ~16s | 1.7 MB |
+| `intentnorth-coaching-45s.webm` | 16:9 | 1280×720 | 48.00s | 5.2 MB |
+| `intentnorth-coaching-45s.mp4` | 16:9 | 1280×720 | 48.00s | 3.1 MB |
+| `intentnorth-coaching-16s-vertical.webm` | 9:16 | 720×1280 | 17.44s | 1.7 MB |
+| `intentnorth-coaching-16s-vertical.mp4` | 9:16 | 720×1280 | 17.44s | 1.2 MB |
+
+Plus `-poster.jpg` beside each pair. Neither film has an audio track, so both
+can autoplay muted without a user gesture.
+
+Durations are measured, not estimated — the 45s cut is 48.00s and the vertical
+is 17.44s. The filenames round; the `<video>` markup should not.
 
 Both end on the card `intentnorth.app`. Do not ship either with a
 destination that 404s — an end card is a promise.
@@ -21,12 +29,21 @@ vertical carries one claim only — a real session, decided, that moves when
 your own numbers move — because a feed gives you one idea and about three
 seconds.
 
-**Format caveat.** WebM (VP9) only. This container has no ffmpeg, so no
-MP4/H.264 fallback could be produced here. Safari has supported VP9 WebM
-since 14.1, but older Safari and some in-app browsers will show nothing
-rather than degrade. Either transcode before launch or use `<video>` with
-a poster frame and both sources. Do not ship WebM alone to a marketing
-page without checking that decision deliberately.
+**Format — resolved, and one correction.** The handover said VP9; the files
+are actually **VP8** (`ffprobe`: `Video: vp8`). That matters, because VP8 is
+markedly less efficient — re-encoding to H.264 at CRF 23 produced a *smaller*
+file than the VP8 original in both cases (5.2 MB → 3.1 MB, 1.7 MB → 1.2 MB)
+at equivalent quality. The WebM encodes are simply inefficient.
+
+The H.264 fallbacks now exist, made in the website session with an ffmpeg
+binary pulled from the `imageio-ffmpeg` PyPI wheel: High profile, `yuv420p`,
+`+faststart` (moov atom verified ahead of mdat, so playback starts before the
+file finishes arriving). Serve both sources, MP4 first — it is the smaller
+file here as well as the more compatible one.
+
+These are transcodes of a VP8 encode, so they carry a generation of loss. If
+the source project is still to hand, re-exporting H.264 directly from the
+master would be better than either file here.
 
 ## Numbers that are true
 
