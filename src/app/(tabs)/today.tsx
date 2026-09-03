@@ -19,14 +19,13 @@ import { coachNote, weekMomentum } from '@/features/today/coach';
 import { availableStartsFor } from '@/features/planner/generate';
 import { ItemActions } from '@/features/today/item-actions';
 import { PlanItemRow } from '@/features/today/plan-item-row';
+import { QuickAdd } from '@/features/today/QuickAdd';
 import {
   addDays,
-  dayMinutes,
   formatDateLong,
   formatTime,
   nowMinutes,
   todayKey,
-  toHHMM,
   toMinutes,
   weekdayOf,
 } from '@/lib/dates';
@@ -64,6 +63,8 @@ export default function Today() {
   const metrics = useAppStore((s) => s.metrics);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  /** Set by a long press, so the row opens on the move picker. */
+  const [moveId, setMoveId] = useState<string | null>(null);
   const [planningGap, setPlanningGap] = useState<string | null>(null);
 
   useEffect(() => {
@@ -101,19 +102,12 @@ export default function Today() {
 
   if (!profile || !plan) return <Screen tabbed />;
 
-  // Positions within THIS person's waking day, not raw clock minutes. For
-  // anyone whose day ends after midnight a 00:15 block is the last thing
-  // tonight, and comparing raw minutes filed it as the first thing this
-  // morning — already gone, three minutes after it was scheduled.
-  const dayMin = (t: string) => dayMinutes(t, profile.wakeTime);
-  const nowDay = dayMin(toHHMM(now));
-
   const pending = plan.items.filter((i) => i.status === 'planned' && meaningful(i));
   // NOW means now: only an item whose window contains this minute. A future
   // item is never manufactured into urgency — "nothing needs you right now"
   // is a real, deliberate state.
   const nowItem =
-    pending.find((i) => dayMin(i.start) <= nowDay && dayMin(i.end) > nowDay) ?? null;
+    pending.find((i) => toMinutes(i.start) <= now && toMinutes(i.end) > now) ?? null;
   // The day's ledger: items whose window has passed, resolved or not.
   // Unresolved ones need an honest answer (the adaptation engine needs the
   // skip data as much as the user needs closure); resolved ones stay put so
@@ -122,10 +116,10 @@ export default function Today() {
     (i) =>
       meaningful(i) &&
       i.id !== nowItem?.id &&
-      dayMin(i.end) <= nowDay &&
+      toMinutes(i.end) <= now &&
       toMinutes(i.start) < EVENING_START,
   );
-  const upcoming = pending.filter((i) => i.id !== nowItem?.id && dayMin(i.start) > nowDay);
+  const upcoming = pending.filter((i) => i.id !== nowItem?.id && toMinutes(i.start) > now);
   const nextItems = upcoming.filter((i) => toMinutes(i.start) < EVENING_START).slice(0, 3);
   const tonightItems = plan.items.filter(
     (i) => meaningful(i) && i.id !== nowItem?.id && toMinutes(i.start) >= EVENING_START,
@@ -302,6 +296,9 @@ export default function Today() {
           {meaningfulCount > 0 ? (
             <AppText variant="secondary">Nothing left that needs you.</AppText>
           ) : null}
+          {/* The moment someone most wants to put something on the day is
+              the moment the day is clear. There was no way to. */}
+          <QuickAdd date={date} profile={profile} />
         </Card>
       )}
 
@@ -317,7 +314,15 @@ export default function Today() {
                 profile={profile}
                 date={date}
                 expanded={expandedId === item.id}
-                onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                onToggle={() => {
+                  setExpandedId(expandedId === item.id ? null : item.id);
+                  setMoveId(null);
+                }}
+                moveOnOpen={moveId === item.id}
+                onLongPress={() => {
+                  setExpandedId(item.id);
+                  setMoveId(item.id);
+                }}
               />
             ))}
           </View>
@@ -336,7 +341,15 @@ export default function Today() {
                 profile={profile}
                 date={date}
                 expanded={expandedId === item.id}
-                onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                onToggle={() => {
+                  setExpandedId(expandedId === item.id ? null : item.id);
+                  setMoveId(null);
+                }}
+                moveOnOpen={moveId === item.id}
+                onLongPress={() => {
+                  setExpandedId(item.id);
+                  setMoveId(item.id);
+                }}
               />
             ))}
           </View>
@@ -380,7 +393,15 @@ export default function Today() {
             profile={profile}
             date={date}
             expanded={expandedId === item.id}
-            onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
+            onToggle={() => {
+              setExpandedId(expandedId === item.id ? null : item.id);
+              setMoveId(null);
+            }}
+            moveOnOpen={moveId === item.id}
+            onLongPress={() => {
+              setExpandedId(item.id);
+              setMoveId(item.id);
+            }}
           />
         ))}
         <Card

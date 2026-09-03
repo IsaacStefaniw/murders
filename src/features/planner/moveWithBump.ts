@@ -186,6 +186,15 @@ export function candidateStartsFor(
   const dayStart = toMinutes(ctx.wakeTime);
   let dayEnd = toMinutes(ctx.sleepTime);
   if (dayEnd <= dayStart) dayEnd += 1440;
+  // ...and then never past midnight, whatever the bedtime.
+  //
+  // A moved item keeps its DATE. Offering "00:00" to someone who sleeps at
+  // half past midnight reads as "later tonight" and lands at the start of
+  // the same calendar day — twenty-three hours in the past, where Today
+  // files it under "Earlier — did it happen?". The offer has to stop where
+  // the date does, and the small cost is that a night owl cannot move
+  // something past midnight from this menu.
+  dayEnd = Math.min(dayEnd, 1440);
 
   const others = plan.items.filter((i) => i.id !== itemId);
   const out: TimeCandidate[] = [];

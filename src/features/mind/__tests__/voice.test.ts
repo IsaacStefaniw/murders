@@ -1,5 +1,7 @@
 import {
   pickVoice,
+  qualityOf,
+  voiceShortlist,
   voiceShortlist as pickShortlist,
   VOICE_SAMPLE as SAMPLE,
   type VoiceOption,
@@ -79,5 +81,73 @@ describe('the shortlist a person actually chooses from', () => {
     // "Hello" tells you nothing about how a voice reads guidance.
     expect(SAMPLE.split(' ').length).toBeGreaterThan(6);
     expect(SAMPLE).toMatch(/breath|settle/i);
+  });
+});
+
+/**
+ * "The voices are a little robotic but OK. Are there any more natural
+ * options?"
+ *
+ * There were, and they were already on the phone. iOS ships a compact
+ * version of most voices and installs an enhanced or premium one alongside
+ * it when somebody downloads it — same name, same language, wildly
+ * different quality. The shortlist deduplicated by name and kept whichever
+ * came back first, which is the compact one.
+ */
+describe('quality', () => {
+  const compact: VoiceOption = {
+    identifier: 'com.apple.voice.compact.en-AU.Lee',
+    name: 'Lee',
+    language: 'en-AU',
+  };
+  const enhanced: VoiceOption = {
+    identifier: 'com.apple.voice.enhanced.en-AU.Lee',
+    name: 'Lee',
+    language: 'en-AU',
+  };
+  const premium: VoiceOption = {
+    identifier: 'com.apple.voice.premium.en-AU.Lee',
+    name: 'Lee',
+    language: 'en-AU',
+  };
+
+  it('reads quality out of the identifier', () => {
+    expect(qualityOf(compact)).toBe('compact');
+    expect(qualityOf(enhanced)).toBe('enhanced');
+    expect(qualityOf(premium)).toBe('premium');
+  });
+
+  it("reads iOS's own quality field where it is set", () => {
+    expect(qualityOf({ ...compact, quality: 'Enhanced' })).toBe('enhanced');
+  });
+
+  it('keeps the best version of a voice, not the first one listed', () => {
+    // Compact first, exactly as the device tends to return them.
+    const list = voiceShortlist([compact, enhanced, premium], 'en-AU');
+    expect(list).toHaveLength(1);
+    expect(list[0].identifier).toBe(premium.identifier);
+  });
+
+  it('puts the natural-sounding voices at the top of the list', () => {
+    const otherCompact: VoiceOption = {
+      identifier: 'com.apple.voice.compact.en-AU.Karen',
+      name: 'Karen',
+      language: 'en-AU',
+    };
+    const list = voiceShortlist([otherCompact, compact, enhanced], 'en-AU');
+    expect(qualityOf(list[0])).not.toBe('compact');
+  });
+
+  it('picks an enhanced voice automatically when one is installed', () => {
+    expect(pickVoice([compact, enhanced], 'en-AU')).toBe(enhanced.identifier);
+  });
+
+  it('still speaks when every voice on the device is compact', () => {
+    expect(pickVoice([compact], 'en-AU')).toBe(compact.identifier);
+  });
+
+  it('still speaks when nothing matches the language at all', () => {
+    const french: VoiceOption = { identifier: 'fr-1', name: 'Thomas', language: 'fr-FR' };
+    expect(pickVoice([french], 'en-AU')).toBe('fr-1');
   });
 });

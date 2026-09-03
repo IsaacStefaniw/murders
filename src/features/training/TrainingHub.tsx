@@ -15,6 +15,8 @@ import { QuestionCard } from '@/features/model/QuestionCard';
 import { LevelCard } from '@/features/paths/LevelCard';
 import { weekOf } from '@/features/training/programme';
 import { useAppStore } from '@/state/store';
+import { latestMaxes } from '@/features/training/level';
+import { assessStrength, BAND_LABEL, type StrengthLift } from '@/features/training/standards';
 
 const LIFTS = [
   { label: 'Bench', key: 'strength.bench.e1rm' },
@@ -27,6 +29,13 @@ const LIFTS = [
  * Training v2 hub section — complexity behind the glass. The user sees
  * their numbers, this week's prescription, and at most ONE question.
  */
+const LIFT_LABEL: Record<StrengthLift, string> = {
+  bench: 'bench',
+  squat: 'squat',
+  deadlift: 'deadlift',
+  ohp: 'overhead press',
+};
+
 export function TrainingHub() {
   const router = useRouter();
 
@@ -55,6 +64,20 @@ export function TrainingHub() {
   const week = programme ? weekOf(programme) : null;
   const knownLifts = LIFTS.filter((l) => latest(metrics, l.key));
 
+  const profile = useAppStore((s) => s.profile);
+  const { band, perLift } = useMemo(
+    () => assessStrength(latestMaxes(metrics), profile ?? {}),
+    [metrics, profile],
+  );
+  // Named plainly, because "we cannot assess you" is only useful with the
+  // reason attached.
+  const missingForBand: string[] = [];
+  if (!profile?.weightKg) missingForBand.push('your bodyweight');
+  if (profile?.sexAtBirth !== 'male' && profile?.sexAtBirth !== 'female') {
+    missingForBand.push('sex at birth');
+  }
+  if (Object.keys(latestMaxes(metrics)).length === 0) missingForBand.push('a main lift');
+
   const saveLift = (key: string, w: number, r: number) => {
     const e1rm = estimate1Rm(w, r);
     addMetric(key, e1rm, `${w} kg × ${r}`);
@@ -76,6 +99,41 @@ export function TrainingHub() {
         pushing={levelState.pushing}
         onPush={(push) => setPathIntensityPush('training', push)}
       />
+
+      {/* Where the lifts put you, and — when the app cannot say — exactly
+          what is missing. "Is my training program advanced or the same for
+          every other user?" deserves an answer on the screen, and when the
+          honest answer is "I cannot tell yet", so does that. */}
+      <Card style={styles.bandCard}>
+        {band ? (
+          <>
+            <AppText variant="label" color="textTertiary">
+              Against the population tables
+            </AppText>
+            <AppText variant="heading">{BAND_LABEL[band]}</AppText>
+            <AppText variant="caption" color="textTertiary">
+              From {Object.keys(perLift).length === 1 ? 'your' : 'the middle of your'}{' '}
+              {Object.keys(perLift)
+                .map((l) => LIFT_LABEL[l as StrengthLift])
+                .join(', ')}
+              , relative to bodyweight. These tables come from voluntary submissions to
+              lifting sites — useful for placing you, not a score and not a target.
+            </AppText>
+          </>
+        ) : (
+          <>
+            <AppText variant="label" color="textTertiary">
+              Against the population tables
+            </AppText>
+            <AppText variant="heading">Not enough to say yet</AppText>
+            <AppText variant="caption" color="textTertiary">
+              {missingForBand.length > 0
+                ? `Add ${missingForBand.join(' and ')} and IntentNorth can place your lifts and start you at the right level rather than the first one.`
+                : 'Log a main lift and IntentNorth can place you.'}
+            </AppText>
+          </>
+        )}
+      </Card>
 
       {/* Your numbers — the simple, meaningful progress line. */}
       {knownLifts.length > 0 ? (
@@ -213,6 +271,7 @@ export function TrainingHub() {
 }
 
 const styles = StyleSheet.create({
+  bandCard: { gap: Spacing.xs },
   stack: { gap: Spacing.sm },
   row: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
   grow: { flexGrow: 1 },

@@ -95,10 +95,21 @@ function withLadder(
    * outranks it: a person telling us it is bad does not need three more
    * calendar blocks. The first version of the ladder added to those plans
    * anyway, and the existing journey tests caught it.
+   *
+   * But suppressing it entirely was too blunt, and the pathway audit found
+   * the cost: for 46% of relationship profiles — everyone in a hard patch
+   * or without a window — all four levels produced an identical build. The
+   * level did nothing at all, while LEVEL_BLURB went on promising them
+   * something specific changed at each rung. That is the exact defect the
+   * ladder exists to prevent, reintroduced by the guard against it.
+   *
+   * So suppression now means "add no calendar blocks", not "ignore the
+   * rung". The milestones and the framing still come from the level,
+   * because they are what the rung is actually about and they cost nobody
+   * an evening.
    */
   suppress = false,
 ): PathBuild {
-  if (suppress) return plan;
   const level = levelFromAnswers(answers);
   const ladder = ladderFor(path, level, profile, plan.goal.id);
   const existingTitles = new Set(plan.routines.map((r) => r.title));
@@ -112,7 +123,9 @@ function withLadder(
     const covers = ladder.covers[i] ?? [];
     return !covers.some((c) => existingProtocols.has(c));
   });
-  const routines = [...plan.routines, ...fitLadderToBudget(added, level)];
+  const routines = suppress
+    ? plan.routines
+    : [...plan.routines, ...fitLadderToBudget(added, level)];
   return {
     ...plan,
     routines,

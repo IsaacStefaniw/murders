@@ -250,20 +250,45 @@ export function claimedFloor(claim: PathLevel | null | undefined): PathLevel {
 }
 
 /**
+ * The level a MEASUREMENT buys immediately, as opposed to a claim.
+ *
+ * "Is my training program advanced or the same for every other user?" It
+ * was the same, because the only thing the ladder measured was how long
+ * someone had been using the app — so an experienced lifter opened it and
+ * was handed a beginner's programme and told, in effect, to prove himself
+ * over ten months. That is the "this is too easy" complaint at its root.
+ *
+ * A measurement outranks a claim, so this floor goes one rung higher than
+ * claimedFloor allows: a logged lift is evidence, where "I'm advanced" is
+ * an opinion. It still stops below `advanced`, because what makes top
+ * singles and an overreach week survivable is training age rather than
+ * absolute load — a naturally strong beginner is exactly the person that
+ * distinction protects.
+ */
+export function measuredFloor(floor: PathLevel | null | undefined): PathLevel {
+  if (!floor) return 'foundation';
+  return levelRank(floor) > levelRank('established') ? 'established' : floor;
+}
+
+/**
  * The level actually used to build the programme.
  *
- * The claim and the log are combined by taking the higher — believing the
- * person about their past and the log about their present, whichever says
- * more. A voluntary step-back then caps the result, because a person
- * telling us the plan is too hard is better evidence than either.
+ * The claim, the measurement and the log are combined by taking the
+ * highest — believing the person about their past, the numbers about their
+ * strength, and the log about their present, whichever says most. A
+ * voluntary step-back then caps the result, because a person telling us
+ * the plan is too hard is better evidence than any of them.
  */
 export function levelFor(
   path: PathId,
   claim: PathLevel | null | undefined,
   evidence: LevelEvidence = EMPTY_EVIDENCE,
   stepBackTo?: PathLevel | null,
+  measured?: PathLevel | null,
 ): PathLevel {
-  const floor = claimedFloor(claim);
+  const claimed = claimedFloor(claim);
+  const measuredAt = measuredFloor(measured);
+  const floor = levelRank(measuredAt) > levelRank(claimed) ? measuredAt : claimed;
   const earned = earnedLevel(path, evidence);
   const combined = levelRank(earned) > levelRank(floor) ? earned : floor;
   if (stepBackTo && levelRank(stepBackTo) < levelRank(combined)) return stepBackTo;

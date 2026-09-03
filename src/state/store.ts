@@ -50,7 +50,11 @@ import {
   type LevelProgress,
   type PathLevel,
 } from '@/features/paths/level';
-import { trainingEvidence, TRAINING_STANDARD_TEXT } from '@/features/training/level';
+import {
+  measuredTrainingLevel,
+  trainingEvidence,
+  TRAINING_STANDARD_TEXT,
+} from '@/features/training/level';
 import {
   availableStartsFor,
   freeEndAtOrBefore,
@@ -197,7 +201,7 @@ export interface AppState {
       durationMin: number;
       goalId?: string;
     },
-  ) => void;
+  ) => Displacement[];
 
   /**
    * Record something that ALREADY happened — an unscheduled workout, a
@@ -474,19 +478,19 @@ export function deriveTrainingInputs(
         ? 'fatloss'
         : 'general';
   // The question engine's focus-lift answer beats the title heuristic.
+  //
+  // Overhead press was missing from both branches, so "Overhead press 60kg"
+  // was read as a strength goal with no lift to focus — the programme knew
+  // what kind of goal it was and not what it was about, which is most of
+  // the way to being no goal at all.
   const chosen = pathAnswers?.focusLift;
+  const fromTitle = TITLE_TO_LIFT.find(([pattern]) => pattern.test(title))?.[1];
   const focusLift =
-    chosen === 'bench' || chosen === 'squat' || chosen === 'deadlift'
+    chosen === 'bench' || chosen === 'squat' || chosen === 'deadlift' || chosen === 'ohp'
       ? chosen
       : chosen === 'none'
         ? undefined
-        : title.includes('bench')
-          ? ('bench' as const)
-          : title.includes('squat')
-            ? ('squat' as const)
-            : title.includes('deadlift')
-              ? ('deadlift' as const)
-              : undefined;
+        : fromTitle;
   const equipment: TrainingInputs['equipment'] =
     profile.trainingPreference === 'gym'
       ? 'gym'
@@ -512,6 +516,17 @@ export function deriveTrainingInputs(
     constraints: profile.constraints,
   };
 }
+
+/**
+ * Goal titles to the lift they are about. Ordered, so "overhead press"
+ * is matched before a bare "press" could claim it.
+ */
+const TITLE_TO_LIFT: [RegExp, 'bench' | 'squat' | 'deadlift' | 'ohp'][] = [
+  [/overhead press|shoulder press|\bohp\b|strict press/, 'ohp'],
+  [/bench/, 'bench'],
+  [/squat/, 'squat'],
+  [/deadlift/, 'deadlift'],
+];
 
 /** Derive Work & Leadership v2 inputs from everything IntentNorth already knows. */
 export function deriveWorkInputs(
@@ -880,6 +895,34 @@ export const useAppStore = create<AppState>()(
             fixed: false,
           };
           updatePlanItems(date, (items) => [...items, item]);
+
+          // Adding is a move that starts from nowhere, and it has to obey
+          // the same rule: the chosen time is granted and the flexible day
+          // re-laid around it. Appending alone let an added block sit on
+          // top of a deep-work block — fifty-two overlaps across eighty
+          // simulated people, none of which any screen would have shown as
+          // a conflict.
+          const plan = get().plans[date];
+          const profile = get().profile;
+          if (!plan || !profile) return [];
+          const outcome = moveWithBump(plan, item.id, input.start, {
+            wakeTime: profile.wakeTime,
+            sleepTime: profile.sleepTime,
+          });
+          updatePlanItems(date, () => outcome.items);
+          for (const d of outcome.displaced) {
+            const moved = plan.items.find((i) => i.id === d.id);
+            if (!moved || !d.to) continue;
+            record(
+              eventFor(moved, date, 'rescheduled', {
+                originalStart: d.from,
+                newStart: d.to,
+                initiatedBy: 'intent',
+              }),
+            );
+          }
+          get().refreshSuggestions();
+          return outcome.displaced;
         },
 
         logCompletedActivity: (input) => {
@@ -1165,15 +1208,19 @@ export const useAppStore = create<AppState>()(
         },
 
         trainingLevelState: () => {
-          const { paths, workoutLogs, metrics, pathLevelStepBack, pathIntensityPush } = get();
-          const evidence = trainingEvidence(workoutLogs, metrics);
+          const { paths, workoutLogs, metrics, profile, pathLevelStepBack, pathIntensityPush } = get();
+          const evidence = trainingEvidence(workoutLogs, metrics, profile);
+          // Where the lifts alone say to start — so an experienced lifter
+          // is not handed a beginner's programme and told to earn his way
+          // out of it over ten months.
+          const measured = measuredTrainingLevel(metrics, profile);
           const claim = paths.training?.answers?.experience;
           const claimed =
             claim === 'new' || claim === 'returning' || claim === 'consistent'
               ? LEVEL_FROM_EXPERIENCE[claim]
               : null;
           const stepBack = pathLevelStepBack.training ?? null;
-          const level = levelFor('training', claimed, evidence, stepBack);
+          const level = levelFor('training', claimed, evidence, stepBack, measured);
           return {
             level,
             evidence,

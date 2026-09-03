@@ -12,6 +12,8 @@ import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import { reviewPeriod, reviewQuestions } from '@/features/review/period';
+import { todayKey } from '@/lib/dates';
 
 /**
  * The weekly operating review — five minutes, structured, and its output
@@ -26,6 +28,11 @@ export default function WeeklyReview() {
   const goal = useAppStore((s) => s.goals.find((g) => g.id === goalId));
   const setMilestoneDone = useAppStore((s) => s.setMilestoneDone);
   const setGoalNextFocus = useAppStore((s) => s.setGoalNextFocus);
+
+  // Named for the week it is actually about. A growth block that lands on
+  // a Monday was asking what moved "this week" before the week had started.
+  const period = reviewPeriod(todayKey());
+  const questions = reviewQuestions(period);
 
   const [moved, setMoved] = useState('');
   const [lever, setLever] = useState('');
@@ -74,9 +81,9 @@ export default function WeeklyReview() {
         </View>
       ) : null}
 
-      <SectionHeader title="What moved this week?" />
+      <SectionHeader title={questions.moved} />
       <Field
-        label="What moved this week?"
+        label={questions.moved}
         showLabel={false}
         value={moved}
         onChangeText={setMoved}
@@ -84,9 +91,9 @@ export default function WeeklyReview() {
         multiline
       />
 
-      <SectionHeader title="The one lever for next week" />
+      <SectionHeader title={questions.lever} />
       <Field
-        label="The one lever for next week"
+        label={questions.lever}
         showLabel={false}
         value={lever}
         onChangeText={setLever}
@@ -114,7 +121,11 @@ export default function WeeklyReview() {
       ) : null}
 
       <View style={styles.footer}>
-        <Button title="Set next week's focus" onPress={save} disabled={!lever.trim()} />
+        <Button
+          title={`Set the focus for ${period.lookingForward}`}
+          onPress={save}
+          disabled={!lever.trim()}
+        />
         <Button title="Cancel" variant="ghost" onPress={() => router.back()} />
       </View>
     </Screen>

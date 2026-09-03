@@ -190,3 +190,33 @@ describe('a move is a plan, not a record', () => {
     expect(candidates).toEqual([]);
   });
 });
+
+/**
+ * A moved item keeps its date.
+ *
+ * The picker used to wrap past midnight for anyone whose bedtime was after
+ * it, offering "00:00" as though it meant later tonight. The item lands at
+ * the start of the SAME calendar day — twenty-three hours in the past,
+ * where Today files it under "Earlier — did it happen?". Found at 00:21
+ * when the simulation's clock rolled over, by an invariant that had been
+ * passing all evening.
+ */
+describe('the offers stop where the date does', () => {
+  const nightOwl = { wakeTime: '06:30', sleepTime: '00:30' };
+  const plan = day(at('12:30', '13:30', 'Training', { id: 'training' }));
+
+  it('never offers a time past midnight, whatever the bedtime', () => {
+    const candidates = candidateStartsFor(plan, 'training', nightOwl);
+    expect(candidates.length).toBeGreaterThan(0);
+    for (const c of candidates) {
+      expect(toMinutes(c.start)).toBeGreaterThanOrEqual(toMinutes(nightOwl.wakeTime));
+    }
+    expect(candidates.map((c) => c.start)).not.toContain('00:00');
+  });
+
+  it('still offers the late evening right up to midnight', () => {
+    const candidates = candidateStartsFor(plan, 'training', nightOwl);
+    const last = candidates[candidates.length - 1];
+    expect(toMinutes(last.start)).toBeGreaterThanOrEqual(22 * 60);
+  });
+});

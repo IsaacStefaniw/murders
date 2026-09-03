@@ -12,7 +12,13 @@ import { Spacing } from '@/constants/theme';
 import { EVIDENCE_LABELS } from '@/features/knowledge/protocols';
 import { practiceState } from '@/features/mind/practice';
 import { cueAt, scriptsForLevel, type MeditationScript } from '@/features/mind/scripts';
-import { pickVoice, voiceShortlist, VOICE_SAMPLE, type VoiceOption } from '@/features/mind/voice';
+import {
+  isHighQuality,
+  pickVoice,
+  voiceShortlist,
+  VOICE_SAMPLE,
+  type VoiceOption,
+} from '@/features/mind/voice';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
@@ -242,7 +248,9 @@ export default function MeditateSession() {
               {shortlist.map((v) => (
                 <Chip
                   key={v.identifier}
-                  label={v.name || v.language}
+                  // Marked, because the difference is the whole complaint
+                  // and the names give no clue which is which.
+                  label={`${v.name || v.language}${isHighQuality(v) ? ' · natural' : ''}`}
                   selected={preferredVoiceId === v.identifier}
                   onPress={() => {
                     setVoicePreference(v.identifier);
@@ -254,6 +262,17 @@ export default function MeditateSession() {
                 />
               ))}
             </View>
+            {/* The better voices are free and already supported — they are
+                just not installed by default, and nothing in iOS tells you
+                they exist. Saying so is worth more than any amount of
+                tuning the rate and pitch of a compact voice. */}
+            {shortlist.every((v) => !isHighQuality(v)) ? (
+              <AppText variant="caption" color="textTertiary">
+                These are the compact voices, which is why they sound flat. iOS has far more
+                natural ones — Settings → Accessibility → Spoken Content → Voices → English.
+                Download one and it appears here.
+              </AppText>
+            ) : null}
           </View>
         ) : null}
         <Button
