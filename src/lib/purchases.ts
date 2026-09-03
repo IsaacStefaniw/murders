@@ -94,8 +94,30 @@ export async function refreshEntitlement(): Promise<Entitlement> {
   }
 }
 
+/**
+ * Off-device only: the store-screenshot pipeline (scripts/store-shots)
+ * exports the web build with EXPO_PUBLIC_OFFER_PREVIEW set to a JSON list
+ * of {productId, displayPrice}, so the review screenshot of the paywall
+ * shows the real products at the prices set in App Store Connect. It is
+ * never read where StoreKit exists, and no build profile sets it.
+ */
+function previewOffers(): PlusOffer[] {
+  const raw = process.env.EXPO_PUBLIC_OFFER_PREVIEW;
+  if (STOREKIT_AVAILABLE || !raw) return [];
+  try {
+    const list = JSON.parse(raw) as { productId: string; displayPrice: string }[];
+    return list
+      .filter((p) => PLUS_ALL_IDS.includes(p.productId))
+      .map((p) => ({ productId: p.productId, kind: KIND_OF[p.productId], displayPrice: p.displayPrice, title: p.productId }))
+      .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind));
+  } catch {
+    return [];
+  }
+}
+
 /** The three offers with Apple's localised prices. Empty when StoreKit cannot answer. */
 export async function loadOffers(): Promise<PlusOffer[]> {
+  if (!STOREKIT_AVAILABLE) return previewOffers();
   if (!(await connect())) return [];
   try {
     const [subs, lifetime] = await Promise.all([

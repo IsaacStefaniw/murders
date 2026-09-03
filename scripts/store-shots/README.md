@@ -29,3 +29,7 @@ are untouched.
 Entitlement: the seed must set `entitlement: { plus: true, source: 'dev' }`, or
 every screenshot shows the locked free state — which is a real state, but not
 the one the listing sells.
+
+Review screenshot for the in-app purchases: export with
+`EXPO_PUBLIC_OFFER_PREVIEW='[{"productId":"app.intentnorth.plus.annual","displayPrice":"A$89.99"},...]'`
+and capture `/upgrade` in the free state. Off-device only; StoreKit ignores it.
