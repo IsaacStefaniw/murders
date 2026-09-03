@@ -315,6 +315,13 @@ function BehaviourLoop() {
  * `preload="none"` matters as much as the click gate — without it the browser
  * starts fetching the video on page load whether or not anyone watches it.
  */
+const libraryStats = [
+  { figure: "177", label: "practices in the library", note: "Every one graded for evidence and credited to the public work behind it." },
+  { figure: "73", label: "graded A or B", note: "The other 104 are C, D or E. The app shows you which, on every single one." },
+  { figure: "188", label: "researchers and practitioners credited", note: "Attribution for public teaching. Never endorsement." },
+  { figure: "145", label: "carry an explicit safety line", note: "Written in plain words, shown before you add anything to your week." },
+];
+
 function Film() {
   const [playing, setPlaying] = useState(false);
 
@@ -476,6 +483,26 @@ export default function Home() {
           <article><span>“Be a calmer parent”</span><ol><li>Name the moment it usually goes</li><li>One rehearsed response, ready</li><li>Four steady weeks</li></ol><small>Checked from what you log, not a score</small></article>
         </div>
         <p className="anygoal-note">Same engine underneath: goal → ladder → program → check-in → adaptation, with the reason shown every time something moves.</p>
+      </section>
+
+      <section className="library-section section-shell" id="library">
+        <div className="library-heading">
+          <div><p className="section-kicker">WHAT IS ACTUALLY IN IT</p><h2>A library that tells you<br />how good its own evidence is.</h2></div>
+          <p>Most of what you are told about health cites nothing, or cites everything with equal confidence. Every practice in IntentNorth carries a grade, a named source and, where it matters, a caution&mdash;so you can tell a randomised trial from a reasonable idea before you build your week on it.</p>
+        </div>
+        <div className="library-stats">
+          {libraryStats.map((stat) => (
+            <article key={stat.label}>
+              <strong>{stat.figure}</strong>
+              <span>{stat.label}</span>
+              <p>{stat.note}</p>
+            </article>
+          ))}
+        </div>
+        <div className="library-honesty">
+          <ShieldCheck />
+          <p><strong>Most of it is not an A, and it says so.</strong> Thirteen practices are grade A. Sixty are B. The remaining hundred and four are C, D or E&mdash;useful, reasoned, and openly marked as weaker evidence. A system that graded everything highly would be easier to sell and worth less to trust.</p>
+        </div>
       </section>
 
       <section className="science-section section-shell" id="science">

@@ -55,13 +55,28 @@ Re-count before reuse; they move every week.
 - Evidence grades: **13 A**, **60 B**, **63 C**, **33 D**, **8 E**. If a
   headline number is used, it must not imply all 177 are strongly
   evidenced — 73 of 177 are A or B.
-- **142** of the 177 carry an explicit safety line.
+- **145** of the 177 carry an explicit safety line. (The handover said 142.
+  Re-counted line-by-line off the PROTOCOLS array: it is 145, and
+  `tests/library-claims.test.mjs` now fails the build if the page and the data
+  ever disagree again.)
 - **188** distinct named researchers and practitioners cited.
 - **7** pathways × **4** levels = **28** programme rungs.
-- **36** intake questions across the pathways.
-- **806** automated tests across 72 suites.
-- Simulation: **7,000** profiles through the pathway audit; **150** people
-  through **9,273** actions in the journey harness.
+- **72** test suites. Confirmed.
+
+Three handover figures could **not** be reproduced from the code and are
+therefore not used on the site:
+
+- *36 intake questions* — walking the seven pathways' `questions` arrays plus
+  the shared `DOMAIN_QUESTIONS` banks gives **15**. The 36 may count the goal
+  wizard or the onboarding script; whatever it counts, it is not "intake
+  questions across the pathways", so it is not publishable as that.
+- *806 automated tests* — a static count of `it()`/`test()` calls gives **743**
+  across the 72 suites. 806 is plausible once parameterised tests expand at
+  runtime, but the root dependencies are not installed here and it was not
+  verified. Publish the suite count, not the assertion count.
+- *7,000 profiles / 150 people / 9,273 actions* — these are outputs of
+  simulation runs, not constants in the source. Nothing in the tree confirms
+  them, so nothing on the site claims them.
 
 ## Numbers that are NOT true, and must not appear
 
