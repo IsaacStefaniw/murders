@@ -14,6 +14,7 @@ import { buildWeeklyChanges } from '@/features/review/weeklyChanges';
 import { weeklyNarrative } from '@/lib/ai/agents';
 import { todayKey, weekStartOf } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
+import { reviewPeriod } from '@/features/review/period';
 
 /**
  * The week's read, and what IntentNorth would change about the next one.
@@ -26,6 +27,9 @@ import { useAppStore } from '@/state/store';
  */
 export function WeeklyReviewPanel() {
   const router = useRouter();
+  // "Next week" on a Monday means the week you are standing in. The panel
+  // names the week it is actually going to rebuild.
+  const forward = reviewPeriod(todayKey()).lookingForward;
   const plans = useAppStore((s) => s.plans);
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
@@ -165,11 +169,11 @@ export function WeeklyReviewPanel() {
               </View>
               {applied ? (
                 <AppText variant="caption" color="success">
-                  Done — next week is rebuilt around it.
+                  Done — {forward} is rebuilt around it.
                 </AppText>
               ) : (
                 <Button
-                  title="Apply to next week"
+                  title={`Apply to ${forward}`}
                   onPress={() => {
                     applyWeeklyChanges(review.data.proposal.changes);
                     setApplied(true);
