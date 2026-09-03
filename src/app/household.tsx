@@ -17,6 +17,7 @@ import {
 import { addDays, formatDateLong, formatTime, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import { shareText } from '@/lib/share';
 
 /** The household hub: the week you share, in one place. Local-first —
  * real partner sync arrives with accounts; nothing here leaves the phone
@@ -55,13 +56,13 @@ export default function Household() {
   );
 
   const copyWeek = async () => {
-    try {
-      await navigator.clipboard.writeText(shareWeekText(profile, together));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    } catch {
-      // Clipboard unavailable — nothing to break.
-    }
+    // Was navigator.clipboard, which does not exist on iOS: the TypeError
+    // was caught and the button did nothing, on every device the app
+    // actually ships to.
+    const { shared } = await shareText(shareWeekText(profile, together), 'Our week');
+    if (!shared) return;
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   };
 
   const addBabysitterReminder = () => {
@@ -119,7 +120,7 @@ export default function Household() {
       )}
 
       <Button
-        title={copied ? 'Copied — paste it to them ✓' : `Copy the week${partner ? ` for ${partner.name}` : ''}`}
+        title={copied ? 'Sent ✓' : `Send the week${partner ? ` to ${partner.name}` : ''}`}
         variant="secondary"
         onPress={copyWeek}
         style={styles.copy}
