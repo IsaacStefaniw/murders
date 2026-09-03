@@ -91,3 +91,29 @@ test("the page never implies the whole library is strongly evidenced", async () 
   assert.doesNotMatch(html, /177 (strongly|well|rigorously) evidenced/i);
   assert.match(html, /C, D or E/, "the weaker grades must be named on the page");
 });
+
+test("the screenshots the page names all exist", async () => {
+  // The strip is eight <Image> tags built from a list of filenames. A typo
+  // renders eight broken frames on the darkest section of the page, and no
+  // existing test would have noticed.
+  const { readFile, stat } = await import("node:fs/promises");
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const listed = [...page.matchAll(/\{ file: "(app-[a-z-]+)"/g)].map(([, f]) => f);
+
+  assert.ok(listed.length >= 8, `expected the screen list, found ${listed.length}`);
+  for (const file of listed) {
+    const info = await stat(new URL(`../public/images/app/${file}.jpg`, import.meta.url));
+    assert.ok(info.size > 10_000, `${file}.jpg is missing or too small to be a screenshot`);
+  }
+});
+
+test("the 5,376 figure ships with the derivation that lets a reader check it", async () => {
+  // A bare five-figure number is a boast. With its six factors printed beside
+  // it, a sceptic can multiply: 4 x 4 x 4 x 3 x 4 x 7 = 5,376.
+  const html = await renderHome();
+  assert.match(html, /5,376/);
+  assert.equal(4 * 4 * 4 * 3 * 4 * 7, 5376, "the stated factors must multiply to the claim");
+  for (const factor of [/four goals/i, /four levels/i, /four day-counts/i, /three equipment/i, /four focus lifts/i, /seven constraint states/i]) {
+    assert.match(html, factor, `the derivation is missing a factor: ${factor}`);
+  }
+});

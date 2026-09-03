@@ -4,7 +4,12 @@ import handler from "vinext/server/app-router-entry";
 
 interface Env {
   ASSETS: Fetcher;
-  DB: D1Database;
+  // No DB. There was a `DB: D1Database` here, bound to nothing and used by
+  // nothing — but /privacy states in plain words that the site has no accounts
+  // and no database, so a binding sitting ready in the type is an invitation to
+  // make that page false without anyone noticing they had. Wiring storage means
+  // changing the privacy page in the same commit; tests/no-database.test.mjs
+  // makes that unavoidable rather than merely intended.
   IMAGES: {
     input(stream: ReadableStream): {
       transform(options: Record<string, unknown>): {

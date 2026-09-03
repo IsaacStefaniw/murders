@@ -28,11 +28,18 @@ async function walk(dir, base = dir) {
 test("no notes, docs or scratch files are served as public assets", async () => {
   const files = await walk(new URL("../public/", import.meta.url));
 
-  const leaked = files.filter((f) => /\.(md|markdown|txt|log|bak|orig|tmp)$/i.test(f));
+  // An allowlist, not a denylist. The first version of this test listed the
+  // extensions it knew were documents, and the app session immediately put the
+  // films' Python sources in public/video/source/ — which it happily passed.
+  // Naming what may ship is the only version that catches what nobody thought of.
+  const SERVEABLE = /\.(webp|png|jpe?g|gif|avif|svg|ico|mp4|webm|m4v|woff2?|ttf|otf|pdf)$/i;
+
+  const leaked = files.filter((f) => !SERVEABLE.test(f));
   assert.deepEqual(
     leaked,
     [],
-    `these would be served from the site root — move them to docs/: ${leaked.join(", ")}`,
+    `public/ is the open internet and these are not media — move them to docs/, `
+      + `or add the extension to SERVEABLE if it is genuinely meant to ship: ${leaked.join(", ")}`,
   );
 
   // Guard the shape too: a stray dotfile in public/ is served just as happily.

@@ -45,7 +45,7 @@ const constraints = [
 ];
 
 const todayRows = [
-  { id: "train", label: "Train", icon: Dumbbell, action: "Upper A — bench 4 × 6 at 90kg, volume trimmed 18%", reason: "You slept 5h 42m. Recovery is today’s constraint, not motivation.", signal: true },
+  { id: "train", label: "Train", icon: Dumbbell, action: "Upper A — main work stays, accessories rest today", reason: "Your own recovery numbers are down this morning. The session keeps its heavy work and drops a set from the last accessory.", signal: true },
   { id: "eat", label: "Eat", icon: Leaf, action: "Protein anchor 165–198g · kitchen closes 7:30pm", reason: "Three weeks of trend, never one heavy morning." },
   { id: "habits", label: "Habits", icon: TimerReset, action: "Phone docks outside the room at 9:45pm", reason: "The slip window is after 10pm, so the change happens before it." },
   { id: "work", label: "Work", icon: Brain, action: "Deep block 9–11, before the first meeting", reason: "3.2 of 7 target hours last week. That is a calendar problem." },
@@ -60,7 +60,7 @@ const pathwayContent = {
     title: "A strength program that learns from completed work.",
     inputs: ["Current lifts, reps and estimated max", "Equipment, training age and technique", "Injuries and movement limits", "Sleep, availability and session response"],
     outputs: ["Daily load, volume and exercise selection", "Progression and regression rules", "Sleep-informed changes with a reason", "Performance records that change the next block"],
-    example: "100kg × 5 completed with 2 reps in reserve → next target 102.5kg",
+    example: "100kg × 5 on every working set, reps held → next target 102.5kg",
   },
   eat: {
     eyebrow: "EAT",
@@ -94,8 +94,8 @@ const pathwayContent = {
     eyebrow: "RELATIONSHIP",
     title: "Small repeatable attention instead of the grand gesture.",
     inputs: ["Who this is for and your current rhythm", "What reliably gets crowded out", "The moments that already work", "Time and energy actually available"],
-    outputs: ["Rituals that survive a hard week", "Protected attention, not a reminder", "One unhurried conversation a month", "Adjustment when the week collapses"],
-    example: "Two weeks without an unhurried conversation → one is scheduled and protected",
+    outputs: ["One ritual that survives a bad week", "Protected attention, not a reminder", "The conversation you have been putting off", "It shrinks itself when the week is hard"],
+    example: "A fortnight where the ritual kept slipping → the pathway asks for less, not more",
   },
   family: {
     eyebrow: "FAMILY & ADVENTURE",
@@ -305,6 +305,26 @@ function BehaviourLoop() {
   );
 }
 
+const appScreens = [
+  { file: "app-today", label: "Today", note: "The day, already decided." },
+  { file: "app-coaches", label: "Seven coaches", note: "One profile, seven specialists." },
+  { file: "app-training", label: "Training", note: "The block, and where you are in it." },
+  { file: "app-workout", label: "The session", note: "Sets tick, rests time themselves." },
+  { file: "app-workout-autoreg", label: "A short night", note: "Main work stays. Accessories rest." },
+  { file: "app-level-card", label: "Your level", note: "Earned from the log, never claimed." },
+  { file: "app-library", label: "The library", note: "Source, evidence grade and limits." },
+  { file: "app-recovery", label: "Habits and urges", note: "Free, permanently." },
+];
+
+// Verbatim from LEVEL_BLURB.training in src/features/paths/level.ts. The app
+// says these words; so does the site.
+const ladder = [
+  { level: "FOUNDATION", copy: "Fewer movements, lighter loads, a technical focus every session. The point is to learn the patterns and finish every session able to do it again." },
+  { level: "DEVELOPING", copy: "Barbell work comes in, sets go up, loads stop being cautious. Enough volume to drive progress, not enough to bury a week." },
+  { level: "ESTABLISHED", copy: "Full prescribed volume and intensity, a peak week, and a heavy top set on the lift you care most about." },
+  { level: "ADVANCED", copy: "Higher intensity, an overreach week before the deload, and top singles. This is only offered once the log supports it." },
+];
+
 const libraryStats = [
   { figure: "177", label: "practices in the library", note: "Every one graded for evidence and credited to the public work behind it." },
   { figure: "73", label: "graded A or B", note: "The other 104 are C, D or E. The app shows you which, on every single one." },
@@ -378,7 +398,7 @@ export default function Home() {
           <h1>Your whole life.<br />One system that learns.</h1>
           <p className="hero-lede">Your results should change what happens next. Seven specialists—training, food, habits, work, money, your relationship and your family—work from one operating profile, and every change carries its reason.</p>
           <div className="hero-actions"><BuildPlanButton onClick={() => setPlanOpen(true)} /><a className="text-link" href="#depth">See all seven <ArrowDown /></a></div>
-          <div className="hero-trust"><span><Check /> Free operating profile</span><span><LockKeyhole /> Premium disclosed upfront</span><span><Heart /> Hardest-moment support stays free</span></div>
+          <div className="hero-trust"><span><Check /> Free operating profile</span><span><LockKeyhole /> Nothing leaves your phone</span><span><Heart /> Hardest-moment support stays free</span></div>
         </div>
         <div className="hero-stage" aria-label="Today’s decisions across seven specialist pathways">
           <div className="hero-image-wrap"><Image src="/images/intent-os-hero-family-transition-v2.webp" alt="A professional closing a laptop and returning attention to family life" width={1536} height={1024} priority unoptimized sizes="(max-width: 1120px) 80vw, 43vw" /></div>
@@ -487,6 +507,48 @@ export default function Home() {
         <p className="anygoal-note">Same engine underneath: goal → ladder → program → check-in → adaptation, with the reason shown every time something moves.</p>
       </section>
 
+      <section className="screens-section" id="screens"><div className="section-shell">
+        <div className="screens-heading">
+          <div><p className="section-kicker light">THE APP ITSELF</p><h2>Eight screens.<br />No press play required.</h2></div>
+          <p>Every sentence in these is the shipped application&rsquo;s own output. Nothing was written for a screenshot, and nothing here is a design comp.</p>
+        </div>
+        <div className="screens-strip">
+          {appScreens.map((screen) => (
+            <figure key={screen.file}>
+              <Image src={`/images/app/${screen.file}.jpg`} alt={`IntentNorth: ${screen.label}`} width={840} height={1820} unoptimized loading="lazy" sizes="(max-width: 900px) 60vw, 220px" />
+              <figcaption><strong>{screen.label}</strong><span>{screen.note}</span></figcaption>
+            </figure>
+          ))}
+        </div>
+      </div></section>
+
+      <section className="ladder-section section-shell" id="ladder">
+        <div className="ladder-heading">
+          <div><p className="section-kicker">THE PROGRAMME HAS LEVELS</p><h2>A first block and a tenth<br />are not the same exercise.</h2></div>
+          <p>Four levels in every pathway. Your level is read from what you have actually logged, not from a form &mdash; and the top rung is earned, never selected. Too hard is one tap, and the plan steps back without argument.</p>
+        </div>
+        <ol className="ladder-list">
+          {ladder.map((rung, index) => (
+            <li key={rung.level}>
+              <span className="ladder-rank">{String(index + 1).padStart(2, "0")}</span>
+              <div><strong>{rung.level}</strong><p>{rung.copy}</p></div>
+            </li>
+          ))}
+        </ol>
+        <div className="ladder-proof">
+          <article>
+            <strong>5,376</strong>
+            <span>distinct training blocks</span>
+            <p>Four goals × four levels × four day-counts × three equipment sets × four focus lifts × seven constraint states. Every combination was generated and hashed: 5,376 blocks, no two identical.</p>
+          </article>
+          <article>
+            <strong>&ldquo;This is too easy&rdquo;</strong>
+            <span>is a button</span>
+            <p>Add a set, a little load and one more accessory. The movements stay the same. Saying it is too hard works the same way, in the other direction.</p>
+          </article>
+        </div>
+      </section>
+
       <section className="library-section section-shell" id="library">
         <div className="library-heading">
           <div><p className="section-kicker">WHAT IS ACTUALLY IN IT</p><h2>A library that tells you<br />how good its own evidence is.</h2></div>
@@ -509,7 +571,7 @@ export default function Home() {
 
       <section className="science-section section-shell" id="science">
         <div className="science-heading"><p className="section-kicker">SCIENCE YOU CAN INSPECT</p><h2>Credibility lives in the source—and the limitation.</h2><p>Public educators can surface useful questions. IntentNorth does not treat a personality as evidence or imply endorsement; it links mechanisms to the underlying research and labels uncertainty.</p></div>
-        <div className="quote-row"><blockquote><p>“Alters people’s behaviour in a predictable way without forbidding any options.”</p><cite>Thaler & Sunstein · <em>Nudge</em></cite></blockquote><div className="science-principle"><Brain /><p><strong>Kahneman explained why fast, automatic judgement matters.</strong> Thaler and Sunstein developed choice architecture. IntentNorth uses these ideas to make the better action easier—not to manipulate choice.</p></div></div>
+        <div className="quote-row"><blockquote><p>A nudge is “any aspect of the choice architecture that alters people&rsquo;s behavior in a predictable way without forbidding any options or significantly changing their economic incentives.”</p><cite>Thaler &amp; Sunstein, <em>Nudge</em> (2008)</cite></blockquote><div className="science-principle"><Brain /><p><strong>Kahneman explained why fast, automatic judgement matters.</strong> Thaler and Sunstein developed choice architecture. IntentNorth uses these ideas to make the better action easier—not to manipulate choice.</p></div></div>
         <div className="evidence-grid">{evidence.map((item) => <a key={item.title} href={item.href} target="_blank" rel="noreferrer" className="evidence-card"><span className="grade-pill">{item.type}</span><h3>{item.title}</h3><p>{item.finding}</p><span className="source-link">{item.source}<ExternalLink /></span></a>)}</div>
         <p className="communicator-note"><ShieldCheck /> Topics discussed by science communicators—including Andrew Huberman, Rhonda Patrick, David Sinclair and Sam Harris—are traced back to primary studies before appearing in a protocol. Names are never used as implied endorsement.</p>
       </section>
