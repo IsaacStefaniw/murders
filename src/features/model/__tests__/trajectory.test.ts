@@ -1,3 +1,4 @@
+import { formatDateLong } from '@/lib/dates';
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import {
   allTrajectories,
@@ -103,7 +104,7 @@ describe('projectMetric', () => {
     expect(t.toward).toBe('lower');
     expect(t.weeksToTarget).toBeCloseTo(4, 0);
     expect(t.verdict).toBe('on-track');
-    expect(t.headline).toContain('2026-03-29');
+    expect(t.headline).toContain(formatDateLong('2026-03-29'));
   });
 
   /** The sentence the whole engine exists to produce. */
@@ -111,7 +112,7 @@ describe('projectMetric', () => {
     const weight = series('body.weight', 92, 90, 8); // −0.25 kg/week
     const t = projectMetric(weight, 'body.weight', 86, { targetDate: '2026-04-01', now: NOW })!;
     expect(t.verdict).toBe('behind');
-    expect(t.headline).toContain('You said 2026-04-01');
+    expect(t.headline).toContain(`You said ${formatDateLong('2026-04-01')}`);
     expect(t.requiredRatePerWeek).toBeDefined();
     expect(t.gapNote).toContain('a week');
   });
