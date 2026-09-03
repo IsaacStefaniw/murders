@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 
 /**
  * The film is the one place the site shows the product moving, so it carries
@@ -30,11 +30,11 @@ test("the film is offered, not forced", async () => {
   assert.match(html, /Play the film/i, "the play control should be in the markup");
   // The poster is what loads; the video itself must not be fetched up front.
   assert.match(html, /intentnorth-coaching-45s-poster\.jpg/);
-  assert.doesNotMatch(
-    html,
-    /<video[^>]*\sautoplay(?![^>]*preload="none")/i,
-    "the film must never autoplay on arrival",
-  );
+  // The real invariant, stated directly rather than as a lookahead that can
+  // pass because there is nothing to match: on first paint there is no <video>
+  // element at all, so no browser can begin fetching megabytes uninvited.
+  assert.doesNotMatch(html, /<video/i, "no <video> element may exist before the visitor asks");
+  assert.doesNotMatch(html, /\.mp4|\.webm/i, "no video source may be referenced on first paint");
 });
 
 test("both video sources ship, so no browser gets a blank frame", async () => {
@@ -46,6 +46,25 @@ test("both video sources ship, so no browser gets a blank frame", async () => {
     const info = await stat(new URL(`../${file}`, import.meta.url));
     assert.ok(info.size > 1000, `${file} should be a real file`);
   }
+  // The component names both, so a browser that cannot decode one still plays
+  // the other. Checked in the source, because the markup only appears on click.
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /intentnorth-coaching-45s\.webm" type="video\/webm"/);
+  assert.match(page, /intentnorth-coaching-45s\.mp4" type="video\/mp4"/);
+});
+
+test("the poster is a frame you can actually see", async () => {
+  // A poster grabbed during the opening fade was a near-black rectangle: the
+  // section rendered as an empty box and nothing suggested a film was there.
+  // JPEG carries its dimensions in the SOF marker; a frame this size that is
+  // also this small on disk is the signature of a blank grab.
+  const poster = await readFile(new URL("../public/video/intentnorth-coaching-45s-poster.jpg", import.meta.url));
+  assert.equal(poster[0], 0xff, "poster should be a JPEG");
+  assert.equal(poster[1], 0xd8, "poster should be a JPEG");
+  assert.ok(
+    poster.length > 20_000,
+    `poster is ${poster.length} bytes — an almost-black frame compresses to far less than a real one`,
+  );
 });
 
 test("the attribution disclaimer travels with the names", async () => {

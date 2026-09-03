@@ -23,6 +23,10 @@ async function countLibrary() {
   const start = lines.findIndex((l) => l.startsWith("export const PROTOCOLS: Protocol[] = ["));
   assert.ok(start > -1, "the PROTOCOLS array should be findable");
   const end = lines.indexOf("];", start + 1);
+  // Without this, a reformat that changes the array terminator makes the slice
+  // run to end-of-file and the failure reads "update the page copy", which
+  // would send the next person to fix entirely the wrong thing.
+  assert.ok(end > start, "the PROTOCOLS array should have a findable terminator");
 
   const protocols = [];
   let current = null;

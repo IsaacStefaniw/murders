@@ -25,13 +25,11 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm run lint
-      - name: Build
-        run: npm run build
-      # Named rather than globbed so the deploy gate is an explicit list.
-      # ui-components.test.mjs is excluded on purpose: it exercises a vendored
-      # component, not a product claim, and has been seen to hang.
-      - name: Product-truth guardrails
-        run: node --test tests/rendered-html.test.mjs tests/legal-pages.test.mjs tests/canonical-host.test.mjs
+      # `npm test` builds and then runs every guardrail, so the deploy gate and
+      # a contributor's local run are the same command and cannot drift apart.
+      # A new guardrail is picked up here by being added to that one script.
+      - name: Build and product-truth guardrails
+        run: npm test
       # --skip-build reuses the build above, so a failing guardrail stops the
       # deploy. Worker name, compatibility date and flags come from the
       # committed web/wrangler.jsonc; nothing here may override them.

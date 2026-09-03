@@ -8,8 +8,8 @@ approved to appear on the site.
 
 | File | Aspect | Resolution | Length | Size |
 |---|---|---|---|---|
-| `intentnorth-coaching-45s.webm` | 16:9 | 1280×720 | 48.00s | 5.2 MB |
-| `intentnorth-coaching-45s.mp4` | 16:9 | 1280×720 | 48.00s | 3.1 MB |
+| `intentnorth-coaching-45s.webm` | 16:9 | 1280×720 | 48.00s | 2.0 MB (VP9) |
+| `intentnorth-coaching-45s.mp4` | 16:9 | 1280×720 | 48.00s | 3.25 MB (H.264) |
 | `intentnorth-coaching-16s-vertical.webm` | 9:16 | 720×1280 | 17.44s | 1.7 MB |
 | `intentnorth-coaching-16s-vertical.mp4` | 9:16 | 720×1280 | 17.44s | 1.2 MB |
 
@@ -38,8 +38,13 @@ at equivalent quality. The WebM encodes are simply inefficient.
 The H.264 fallbacks now exist, made in the website session with an ffmpeg
 binary pulled from the `imageio-ffmpeg` PyPI wheel: High profile, `yuv420p`,
 `+faststart` (moov atom verified ahead of mdat, so playback starts before the
-file finishes arriving). Serve both sources, MP4 first — it is the smaller
-file here as well as the more compatible one.
+file finishes arriving).
+
+**Serve WebM first, MP4 as the fallback.** The 45s film was later re-encoded to
+VP9 to carry the attribution caption, which brought it to 2.0 MB against the
+MP4's 3.25 MB — so the size argument now points the other way from where this
+file first put it. A browser takes the first source it can decode, so WebM
+leads and the MP4 catches Safari before 14.1 and the in-app browsers.
 
 These are transcodes of a VP8 encode, so they carry a generation of loss. If
 the source project is still to hand, re-exporting H.264 directly from the

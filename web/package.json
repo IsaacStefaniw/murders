@@ -10,9 +10,10 @@
     "dev": "node scripts/sites-env.mjs -- vite",
     "build": "node scripts/build-verified.mjs",
     "start": "node scripts/sites-env.mjs -- vinext start",
-    "test": "npm run build && node --test \"tests/*.test.mjs\"",
+    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/legal-pages.test.mjs tests/canonical-host.test.mjs tests/film.test.mjs tests/library-claims.test.mjs",
     "lint": "node scripts/sites-env.mjs -- eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "node scripts/sites-env.mjs -- drizzle-kit generate"
+    "db:generate": "node scripts/sites-env.mjs -- drizzle-kit generate",
+    "test:ui": "node --test tests/ui-components.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

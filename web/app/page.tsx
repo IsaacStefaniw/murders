@@ -305,6 +305,13 @@ function BehaviourLoop() {
   );
 }
 
+const libraryStats = [
+  { figure: "177", label: "practices in the library", note: "Every one graded for evidence and credited to the public work behind it." },
+  { figure: "73", label: "graded A or B", note: "The other 104 are C, D or E. The app shows you which, on every single one." },
+  { figure: "188", label: "researchers and practitioners credited", note: "Attribution for public teaching. Never endorsement." },
+  { figure: "145", label: "carry an explicit safety line", note: "Written in plain words, shown before you add anything to your week." },
+];
+
 /**
  * The film, played on request rather than on arrival.
  *
@@ -315,12 +322,6 @@ function BehaviourLoop() {
  * `preload="none"` matters as much as the click gate — without it the browser
  * starts fetching the video on page load whether or not anyone watches it.
  */
-const libraryStats = [
-  { figure: "177", label: "practices in the library", note: "Every one graded for evidence and credited to the public work behind it." },
-  { figure: "73", label: "graded A or B", note: "The other 104 are C, D or E. The app shows you which, on every single one." },
-  { figure: "188", label: "researchers and practitioners credited", note: "Attribution for public teaching. Never endorsement." },
-  { figure: "145", label: "carry an explicit safety line", note: "Written in plain words, shown before you add anything to your week." },
-];
 
 function Film() {
   const [playing, setPlaying] = useState(false);
@@ -347,7 +348,7 @@ function Film() {
         <>
           <Image
             src="/video/intentnorth-coaching-45s-poster.jpg"
-            alt="The opening frame of the film: a coach asks before they prescribe"
+            alt="A frame from the film: the line &quot;Sets, reps, rest and load. Decided.&quot; beside a session screen listing the day's lifts"
             width={1280}
             height={720}
             unoptimized
@@ -420,11 +421,12 @@ export default function Home() {
 
       <section className="film-section" id="film"><div className="section-shell">
         <div className="film-heading">
-          <div><p className="section-kicker light">THE PRODUCT, RECORDED</p><h2>Not a mockup.<br />The app, running.</h2></div>
-          <p>Every screen in this film is the real application. The sentence it turns on&mdash;&ldquo;your own recovery numbers are down this morning&rdquo;&mdash;is produced by the shipped code, not written for the camera.</p>
+          <div><p className="section-kicker light">THE PRODUCT, ON SCREEN</p><h2>Nothing here was<br />written for the camera.</h2></div>
+          <p>The sentences on these screens are the ones the app produces. &ldquo;Your own recovery numbers are down this morning&mdash;main work stays, accessories rest today&rdquo; is a line the training code emits when your own recovery data drops, not a caption composed for a film.</p>
         </div>
         <Film />
-        <p className="film-caption">Recorded from the running app. Named educators appear as attribution for practices distilled from their public teaching; it implies no endorsement of IntentNorth.</p>
+        <div className="causality-proof film-proof"><ShieldCheck /><p><strong>Truth boundary:</strong> screens are shown inside a device frame for presentation. The copy in them is the shipped application&rsquo;s own output. Broader cross-domain arbitration remains the direction, not staged proof.</p></div>
+        <p className="film-caption">Named educators appear as attribution for practices distilled from their public teaching; it implies no endorsement of IntentNorth.</p>
       </div></section>
 
       <section className="behaviour-section" id="change"><div className="section-shell">

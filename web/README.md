@@ -29,8 +29,17 @@ Contributors want plain `npm ci`.
 
 ```bash
 npm run lint
-npm test        # builds, then runs every guardrail
+npm test        # builds, then runs every product-truth guardrail
 ```
+
+`npm test` runs exactly the set the deploy workflow gates on — the same command
+in both places, so a guardrail cannot pass locally and be skipped on the way
+out. Adding a guardrail means adding it to that one script.
+
+`npm run test:ui` is separate and optional. It covers a vendored component
+rather than a product claim, and is the test recorded below as hanging on
+Windows, so it is kept out of the command contributors and CI are expected to
+run.
 
 `tests/rendered-html.test.mjs` asserts the positioning line, the single CTA
 vocabulary, the free/premium disclosure, the hardest-moment principle, the
@@ -42,12 +51,16 @@ regression, not a flaky test.
 than serving a second copy of the site, and that localhost and the workers.dev
 preview URL are left alone.
 
+`tests/library-claims.test.mjs` counts the protocol library in
+`src/features/knowledge/protocols.ts` and asserts the figures on the page match
+it. Add a protocol and this fails — that is deliberate, so the copy changes in
+the same commit as the data rather than drifting into a claim nobody re-counted.
+
 `tests/ui-components.test.mjs` has been reported hanging on Windows (a Vite
 transport timeout loading `components/ui/sidebar.tsx`). It failed identically
 on an untouched checkout, so it is an environment issue rather than a
-regression. It passes on Linux and macOS; if it still hangs for you on Windows
-after the cross-platform script work, that is worth a fresh look rather than
-another workaround.
+regression, and it is now behind `npm run test:ui` rather than in the main
+command. It passes on Linux and macOS.
 
 ## Stack
 

@@ -44,6 +44,16 @@ export function sitesEnv(env = { ...process.env }) {
   env.HOME = dirs.home;
   env.XDG_CONFIG_HOME = dirs.xdgConfig;
   env.TMPDIR = dirs.tmp;
+
+  // Windows reads none of the three above. os.homedir() there resolves through
+  // USERPROFILE and the temp directory through TEMP/TMP, so setting only the
+  // POSIX names left the "everything writes under .sites-runtime" guarantee
+  // quietly false on the one platform this port exists to support.
+  if (process.platform === "win32") {
+    env.USERPROFILE = dirs.home;
+    env.TEMP = dirs.tmp;
+    env.TMP = dirs.tmp;
+  }
   env.WRANGLER_WRITE_LOGS = "false";
   env.WRANGLER_LOG_PATH = dirs.wranglerLogs;
   env.MINIFLARE_REGISTRY_PATH = path.join(runtimeRoot, "wrangler", "registry");
