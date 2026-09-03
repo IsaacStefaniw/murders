@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   ArrowDown, ArrowRight, Brain, Check, ChevronRight, CircleDot,
   Dumbbell, ExternalLink, Footprints, Heart, Leaf, LineChart, LockKeyhole,
-  Moon, RefreshCcw, ShieldCheck, Sparkles, Target, TimerReset, Users,
+  Moon, Play, RefreshCcw, ShieldCheck, Sparkles, Target, TimerReset, Users,
   Wallet, Wind, X, Zap,
 } from "lucide-react";
 
@@ -305,6 +305,56 @@ function BehaviourLoop() {
   );
 }
 
+/**
+ * The film, played on request rather than on arrival.
+ *
+ * A 48-second 3MB file has no business autoplaying on a marketing page, and
+ * `prefers-reduced-motion` is respected by construction: nothing moves until
+ * the visitor presses play, so there is no motion to suppress.
+ *
+ * `preload="none"` matters as much as the click gate — without it the browser
+ * starts fetching the video on page load whether or not anyone watches it.
+ */
+function Film() {
+  const [playing, setPlaying] = useState(false);
+
+  return (
+    <figure className="film-frame">
+      {playing ? (
+        <video
+          controls
+          autoPlay
+          playsInline
+          preload="none"
+          poster="/video/intentnorth-coaching-45s-poster.jpg"
+        >
+          {/* WebM first because the browser takes the first source it can play,
+              and the VP9 re-encode is 2.0MB against the MP4's 3.2MB. The MP4
+              is the fallback that Safari before 14.1 and some in-app browsers
+              need — without it they show nothing rather than degrading. */}
+          <source src="/video/intentnorth-coaching-45s.webm" type="video/webm" />
+          <source src="/video/intentnorth-coaching-45s.mp4" type="video/mp4" />
+          Your browser cannot play this film.
+        </video>
+      ) : (
+        <>
+          <Image
+            src="/video/intentnorth-coaching-45s-poster.jpg"
+            alt="The opening frame of the film: a coach asks before they prescribe"
+            width={1280}
+            height={720}
+            unoptimized
+            sizes="(max-width: 1120px) 92vw, 1100px"
+          />
+          <button type="button" className="film-play" onClick={() => setPlaying(true)}>
+            <span><Play aria-hidden /> Play the film · 48 seconds, no sound</span>
+          </button>
+        </>
+      )}
+    </figure>
+  );
+}
+
 export default function Home() {
   const [planOpen, setPlanOpen] = useState(false);
 
@@ -360,6 +410,15 @@ export default function Home() {
           <div className="causality-proof"><ShieldCheck /><p><strong>Truth boundary:</strong> this diagram represents product behaviour, not a fabricated app screen. Broader cross-domain arbitration remains the direction.</p></div></div>
         <div className="learning-motion-wrap"><LearningLoopMotion /></div>
       </section>
+
+      <section className="film-section" id="film"><div className="section-shell">
+        <div className="film-heading">
+          <div><p className="section-kicker light">THE PRODUCT, RECORDED</p><h2>Not a mockup.<br />The app, running.</h2></div>
+          <p>Every screen in this film is the real application. The sentence it turns on&mdash;&ldquo;your own recovery numbers are down this morning&rdquo;&mdash;is produced by the shipped code, not written for the camera.</p>
+        </div>
+        <Film />
+        <p className="film-caption">Recorded from the running app. Named educators appear as attribution for practices distilled from their public teaching; it implies no endorsement of IntentNorth.</p>
+      </div></section>
 
       <section className="behaviour-section" id="change"><div className="section-shell">
         <div className="behaviour-heading"><div><p className="section-kicker light">PERFORMANCE HAS TWO DIRECTIONS</p><h2>Build what helps.<br />Reduce what keeps winning.</h2><span className="direction-label">16 BEHAVIOURS · MECHANISM SHOWN · IN THE APP TODAY</span></div><p>Most systems only add another action. IntentNorth studies the cue, friction and reward behind a pattern—then makes a better response easier to repeat. Log something and it tells you the mechanism, never a verdict.</p></div>

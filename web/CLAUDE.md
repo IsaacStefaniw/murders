@@ -75,8 +75,18 @@ Keep these constraints intact in every iteration:
 5. Web-to-app shared-profile plumbing is described as the next product connection.
 6. Recovery, urge and hardest-moment support remains free. The principle is: “We never charge for someone’s hardest moment.”
 7. Avoid the public word “prescription”. Use program, plan or protocol.
+   One approved exception: the films open on “A coach asks before they
+   prescribe.” Isaac reviewed this line and kept it — it disclaims
+   prescribing rather than claiming it. Do not “correct” it, and do not
+   read it as licence to use the word in written copy, where the
+   guardrail in `tests/rendered-html.test.mjs` still fails the build.
 8. Health, training, nutrition, mindfulness and financial content is educational, never diagnosis or personal advice.
 9. Do not use named public figures in a way that implies endorsement.
+   The 45s film shows six named educators. The no-endorsement line is
+   burned into the footage beside them at body-text size, and the page
+   repeats it under the film. Both are required: a viewer who never
+   presses play must still see why those names are there. If the film
+   is ever re-cut, the caption has to survive the re-cut.
 10. Product motion must show reproducible behaviour. AI-generated video is acceptable only for editorial/lifestyle moments, not evidence of the app working.
 
 ## Conversion architecture

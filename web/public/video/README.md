@@ -80,3 +80,35 @@ backend, and no shipped build has ever had one. The site must not say
 otherwise.
 
 Use "program", "plan" or "protocol". Never "prescription".
+
+## What the website session changed
+
+**The 45s film now carries the attribution disclaimer in-frame.** It showed six
+surnames as large chips on its own overlay while the only no-endorsement line
+sat as small grey text inside the phone mock — the protection existed, but not
+on the surface a viewer reads. Isaac's call was that it needed to be visible
+beside the names.
+
+The line — `Attribution credits public work and implies no endorsement of
+IntentNorth.`, taken verbatim from `src/app/library.tsx` so the app, the film
+and the site all say the same sentence — is composited under the chip rows from
+17.6s to 21.1s, fading with the segment. The window was measured off the
+footage by sampling brightness in the chip region, not guessed: chips fade in
+at 17.3s, are solid 17.8–21.0s, and are gone by 21.2s.
+
+`drawtext` is not compiled into the imageio-ffmpeg build, so the caption is a
+PIL-rendered RGBA still composited with `overlay`. It is set at 19px to match
+the film's own body text, in the film's own muted green (#a8baaf sampled from
+the frame), so it reads as part of the design rather than as a legal sticker.
+
+**Both sources were re-encoded** so the WebM and the MP4 carry the same
+disclaimer — shipping the caption in only one would show the names bare to
+whichever browsers picked the other. The WebM is now VP9 rather than VP8 and
+came out at 2.0 MB against the MP4's 3.2 MB, so the page lists WebM first and
+keeps MP4 as the compatibility fallback.
+
+The vertical cut shows no named figures and is unchanged.
+
+Both are transcodes of a VP8 original and carry that generation of loss. A
+re-export from the master, with the disclaimer done in the source project,
+would beat what is here.
