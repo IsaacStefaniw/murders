@@ -7,7 +7,7 @@
  * a negative number does not throw. It quietly poisons whatever it touches.
  */
 
-import { dayMinutes, durationMinutes } from '@/lib/dates';
+import { durationMinutes } from '@/lib/dates';
 
 describe('durationMinutes', () => {
   it('measures an ordinary block', () => {
@@ -35,24 +35,3 @@ describe('durationMinutes', () => {
   });
 });
 
-/**
- * The same root as the duration bug, found by moving something late at
- * night: a waking day that ends after midnight is not 00:00–23:59, so a
- * 00:15 block is the last thing tonight and not the first thing today.
- */
-describe('where a time falls in a waking day', () => {
-  it('measures from wake, not from midnight', () => {
-    expect(dayMinutes('06:30', '06:30')).toBe(0);
-    expect(dayMinutes('22:30', '06:30')).toBe(16 * 60);
-  });
-
-  it('puts a post-midnight block at the END of a day that runs past it', () => {
-    // Wakes 06:30, sleeps 00:30. Midnight is late, not early.
-    expect(dayMinutes('00:15', '06:30')).toBe(17 * 60 + 45);
-    expect(dayMinutes('00:15', '06:30')).toBeGreaterThan(dayMinutes('23:00', '06:30'));
-  });
-
-  it('still reads 23:36 as before a 00:15 block, so it is not yet past', () => {
-    expect(dayMinutes('23:36', '06:30')).toBeLessThan(dayMinutes('00:15', '06:30'));
-  });
-});

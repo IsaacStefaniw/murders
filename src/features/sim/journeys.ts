@@ -28,7 +28,7 @@ import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { useAppStore } from '@/state/store';
 import { candidateStartsFor } from '@/features/planner/moveWithBump';
-import { addDays, dayMinutes, durationMinutes, nowMinutes, todayKey, toHHMM, toMinutes } from '@/lib/dates';
+import { addDays, durationMinutes, nowMinutes, todayKey, toMinutes } from '@/lib/dates';
 import type { InterviewAnswers } from '@/features/onboarding/script';
 import type { PlanItem } from '@/types/domain';
 import {
@@ -327,13 +327,7 @@ export function runJourney(seed: number, days: number, trace: string[], out: Vio
           // put its whole window behind the clock, and Today files a
           // passed window under "Earlier — did it happen?" — so the move
           // read as the app deciding it had happened.
-          const wake = profile?.wakeTime ?? '06:00';
-          if (
-            nowMin !== undefined &&
-            after &&
-            profile &&
-            dayMinutes(after.end, wake) <= dayMinutes(toHHMM(nowMin), wake)
-          ) {
+          if (nowMin !== undefined && after && toMinutes(after.end) <= nowMin) {
             out.push({
               invariant: 'a move never lands in a window that has already closed',
               detail: `${item.title} moved to ${after.start}–${after.end} on ${date}, already past at ${nowMin} minutes`,
