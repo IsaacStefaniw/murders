@@ -3458,6 +3458,31 @@ export function protocolsFor(appliesTo: NonNullable<Protocol['appliesTo']>): Pro
   return PROTOCOLS.filter((p) => p.appliesTo === appliesTo);
 }
 
+/**
+ * Practices that re-label time the person already spends.
+ *
+ * A device-free dinner is dinner. A deep work block is an hour of a
+ * workday that was already an hour of a workday. Neither is a new
+ * commitment, and counting them as one made the work pathway look like it
+ * demanded 338 fresh minutes a week when 210 of them were the person
+ * already being at work.
+ *
+ * `duringWork` is derived rather than listed, because that flag already
+ * means exactly this and a hand-kept list would drift from it.
+ */
+const RELABELLED_IDS = new Set([
+  'device-free-meal',
+  'family-ritual-anchor',
+  'partner-reunion',
+  'partner-appreciation',
+]);
+
+export function isRelabelledTime(protocolId?: string): boolean {
+  if (!protocolId) return false;
+  if (RELABELLED_IDS.has(protocolId)) return true;
+  return protocolById(protocolId)?.duringWork === true;
+}
+
 export type ProtocolAudience = NonNullable<Protocol['appliesTo']>;
 
 /**

@@ -72,3 +72,52 @@ export function reviewQuestions(period: ReviewPeriod): {
     lever: `The one lever for ${period.lookingForward}`,
   };
 }
+
+/**
+ * The review as plain text, for somewhere that is not a phone.
+ *
+ * "Given it's at work, is it possible to email the questions through? This
+ * is more practical rather than on the phone." The growth block lands in
+ * the middle of a workday, where the phone is the worst surface available
+ * and a laptop is already open.
+ *
+ * This is the outbound half and it needs no backend: the OS share sheet
+ * has Mail in it. The return leg — answering the email and having it land
+ * back in the app — needs a sending domain, inbound parsing and consent
+ * handling, and is deliberately not pretended at here.
+ */
+export function reviewAsText(
+  goalTitle: string,
+  period: ReviewPeriod,
+  milestones: { title: string; done: boolean }[] = [],
+): string {
+  const q = reviewQuestions(period);
+  const lines = [
+    goalTitle,
+    `Weekly review · ${period.from} to ${period.to}`,
+    '',
+    `${q.moved}`,
+    '',
+    '',
+    `${q.lever}`,
+    '',
+    '',
+    'Anything blocking?',
+    '',
+    '',
+  ];
+  const open = milestones.filter((m) => !m.done);
+  if (open.length > 0) {
+    lines.push('Still open:');
+    for (const m of open) lines.push(`  - ${m.title}`);
+    lines.push('');
+  }
+  const done = milestones.filter((m) => m.done);
+  if (done.length > 0) {
+    lines.push('Done:');
+    for (const m of done) lines.push(`  - ${m.title}`);
+    lines.push('');
+  }
+  lines.push('Answer here, then bring the one lever back into IntentNorth.');
+  return lines.join('\n');
+}

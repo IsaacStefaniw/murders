@@ -19,6 +19,7 @@
 
 import { PATHS, type PathBuild, type PathId } from '@/features/paths/definitions';
 import { LEVEL_ORDER, type PathLevel } from '@/features/paths/level';
+import { isRelabelledTime } from '@/features/knowledge/protocols';
 import type { LifeArea, LifeProfile, PhysicalConstraint } from '@/types/domain';
 import type { WeekShape } from '@/features/onboarding/markets';
 
@@ -197,13 +198,6 @@ export function answersFor(path: PathId, rng: () => number): Record<string, stri
 }
 
 /** Mirrors the budget's own list: practices that re-label existing time. */
-const RELABELLED = new Set([
-  'device-free-meal',
-  'family-ritual-anchor',
-  'partner-reunion',
-  'partner-appreciation',
-]);
-
 export interface BuildShape {
   /** The goal's own title. Recovery renames the goal per behaviour, and a
    *  shape that ignored it reported a live question as dead. */
@@ -225,7 +219,7 @@ export function shapeOf(build: PathBuild): BuildShape {
     routineCount: build.routines.length,
     weeklyMinutes: build.routines.reduce((n, r) => n + r.durationMin * Math.max(1, r.days.length), 0),
     newTimeMinutes: build.routines
-      .filter((r) => !RELABELLED.has(r.protocolId ?? ''))
+      .filter((r) => !isRelabelledTime(r.protocolId))
       .reduce((n, r) => n + r.durationMin * Math.max(1, r.days.length), 0),
     // Pre-ticked milestones are visible progress, so a question that only
     // changes a `done` flag has still changed the programme.

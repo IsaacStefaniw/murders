@@ -12,7 +12,8 @@ import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
-import { reviewPeriod, reviewQuestions } from '@/features/review/period';
+import { reviewAsText, reviewPeriod, reviewQuestions } from '@/features/review/period';
+import { shareText } from '@/lib/share';
 import { todayKey } from '@/lib/dates';
 
 /**
@@ -37,6 +38,7 @@ export default function WeeklyReview() {
   const [moved, setMoved] = useState('');
   const [lever, setLever] = useState('');
   const [blocking, setBlocking] = useState('');
+  const [sent, setSent] = useState(false);
 
   if (!goal) {
     return (
@@ -120,6 +122,26 @@ export default function WeeklyReview() {
         </Card>
       ) : null}
 
+      {/* The growth block lands in the middle of a workday, where a phone
+          is the worst surface in the room and a laptop is already open.
+          The share sheet has Mail in it, so the questions can go to a work
+          address and be answered there. */}
+      <Button
+        title={sent ? 'Sent ✓' : 'Send these questions to myself'}
+        variant="secondary"
+        hint="Opens Mail, Messages or Notes with the questions and where the goal stands."
+        onPress={async () => {
+          const { shared } = await shareText(
+            reviewAsText(goal.title, period, goal.milestones ?? []),
+            `${goal.title} — weekly review`,
+          );
+          if (!shared) return;
+          setSent(true);
+          setTimeout(() => setSent(false), 2500);
+        }}
+        style={styles.sendButton}
+      />
+
       <View style={styles.footer}>
         <Button
           title={`Set the focus for ${period.lookingForward}`}
@@ -133,6 +155,7 @@ export default function WeeklyReview() {
 }
 
 const styles = StyleSheet.create({
+  sendButton: { marginTop: Spacing.xl },
   why: { marginTop: Spacing.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   footer: { marginTop: Spacing.xxl, gap: Spacing.sm },

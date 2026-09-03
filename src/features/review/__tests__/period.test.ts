@@ -6,7 +6,7 @@
  * the week the person was standing in.
  */
 
-import { reviewPeriod, reviewQuestions } from '@/features/review/period';
+import { reviewAsText, reviewPeriod, reviewQuestions } from '@/features/review/period';
 
 // 2026-09-07 is a Monday.
 const MON = '2026-09-07';
@@ -52,5 +52,53 @@ describe('a review inside the week', () => {
     const p = reviewPeriod(FRI);
     expect(p.to).toBe(FRI);
     expect(p.atWeekStart).toBe(false);
+  });
+});
+
+/**
+ * "Given it's at work, is it possible to email the questions through?"
+ *
+ * The outbound half needs no backend — the share sheet has Mail in it.
+ * What it must not do is send a review that names the wrong week, which is
+ * the defect this module exists to fix.
+ */
+describe('the review as something you can send yourself', () => {
+  const milestones = [
+    { title: 'Two blocks held in one week', done: false },
+    { title: 'One recurring task handed over', done: true },
+  ];
+
+  it('names the same week the screen does', () => {
+    const monday = reviewPeriod(MON);
+    const text = reviewAsText('A week that produces', monday, milestones);
+    expect(text).toContain('What moved last week?');
+    expect(text).toContain('The one lever for this week');
+    expect(text).not.toContain('What moved this week?');
+  });
+
+  it('carries the dates, so the reader is not guessing', () => {
+    const text = reviewAsText('A week that produces', reviewPeriod(MON), []);
+    expect(text).toContain('2026-08-31');
+    expect(text).toContain('2026-09-06');
+  });
+
+  it('separates what is still open from what is done', () => {
+    const text = reviewAsText('A week that produces', reviewPeriod(WED), milestones);
+    const open = text.indexOf('Still open:');
+    const done = text.indexOf('Done:');
+    expect(open).toBeGreaterThan(-1);
+    expect(done).toBeGreaterThan(open);
+    expect(text).toContain('Two blocks held in one week');
+  });
+
+  it('leaves room to answer under each question', () => {
+    const text = reviewAsText('A week that produces', reviewPeriod(WED), []);
+    expect(text).toMatch(/What moved this week\?\n\n\n/);
+  });
+
+  it('says nothing about milestones when there are none', () => {
+    const text = reviewAsText('A week that produces', reviewPeriod(WED), []);
+    expect(text).not.toContain('Still open:');
+    expect(text).not.toContain('Done:');
   });
 });

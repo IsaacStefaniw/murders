@@ -36,16 +36,36 @@ describe('every pathway is a real ladder', () => {
     }
   });
 
+  /**
+   * Every rung has to change something. It does NOT have to change the
+   * calendar.
+   *
+   * This assertion used to demand a routine from every rung, on the
+   * reasoning that a rung adding nothing cannot keep the promise in its
+   * blurb. That reasoning is right about the promise and wrong about the
+   * remedy, and enforcing it is what caused three separate defects: to
+   * satisfy "every rung adds a routine", a monthly money hour, a quarterly
+   * allocation review and a seasonal relationship review were each written
+   * as a weekly block. A monthly review scheduled fifty-two times a year
+   * is not a monthly review, and the person is the one left to notice.
+   *
+   * So a rung must add a routine OR a milestone, and a pathway must add
+   * real routines somewhere across its four levels. What it may no longer
+   * do is invent a weekly block to fill a slot.
+   */
   it.each(PATH_IDS)('%s gives every rung a milestone and a reason', (path) => {
+    let routinesAcrossLadder = 0;
     for (const level of LEVEL_ORDER) {
       const rung = rungFor(path, level);
       expect(rung.milestones.length).toBeGreaterThan(0);
       expect(rung.note.length).toBeGreaterThan(20);
-      // The blurb is the promise the user already read; a rung with no
-      // routines cannot be keeping it.
       expect(LEVEL_BLURB[path][level].length).toBeGreaterThan(0);
-      expect(rung.routines.length).toBeGreaterThan(0);
+      expect(rung.routines.length + rung.milestones.length).toBeGreaterThan(0);
+      routinesAcrossLadder += rung.routines.length;
     }
+    // A ladder made entirely of milestones would be a checklist, not a
+    // programme.
+    expect(routinesAcrossLadder).toBeGreaterThan(0);
   });
 });
 

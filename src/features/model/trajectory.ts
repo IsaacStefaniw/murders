@@ -21,7 +21,7 @@
  */
 
 import { metricDef, type MetricObservation } from '@/features/model/metrics';
-import { toDateKey } from '@/lib/dates';
+import { formatDateLong, toDateKey } from '@/lib/dates';
 import type { DoneWhen, Goal } from '@/types/domain';
 
 /** Below these, no projection is offered at all. */
@@ -228,7 +228,7 @@ export function projectMetric(
       weeksToTarget,
       projectedDate,
       verdict: 'on-track',
-      headline: `At this rate: ${projectedDate}, about ${Math.round(weeksToTarget)} weeks out.`,
+      headline: `At this rate: ${formatDateLong(projectedDate)}, about ${Math.round(weeksToTarget)} weeks out.`,
       readings: fit.readings,
       spanDays: Math.round(fit.spanDays),
     };
@@ -240,10 +240,10 @@ export function projectMetric(
 
   const headline =
     verdict === 'ahead'
-      ? `At this rate: ${projectedDate} — about ${Math.round(slackDays / 7)} weeks ahead of ${targetDate}.`
+      ? `At this rate: ${formatDateLong(projectedDate)} — about ${Math.round(slackDays / 7)} weeks ahead of ${formatDateLong(targetDate)}.`
       : verdict === 'on-track'
-        ? `At this rate: ${projectedDate}. Target ${targetDate}. That lands.`
-        : `At this rate: ${projectedDate}. You said ${targetDate}.`;
+        ? `At this rate: ${formatDateLong(projectedDate)}. Target ${formatDateLong(targetDate)}. That lands.`
+        : `At this rate: ${formatDateLong(projectedDate)}. You said ${formatDateLong(targetDate)}.`;
 
   return {
     ...base,
@@ -275,12 +275,12 @@ function deadlineGap(
   if (!targetDate) return {};
   const weeksLeft = (new Date(`${targetDate}T23:59:59`).getTime() - now.getTime()) / (7 * 86400e3);
   if (weeksLeft <= 0) {
-    return { gapNote: `${targetDate} has passed. Worth moving the date or the target.` };
+    return { gapNote: `${formatDateLong(targetDate)} has passed. Worth moving the date or the target.` };
   }
   const required = round1(remaining / weeksLeft);
   return {
     requiredRatePerWeek: required,
-    gapNote: `Arriving by ${targetDate} needs about ${fmt(Math.abs(required), decimals)} ${unit} a week, ${Math.round(weeksLeft)} weeks running.`,
+    gapNote: `Arriving by ${formatDateLong(targetDate)} needs about ${fmt(Math.abs(required), decimals)} ${unit} a week, ${Math.round(weeksLeft)} weeks running.`,
   };
 }
 
