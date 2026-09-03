@@ -21,12 +21,28 @@ vertical carries one claim only — a real session, decided, that moves when
 your own numbers move — because a feed gives you one idea and about three
 seconds.
 
-**Format caveat.** WebM (VP9) only. This container has no ffmpeg, so no
-MP4/H.264 fallback could be produced here. Safari has supported VP9 WebM
-since 14.1, but older Safari and some in-app browsers will show nothing
-rather than degrade. Either transcode before launch or use `<video>` with
-a poster frame and both sources. Do not ship WebM alone to a marketing
-page without checking that decision deliberately.
+**Format caveat.** WebM, **VP8** — verified from the container headers
+(`V_VP8`, muxed by libavformat 61). An earlier version of this file said
+VP9; that was inferred rather than checked, and it was wrong. Nothing about
+the recommendation changes, but the reasoning underneath it does, so it is
+corrected here rather than quietly.
+
+There is no MP4/H.264 fallback, and none could be produced in the app
+container — it has no ffmpeg. Safari gained WebM playback in 14.1, but
+coverage on older iOS and inside in-app browsers is unreliable, and those
+viewers see nothing rather than degrading. Ship an H.264 MP4 alongside, in
+a `<video>` with both sources and a poster frame. Do not put WebM alone on
+a marketing page without deciding to.
+
+**Generation loss.** These files are not a first-generation export. Any
+further step that re-encodes them — burning in a disclaimer over the
+finished video, for instance — costs another generation on top. The master
+is the HTML the film is rendered from (`film5.py` / `film6.py` generate
+`film5.html` / `film6.html`, and the app screenshots they embed are all
+still held in the app session's scratchpad). Anything that needs to appear
+in the frame — a disclaimer, a changed end card, a different CTA — belongs
+in that source and should be re-rendered once, not composited onto the
+encode. Ask the app session for a re-export rather than editing these.
 
 ## Numbers that are true
 
@@ -63,3 +79,20 @@ backend, and no shipped build has ever had one. The site must not say
 otherwise.
 
 Use "program", "plan" or "protocol". Never "prescription".
+
+## Where video should live
+
+Not here, past these two. The repository now carries ~7 MB of binaries and
+git keeps every version of them forever — a re-cut does not replace the old
+blob, it adds to it, and the clone gets slower for everyone permanently.
+
+These two stay for now because the website session needs them and already
+has them. Anything further — more cuts, other aspect ratios, a re-export —
+belongs in R2 or Cloudflare Stream, with the site referencing a URL. Stream
+also solves the format problem for free: it transcodes to the right codec
+per viewer, which removes the MP4 fallback work above entirely.
+
+Moving these two out afterwards is a separate decision, and removing them
+from git history is more destructive than it looks — it rewrites every
+commit after them and breaks any checkout already pulled. Worth doing
+deliberately, once, not as a side effect.
