@@ -39,6 +39,7 @@ import {
   type UpdateInfo,
 } from '@/lib/updates';
 import { useAppStore } from '@/state/store';
+import { shareText } from '@/lib/share';
 
 const STORE_KEY = 'intent-os-store';
 
@@ -47,6 +48,9 @@ const STORE_KEY = 'intent-os-store';
  * this — it reads 'dev' everywhere until a build sets it — but the presence
  * of the updates runtime can: only a real native build has one.
  */
+/** Flip when StoreKit products exist. Until then the first store build is free. */
+const PLUS_AVAILABLE = false;
+
 function surfaceLabel(update: UpdateInfo | null): string {
   if (Platform.OS === 'web') return 'Web preview';
   return update ? 'iPhone app' : 'iPhone app (development)';
@@ -109,15 +113,15 @@ export default function Settings() {
         });
 
   const copyBackup = async () => {
-    try {
-      const raw = await AsyncStorage.getItem(STORE_KEY);
-      if (!raw) return;
-      await navigator.clipboard.writeText(raw);
-      setBackupCopied(true);
-      setTimeout(() => setBackupCopied(false), 2000);
-    } catch {
-      // Clipboard unavailable (permissions) — nothing to break.
-    }
+    // Was navigator.clipboard — a web API that is undefined on iOS, so the
+    // TypeError was swallowed and the button did nothing on every phone
+    // the app ships to. The share sheet reaches Notes, Files, Mail.
+    const raw = await AsyncStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    const { shared } = await shareText(raw, 'IntentNorth backup');
+    if (!shared) return;
+    setBackupCopied(true);
+    setTimeout(() => setBackupCopied(false), 2000);
   };
 
   const restoreBackup = async () => {
@@ -125,7 +129,11 @@ export default function Settings() {
       const parsed = JSON.parse(restoreText.trim());
       if (!parsed?.state) return; // not a backup payload
       await AsyncStorage.setItem(STORE_KEY, restoreText.trim());
-      if (typeof window !== 'undefined') window.location.reload();
+      // A page reload only exists on the web. On the phone the store has to
+      // be told to read storage again, or the restore is invisible until
+      // the next cold start.
+      await useAppStore.persist.rehydrate();
+      if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.reload();
     } catch {
       // Invalid JSON — leave the field for the user to fix.
     }
@@ -198,13 +206,21 @@ export default function Settings() {
         </AppText>
       </Card>
 
-      <SectionHeader title="IntentNorth Plus" />
-      <Card onPress={() => router.push('/upgrade' as never)}>
-        <AppText variant="heading">Your whole life, one co-pilot</AppText>
-        <AppText variant="caption" color="textTertiary">
-          Preview what Plus will include — and what stays free forever.
-        </AppText>
-      </Card>
+      {/* Hidden until it can be bought. A "Plus" screen that says billing
+          is not wired is placeholder content under App Review guideline
+          2.1, and the first store build ships fully free. Flip the constant
+          when StoreKit products exist. */}
+      {PLUS_AVAILABLE ? (
+        <>
+          <SectionHeader title="IntentNorth Plus" />
+          <Card onPress={() => router.push('/upgrade' as never)}>
+            <AppText variant="heading">Your whole life, one co-pilot</AppText>
+            <AppText variant="caption" color="textTertiary">
+              Preview what Plus will include — and what stays free forever.
+            </AppText>
+          </Card>
+        </>
+      ) : null}
 
       <SectionHeader title="Practice library" />
       <Card onPress={() => router.push('/library' as never)}>
@@ -334,7 +350,7 @@ export default function Settings() {
       <AppText variant="caption" color="textTertiary">
         {isSupabaseConfigured()
           ? 'Connected — data syncs to your account.'
-          : 'Demo mode — everything lives on this device only. Nothing is shared with anyone, including partners, unless you explicitly choose to share it.'}
+          : 'Everything lives on this device only. Nothing is shared with anyone, including partners, unless you explicitly choose to share it.'}
       </AppText>
       {confirmingReset ? (
         <Card style={styles.resetCard}>
@@ -355,12 +371,13 @@ export default function Settings() {
 
       <SectionHeader title="Backup" />
       <AppText variant="caption" color="textTertiary">
-        Browser storage on iPhone can be cleared without warning. Copy a backup after real use;
-        restore it if the app comes up empty. (The native app won&apos;t need this.)
+        Everything lives only on this phone, so nobody can restore it for you. Save a backup
+        before you change phones or delete the app, and restore it on the other side. It is a
+        block of text — keep it somewhere private.
       </AppText>
       <View style={styles.labRow}>
         <Button
-          title={backupCopied ? 'Copied' : 'Copy backup'}
+          title={backupCopied ? 'Saved ✓' : 'Save a backup'}
           variant="secondary"
           onPress={copyBackup}
         />
@@ -380,21 +397,30 @@ export default function Settings() {
         </View>
       ) : null}
 
-      <SectionHeader title="Preview lab" />
-      <AppText variant="caption" color="textTertiary">
-        Testing tools for the web preview: compress a week of the learning loop into minutes.
-        Simulated time: {simLabel}.
-      </AppText>
-      <View style={styles.labColumn}>
-        <Button title="Seed two weeks of history" variant="secondary" onPress={seedDemoHistory} />
-        <View style={styles.labRow}>
-          <Button title="Jump to evening" variant="ghost" onPress={jumpToEvening} />
-          <Button title="Next morning" variant="ghost" onPress={advanceToNextMorning} />
-          {clockOffsetMs !== 0 ? (
-            <Button title="Real time" variant="ghost" onPress={resetClock} />
-          ) : null}
-        </View>
-      </View>
+      {/* Development only. A time machine and seeded fake history shipped
+          in the TestFlight build, ungated — a reviewer opening Settings
+          would have found "Seed two weeks of history" in a production app.
+          __DEV__ is false in every EAS production and preview build, so
+          this compiles out rather than merely hiding. */}
+      {__DEV__ ? (
+        <>
+          <SectionHeader title="Preview lab" />
+          <AppText variant="caption" color="textTertiary">
+            Testing tools: compress a week of the learning loop into minutes. Simulated time:{' '}
+            {simLabel}.
+          </AppText>
+          <View style={styles.labColumn}>
+            <Button title="Seed two weeks of history" variant="secondary" onPress={seedDemoHistory} />
+            <View style={styles.labRow}>
+              <Button title="Jump to evening" variant="ghost" onPress={jumpToEvening} />
+              <Button title="Next morning" variant="ghost" onPress={advanceToNextMorning} />
+              {clockOffsetMs !== 0 ? (
+                <Button title="Real time" variant="ghost" onPress={resetClock} />
+              ) : null}
+            </View>
+          </View>
+        </>
+      ) : null}
 
       <SectionHeader title="Version" />
       <Card>
