@@ -140,21 +140,25 @@ redirect.
 Step 4 is a release dependency, not a nicety. App Store review rejects a
 submission whose privacy policy or support URL 404s, and it rejects it late.
 
-## The live site is deployed from a branch
+## Which ref you deploy from
 
-Run 5 deployed from `claude/website-journey-powershell-nite39`, not from the
-repository's default branch. `workflow_dispatch` takes whatever ref you give
-it, and it does not care which one is default.
+`workflow_dispatch` takes whatever ref you hand it and does not care which one
+is default, so the ref is a real choice every time.
 
-That leaves a live trap. The default branch does **not** contain the website
-work — the rename, the legal pages, the canonical-host redirect, the film or
-the library section. Dispatching this workflow from the default branch would
-therefore not "redeploy the current site"; it would silently roll the live site
-back to the August build, and `/privacy` and `/support` would start 404ing
-again mid-App-Store-review.
+For a while that was a live trap: the website work sat only on
+`claude/website-journey-powershell-nite39`, and dispatching from the default
+branch would not have "redeployed the current site" — it would have rolled the
+live site back to the August build and started 404ing the legal pages, quite
+possibly during App Store review.
 
-Merge the branch into the default branch, or check the ref every time you
-dispatch. The first is safer, because the second only has to be forgotten once.
+**That trap is closed.** The website work was merged into the default branch on
+4 Sep 2026 at `f342d2e`, so both refs now build the same site. Deploying from
+either is safe.
+
+It reopens the moment the two diverge again. If website work lands on a branch
+and the default branch does not have it, the warning above applies again in
+full — so merge before deploying rather than after, and the question of which
+ref you picked never has to be asked.
 
 ## Worth knowing
 
