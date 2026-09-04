@@ -408,8 +408,8 @@ export default function Home() {
       <section className="hero section-shell">
         <div className="hero-copy">
           <p className="section-kicker">THE PERSONAL OPERATING SYSTEM</p>
-          <h1>Your whole life.<br />One system that learns.</h1>
-          <p className="hero-lede">Your results should change what happens next. Seven specialists work from one profile, and every change they make carries its reason.</p>
+          <h1>Seven coaches.<br />One life, built with intent.</h1>
+          <p className="hero-lede">Your results should change what happens next. Each coach works from the same profile, adapts to the week you actually have, and tells you why it changed.</p>
           <div className="hero-actions"><BuildPlanButton onClick={() => setPlanOpen(true)} /><a className="text-link" href="#depth">See all seven <ArrowDown /></a></div>
           <div className="hero-trust"><span><Check /> Free operating profile</span><span><LockKeyhole /> Nothing leaves your phone</span><span><Heart /> Hardest-moment support stays free</span></div>
           <dl className="hero-pillars">
