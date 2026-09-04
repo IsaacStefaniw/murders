@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "IntentNorth — Your results change what happens next.",
   description:
-    "One operating profile, specialist programs and a learning loop that builds helpful behaviours, reduces harmful patterns and changes the next action from your results.",
+    "An iPhone app that turns 177 rated practices into a weekly plan for your training, food, sleep, habits, work, money and family — and changes the plan when your week changes.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -16,9 +16,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "IntentNorth",
-    title: "IntentNorth — Seven coaches. One life, built with intent.",
+    title: "IntentNorth — The health advice you have read, turned into a plan you can follow.",
     description:
-      "Seven specialists—training, food, habits, work, money, relationship and family—working from one operating profile. Every change carries its reason.",
+      "Seven parts of your life, one plan. It writes the week, changes it when yours changes, and tells you why.",
     url: "/",
     images: [
       {
@@ -31,9 +31,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "IntentNorth — Seven coaches. One life, built with intent.",
+    title: "IntentNorth — The health advice you have read, turned into a plan you can follow.",
     description:
-      "Seven specialists working from one operating profile. Every change carries its reason.",
+      "Seven parts of your life, one plan. It tells you why every change was made.",
     images: ["/images/intent-os-hero-family-transition-v2.webp"],
   },
 };

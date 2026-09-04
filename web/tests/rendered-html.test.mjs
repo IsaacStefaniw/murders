@@ -28,7 +28,10 @@ test("renders the approved positioning and primary CTA", async () => {
   );
   const html = await response.text();
   // Product truth: the approved core line and the single CTA vocabulary.
-  assert.match(html, /Your results should change what happens next/);
+  // CLAUDE.md's core proposition, said in words a stranger can read. The
+  // abstract form — "your results should change what happens next" — was in
+  // the lede and was part of why nobody could say what this was.
+  assert.match(html, /changes the plan when your week changes/i);
   assert.match(html, /Build my profile/);
   // Truth guardrail: public copy never uses "prescription".
   assert.doesNotMatch(html, /prescription/i);
@@ -124,51 +127,56 @@ test("reps in reserve never returns, from anywhere", async () => {
   // The hero plays the causality rather than asserting it. Both halves of the
   // swap must be present, or the animation has silently become a static card
   // again — which is what Isaac found, twice.
-  assert.match(html, /main work, then the accessory list/, "the hero lost its before state");
-  assert.match(html, /main work stays, accessories rest today/, "the hero lost its after state");
-  assert.match(html, /against your own baseline/, "the hero lost the signal that causes the change");
+  // The hero's animated card is gone. Isaac showed the site to people, none of
+  // whom could say what it was, and the card was the worst of it: "Upper A",
+  // "accessories" and "HRV against your own baseline" in the first thing a
+  // stranger reads. It is a photograph of a real week now, and the claim it
+  // used to act out is asserted here in the words the page actually uses.
+  assert.match(html, /app-protocol-3-week-after\.jpg/, "the hero lost its real screen");
+  assert.match(html, /turned into a plan you can follow/, "the hero lost the plain statement of what this is");
+  assert.match(html, /changes the plan when your week changes/i, "the hero lost the differentiator");
+  // Three steps, in order, replacing three abstractions nobody could parse.
+  assert.match(html, /Tell it what you want/, "step one");
+  assert.match(html, /It writes your week/, "step two");
+  assert.match(html, /It changes when you do/, "step three");
 
-  // The three positioning sequences, one per claim Isaac set. Each is a
-  // diagram of behaviour the app actually has, so each number below is checked
-  // against the file that produces it rather than against the page that shows
-  // it. If a sequence is ever replaced by prose again, this fails.
+  // The three animations are gone. Isaac's user test was unambiguous: they
+  // explained mechanisms to people who had not yet been told what the product
+  // was. What they claimed is now claimed in words and real screens, and this
+  // guards the claims rather than the diagrams that used to carry them.
 
-  // a) Proven protocols, synthesised and rated — protocols.ts.
-  // The distribution is the asset: publishing that most of the library is
-  // mid-grade is only worth doing if the grading is real.
+  // a) The practices are rated, and the weak ratings are published. The counts
+  // are checked against src/features/knowledge/protocols.ts.
   for (const figure of ["13", "60", "63", "33", "8"]) {
-    assert.match(html, new RegExp(`>${figure}<`), `grade count ${figure} is missing`);
+    assert.match(html, new RegExp(`>${figure}<`), `rating count ${figure} is missing`);
   }
-  assert.match(html, /104 of 177 are C or weaker/, "the honest half of the library claim is gone");
-  // The placement beat is no longer drawn. The app session captured the same
-  // seeded week before and after toggleProtocol('morning-light'), so the page
-  // shows the application's own week screen going from 15 items to 16 with the
-  // practice at 7:25am — real evidence in the place a diagram used to stand.
-  // Provenance is in docs/APP_SCREENSHOTS.md.
-  assert.match(html, /app-protocol-2-week-before\.jpg/, "the before capture");
-  assert.match(html, /app-protocol-3-week-after\.jpg/, "the after capture");
-  assert.match(html, /7:25am/, "the hour the scheduler chose");
-  assert.match(html, /Never look at the sun directly/, "the safety line must travel with the practice");
+  assert.match(html, /A protocol is a practice/, "the page must say what a protocol is before leaning on the word");
+  // The captures the app session took: the same seeded week before and after
+  // toggleProtocol('morning-light'), 15 items becoming 16. Provenance is in
+  // docs/APP_SCREENSHOTS.md.
+  assert.match(html, /app-protocol-1-library\.jpg/, "the library capture");
+  assert.match(html, /Never look at the sun directly/, "the safety note must be shown, not described");
 
-  // b) A program that lives with you — programme.ts.
-  assert.match(html, /build, build, progress, deload/, "the four phased weeks");
-  assert.match(html, /It shrinks when your week does/, "the beat no competitor shows");
-
-  // c) Seven coaches, one profile — level.ts. These are LEVEL_THRESHOLDS
-  // verbatim: training established is 36 sessions across 16 weeks, nutrition
-  // developing is 10 across 4.
-  assert.match(html, /36 sessions across 16 weeks/, "the training gate");
-  assert.match(html, /10 sessions across 4 weeks/, "the nutrition gate");
-  assert.match(html, /a top rung that cannot be selected/, "the ladder claim");
+  // b) The plan is written for you and changes itself. Said plainly now.
+  assert.match(html, /two to build, one harder, one easier/, "the four weeks, in words a reader knows");
+  assert.match(html, /instead of being cancelled|instead of cancelling it/, "what happens on a bad week");
 
   // The three claims in the first viewport. CLAUDE.md's definition of done
   // asks that the category difference be understandable there, and the band
   // that used to be the only place it appeared sits 1,325px down on a phone.
   // These are the same three numbers the sequences below prove.
-  assert.match(html, /177<\/dt>|>177</, "the library figure left the hero");
-  assert.match(html, /graded practices/, "the first pillar");
-  assert.match(html, /phased weeks per goal/, "the second pillar");
-  assert.match(html, /coaches, one profile/, "the third pillar");
+  // These were three counts. The people Isaac showed the site to did not
+  // understand them, and Isaac wrote "178" when passing that on — a number
+  // its own commissioner cannot recall is doing no work on a page a stranger
+  // reads once. They are three statements of what the app does now, and the
+  // exact figures moved into sentences further down where they can be read.
+  assert.match(html, /It plans your week/, "the first thing it does");
+  assert.match(html, /It changes when your week does/, "the second");
+  assert.match(html, /It shows how good the evidence is/, "the third — the differentiator");
   // The costly signal is the whole reason the first pillar works.
-  assert.match(html, /We publish the 104 we grade C or weaker/, "the honesty that makes the grading credible");
+  assert.match(html, /104 of them|104 of the 177/, "the honesty that makes the ratings credible");
+  // A reader has to be told what a rating means, not shown a letter.
+  for (const word of ["Strong", "Good", "Mixed", "Thin", "Practice"]) {
+    assert.match(html, new RegExp(`>${word}<`), `the rating scale lost "${word}"`);
+  }
 });

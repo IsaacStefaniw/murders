@@ -71,6 +71,14 @@ The core value proposition is:
 
 > Your results should change what happens next.
 
+**State it in plain words, never in that form.** Isaac showed the site to
+several people in September 2026 and none of them could say what the product
+was. That sentence was in the hero lede at the time. On the page it now reads
+"it changes the plan when your week changes, and tells you why" — the same
+claim, in words a stranger can read. `tests/plain-language.test.mjs` fails the
+build on the vocabulary that caused the problem, and the list there is the
+record of which words those were.
+
 The product observes a meaningful signal, changes the next load, target or protocol, and shows the reason. The essential proof pattern is:
 
 **Before → signal → changed action → reason**
