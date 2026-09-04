@@ -11,12 +11,21 @@ const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
 const d1: string | null = null;
 const r2: string | null = null;
 
+// The newest compatibility date the locally installed workerd understands.
+// Raise it when wrangler is upgraded; if dev starts refusing to boot with a
+// "newest date supported by this server binary" error, this is the knob.
+const LOCAL_RUNTIME_COMPATIBILITY_DATE = "2026-05-22";
+
 // macOS Seatbelt blocks FSEvents, so Codex previews need polling for HMR.
 const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 
+// No compatibility_flags here. The Cloudflare plugin merges this with
+// wrangler.jsonc rather than replacing it, and workerd refuses to start when a
+// flag is listed twice — so declaring nodejs_compat in both places broke
+// `npm run dev` outright, while the deploy (which reads wrangler.jsonc alone)
+// stayed fine. wrangler.jsonc is the one source of truth for the flags.
 const localBindingConfig = {
   main: "./worker/index.ts",
-  compatibility_flags: ["nodejs_compat"],
   d1_databases: d1
     ? [
         {
@@ -36,7 +45,7 @@ const localBindingConfig = {
     : [],
 };
 
-export default defineConfig(async () => {
+export default defineConfig(async ({ command }) => {
   // Keep Wrangler and Miniflare state project-local. These are non-secret tool
   // settings; application environment belongs in ignored `.env*` files.
   process.env.WRANGLER_WRITE_LOGS ??= "false";
@@ -60,7 +69,17 @@ export default defineConfig(async () => {
       cloudflare({
         viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
         inspectorPort: false,
-        config: localBindingConfig,
+        config: {
+          ...localBindingConfig,
+          // Dev only, and deliberately not applied to a build: this config is
+          // merged into the wrangler.json that ships, so overriding the date
+          // here at build time would quietly deploy an older runtime than
+          // wrangler.jsonc asks for. The pinned wrangler's workerd predates
+          // that date and refuses to boot, which is a local problem only.
+          ...(command === "serve"
+            ? { compatibility_date: LOCAL_RUNTIME_COMPATIBILITY_DATE }
+            : {}),
+        },
       }),
     ],
   };

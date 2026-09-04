@@ -7,12 +7,13 @@
   },
   "scripts": {
     "install:ci": "bash scripts/install-ci.sh",
-    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vite",
-    "build": "bash scripts/build-verified.sh",
-    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "npm run build && node --test tests/*.test.mjs",
-    "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate"
+    "dev": "node scripts/sites-env.mjs -- vite",
+    "build": "node scripts/build-verified.mjs",
+    "start": "node scripts/sites-env.mjs -- vinext start",
+    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/legal-pages.test.mjs tests/canonical-host.test.mjs tests/film.test.mjs tests/library-claims.test.mjs tests/public-assets.test.mjs tests/no-database.test.mjs",
+    "lint": "node scripts/sites-env.mjs -- eslint . --ignore-pattern dist --ignore-pattern .next",
+    "db:generate": "node scripts/sites-env.mjs -- drizzle-kit generate",
+    "test:ui": "node --test tests/ui-components.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -60,5 +61,5 @@
     "wrangler": "4.92.0"
   },
   "type": "module",
-  "displayName": "INTENT \u2014 Personal Operating System"
+  "displayName": "IntentNorth"
 }

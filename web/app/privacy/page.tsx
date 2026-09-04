@@ -148,7 +148,7 @@ export default function PrivacyPage() {
 
       <h2>Contact</h2>
       <p>
-        Questions about privacy: <a href="mailto:privacy@intentnorth.com">privacy@intentnorth.com</a>.
+        Questions about privacy: <a href="mailto:privacy@intentnorth.app">privacy@intentnorth.app</a>.
       </p>
 
       <div className="legal-foot">

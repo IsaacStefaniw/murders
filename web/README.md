@@ -1,4 +1,4 @@
-# INTENT OS — website
+# IntentNorth — website
 
 The marketing site and profile builder, living in the same repository as the
 app so positioning, product truth and (later) shared profile data stay in one
@@ -16,19 +16,30 @@ npm ci
 npm run dev     # http://localhost:5173
 ```
 
-On Windows, `npm run dev` fails because the script uses POSIX env syntax. Use:
+Windows, macOS and Linux all take the same commands. The scripts run through
+Node rather than a POSIX shell, so PowerShell needs no workaround — if you find
+yourself typing `npx vite` by hand to get around a script, that is a bug in the
+script, not the way in.
 
-```bash
-WRANGLER_LOG_PATH=.wrangler/wrangler.log npx vite
-```
+The one exception is `npm run install:ci`, which is Linux-only by design: it
+uses `flock` and `/proc` to guarantee a single install on a shared runner.
+Contributors want plain `npm ci`.
 
 ## Verify before shipping
 
 ```bash
 npm run lint
-npm run build
-node --test tests/rendered-html.test.mjs   # product-truth guardrails
+npm test        # builds, then runs every product-truth guardrail
 ```
+
+`npm test` runs exactly the set the deploy workflow gates on — the same command
+in both places, so a guardrail cannot pass locally and be skipped on the way
+out. Adding a guardrail means adding it to that one script.
+
+`npm run test:ui` is separate and optional. It covers a vendored component
+rather than a product claim, and is the test recorded below as hanging on
+Windows, so it is kept out of the command contributors and CI are expected to
+run.
 
 `tests/rendered-html.test.mjs` asserts the positioning line, the single CTA
 vocabulary, the free/premium disclosure, the hardest-moment principle, the
@@ -36,9 +47,20 @@ absence of the word "prescription", and that images are served directly rather
 than through the Next image optimiser. Treat a failure as a positioning
 regression, not a flaky test.
 
-`tests/ui-components.test.mjs` currently hangs on Windows (a Vite transport
-timeout loading `components/ui/sidebar.tsx`). It fails identically on an
-untouched checkout; it is an environment issue, not a regression.
+`tests/canonical-host.test.mjs` asserts that the alias domain redirects rather
+than serving a second copy of the site, and that localhost and the workers.dev
+preview URL are left alone.
+
+`tests/library-claims.test.mjs` counts the protocol library in
+`src/features/knowledge/protocols.ts` and asserts the figures on the page match
+it. Add a protocol and this fails — that is deliberate, so the copy changes in
+the same commit as the data rather than drifting into a claim nobody re-counted.
+
+`tests/ui-components.test.mjs` has been reported hanging on Windows (a Vite
+transport timeout loading `components/ui/sidebar.tsx`). It failed identically
+on an untouched checkout, so it is an environment issue rather than a
+regression, and it is now behind `npm run test:ui` rather than in the main
+command. It passes on Linux and macOS.
 
 ## Stack
 
@@ -52,17 +74,17 @@ Next.js 16 · React 19 · TypeScript · Vinext/Vite · Cloudflare Workers output
 
 ## Deploying
 
-The build already targets Cloudflare Workers, so that is the least-friction
-host. `.github/workflows/web-deploy.yml` is ready and runs on manual dispatch;
-it needs two repository secrets before it will work:
+See `DEPLOY.md` for the full checklist — secrets, domains, and how to verify a
+deploy before pointing DNS at it.
 
-- `CLOUDFLARE_API_TOKEN` — a token with Workers Scripts: Edit
-- `CLOUDFLARE_ACCOUNT_ID`
-
-A custom domain is then attached in the Cloudflare dashboard.
+In short: the build targets Cloudflare Workers, and
+`.github/workflows/web-deploy.yml` deploys on manual dispatch once
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` exist as repository secrets.
 
 Vercel is the alternative and needs no workflow — point it at this directory
-and it will detect Next.js.
+and it will detect Next.js. Note that the canonical-host redirect lives in
+`worker/index.ts`, which is Cloudflare-specific; on Vercel it would need
+rebuilding as a redirect rule.
 
 ## Keeping the site honest
 

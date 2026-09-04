@@ -26,7 +26,7 @@ export default function SupportPage() {
       </div>
 
       <p className="lede">
-        Email <a href="mailto:support@intentnorth.com">support@intentnorth.com</a> and a
+        Email <a href="mailto:support@intentnorth.app">support@intentnorth.app</a> and a
         person will reply. We are a small team in Australia, so allow a couple of
         business days.
       </p>
@@ -101,7 +101,7 @@ export default function SupportPage() {
 
       <h2>Reporting a bug</h2>
       <p>
-        Email <a href="mailto:support@intentnorth.com">support@intentnorth.com</a> with
+        Email <a href="mailto:support@intentnorth.app">support@intentnorth.app</a> with
         what you were doing, what you expected and what happened instead. Your iOS
         version and whether it happens every time are the two details that help most.
         Please do not send screenshots containing anything you would rather keep
