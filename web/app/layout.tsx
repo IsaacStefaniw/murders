@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "IntentNorth",
-    title: "IntentNorth — Your whole life. One system that learns.",
+    title: "IntentNorth — Seven coaches. One life, built with intent.",
     description:
       "Seven specialists—training, food, habits, work, money, relationship and family—working from one operating profile. Every change carries its reason.",
     url: "/",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "IntentNorth — Your whole life. One system that learns.",
+    title: "IntentNorth — Seven coaches. One life, built with intent.",
     description:
       "Seven specialists working from one operating profile. Every change carries its reason.",
     images: ["/images/intent-os-hero-family-transition-v2.webp"],
