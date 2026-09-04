@@ -11,6 +11,7 @@ import { PlanItemRow } from '@/features/today/plan-item-row';
 import { QuickAdd } from '@/features/today/QuickAdd';
 import { addDays, formatDateLong, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
+import { DragToMove } from '@/features/today/DragToMove';
 
 /** The week ahead. Deterministic plans for the next seven days, editable in place. */
 export default function Plan() {
@@ -28,6 +29,8 @@ export default function Plan() {
   const [rebuiltDate, setRebuiltDate] = useState<string | null>(null);
   /** Set by a long press, so the row opens on the move picker. */
   const [moveId, setMoveId] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const moveItem = useAppStore((s) => s.moveItem);
 
   useEffect(() => {
     if (!profile) return;
@@ -38,7 +41,7 @@ export default function Plan() {
   if (!profile) return <Screen tabbed />;
 
   return (
-    <Screen tabbed>
+    <Screen tabbed scrollEnabled={!dragging}>
       <AppText variant="label" color="textTertiary">
         Week
       </AppText>
@@ -86,23 +89,31 @@ export default function Plan() {
                   ) : (
                     items.map((item) =>
                       plan ? (
-                        <PlanItemRow
+                        <DragToMove
                           key={item.id}
                           item={item}
-                          plan={plan}
                           profile={profile}
-                          date={date}
-                          expanded={expandedId === item.id}
-                          onToggle={() => {
-                            setExpandedId(expandedId === item.id ? null : item.id);
-                            setMoveId(null);
-                          }}
-                          moveOnOpen={moveId === item.id}
-                          onLongPress={() => {
+                          enabled={!item.fixed && item.status === 'planned'}
+                          onDragging={setDragging}
+                          onDrop={(start) => moveItem(date, item.id, start)}
+                          onHold={() => {
                             setExpandedId(item.id);
                             setMoveId(item.id);
                           }}
-                        />
+                        >
+                          <PlanItemRow
+                            item={item}
+                            plan={plan}
+                            profile={profile}
+                            date={date}
+                            expanded={expandedId === item.id}
+                            onToggle={() => {
+                              setExpandedId(expandedId === item.id ? null : item.id);
+                              setMoveId(null);
+                            }}
+                            moveOnOpen={moveId === item.id}
+                          />
+                        </DragToMove>
                       ) : null,
                     )
                   )}

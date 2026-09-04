@@ -86,6 +86,7 @@ describe('large text', () => {
     'charts.tsx',      // a 10pt legend dot
     'breathe.tsx',     // the breathing circle
     'LevelCard.tsx',   // a 6pt progress bar
+    'DragToMove.tsx',  // a shadow offset, not a layout width
   ];
 
   it('never pins a text column to a fixed width', () => {

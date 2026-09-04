@@ -30,3 +30,6 @@ jest.mock('expo-iap', () => ({
   purchaseUpdatedListener: jest.fn(() => ({ remove: () => undefined })),
   purchaseErrorListener: jest.fn(() => ({ remove: () => undefined })),
 }));
+
+// Gestures under Jest: the native side is stubbed by the library's own setup.
+require('react-native-gesture-handler/jestSetup');

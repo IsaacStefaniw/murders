@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
@@ -38,6 +38,8 @@ import { useAppStore } from '@/state/store';
 import type { PlanItem } from '@/types/domain';
 import { LockedSessions } from '@/features/plus/LockedSessions';
 import { applicableRoutines } from '@/features/knowledge/protocols';
+import { DragToMove } from '@/features/today/DragToMove';
+import { knockOnLine } from '@/features/today/dragMath';
 
 const EVENING_START = 17 * 60;
 
@@ -69,6 +71,13 @@ export default function Today() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   /** Set by a long press, so the row opens on the move picker. */
   const [moveId, setMoveId] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [moveNote, setMoveNote] = useState<string | null>(null);
+  const moveItem = useAppStore((s) => s.moveItem);
+  const dropAt = useCallback(
+    (itemId: string, start: string) => setMoveNote(knockOnLine(moveItem(date, itemId, start))),
+    [date, moveItem],
+  );
   const [planningGap, setPlanningGap] = useState<string | null>(null);
 
   useEffect(() => {
@@ -163,7 +172,14 @@ export default function Today() {
   };
 
   return (
-    <Screen tabbed>
+    <Screen tabbed scrollEnabled={!dragging}>
+      {moveNote ? (
+        <Card onPress={() => setMoveNote(null)} accessibilityLabel="Dismiss">
+          <AppText variant="caption" color="textTertiary">
+            {moveNote}
+          </AppText>
+        </Card>
+      ) : null}
       <AppText variant="label" color="textTertiary">
         Today
       </AppText>
@@ -319,23 +335,31 @@ export default function Today() {
           <SectionHeader title="Earlier — did it happen?" />
           <View style={styles.stack}>
             {overdueItems.map((item) => (
-              <PlanItemRow
+              <DragToMove
                 key={item.id}
                 item={item}
+                profile={profile}
+                enabled={!item.fixed && item.status === 'planned'}
+                onDragging={setDragging}
+                onDrop={(start) => dropAt(item.id, start)}
+                onHold={() => {
+                  setExpandedId(item.id);
+                  setMoveId(item.id);
+                }}
+              >
+                <PlanItemRow
+                  item={item}
                 plan={plan}
                 profile={profile}
                 date={date}
                 expanded={expandedId === item.id}
                 onToggle={() => {
-                  setExpandedId(expandedId === item.id ? null : item.id);
-                  setMoveId(null);
+                setExpandedId(expandedId === item.id ? null : item.id);
+                setMoveId(null);
                 }}
                 moveOnOpen={moveId === item.id}
-                onLongPress={() => {
-                  setExpandedId(item.id);
-                  setMoveId(item.id);
-                }}
-              />
+                />
+              </DragToMove>
             ))}
           </View>
         </View>
@@ -346,23 +370,31 @@ export default function Today() {
           <SectionHeader title="Next" />
           <View style={styles.stack}>
             {nextItems.map((item) => (
-              <PlanItemRow
+              <DragToMove
                 key={item.id}
                 item={item}
+                profile={profile}
+                enabled={!item.fixed && item.status === 'planned'}
+                onDragging={setDragging}
+                onDrop={(start) => dropAt(item.id, start)}
+                onHold={() => {
+                  setExpandedId(item.id);
+                  setMoveId(item.id);
+                }}
+              >
+                <PlanItemRow
+                  item={item}
                 plan={plan}
                 profile={profile}
                 date={date}
                 expanded={expandedId === item.id}
                 onToggle={() => {
-                  setExpandedId(expandedId === item.id ? null : item.id);
-                  setMoveId(null);
+                setExpandedId(expandedId === item.id ? null : item.id);
+                setMoveId(null);
                 }}
                 moveOnOpen={moveId === item.id}
-                onLongPress={() => {
-                  setExpandedId(item.id);
-                  setMoveId(item.id);
-                }}
-              />
+                />
+              </DragToMove>
             ))}
           </View>
         </View>
@@ -398,23 +430,31 @@ export default function Today() {
       ) : null}
       <View style={styles.stack}>
         {tonightItems.map((item) => (
-          <PlanItemRow
+          <DragToMove
             key={item.id}
             item={item}
+            profile={profile}
+            enabled={!item.fixed && item.status === 'planned'}
+            onDragging={setDragging}
+            onDrop={(start) => dropAt(item.id, start)}
+            onHold={() => {
+              setExpandedId(item.id);
+              setMoveId(item.id);
+            }}
+          >
+            <PlanItemRow
+              item={item}
             plan={plan}
             profile={profile}
             date={date}
             expanded={expandedId === item.id}
             onToggle={() => {
-              setExpandedId(expandedId === item.id ? null : item.id);
-              setMoveId(null);
+            setExpandedId(expandedId === item.id ? null : item.id);
+            setMoveId(null);
             }}
             moveOnOpen={moveId === item.id}
-            onLongPress={() => {
-              setExpandedId(item.id);
-              setMoveId(item.id);
-            }}
-          />
+            />
+          </DragToMove>
         ))}
         <Card
           onPress={isEvening && !hasEveningReflection ? () => router.push('/check-in/evening') : undefined}

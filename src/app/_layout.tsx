@@ -4,11 +4,12 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
 import { useNotificationSync } from '@/features/notifications/useNotificationSync';
-import { useColorScheme } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { useAppStore } from '@/state/store';
 import { listenForPurchases } from '@/lib/purchases';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -49,6 +50,7 @@ export default function RootLayout() {
   const navTheme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
 
   return (
+    <GestureHandlerRootView style={styles.root}>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider
         value={{
@@ -80,5 +82,8 @@ export default function RootLayout() {
         </Stack>
       </ThemeProvider>
     </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({ root: { flex: 1 } });
