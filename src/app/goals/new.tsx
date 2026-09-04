@@ -84,7 +84,7 @@ export default function NewGoal() {
         <Field
           label="What do you want to be true?"
           showLabel={false}
-          hint="Describe the goal in your own words. IntentNorth reads it and drafts the milestones."
+          hint="Describe the goal in your own words. IntentNorth reads it and drafts the steps to get there."
           value={text}
           onChangeText={setText}
           placeholder="e.g. Grow the business to $2m revenue"
@@ -221,7 +221,7 @@ export default function NewGoal() {
 
       {plan.goal.milestones?.length ? (
         <View>
-          <SectionHeader title="Milestones" />
+          <SectionHeader title="Steps to get there" />
           <View style={styles.stack}>
             {plan.goal.milestones.map((m) => (
               <Chip

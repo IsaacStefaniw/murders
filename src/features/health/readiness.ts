@@ -94,11 +94,11 @@ export function readinessFrom(metrics: MetricObservation[], now = new Date()): R
     if (ratio <= HRV_BACK_OFF) {
       backOff = true;
       signals.push(
-        `Your HRV is ${Math.round((1 - ratio) * 100)}% below your own two-week normal (${Math.round(hrv)} against ${Math.round(hrvBase)} ms). That usually means the nervous system is still catching up.`,
+        `Your heart-rate variability (HRV) is ${Math.round((1 - ratio) * 100)}% below your own two-week normal (${Math.round(hrv)} against ${Math.round(hrvBase)} ms). That usually means the nervous system is still catching up.`,
       );
     } else if (ratio <= HRV_CAUTION) {
       signals.push(
-        `Your HRV is a little under your own normal — ${Math.round(hrv)} ms against ${Math.round(hrvBase)}.`,
+        `Your heart-rate variability (HRV) is a little under your own normal — ${Math.round(hrv)} ms against ${Math.round(hrvBase)}.`,
       );
     }
   }

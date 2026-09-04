@@ -88,7 +88,7 @@ export type EvidenceLevel = 'A' | 'B' | 'C' | 'D' | 'E';
 
 export const EVIDENCE_LABELS: Record<EvidenceLevel, string> = {
   A: 'Strong — meta-analyses / broad consensus',
-  B: 'Good — controlled trials, or large and consistent cohorts',
+  B: 'Good — tested in controlled trials, or seen in large groups followed for years',
   C: 'Moderate — smaller, narrower or mixed observational evidence',
   D: 'Emerging — expert practice',
   E: 'Experimental — a heuristic worth testing on yourself',

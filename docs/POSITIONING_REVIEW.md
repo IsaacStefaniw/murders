@@ -1,5 +1,12 @@
 # Positioning review — why people cannot tell what we sell
 
+> **Superseded in part, 2026-09-04.** The problem statement and the film script
+> below were rewritten after Isaac's review: the four-apps opener is not the
+> customer's problem, and counts of practices come out in favour of the
+> evidence grading. `docs/PROBLEM_STATEMENT.md` is the reference for the
+> problem, the hero copy and the film. The glossary, the page structure and
+> the five-second test here still stand.
+
 Written 2026-09-04 after user feedback that neither the site nor the film
 explains what IntentNorth is or solves. Reviewed cold, as a visitor who has
 never heard of it, against the built site at the current commit and the

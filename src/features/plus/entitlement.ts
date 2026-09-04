@@ -98,6 +98,12 @@ export function splitLibrary(
   }
   const seen: Record<string, number> = {};
   for (const p of listed) {
+    // The hardest-moment rule reaches the library too: an urge tool is never
+    // listed by name behind a lock, whatever else its area has open.
+    if (isAlwaysFreeProtocol(p.id)) {
+      open.add(p.id);
+      continue;
+    }
     const n = seen[p.pillar] ?? 0;
     if (n < perPillar) {
       open.add(p.id);
@@ -116,7 +122,12 @@ export function splitLibrary(
  */
 export function isAlwaysFreeRoutine(r: Routine, recoveryGoalId?: string): boolean {
   if (recoveryGoalId && r.goalId === recoveryGoalId) return true;
-  return typeof r.protocolId === 'string' && r.protocolId.startsWith('urge');
+  return typeof r.protocolId === 'string' && isAlwaysFreeProtocol(r.protocolId);
+}
+
+/** The urge tools: free in the library, free to add, free to run. */
+export function isAlwaysFreeProtocol(protocolId: string): boolean {
+  return protocolId.startsWith('urge');
 }
 
 /** The routines the engine places today: all of them with Plus, the free ones without. */
@@ -152,7 +163,7 @@ export const PLUS_RUNS: readonly (readonly [string, string])[] = [
   ['Apple Health shapes the day', 'Last night’s sleep, resting heart rate and heart-rate variability (HRV) change today’s session without you typing anything.'],
   ['The weekly report and your history', 'What actually happened, against your own weeks — nobody else’s.'],
   ['Where this is heading', 'Projections from your own numbers: at this rate, when you arrive.'],
-  ['The full library', 'All 177 practices, each with its evidence grade, one tap into your week.'],
+  ['The full library', 'Every practice, graded A to E for how strong the evidence is, one tap into your week.'],
   ['Guided sits beyond the reset', 'Spoken practices from five to twenty minutes.'],
 ];
 

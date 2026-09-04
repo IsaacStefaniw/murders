@@ -148,7 +148,7 @@ export default function PlanReview() {
             <AppText variant="caption" color="textTertiary">
               {AREA_LABELS[goal.area]}
               {goal.cadencePerWeek ? ` · ${goal.cadencePerWeek}× a week` : ''}
-              {goal.milestones?.length ? ` · ${goal.milestones.length} milestones mapped` : ''}
+              {goal.milestones?.length ? ` · ${goal.milestones.length} steps mapped` : ''}
             </AppText>
           </Card>
         ))}

@@ -155,7 +155,7 @@ export default function Life() {
                 <AppText variant="caption" color={entry ? 'success' : 'accent'}>
                   {entry
                     ? total > 0
-                      ? `Active · ${done}/${total} milestones`
+                      ? `Active · ${done}/${total} steps`
                       : 'Active'
                     : `${def.questions.length} questions → your program`}
                 </AppText>
@@ -167,7 +167,7 @@ export default function Life() {
               ) : null}
               {!plus && pathId !== 'recovery' ? (
                 <AppText variant="caption" color="accent">
-                  Built for you · runs with Plus
+                  Built and waiting · Plus puts its sessions into your days
                 </AppText>
               ) : null}
               {!plus && pathId === 'recovery' ? (
@@ -184,7 +184,8 @@ export default function Life() {
         >
           <AppText variant="heading">Practice library</AppText>
           <AppText variant="caption" color="textTertiary">
-            All 177 practices behind the programs, each with its evidence grade, one tap into your week.
+            Every practice behind the programs, graded A to E for how strong the evidence is, one
+            tap into your week.
           </AppText>
         </Card>
       </View>

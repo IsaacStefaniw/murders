@@ -154,7 +154,7 @@ export default function Data() {
           <SectionHeader title="Where this is heading" />
           <LockedCard
             title={`${trajectories.length} ${trajectories.length === 1 ? 'projection' : 'projections'} from your own numbers`}
-            body="At this rate, when you arrive — and what would change it. Runs with Plus."
+            body="At this rate, when you arrive — and what would change it. Plus works it out from what you log."
           />
         </>
       ) : null}

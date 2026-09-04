@@ -14,7 +14,9 @@ import path from 'path';
 const BANNED: { phrase: RegExp; why: string }[] = [
   { phrase: /Life Operating Plan/i, why: 'say "your plan"' },
   { phrase: /connect an account/i, why: 'there is no account' },
-  { phrase: /['"“]The ladder['"”]/, why: 'say "levels you earn"' },
+  { phrase: /['"“]The ladder\b/, why: 'say "levels you earn" or "your steps"' },
+  { phrase: /All 177 practices/, why: 'say what the grading is, not the count' },
+  { phrase: /Your HRV is/, why: 'spell it out: heart-rate variability (HRV)' },
   { phrase: /title: 'Zone 2 cardio'/, why: 'say "Easy cardio (Zone 2)"' },
   { phrase: /title: 'VO₂ intervals'/, why: 'say "Hard intervals (VO₂ max)"' },
   { phrase: /in every pillar are open/, why: 'say "area"' },

@@ -158,7 +158,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
       if (answers.experience === 'new') {
         lines.push('Two 30-minute sessions you keep beat three you skip. Volume comes later — consistency first.');
       } else if (answers.experience === 'consistent') {
-        lines.push('Strength three days, Zone 2 twice — the aerobic base is the piece most lifters skip, and it pays the longest.');
+        lines.push('Strength three days, easy cardio twice — the aerobic base is the piece most lifters skip, and it pays the longest.');
       } else {
         lines.push('Three days, main lifts first. The coach shrinks a session when time collapses — it never cancels it.');
       }

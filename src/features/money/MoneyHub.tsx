@@ -85,7 +85,7 @@ export function MoneyHub() {
 
       <QuestionCard domain="finance" />
 
-      <SectionHeader title="The ladder, in order" />
+      <SectionHeader title="Your steps, in order" />
       <View style={styles.stack}>
         {ladder.map((s) => (
           <Card

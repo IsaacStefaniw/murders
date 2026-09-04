@@ -408,7 +408,7 @@ export function assessGoal(goal: Goal, ctx: GoalAssessContext): GoalAssessment {
   const next = open[0];
 
   if (milestones.length > 0 && open.length === 0) {
-    return { autoDone, autoUndone, state: 'done', reason: 'Every rung of the ladder is complete.' };
+    return { autoDone, autoUndone, state: 'done', reason: 'Every step is done.' };
   }
 
   if (next?.doneWhen?.kind === 'metric') {
@@ -473,7 +473,7 @@ export function assessGoal(goal: Goal, ctx: GoalAssessContext): GoalAssessment {
     state: recentProgress(goal, ctx, today) ? 'on-track' : 'stalled',
     reason: next
       ? `Next: “${next.title}” — ${describeDoneWhen(next.doneWhen)}.`
-      : 'No ladder on this goal yet.',
+      : 'No steps on this goal yet.',
     next,
   };
 }

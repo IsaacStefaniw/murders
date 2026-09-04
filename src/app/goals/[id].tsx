@@ -121,12 +121,12 @@ export default function EditGoal() {
         </Card>
       ) : null}
 
-      <SectionHeader title="Milestones" />
+      <SectionHeader title="Steps to get there" />
       <View style={styles.stack}>
         {(goal.milestones ?? []).map((m) => (
           <Card key={m.id}>
             <Field
-              label={`Milestone: ${m.title}`}
+              label={`Step: ${m.title}`}
               showLabel={false}
               value={m.title}
               onChangeText={(title) => updateMilestone(goal.id, m.id, { title })}
@@ -149,12 +149,12 @@ export default function EditGoal() {
       </View>
       <View style={styles.addRow}>
         <Field
-          label="Add a milestone"
+          label="Add a step"
           showLabel={false}
           style={styles.grow}
           value={newRung}
           onChangeText={setNewRung}
-          placeholder="Add a milestone"
+          placeholder="Add a step"
           returnKeyType="done"
           onSubmitEditing={() => {
             if (newRung.trim()) addMilestone(goal.id, newRung.trim());

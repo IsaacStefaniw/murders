@@ -73,12 +73,21 @@ describe('splitLibrary', () => {
     expect(total).toBe(listed.length);
     expect(openCount).toBeLessThan(total);
     const byPillar: Record<string, number> = {};
-    for (const p of listed) if (open.has(p.id)) byPillar[p.pillar] = (byPillar[p.pillar] ?? 0) + 1;
+    // The urge tools sit outside the count: they are open in every case.
+    for (const p of listed)
+      if (open.has(p.id) && !p.id.startsWith('urge')) byPillar[p.pillar] = (byPillar[p.pillar] ?? 0) + 1;
     for (const n of Object.values(byPillar)) expect(n).toBeLessThanOrEqual(5);
     // The open ones are the first of each pillar, not a random five.
     const firstPillar = listed[0].pillar;
     const firstFive = listed.filter((p) => p.pillar === firstPillar).slice(0, 5);
     for (const p of firstFive) expect(open.has(p.id)).toBe(true);
+  });
+
+  it('never locks an urge tool, whatever its area has open', () => {
+    const { open } = splitLibrary(listed, false, 0);
+    const urges = listed.filter((p) => p.id.startsWith('urge'));
+    expect(urges.length).toBeGreaterThan(0);
+    for (const p of urges) expect(open.has(p.id)).toBe(true);
   });
 
   it('opens everything with Plus', () => {
