@@ -192,7 +192,7 @@ export default function Today() {
         Today
       </AppText>
       <AppText variant="title">{formatDateLong(date)}</AppText>
-      <PlusNudge />
+      <PlusNudge firstDay={firstDay} />
       {momentum.done > 0 || momentum.milestonesMoved > 0 ? (
         <AppText variant="caption" color="success" style={styles.summary}>
           This week: {momentum.done} done

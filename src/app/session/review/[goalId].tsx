@@ -69,7 +69,7 @@ export default function WeeklyReview() {
 
       {goal.milestones?.length ? (
         <View>
-          <SectionHeader title="Milestones — tap what's done" />
+          <SectionHeader title="Steps — tap what's done" />
           <View style={styles.chips}>
             {goal.milestones.map((m) => (
               <Chip

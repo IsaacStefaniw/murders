@@ -278,7 +278,7 @@ export default function PathHub() {
       {goal?.milestones?.length ? (
         <View>
           <SectionHeader
-            title={`Milestones · ${milestonesDone} of ${goal.milestones.length}`}
+            title={`Steps · ${milestonesDone} of ${goal.milestones.length}`}
           />
           <View style={styles.chips}>
             {goal.milestones.map((m) => (

@@ -17,8 +17,13 @@ import { useAppStore } from '@/state/store';
  * about what is free or paid has changed — the coaches still run only with
  * Plus — but the offer now sits on Today, once, and goes away when asked.
  * Every locked session still opens the paywall on tap.
+ *
+ * Round two moved it again: shown the moment the plan was approved, before
+ * a single free day had been lived, it read as a gate with a different
+ * name (44% of reviewers). So it waits for the second day. On the first,
+ * the day itself is the pitch.
  */
-export function PlusNudge() {
+export function PlusNudge({ firstDay = false }: { firstDay?: boolean }) {
   const router = useRouter();
   const theme = useTheme();
   const plus = useAppStore((s) => s.entitlement.plus);
@@ -26,7 +31,7 @@ export function PlusNudge() {
   const dismiss = useAppStore((s) => s.dismissPlusNudge);
   const firstName = useAppStore((s) => s.profile?.firstName);
 
-  if (plus || dismissedAt) return null;
+  if (plus || dismissedAt || firstDay) return null;
 
   return (
     <Card style={[styles.card, { borderColor: theme.accent, backgroundColor: theme.accentSoft }]}>
@@ -37,9 +42,9 @@ export function PlusNudge() {
         {firstName ? `${firstName}, your coaches are built.` : 'Your coaches are built.'} Plus runs them.
       </AppText>
       <AppText variant="secondary">
-        Free today: the shape of your day, every urge and reset tool, breathing, the two-minute
-        practices, and a full view of every program. Plus places the sessions into your days and
-        moves them when the day changes.
+        Free, for as long as you like: the shape of your day, every urge and reset tool, breathing,
+        the two-minute practices, and a full view of every program. Plus places the sessions into
+        your days and moves them when the day changes.
       </AppText>
       <View style={styles.row}>
         <Button title="See what Plus includes" onPress={() => router.push('/upgrade' as never)} />
