@@ -1,5 +1,14 @@
 # Films, and the numbers that may sit beside them
 
+> **Superseded 2026-09-04.** The films described here are the coaching-spine
+> cut. The current hero and vertical are `intentnorth-intent-45s` and
+> `intentnorth-intent-18s-vertical`, built to `docs/FILM_BRIEF.md` from the
+> masters in `docs/film/`, and sit beside the old pair under
+> `web/public/video/` (720p on the site, 1080p in Drive). The old pair stays
+> until the website session switches the page over, so nothing 404s in
+> between. The numbers below still hold and were re-counted for the brief.
+
+
 Handover from the app session to the website session. Everything here is
 the current cut and the current figures; anything not listed is not
 approved to appear on the site.
