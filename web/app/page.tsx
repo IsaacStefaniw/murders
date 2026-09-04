@@ -10,7 +10,9 @@ import {
   Wallet, Wind, X, Zap,
 } from "lucide-react";
 
-import { LearningLoopMotion, SharedProfileMotion } from "@/components/intent-motion";
+import {
+  PlanGrowsMotion, ProtocolGradingMotion, SevenCoachesMotion, TodayCardMotion,
+} from "@/components/intent-motion";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
@@ -44,8 +46,14 @@ const constraints = [
   "I am managing an injury", "I want ambitious targets",
 ];
 
+const heroPillars = [
+  { figure: "177", lead: "graded practices", note: ". We publish the 104 we grade C or weaker." },
+  { figure: "4", lead: "phased weeks per goal", note: ". Re-shaped when your week changes, not rebuilt by you." },
+  { figure: "7", lead: "coaches, one profile", note: ". Four levels each, earned from your own log." },
+];
+
 const todayRows = [
-  { id: "train", label: "Train", icon: Dumbbell, action: "Upper A — main work stays, accessories rest today", reason: "Your own recovery numbers are down this morning. The session keeps its heavy work and drops a set from the last accessory.", signal: true },
+  { id: "train", label: "Train", icon: Dumbbell, planned: "Upper A — main work, then the accessory list", action: "Upper A — main work stays, accessories rest today", reason: "HRV and resting heart rate below your own baseline, not a population band. Every main lift stays; the accessory list drops to one.", signal: true },
   { id: "eat", label: "Eat", icon: Leaf, action: "Protein anchor 165–198g · kitchen closes 7:30pm", reason: "Three weeks of trend, never one heavy morning." },
   { id: "habits", label: "Habits", icon: TimerReset, action: "Phone docks outside the room at 9:45pm", reason: "The slip window is after 10pm, so the change happens before it." },
   { id: "work", label: "Work", icon: Brain, action: "Deep block 9–11, before the first meeting", reason: "3.2 of 7 target hours last week. That is a calendar problem." },
@@ -207,7 +215,7 @@ function PlanBuilder({ open, setOpen }: { open: boolean; setOpen: (open: boolean
             <div className="disclosure-card"><Check /><p><strong>Your profile and first personal insight are free.</strong> Complete daily programs and ongoing optimisation are premium. Recovery, urge and hardest-moment support remain free—always.</p></div>
             <div className="profile-continuity"><ShieldCheck /><p>This creates a profile preview in this browser. The app reuses known context; connecting this web profile to the app is the next product connection.</p></div>
             <Button className="plan-next" onClick={() => setStep(1)}>Begin my profile <ArrowRight /></Button>
-            <p className="plan-time">About five minutes · Premium explained before commitment</p>
+            <p className="plan-time">About five minutes · iPhone only today · Premium explained before commitment</p>
           </div>
         )}
 
@@ -305,8 +313,13 @@ function BehaviourLoop() {
   );
 }
 
+const plusTiers = [
+  { kind: "Yearly", price: "AU$89.99", per: "a year", note: "About seven fifty a month. The way most people buy it." },
+  { kind: "Monthly", price: "AU$14.99", per: "a month", note: "Leave whenever. No notice period, no winback email." },
+  { kind: "Lifetime", price: "AU$249", per: "once", note: "Paid once, kept forever, including everything added later." },
+];
+
 const appScreens = [
-  { file: "app-today", label: "Today", note: "The day, already decided." },
   { file: "app-coaches", label: "Seven coaches", note: "One profile, seven specialists." },
   { file: "app-training", label: "Training", note: "The block, and where you are in it." },
   { file: "app-workout", label: "The session", note: "Sets tick, rests time themselves." },
@@ -396,27 +409,24 @@ export default function Home() {
         <div className="hero-copy">
           <p className="section-kicker">THE PERSONAL OPERATING SYSTEM</p>
           <h1>Your whole life.<br />One system that learns.</h1>
-          <p className="hero-lede">Your results should change what happens next. Seven specialists—training, food, habits, work, money, your relationship and your family—work from one operating profile, and every change carries its reason.</p>
+          <p className="hero-lede">Your results should change what happens next. Seven specialists work from one profile, and every change they make carries its reason.</p>
           <div className="hero-actions"><BuildPlanButton onClick={() => setPlanOpen(true)} /><a className="text-link" href="#depth">See all seven <ArrowDown /></a></div>
           <div className="hero-trust"><span><Check /> Free operating profile</span><span><LockKeyhole /> Nothing leaves your phone</span><span><Heart /> Hardest-moment support stays free</span></div>
+          <dl className="hero-pillars">
+            {heroPillars.map((pillar) => (
+              <div key={pillar.figure}>
+                <dt>{pillar.figure}</dt>
+                <dd><strong>{pillar.lead}</strong><span>{pillar.note}</span></dd>
+              </div>
+            ))}
+          </dl>
         </div>
         <div className="hero-stage" aria-label="Today’s decisions across seven specialist pathways">
           <div className="hero-image-wrap"><Image src="/images/intent-os-hero-family-transition-v2.webp" alt="A professional closing a laptop and returning attention to family life" width={1536} height={1024} priority unoptimized sizes="(max-width: 1120px) 80vw, 43vw" /></div>
-          <div className="today-card">
-            <div className="engine-head"><span>TODAY · DECIDED FOR YOU</span><span className="live-dot">7 SPECIALISTS · 1 PROFILE</span></div>
-            <ul className="today-rows">
-              {todayRows.map((row) => (
-                <li key={row.id} className={row.signal ? "today-row is-signal" : "today-row"}>
-                  <span className="today-domain"><row.icon aria-hidden="true" />{row.label}</span>
-                  <span className="today-detail">
-                    <strong>{row.action}</strong>
-                    <small>{row.reason}</small>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <div className="engine-proof"><Check /> Every line carries the reason it changed</div>
-          </div>
+          <TodayCardMotion
+            rows={todayRows}
+            signal={{ label: "Readiness", detail: "against your own baseline" }}
+          />
         </div>
       </section>
 
@@ -424,19 +434,19 @@ export default function Home() {
         <div className="category-intro"><p className="section-kicker light">THE CATEGORY DIFFERENCE</p><h2>Moving time is easy.<br />Changing the program is valuable.</h2></div>
         <article><span>AI CALENDAR</span><strong>Moves the action</strong><p>Protects time and rearranges a task.</p></article>
         <article><span>SPECIALIST APP</span><strong>Optimises one slice</strong><p>Understands its domain, often without the rest of your context.</p></article>
-        <article className="category-intent"><span>IntentNorth</span><strong>Changes the action</strong><p>The measured result changes the next load, target or protocol—with the reason shown.</p></article>
+        <article className="category-intent"><span>IntentNorth</span><strong>Deepens the program</strong><p>A graded library feeds seven pathways, each with four levels you earn from your own log. The plan gets harder as you do—and every change carries its reason.</p></article>
       </div></section>
 
       <section className="causality-section section-shell">
-        <div className="causality-copy"><p className="section-kicker">WHAT YOU ACTUALLY GET</p><h2>It builds the plan.<br />Then it walks you through it.</h2><p>Not a dashboard and not a suggestion. A real program for each goal you choose, placed into the week you actually have—and then run with you, session by session.</p>
+        <div className="causality-copy"><p className="section-kicker">WHAT YOU ACTUALLY GET</p><h2>You never build<br />a program again.</h2><p>Not a dashboard and not a suggestion. Four phased weeks—build, build, progress, deload—written for each goal you choose, placed into the week you actually have, and then run with you session by session. You choose the goal. It does the programming.</p>
           <div className="deliverable-grid">
             <article><span>THE BLOCK</span><strong>Week 2 of 4 · Upper A</strong><p>Four phased weeks—build, build, progress, deload—sized to your days, your equipment and your own lifts.</p></article>
             <article><span>TODAY, ALREADY DECIDED</span><strong>Bench 4 × 6 at 90kg</strong><p>Rest 120s. About 45 minutes. Nothing left to work out at the gym door.</p></article>
             <article><span>WHILE YOU DO IT</span><strong>Sets tick, rests time themselves</strong><p>Short night or half the time? It shortens the session and keeps the heavy work, rather than cancelling it.</p></article>
           </div>
           <p className="deliverable-breadth">The same holds away from the gym: guided breathing, seven meditation scripts timed to the clock, a weekly review that ends in one decision, and the week&rsquo;s dinners chosen once while you are not hungry.</p>
-          <div className="causality-proof"><ShieldCheck /><p><strong>Truth boundary:</strong> this diagram represents product behaviour, not a fabricated app screen. Broader cross-domain arbitration remains the direction.</p></div></div>
-        <div className="learning-motion-wrap"><LearningLoopMotion /></div>
+</div>
+        <div className="learning-motion-wrap"><PlanGrowsMotion /></div>
       </section>
 
       <section className="film-section" id="film"><div className="section-shell">
@@ -445,7 +455,7 @@ export default function Home() {
           <p>The sentences on these screens are the ones the app produces. &ldquo;Your own recovery numbers are down this morning&mdash;main work stays, accessories rest today&rdquo; is a line the training code emits when your own recovery data drops, not a caption composed for a film.</p>
         </div>
         <Film />
-        <div className="causality-proof film-proof"><ShieldCheck /><p><strong>Truth boundary:</strong> screens are shown inside a device frame for presentation. The copy in them is the shipped application&rsquo;s own output. Broader cross-domain arbitration remains the direction, not staged proof.</p></div>
+        <div className="causality-proof film-proof"><ShieldCheck /><p>Screens sit in a device frame for presentation. Every sentence in them is the shipped application&rsquo;s own output, not copy written for a film.</p></div>
         <p className="film-caption">Named educators appear as attribution for practices distilled from their public teaching; it implies no endorsement of IntentNorth.</p>
       </div></section>
 
@@ -492,7 +502,7 @@ export default function Home() {
 
       <section className="profile-section section-shell">
         <div className="profile-copy"><p className="section-kicker">ONE OPERATING PROFILE</p><h2>Answer once.<br />Context compounds.</h2><p>Each pathway begins with specialist depth. Known information carries forward only where it is relevant, so a new goal does not mean another generic interview.</p><div className="profile-now"><span>SHIPPED TODAY</span><strong>Deep learning loops within pathways, plus sleep-informed training.</strong></div></div>
-        <div className="profile-motion-wrap"><SharedProfileMotion /><p className="diagram-note">System-behaviour diagram. The app already avoids repeated questions; web-to-app profile linking is the next connection.</p></div>
+        <div className="profile-motion-wrap"><SevenCoachesMotion /><p className="diagram-note">Levels are earned from your own log. Connecting this web profile to the app is the next product connection.</p></div>
       </section>
 
       <section className="depth-section" id="depth"><div className="section-shell"><div className="depth-heading"><div><p className="section-kicker light">SPECIALIST DEPTH</p><h2>One profile does not mean one shallow plan.</h2></div><p>Whole-life context matters only when each pathway is deep enough to act on it.</p></div><PathwayDepth /></div></section>
@@ -551,8 +561,8 @@ export default function Home() {
 
       <section className="library-section section-shell" id="library">
         <div className="library-heading">
-          <div><p className="section-kicker">WHAT IS ACTUALLY IN IT</p><h2>A library that tells you<br />how good its own evidence is.</h2></div>
-          <p>Most of what you are told about health cites nothing, or cites everything with equal confidence. Every practice in IntentNorth carries a grade, a named source and, where it matters, a caution&mdash;so you can tell a randomised trial from a reasonable idea before you build your week on it.</p>
+          <div><p className="section-kicker">WHAT IS ACTUALLY IN IT</p><h2>177 practices that grade<br />themselves, then run themselves.</h2></div>
+          <p>Most of what you are told about health cites nothing, or cites everything with equal confidence. Every practice here carries a grade, a named source and, where it matters, a caution&mdash;and none of it is a reading list. Tap one and it is scheduled into the week you actually have.</p>
         </div>
         <div className="library-stats">
           {libraryStats.map((stat) => (
@@ -563,6 +573,7 @@ export default function Home() {
             </article>
           ))}
         </div>
+        <div className="library-motion-wrap"><ProtocolGradingMotion /></div>
         <div className="library-honesty">
           <ShieldCheck />
           <p><strong>Most of it is not an A, and it says so.</strong> Thirteen practices are grade A. Sixty are B. The remaining hundred and four are C, D or E&mdash;useful, reasoned, and openly marked as weaker evidence. A system that graded everything highly would be easier to sell and worth less to trust.</p>
@@ -581,11 +592,36 @@ export default function Home() {
         <div className="human-overlay"><p className="section-kicker light">THE HUMAN STAKE</p><h2>High performance should expand your life—not consume it.</h2><p>The goal is not more optimisation. It is a system capable of learning while the person, family and work behind the goal remain visible.</p></div>
       </section>
 
-      <section className="commitment-section"><div className="section-shell commitment-grid"><div><p className="section-kicker light">YOUR NEXT 12 WEEKS</p><h2>Build the profile.<br />See the first leverage point.</h2><p>Define what moves forward, what stops pulling you back and what the plan must protect. Your first insight is free.</p><BuildPlanButton inverse onClick={() => setPlanOpen(true)}>Build my operating profile</BuildPlanButton><small>About five minutes · No payment taken · Premium terms shown before payment</small></div><div className="commitment-list"><article><span>01</span><div><strong>Choose the outcomes</strong><p>Training, sleep, nutrition, focus, leadership, money or presence.</p></div></article><article><span>02</span><div><strong>Name the friction</strong><p>The patterns that repeatedly take the week off course.</p></div></article><article><span>03</span><div><strong>Make the commitment</strong><p>The system reflects it back before revealing your architecture.</p></div></article><article><span>04</span><div><strong>Understand the boundary</strong><p>Profile and first insight are free. Complete programs are premium.</p></div></article></div></div></section>
+      <section className="commitment-section"><div className="section-shell commitment-grid"><div><p className="section-kicker light">YOUR NEXT 12 WEEKS</p><h2>Build the profile.<br />See the first leverage point.</h2><p>Define what moves forward, what stops pulling you back and what the plan must protect. Your first insight is free.</p><BuildPlanButton inverse onClick={() => setPlanOpen(true)}>Build my operating profile</BuildPlanButton><small>About five minutes · iPhone only today · No payment taken · Premium terms shown before payment</small></div><div className="commitment-list"><article><span>01</span><div><strong>Choose the outcomes</strong><p>Training, sleep, nutrition, focus, leadership, money or presence.</p></div></article><article><span>02</span><div><strong>Name the friction</strong><p>The patterns that repeatedly take the week off course.</p></div></article><article><span>03</span><div><strong>Make the commitment</strong><p>The system reflects it back before revealing your architecture.</p></div></article><article><span>04</span><div><strong>Understand the boundary</strong><p>Profile and first insight are free. Complete programs are premium.</p></div></article></div></div></section>
 
       <section className="founder-section section-shell"><div><p className="section-kicker">WHY THIS EXISTS</p><h2>Nothing would tell me what to change.</h2></div><p>“I had a ring telling me I slept badly, a training app that knew my bench and nothing else, and a calendar full of other people&rsquo;s priorities. Every one of them was right about its own slice and silent on the trade-off—so the plan never actually changed. I just felt worse about it. I wanted one thing that held all of it, decided what today should be, and told me why.”</p><span>— Isaac Stefaniw, founder</span></section>
 
-      <section className="faq-section section-shell"><div><p className="section-kicker">BEFORE YOU COMMIT</p><h2>Clear boundaries build better trust.</h2></div><div className="faq-grid"><article><strong>Is this a calendar?</strong><p>No. Time can be protected, but the differentiator is that measured outcomes change the program itself.</p></article><article><strong>What is real today?</strong><p>Deep pathway learning and sleep-informed training. Broader interaction management is direction, not staged proof.</p></article><article><strong>What remains free?</strong><p>Your profile, first insight, and recovery, urge and hardest-moment support—permanently.</p></article><article><strong>Is this medical or financial advice?</strong><p>No. IntentNorth provides education, structured experiments and progress support. Seek a qualified professional for personal advice.</p></article></div></section>
+      <section className="pricing-section section-shell" id="pricing">
+        <div className="pricing-heading">
+          <div><p className="section-kicker">WHAT IT COSTS</p><h2>One price for all seven.<br />Not one per coach.</h2></div>
+          <p>Plus unlocks the complete program in every pathway. There is no per-coach upgrade, no tier that withholds a domain, and nothing that costs more once you are further along.</p>
+        </div>
+        <div className="pricing-grid">
+          {plusTiers.map((tier) => (
+            <article key={tier.kind}>
+              <span className="pricing-kind">{tier.kind}</span>
+              <strong>{tier.price}</strong>
+              <span className="pricing-per">{tier.per}</span>
+              <p>{tier.note}</p>
+            </article>
+          ))}
+        </div>
+        <div className="pricing-free">
+          <Heart />
+          <div>
+            <strong>Free, and staying free.</strong>
+            <p>Your operating profile and first insight. Recovery, urge and lapse support&mdash;every part of it, permanently. We never charge for someone&rsquo;s hardest moment, and that is a line in the code rather than a promotion.</p>
+          </div>
+        </div>
+        <p className="pricing-note">Prices are Australian dollars. The App Store shows yours in your own currency and charges through your Apple account&mdash;we never see a card. Nothing is taken on this website.</p>
+      </section>
+
+      <section className="faq-section section-shell"><div><p className="section-kicker">BEFORE YOU COMMIT</p><h2>Clear boundaries build better trust.</h2></div><div className="faq-grid"><article><strong>Is this a calendar?</strong><p>No. Time can be protected, but the differentiator is that measured outcomes change the program itself.</p></article><article><strong>What is real today?</strong><p>Deep pathway learning and sleep-informed training. Broader interaction management is direction, not staged proof.</p></article><article><strong>What remains free?</strong><p>Your profile, first insight, and recovery, urge and hardest-moment support—permanently.</p></article><article><strong>Which devices?</strong><p>iPhone, today. The plan reads sleep and heart-rate data from Apple Health, which is why it starts there. Android is a decision we have not made rather than a feature we are hiding.</p></article><article><strong>Is this medical or financial advice?</strong><p>No. IntentNorth provides education, structured experiments and progress support. Seek a qualified professional for personal advice.</p></article></div></section>
 
       <section className="disclaimer-section section-shell"><ShieldCheck /><p><strong>Education, never diagnosis or personal advice.</strong> Training, nutrition, recovery, mindfulness and financial content is educational. Research links describe evidence and limitations; observational findings do not prove causation. If an urge or behaviour creates immediate risk, contact local emergency or professional support.</p></section>
 

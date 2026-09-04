@@ -30,6 +30,18 @@ jobs:
       # A new guardrail is picked up here by being added to that one script.
       - name: Build and product-truth guardrails
         run: npm test
+      # The guardrails above read text; this one looks at the page. A sentence
+      # rendered one word per line down a 48px column passes every assertion in
+      # the suite, and reached the live site twice. Chromium is installed here
+      # rather than as a devDependency because CLAUDE.md promises contributors
+      # need Node and npm and nothing else.
+      - name: Install Chromium for the layout check
+        run: npm i --no-save playwright-core@1 && npx --yes playwright@1 install --with-deps chromium
+      - name: Layout guardrails
+        env:
+          LAYOUT_STRICT: "1"
+        run: npm run test:layout
+
       # --skip-build reuses the build above, so a failing guardrail stops the
       # deploy. Worker name, compatibility date and flags come from the
       # committed web/wrangler.jsonc; nothing here may override them.
