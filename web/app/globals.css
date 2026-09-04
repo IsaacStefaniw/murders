@@ -791,3 +791,66 @@ footer { border-top: 1px solid var(--fog); }
 }
 
 .library-motion-wrap { margin-top: 34px; }
+
+/* ======================================================================
+   The rebuild. Isaac put the site in front of people and none of them
+   could say what it was, so the top of the page is now a plain statement,
+   a real screen, and three steps — not three diagrams of a mechanism.
+   ==================================================================== */
+
+.cta-appstore { display: inline-flex; align-items: center; gap: 11px; padding: 12px 20px; border-radius: 999px; background: var(--ink); color: #fff; text-decoration: none; }
+.cta-appstore svg { width: 24px; height: 24px; }
+.cta-appstore span { display: flex; flex-direction: column; line-height: 1.15; text-align: left; }
+.cta-appstore small { font-size: 9px; font-weight: 600; letter-spacing: .04em; opacity: .85; }
+.cta-appstore strong { font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+.cta-appstore.is-pending { background: transparent; border: 1px solid var(--ink); color: var(--ink); }
+.cta-appstore.is-pending em { margin-left: 4px; padding-left: 11px; border-left: 1px solid var(--fog); color: var(--muted); font-size: 10px; font-style: normal; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+
+.hero-shot { margin: 0; }
+.hero-shot img { display: block; width: 100%; max-width: 420px; height: auto; border: 1px solid var(--fog); background: #fff; box-shadow: 0 28px 90px rgba(17,21,18,.16); }
+.hero-shot figcaption { max-width: 420px; margin-top: 14px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.hero-shot figcaption span { display: block; margin-bottom: 4px; color: var(--green-dark); font-size: 9px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+
+.how-section { padding-block: 84px; }
+.how-heading { max-width: 620px; margin-bottom: 44px; }
+.how-heading p { margin-top: 16px; color: var(--muted); font-size: 15px; line-height: 1.55; }
+.how-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin: 0; padding: 0; list-style: none; }
+.how-steps > li { position: relative; }
+.how-steps figure { margin: 0 0 18px; }
+.how-steps img { display: block; width: 100%; height: 330px; object-fit: cover; object-position: 50% 0; border: 1px solid var(--fog); background: #fff; }
+.how-step-number { display: block; margin-bottom: 8px; color: var(--green-dark); font-size: 10px; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+.how-copy h3 { margin: 0 0 9px; font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif; font-size: 24px; font-weight: 600; letter-spacing: -.02em; }
+.how-copy p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.how-arrow { position: absolute; top: 150px; right: -24px; width: 20px; color: var(--green-dark); transform: rotate(-90deg); }
+
+.rating-explainer { display: grid; grid-template-columns: 1.25fr .75fr; gap: 40px; align-items: start; margin-top: 40px; padding-top: 34px; border-top: 1px solid var(--fog); }
+.rating-copy h3 { margin: 0 0 12px; font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif; font-size: 27px; font-weight: 600; letter-spacing: -.02em; }
+.rating-copy > p { margin: 0 0 22px; color: var(--muted); font-size: 15px; line-height: 1.6; }
+.rating-scale { margin: 0 0 22px; }
+.rating-scale > div { display: grid; grid-template-columns: 168px 1fr; gap: 16px; align-items: baseline; padding: 10px 0; border-top: 1px solid var(--fog); }
+.rating-scale dt { display: flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 750; }
+.rating-scale dd { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.rating-scale dd span { display: block; margin-top: 3px; color: var(--ink); font-size: 11px; font-weight: 700; }
+.rating-dot { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 11px; font-weight: 900; }
+.rating-dot.is-a { background: #2f6b45; } .rating-dot.is-b { background: #4b8a5f; }
+.rating-dot.is-c { background: #9a9a72; } .rating-dot.is-d { background: #b08a55; }
+.rating-dot.is-e { background: #a97b7b; }
+.rating-example { padding: 18px; margin-bottom: 20px; border: 1px solid var(--ink); background: #fff; }
+.rating-example-head { display: inline-flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 750; }
+.rating-example > strong { display: block; margin-top: 11px; font-size: 16px; font-weight: 650; line-height: 1.4; }
+.rating-example-why { margin: 9px 0 0; color: var(--green-dark); font-size: 12px; font-weight: 700; }
+.rating-example-safety { margin: 9px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.rating-example-foot { display: block; margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--fog); color: var(--muted); font-size: 11px; font-weight: 700; }
+.rating-honesty { margin: 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.rating-honesty strong { color: var(--ink); }
+.rating-shot img { display: block; width: 100%; height: auto; border: 1px solid var(--fog); background: #fff; }
+.rating-shot figcaption { margin-top: 11px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+
+@media (max-width: 900px) {
+  .how-steps { grid-template-columns: 1fr; gap: 34px; }
+  .how-steps img { height: 300px; }
+  .how-arrow { top: auto; right: auto; bottom: -26px; left: 50%; transform: translateX(-50%); }
+  .rating-explainer { grid-template-columns: 1fr; gap: 26px; }
+  .rating-scale > div { grid-template-columns: 1fr; gap: 4px; }
+  .hero-shot img, .hero-shot figcaption { max-width: none; }
+}
