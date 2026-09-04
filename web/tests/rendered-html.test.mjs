@@ -70,3 +70,28 @@ test("the page says which device this runs on, before it asks for five minutes",
   assert.match(html, /iPhone only today/, "the CTA must disclose the platform before the time cost");
   assert.match(html, /Which devices\?/, "the FAQ must answer the platform question");
 });
+
+test("reps in reserve never returns, from anywhere", async () => {
+  // This claim was removed from page.tsx and shipped anyway, because it also
+  // lived in components/intent-motion/MotionProofs.tsx — the fix was applied
+  // where the reviewer had been looking rather than everywhere the claim was.
+  //
+  // Reps in reserve is not an input to suggestNext and appears nowhere in the
+  // app: grep the codebase and it returns nothing. The real rule is double
+  // progression — every working set at the top of the range, reps held.
+  //
+  // Asserting against the rendered HTML rather than a file catches it wherever
+  // it is written next.
+  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-rir`);
+  const { default: worker } = await import(workerUrl.href);
+  const response = await worker.fetch(
+    new Request("https://intentnorth.app/", { headers: { accept: "text/html" } }),
+    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
+    { waitUntil() {}, passThroughOnException() {} },
+  );
+  const html = await response.text();
+
+  assert.doesNotMatch(html, /reps in reserve/i, "the app has no concept of reps in reserve");
+  assert.doesNotMatch(html, /\bRIR\b/, "same claim, abbreviated");
+});

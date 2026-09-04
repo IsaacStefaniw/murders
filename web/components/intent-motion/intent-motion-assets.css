@@ -160,3 +160,9 @@
 }
 
 
+
+/* The learn step carries the generalisation: the loop is not training-only. */
+.iosm-reason small {
+  display: block; margin-top: 8px; font-size: 12px; line-height: 1.55;
+  color: var(--muted, #59635b);
+}

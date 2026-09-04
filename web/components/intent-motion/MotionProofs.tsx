@@ -98,8 +98,8 @@ export function LearningLoopMotion() {
         <Arrow />
         <article className={stage >= 3 ? "iosm-proof-card iosm-proof-card--measure is-visible" : "iosm-proof-card iosm-proof-card--measure"}>
           <span>WHAT HAPPENED</span>
-          <strong>92% complete</strong>
-          <p>2 reps in reserve</p>
+          <strong>5, 5, 5, 5</strong>
+          <p>every set at the top</p>
         </article>
         <Arrow />
         <article className={stage >= 5 ? "iosm-proof-card iosm-proof-card--result is-visible" : "iosm-proof-card iosm-proof-card--result"}>
@@ -111,11 +111,12 @@ export function LearningLoopMotion() {
 
       <div className={stage >= 5 ? "iosm-reason is-visible" : "iosm-reason"} aria-hidden="true">
         <span>WHY</span>
-        <p>Your completed work and reps in reserve support the next load increase.</p>
+        <p>5 on every set at 100 kg. Up 2.5.</p>
+        <small>The same loop runs on every practice you add, not only the lifts — a protocol becomes a routine, and the routine answers to your results.</small>
       </div>
 
       <figcaption id="iosm-learning-description" className="iosm-sr-only">
-        A six-stage system diagram shows a 100 kilogram bench program, measured completion and reps in reserve, then a next program load of 102.5 kilograms with the reason stated.
+        A six-stage system diagram shows a 100 kilogram bench program, four sets completed at the top of the rep range, then a next program load of 102.5 kilograms with the reason the app gives. The same loop runs on any practice added from the library.
       </figcaption>
     </figure>
   );
