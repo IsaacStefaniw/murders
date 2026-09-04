@@ -4,3 +4,4 @@ export {
   PlanGrowsMotion,
   SevenCoachesMotion,
 } from "./PositioningMotion";
+export { ScreenWalkthrough, type WalkStep } from "./ScreenWalkthrough";

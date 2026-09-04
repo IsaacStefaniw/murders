@@ -117,3 +117,52 @@ the site makes about it, so it is a product bug worth fixing before it is a
 capture worth taking. When the scheduler moves the practice within its window
 instead of dropping it, frame four becomes reachable and this section can be
 deleted.
+
+---
+
+## Second request — a first Monday worth showing (4 Sep 2026)
+
+`app-protocol-3-week-after.jpg` is now the hero image on the site, so it is the
+first thing a stranger sees of the product. Isaac's verdict on it: "the first
+day needs to show better protocols and structure — it's not a great day 1."
+
+He is right, and the reason is visible in the frame. The Monday reads:
+
+    7:00   Protein at breakfast
+    7:25   Morning light
+    8:15   Training that sticks        (30m)
+    9:00   Work
+    9:15   Deep work block             (1h)
+    10:15  Growth block: A week that produces  (1h 30m)
+    11:45  Work
+    12:45  The urge answer: two-minute reset
+
+Three problems for a first impression. **"Work" appears twice as a bare word**
+with no duration and no next step, which reads like a gap in the data rather
+than a plan. **Two abstract blocks back to back** — "Deep work block" then
+"Growth block: A week that produces" — are hard to tell apart and neither says
+what you would actually do. And **the whole afternoon and evening are absent**
+from the crop, so the day looks front-loaded and thin: no meals, no wind-down,
+nothing after 12:45.
+
+What the site needs is a Monday that shows the range Isaac wants the product
+known for. Ideally one seeded day containing, roughly in order: morning light,
+breakfast, a training session, one protected work block, lunch, a short
+meditation or breathing practice, an afternoon reset, dinner already decided,
+a wind-down, and one relationship or family item. That is the "all-encompassing"
+claim in a single screenshot, and no words on the page can do it as well.
+
+Two asks, in order of value:
+
+1. **A seeded first Monday with that spread**, captured full-length so the
+   evening is in frame. If the seed cannot produce all of it, the closest
+   honest version plus a note on what is missing and why.
+2. **The bare "Work" entries** — if those are calendar placeholders, they
+   should either carry a duration and a next step like everything else, or not
+   be rendered as plan items. As they stand they make the plan look incomplete
+   in the one frame most people will see.
+
+Same provenance rules as before: one seed, documented, in
+`docs/APP_SCREENSHOTS.md`. And if the honest answer is that the app does not
+yet produce a day that full, that is a product finding worth more than a
+photograph — say so and we will show something else.

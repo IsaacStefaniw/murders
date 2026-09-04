@@ -97,12 +97,14 @@ test("the page never implies the whole library is strongly evidenced", async () 
 });
 
 test("the screenshots the page names all exist", async () => {
-  // The strip is eight <Image> tags built from a list of filenames. A typo
-  // renders eight broken frames on the darkest section of the page, and no
-  // existing test would have noticed.
+  // Every screen the page names, wherever it names one — the click-through
+  // steps, the three how-it-works steps, and any inline <img>. A typo renders
+  // a broken frame on the darkest section of the page and no other test would
+  // notice. Matching the field rather than the surrounding brace, because the
+  // shape of these lists has now changed twice and the check should not.
   const { readFile, stat } = await import("node:fs/promises");
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
-  const listed = [...page.matchAll(/\{ file: "(app-[a-z-]+)"/g)].map(([, f]) => f);
+  const listed = [...page.matchAll(/file: "(app-[a-z0-9-]+)"/g)].map(([, f]) => f);
 
   assert.ok(listed.length >= 6, `expected the screen list, found ${listed.length}`);
 

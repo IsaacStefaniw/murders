@@ -10,6 +10,8 @@ import {
   Wallet, Wind, X, Zap,
 } from "lucide-react";
 
+import { ScreenWalkthrough } from "@/components/intent-motion";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
@@ -364,6 +366,19 @@ const ratingScale = [
   { grade: "E", label: "Practice", count: 8, meaning: "No trial behind it. Widely used and openly labelled as experience, not proof." },
 ];
 
+/** The nine pillars in src/features/knowledge/protocols.ts, with real titles. */
+const covers = [
+  { name: "Training", examples: "Strength training, easy cardio, hard intervals — a four-week plan written for your goal." },
+  { name: "Food", examples: "Protein-first breakfast, a weekly meal sketch, a walk after dinner." },
+  { name: "Sleep", examples: "Morning light, a wind-down before bed, a caffeine cut-off that fits your day." },
+  { name: "Mind", examples: "Ten minutes of stillness, guided breathing, afternoon deep rest, a five-minute journal." },
+  { name: "Habits and urges", examples: "The moment before you act, a two-minute reset, and a lapse treated as information rather than failure." },
+  { name: "Focused work", examples: "A deep work block that gets protected, a weekly review that ends in one decision." },
+  { name: "Money", examples: "One transfer automated, a weekly money check-in, and the next step after that." },
+  { name: "Your relationship", examples: "The first five minutes at the door, one ritual that survives a bad week." },
+  { name: "Family and adventure", examples: "One outing in the diary before the week starts, sized for the smallest legs." },
+];
+
 const howSteps = [
   {
     file: "app-coaches",
@@ -385,15 +400,56 @@ const howSteps = [
   },
 ];
 
-const appScreens = [
-  { file: "app-coaches", label: "The seven areas", note: "The seven areas it helps with." },
-  { file: "app-training", label: "Training", note: "Your four-week plan, and where you are in it." },
-  { file: "app-workout", label: "The session", note: "Sets tick, rests time themselves." },
-  { file: "app-workout-autoreg", label: "A short night", note: "The hard lifts stay. The rest waits." },
-  { file: "app-level-card", label: "Your level", note: "Earned from what you actually did." },
-  { file: "app-library", label: "The library", note: "The source, the rating, and what it will not do." },
-  { file: "app-recovery", label: "Habits and urges", note: "Free, permanently." },
+/**
+ * The click-through. Isaac asked for the tabs to be usable so a reader can move
+ * through the app and watch a week assemble, rather than look at one still.
+ * Every frame is a capture recorded in docs/APP_SCREENSHOTS.md.
+ */
+const walkSteps = [
+  {
+    file: "app-coaches", tab: "Choose",
+    title: "Pick what you want help with",
+    body: "Nine areas. Take one or take all of them. You answer a short set of questions once — never again for the next goal.",
+    alt: "The app's list of areas it can help with",
+  },
+  {
+    file: "app-protocol-3-week-after", tab: "The week",
+    title: "A week appears, already placed",
+    body: "Sessions, meals, practices and reviews, each at an hour the app chose around everything else you have on. You typed none of it.",
+    alt: "A week in the app with sixteen things planned on Monday",
+  },
+  {
+    file: "app-library", tab: "Practices",
+    title: "Every practice shows its evidence",
+    body: "A plain rating from A to E for how strong the research behind it is, the source it came from, and what it will not do. Add one and it goes into the week.",
+    alt: "A practice in the app showing its evidence rating and safety note",
+  },
+  {
+    file: "app-workout", tab: "A session",
+    title: "It runs the session with you",
+    body: "Sets tick off, rests time themselves. Nothing left to work out while you are standing there.",
+    alt: "A session in progress in the app",
+  },
+  {
+    file: "app-workout-autoreg", tab: "A bad night",
+    title: "Slept badly? It shortens rather than cancels",
+    body: "The session keeps the part that matters and drops the rest, and it tells you why it did that.",
+    alt: "A session shortened after a short night, with the reason shown",
+  },
+  {
+    file: "app-recovery", tab: "Habits",
+    title: "The hardest moments, free forever",
+    body: "Urges, resets and getting back after a lapse. No streak to break and no verdict — an explanation, and the one thing that changes it. This part is never charged for.",
+    alt: "The habits and urges area of the app",
+  },
+  {
+    file: "app-level-card", tab: "Progress",
+    title: "Your level is earned, not chosen",
+    body: "Read from what you actually did, not from a form. Four levels in every area, and the top one cannot be selected.",
+    alt: "The progress screen showing level and sessions logged",
+  },
 ];
+
 
 // Verbatim from LEVEL_BLURB.training in src/features/paths/level.ts. The app
 // says these words; so does the site.
@@ -492,8 +548,8 @@ export default function Home() {
       <section className="hero section-shell">
         <div className="hero-copy">
           <p className="section-kicker">IPHONE APP</p>
-          <h1>The health advice you have read,<br />turned into a plan you can follow.</h1>
-          <p className="hero-lede">IntentNorth takes 177 practices from published research, rates the evidence behind each one, and builds them into your week — training, food, sleep, habits, work, money and family. Then it changes the plan when your week changes, and tells you why.</p>
+          <h1>Your whole life.<br />One plan that works.</h1>
+          <p className="hero-lede">Strength and cardio. Meals and sleep. Meditation, breathing, and breaking the habits you want gone. Focused work, money, your relationship, your family. IntentNorth builds all of it into one week — every practice drawn from published research and shown with a plain rating for how strong that research is. Then it rebuilds the week whenever yours changes.</p>
           <div className="hero-actions"><AppStoreCta /><a className="text-link" href="#how">See how it works <ArrowDown /></a></div>
           <p className="hero-price">
             <strong>AU$89.99 a year</strong> for all seven areas &mdash; about seven fifty a month,
@@ -526,6 +582,22 @@ export default function Home() {
             </figcaption>
           </figure>
         </div>
+      </section>
+
+      <section className="covers-section section-shell" id="covers">
+        <div className="covers-heading">
+          <p className="section-kicker">WHAT IT COVERS</p>
+          <h2>Nine areas. Not a calendar.</h2>
+          <p>Most apps do one of these. This does all of them, from one set of answers, and they share what they know about you — so the training knows how you slept, and the work blocks know when you train.</p>
+        </div>
+        <ul className="covers-grid">
+          {covers.map((area) => (
+            <li key={area.name}>
+              <strong>{area.name}</strong>
+              <p>{area.examples}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="how-section section-shell" id="how">
@@ -634,17 +706,10 @@ export default function Home() {
 
       <section className="screens-section" id="screens"><div className="section-shell">
         <div className="screens-heading">
-          <div><p className="section-kicker light">THE APP ITSELF</p><h2>Eight screens.<br />No press play required.</h2></div>
+          <div><p className="section-kicker light">THE APP ITSELF</p><h2>Click through it.<br />Watch a week get built.</h2></div>
           <p>These are photographs of the app, taken from the build.</p>
         </div>
-        <div className="screens-strip">
-          {appScreens.map((screen) => (
-            <figure key={screen.file}>
-              <Image src={`/images/app/${screen.file}.jpg`} alt={`IntentNorth: ${screen.label}`} width={840} height={1820} unoptimized loading="lazy" sizes="(max-width: 900px) 60vw, 220px" />
-              <figcaption><strong>{screen.label}</strong><span>{screen.note}</span></figcaption>
-            </figure>
-          ))}
-        </div>
+        <ScreenWalkthrough steps={walkSteps} />
       </div></section>
 
       <section className="ladder-section section-shell" id="ladder">
