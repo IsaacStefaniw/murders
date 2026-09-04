@@ -35,6 +35,7 @@ import { allTrajectories, type Verdict } from '@/features/model/trajectory';
 import { recentLogs, weeklyVolume } from '@/features/training/log';
 import { addDays, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
+import { LockedCard } from '@/features/plus/Locked';
 
 /** How the verdict reads at a glance. Never a grade — a direction. */
 const VERDICT_COLOR: Record<Verdict, 'accent' | 'success' | 'textSecondary' | 'textTertiary'> = {
@@ -60,6 +61,7 @@ const VERDICT_LABEL: Record<Verdict, string> = {
 export default function Data() {
   const router = useRouter();
   const profile = useAppStore((s) => s.profile);
+  const plus = useAppStore((s) => s.entitlement.plus);
   const goals = useAppStore((s) => s.goals);
   const metrics = useAppStore((s) => s.metrics);
   const plans = useAppStore((s) => s.plans);
@@ -147,7 +149,16 @@ export default function Data() {
         />
       ) : null}
 
-      {trajectories.length > 0 ? (
+      {trajectories.length > 0 && !plus ? (
+        <>
+          <SectionHeader title="Where this is heading" />
+          <LockedCard
+            title={`${trajectories.length} ${trajectories.length === 1 ? 'projection' : 'projections'} from your own numbers`}
+            body="At this rate, when you arrive — and what would change it. Runs with Plus."
+          />
+        </>
+      ) : null}
+      {trajectories.length > 0 && plus ? (
         <>
           <SectionHeader title="Where this is heading" />
           <View style={styles.stack}>

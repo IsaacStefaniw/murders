@@ -21,6 +21,7 @@ import {
 } from '@/features/mind/voice';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import { meditationLengthNeedsPlus } from '@/features/plus/entitlement';
 
 /**
  * Guided meditation.
@@ -65,6 +66,7 @@ export default function MeditateSession() {
   const theme = useTheme();
   const { itemId, date } = useLocalSearchParams<{ itemId?: string; date?: string }>();
   const setItemStatus = useAppStore((s) => s.setItemStatus);
+  const plus = useAppStore((s) => s.entitlement.plus);
   const logCompletedActivity = useAppStore((s) => s.logCompletedActivity);
   const addMetric = useAppStore((s) => s.addMetric);
   const metrics = useAppStore((s) => s.metrics);
@@ -80,6 +82,7 @@ export default function MeditateSession() {
   const [voiceOn, setVoiceOn] = useState(true);
   const [autoVoiceId, setAutoVoiceId] = useState<string | null>(null);
   const [voices, setVoices] = useState<VoiceOption[]>([]);
+  const [voicesReady, setVoicesReady] = useState(false);
   const chosenVoiceId = useAppStore((s) => s.voicePreference);
   const setVoicePreference = useAppStore((s) => s.setVoicePreference);
   // A stored voice that no longer exists — after a restore, or an OS update
@@ -116,9 +119,10 @@ export default function MeditateSession() {
         if (!live) return;
         setVoices(voices);
         setAutoVoiceId(pickVoice(voices, deviceLocale()));
+        setVoicesReady(true);
       })
       // A device with no enumerable voices still speaks with the default.
-      .catch(() => undefined);
+      .catch(() => setVoicesReady(true));
     return () => {
       live = false;
     };
@@ -202,9 +206,13 @@ export default function MeditateSession() {
         </AppText>
         <AppText variant="title">How long have you got?</AppText>
         <View style={styles.chips}>
-          {script.durationsMin.map((min) => (
-            <Chip key={min} label={`${min} min`} onPress={() => setDurationMin(min)} />
-          ))}
+          {script.durationsMin.map((min) =>
+            meditationLengthNeedsPlus(min, plus) ? (
+              <Chip key={min} label={`${min} min · Plus`} onPress={() => router.push('/upgrade' as never)} />
+            ) : (
+              <Chip key={min} label={`${min} min`} onPress={() => setDurationMin(min)} />
+            ),
+          )}
         </View>
         {script.safety ? (
           <AppText variant="caption" color="textTertiary" style={styles.hint}>
@@ -239,6 +247,11 @@ export default function MeditateSession() {
             onPress={() => setVoiceOn((v) => !v)}
           />
         </View>
+        {voiceOn && !voicesReady ? (
+          <AppText variant="caption" color="textTertiary" style={styles.hint}>
+            Finding the voices on this phone…
+          </AppText>
+        ) : null}
         {voiceOn && shortlist.length > 1 ? (
           <View style={styles.voicePick}>
             <AppText variant="caption" color="textTertiary">

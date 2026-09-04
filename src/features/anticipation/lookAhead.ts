@@ -25,21 +25,35 @@ export interface LookAheadEntry {
   start?: string;
 }
 
-/** Enjoyable-thing ideas drawn from the user's own interests, not a catalog. */
-export function ideasFor(profile: LifeProfile): string[] {
-  const ideas: string[] = [];
+/** When in the day an idea belongs. A morning gap gets a morning idea. */
+export type IdeaSlot = 'morning' | 'evening';
+
+type Idea = { title: string; fits: IdeaSlot | 'any' };
+
+/**
+ * Enjoyable-thing ideas drawn from the user's own interests, not a catalog.
+ * Pass the slot the idea is for and only ideas that fit it come back:
+ * "Saturday morning is wide open — dinner somewhere new?" put an evening
+ * idea into a morning, which read as the app not listening to itself.
+ */
+export function ideasFor(profile: LifeProfile, slot?: IdeaSlot): string[] {
+  const ideas: Idea[] = [];
   const hasPartner = profile.people.some((p) => p.relation === 'partner');
   const hasKids = profile.people.some((p) => p.relation === 'child');
-  if (hasKids) ideas.push('A family adventure');
-  if (hasPartner) ideas.push('Date night');
-  if (profile.moreOf.includes('Seeing friends')) ideas.push('Catch up with a friend');
-  if (profile.moreOf.includes('Adventure & travel')) ideas.push('Plan the next adventure');
+  if (hasKids) ideas.push({ title: 'A family adventure', fits: 'any' });
+  if (hasPartner) ideas.push({ title: 'Date night', fits: 'evening' });
+  if (hasPartner) ideas.push({ title: 'Breakfast out, just the two of you', fits: 'morning' });
+  if (profile.moreOf.includes('Seeing friends')) ideas.push({ title: 'Catch up with a friend', fits: 'any' });
+  if (profile.moreOf.includes('Adventure & travel')) ideas.push({ title: 'Plan the next adventure', fits: 'any' });
   if (profile.moreOf.includes('Time outdoors') || profile.trainingPreference === 'outdoors') {
-    ideas.push('A morning outdoors');
+    ideas.push({ title: 'A morning outdoors', fits: 'morning' });
   }
-  if (ideas.length < 3) ideas.push('Dinner somewhere new');
-  if (ideas.length < 3) ideas.push('A morning to yourself');
-  return ideas.slice(0, 3);
+  ideas.push({ title: 'Dinner somewhere new', fits: 'evening' });
+  ideas.push({ title: 'A morning to yourself', fits: 'morning' });
+  ideas.push({ title: 'Somewhere you have not been yet', fits: 'any' });
+  const fitting = slot ? ideas.filter((i) => i.fits === slot || i.fits === 'any') : ideas;
+  // Without a slot the list is the person's interests, one of each, three deep.
+  return fitting.map((i) => i.title).filter((t, i, arr) => arr.indexOf(t) === i).slice(0, 3);
 }
 
 function isSpecial(item: PlanItem, everydayRoutineIds: Set<string>): boolean {
@@ -131,7 +145,7 @@ export function detectAnticipationGap(
   }
   if (!targetDate) return null;
 
-  const idea = ideasFor(profile)[0];
+  const idea = ideasFor(profile, 'morning')[0];
   const weekdayName = WEEKDAYS[dateKeyToDate(targetDate).getDay()];
   return {
     id: newId('sug'),

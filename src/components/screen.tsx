@@ -10,9 +10,11 @@ interface ScreenProps extends PropsWithChildren {
   scroll?: boolean;
   /** Extra bottom padding for screens under the tab bar. */
   tabbed?: boolean;
+  /** Off while a row is being dragged, so one finger moves one thing. */
+  scrollEnabled?: boolean;
 }
 
-export function Screen({ children, scroll = true, tabbed = false }: ScreenProps) {
+export function Screen({ children, scroll = true, tabbed = false, scrollEnabled = true }: ScreenProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const padding = {
@@ -34,6 +36,7 @@ export function Screen({ children, scroll = true, tabbed = false }: ScreenProps)
       contentContainerStyle={[styles.content, padding]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
+      scrollEnabled={scrollEnabled}
     >
       {children}
     </ScrollView>

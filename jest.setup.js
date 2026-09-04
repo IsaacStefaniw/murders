@@ -11,3 +11,25 @@
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
+
+/**
+ * expo-iap is a native StoreKit binding with no JS fallback. The adapter in
+ * lib/purchases guards every call behind Platform.OS === 'ios', but the
+ * module must still import; this stub makes it importable and makes every
+ * call answer "nothing owned, no products" — the free state.
+ */
+jest.mock('expo-iap', () => ({
+  initConnection: jest.fn(async () => true),
+  endConnection: jest.fn(async () => true),
+  fetchProducts: jest.fn(async () => []),
+  getAvailablePurchases: jest.fn(async () => []),
+  requestPurchase: jest.fn(async () => null),
+  finishTransaction: jest.fn(async () => undefined),
+  restorePurchases: jest.fn(async () => undefined),
+  deepLinkToSubscriptions: jest.fn(async () => undefined),
+  purchaseUpdatedListener: jest.fn(() => ({ remove: () => undefined })),
+  purchaseErrorListener: jest.fn(() => ({ remove: () => undefined })),
+}));
+
+// Gestures under Jest: the native side is stubbed by the library's own setup.
+require('react-native-gesture-handler/jestSetup');

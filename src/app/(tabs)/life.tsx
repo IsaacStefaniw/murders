@@ -71,6 +71,7 @@ export default function Life() {
   const theme = useTheme();
 
   const profile = useAppStore((s) => s.profile);
+  const plus = useAppStore((s) => s.entitlement.plus);
   const goals = useAppStore((s) => s.goals);
   const paths = useAppStore((s) => s.paths);
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
@@ -158,6 +159,16 @@ export default function Life() {
               {!entry ? (
                 <AppText variant="caption" color="textTertiary">
                   {def.promise}
+                </AppText>
+              ) : null}
+              {!plus && pathId !== 'recovery' ? (
+                <AppText variant="caption" color="accent">
+                  Built for you · runs with Plus
+                </AppText>
+              ) : null}
+              {!plus && pathId === 'recovery' ? (
+                <AppText variant="caption" color="success">
+                  Always free — we never charge for someone’s hardest moment
                 </AppText>
               ) : null}
             </Card>

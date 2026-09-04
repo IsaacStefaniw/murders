@@ -40,6 +40,8 @@ import {
 } from '@/lib/updates';
 import { useAppStore } from '@/state/store';
 import { shareText } from '@/lib/share';
+import { NO_ENTITLEMENT, grantedEntitlement } from '@/features/plus/entitlement';
+import { manageSubscription, restore } from '@/lib/purchases';
 
 const STORE_KEY = 'intent-os-store';
 
@@ -48,9 +50,6 @@ const STORE_KEY = 'intent-os-store';
  * this — it reads 'dev' everywhere until a build sets it — but the presence
  * of the updates runtime can: only a real native build has one.
  */
-/** Flip when StoreKit products exist. Until then the first store build is free. */
-const PLUS_AVAILABLE = false;
-
 function surfaceLabel(update: UpdateInfo | null): string {
   if (Platform.OS === 'web') return 'Web preview';
   return update ? 'iPhone app' : 'iPhone app (development)';
@@ -66,6 +65,8 @@ const UPDATE_RESULT_LABEL: Record<CheckResult, string> = {
 export default function Settings() {
   const router = useRouter();
   const profile = useAppStore((s) => s.profile);
+  const entitlement = useAppStore((s) => s.entitlement);
+  const setEntitlement = useAppStore((s) => s.setEntitlement);
   const foodPreferences = useAppStore((s) => s.foodPreferences);
   const notifications = useAppStore((s) => s.notifications);
   const setNotificationSettings = useAppStore((s) => s.setNotificationSettings);
@@ -206,21 +207,37 @@ export default function Settings() {
         </AppText>
       </Card>
 
-      {/* Hidden until it can be bought. A "Plus" screen that says billing
-          is not wired is placeholder content under App Review guideline
-          2.1, and the first store build ships fully free. Flip the constant
-          when StoreKit products exist. */}
-      {PLUS_AVAILABLE ? (
-        <>
-          <SectionHeader title="IntentNorth Plus" />
-          <Card onPress={() => router.push('/upgrade' as never)}>
-            <AppText variant="heading">Your whole life, one co-pilot</AppText>
-            <AppText variant="caption" color="textTertiary">
-              Preview what Plus will include — and what stays free forever.
-            </AppText>
-          </Card>
-        </>
-      ) : null}
+      <SectionHeader title="IntentNorth Plus" />
+      <Card onPress={() => router.push('/upgrade' as never)} accessibilityLabel="IntentNorth Plus">
+        <AppText variant="heading">
+          {entitlement.plus
+            ? entitlement.expiresAt
+              ? `Plus · renews or ends ${new Date(entitlement.expiresAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`
+              : entitlement.source === 'dev'
+                ? 'Plus · development grant'
+                : 'Plus · lifetime'
+            : 'Not on Plus'}
+        </AppText>
+        <AppText variant="caption" color="textTertiary">
+          {entitlement.plus
+            ? 'Seven coaches running your days. Tap to see what Plus includes.'
+            : 'Your coaches are built and waiting. Tap to run them.'}
+        </AppText>
+      </Card>
+      <View style={styles.labRow}>
+        {entitlement.plus && entitlement.expiresAt ? (
+          <Button title="Manage subscription" variant="ghost" onPress={() => void manageSubscription()} />
+        ) : null}
+        <Button
+          title="Restore purchases"
+          variant="ghost"
+          onPress={() =>
+            void restore().then((e) =>
+              Alert.alert(e.plus ? 'Restored' : 'Nothing to restore', e.plus ? 'Plus is on.' : 'No Plus purchase was found on this Apple ID.'),
+            )
+          }
+        />
+      </View>
 
       <SectionHeader title="Practice library" />
       <Card onPress={() => router.push('/library' as never)}>
@@ -411,6 +428,11 @@ export default function Settings() {
           </AppText>
           <View style={styles.labColumn}>
             <Button title="Seed two weeks of history" variant="secondary" onPress={seedDemoHistory} />
+            <Button
+              title={entitlement.plus ? 'Revoke Plus (dev)' : 'Grant Plus (dev)'}
+              variant="ghost"
+              onPress={() => setEntitlement(entitlement.plus ? NO_ENTITLEMENT : grantedEntitlement())}
+            />
             <View style={styles.labRow}>
               <Button title="Jump to evening" variant="ghost" onPress={jumpToEvening} />
               <Button title="Next morning" variant="ghost" onPress={advanceToNextMorning} />

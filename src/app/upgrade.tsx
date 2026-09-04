@@ -1,5 +1,6 @@
-import { useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Linking, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
@@ -7,19 +8,86 @@ import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
+import { FREE_ALWAYS, PLUS_RUNS } from '@/features/plus/entitlement';
 import { useTheme } from '@/hooks/use-theme';
+import {
+  PRIVACY_URL,
+  STOREKIT_AVAILABLE,
+  TERMS_URL,
+  buy,
+  loadOffers,
+  restore,
+  type PlusOffer,
+} from '@/lib/purchases';
+import { track } from '@/lib/telemetry';
+import { useAppStore } from '@/state/store';
 
 /**
- * IntentNorth Plus — preview of the paywall arc (docs/MONETIZATION.md).
- * SCAFFOLDED: no billing is wired; this screen designs the moment so the
- * product carries its shape before payments exist. Placement doctrine:
- * shown once, right after "Paths starting today" — never mid-session,
- * and recovery features are never gated.
+ * IntentNorth Plus — the paywall.
+ *
+ * Shown once, right after the first insight (plan-review → here), and
+ * from every lock in the app. Prices are Apple's, fetched live; nothing
+ * on this screen is typed in code, because a price in code and a price in
+ * App Store Connect drift, and App Review reads the sheet. What a
+ * subscription is — its period, that it renews, where to cancel — is said
+ * in words next to the price, with the terms and the privacy policy a tap
+ * away, which is what guideline 3.1.2 asks for. Restore is always here.
  */
 export default function Upgrade() {
   const router = useRouter();
   const theme = useTheme();
-  const close = () => (router.canGoBack() ? router.back() : router.replace('/today' as never));
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const entitlement = useAppStore((s) => s.entitlement);
+  const firstName = useAppStore((s) => s.profile?.firstName);
+
+  const [offers, setOffers] = useState<PlusOffer[] | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+
+  const close = () => {
+    if (from === 'onboarding') router.replace('/(tabs)/today');
+    else if (router.canGoBack()) router.back();
+    else router.replace('/(tabs)/today');
+  };
+
+  useEffect(() => {
+    void track('paywall_shown');
+    let live = true;
+    loadOffers().then((o) => {
+      if (live) setOffers(o);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const onBuy = async (offer: PlusOffer) => {
+    setBusy(offer.productId);
+    setNote(null);
+    const result = await buy(offer.productId);
+    setBusy(null);
+    if (result.ok) {
+      setNote('Plus is on. Your coaches are running today.');
+      return;
+    }
+    if (!result.cancelled) setNote(result.message ?? 'The purchase did not go through. Nothing was charged.');
+  };
+
+  const onRestore = async () => {
+    setBusy('restore');
+    setNote(null);
+    const e = await restore();
+    setBusy(null);
+    setNote(e.plus ? 'Restored. Plus is on.' : 'No Plus purchase found on this Apple ID.');
+  };
+
+  const period = (kind: PlusOffer['kind']) =>
+    kind === 'annual' ? 'a year' : kind === 'monthly' ? 'a month' : 'once';
+
+  const explain = (kind: PlusOffer['kind']) =>
+    kind === 'lifetime'
+      ? 'One payment. Yours on this Apple ID for good — no renewal.'
+      : `Renews automatically every ${kind === 'annual' ? 'year' : 'month'} until cancelled. Cancel any time in Settings → Apple ID → Subscriptions, at least a day before the renewal.`;
 
   return (
     <Screen>
@@ -27,28 +95,104 @@ export default function Upgrade() {
         <AppText variant="label" color="textTertiary" style={styles.grow}>
           IntentNorth Plus
         </AppText>
-        <Button title="Done" variant="ghost" onPress={close} />
+        <Button title={entitlement.plus ? 'Done' : 'Not now'} variant="ghost" onPress={close} />
       </View>
-      <AppText variant="title">Your whole life, one co-pilot.</AppText>
-      <AppText variant="secondary" style={styles.sub}>
-        Free IntentNorth gives you a complete week: the interview, one active path, the adaptive plan,
-        every session. Plus runs every part of your life at once — and learns faster.
-      </AppText>
 
-      <SectionHeader title="Everything in Plus" />
+      {entitlement.plus ? (
+        <>
+          <AppText variant="title">Plus is on.</AppText>
+          <AppText variant="secondary" style={styles.sub}>
+            {entitlement.expiresAt
+              ? `Renews or ends ${new Date(entitlement.expiresAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}. Manage it in Settings.`
+              : entitlement.source === 'dev'
+                ? 'Granted for development.'
+                : 'Lifetime — no renewal, nothing more to pay.'}
+          </AppText>
+        </>
+      ) : (
+        <>
+          <AppText variant="title">
+            {firstName ? `${firstName}, your coaches are ready.` : 'Your coaches are ready.'}
+          </AppText>
+          <AppText variant="secondary" style={styles.sub}>
+            The interview built your profile and your plan. Plus is what runs it — seven coaches
+            placing real sessions into your real days, and re-placing them when the day changes.
+          </AppText>
+        </>
+      )}
+
+      {!entitlement.plus ? (
+        <>
+          <SectionHeader title="Choose how to pay" />
+          {offers === null ? (
+            <Card>
+              <AppText variant="heading">Getting prices from the App Store…</AppText>
+              <AppText variant="caption" color="textTertiary">
+                Prices are set by Apple in your country and shown here as they are.
+              </AppText>
+            </Card>
+          ) : offers.length === 0 ? (
+            <Card>
+              <AppText variant="heading">
+                {STOREKIT_AVAILABLE ? 'The App Store did not answer.' : 'Purchases happen in the iPhone app.'}
+              </AppText>
+              <AppText variant="caption" color="textTertiary">
+                {STOREKIT_AVAILABLE
+                  ? 'Check the connection and try again. Nothing has been charged.'
+                  : 'This build cannot reach the App Store, so there is nothing to buy here.'}
+              </AppText>
+              {STOREKIT_AVAILABLE ? (
+                <Button title="Try again" variant="secondary" onPress={() => loadOffers().then(setOffers)} style={styles.retry} />
+              ) : null}
+            </Card>
+          ) : (
+            <View style={styles.stack}>
+              {offers.map((o) => (
+                <Card
+                  key={o.productId}
+                  onPress={busy ? undefined : () => onBuy(o)}
+                  accessibilityLabel={`Plus, ${o.kind}, ${o.displayPrice} ${period(o.kind)}`}
+                  style={o.kind === 'annual' ? { borderColor: theme.accent, backgroundColor: theme.accentSoft } : undefined}
+                >
+                  <View style={styles.priceRow}>
+                    <AppText variant="heading" style={styles.grow}>
+                      {o.kind === 'annual' ? 'Yearly' : o.kind === 'monthly' ? 'Monthly' : 'Lifetime'}
+                    </AppText>
+                    <AppText variant="heading">
+                      {o.displayPrice}
+                      <AppText variant="caption" color="textTertiary">
+                        {' '}
+                        {period(o.kind)}
+                      </AppText>
+                    </AppText>
+                  </View>
+                  <AppText variant="caption" color="textTertiary">
+                    {explain(o.kind)}
+                  </AppText>
+                  {busy === o.productId ? (
+                    <AppText variant="caption" color="accent" style={styles.busy}>
+                      Waiting for the App Store…
+                    </AppText>
+                  ) : null}
+                </Card>
+              ))}
+            </View>
+          )}
+          {note ? (
+            <AppText variant="secondary" color="accent" style={styles.note}>
+              {note}
+            </AppText>
+          ) : null}
+        </>
+      ) : note ? (
+        <AppText variant="secondary" color="accent" style={styles.note}>
+          {note}
+        </AppText>
+      ) : null}
+
+      <SectionHeader title="What Plus runs" />
       <View style={styles.stack}>
-        {/*
-          Two lists, honestly separated. A paywall that describes features
-          the build does not have is a promise the first week breaks, and
-          it is the fastest way to lose someone who paid on the strength of
-          it. Anything not yet running says so, in the same size type.
-        */}
-        {[
-          ['All five paths, together', 'Training, nutrition, money, work and habits running as one plan — the trade-offs handled for you.'],
-          ['Apple Health', 'Sleep, resting heart rate and weight read straight in, so last night shapes today’s session without you typing anything.'],
-          ['Timed interventions', 'IntentNorth works out when a habit usually wins and puts something else in front of you before that window, not after.'],
-          ['Full history & weekly reports', 'Every week you’ve won, and what actually changed.'],
-        ].map(([title, body]) => (
+        {PLUS_RUNS.map(([title, body]) => (
           <Card key={title}>
             <AppText variant="heading">{title}</AppText>
             <AppText variant="caption" color="textTertiary">
@@ -58,41 +202,54 @@ export default function Upgrade() {
         ))}
       </View>
 
-      <SectionHeader title="Not built yet" />
-      <View style={styles.stack}>
-        {[
-          ['Partner sync', 'The household week is real and lives on this phone. Syncing it with someone else needs accounts, which are not built.'],
-          ['Calendar', 'Reading your real events in. Not built.'],
-          ['Written briefs', 'A daily brief and weekly narrative in prose. The engine that would write them is wired but switched off, so today every word in the app is deterministic — no model runs anywhere.'],
-        ].map(([title, body]) => (
-          <Card key={title}>
-            <AppText variant="heading" color="textTertiary">
-              {title}
-            </AppText>
-            <AppText variant="caption" color="textTertiary">
-              {body}
-            </AppText>
-          </Card>
+      <SectionHeader title="Free, always" />
+      <Card>
+        {FREE_ALWAYS.map((line) => (
+          <AppText key={line} variant="body" style={styles.freeLine}>
+            · {line}
+          </AppText>
         ))}
-      </View>
-
-      <Card style={{ borderColor: theme.accent, backgroundColor: theme.accentSoft, marginTop: Spacing.lg }}>
-        <AppText variant="heading" color="accent">
-          Coming with the App Store release
-        </AppText>
-        <AppText variant="caption" color="textTertiary">
-          Billing isn&apos;t wired yet — this preview exists so the product is honest about what
-          will be free forever: your plan, your sessions, and every recovery feature. We will
-          never charge for someone&apos;s hardest moment.
+        <AppText variant="caption" color="textTertiary" style={styles.freeNote}>
+          We never charge for someone&apos;s hardest moment.
         </AppText>
       </Card>
+
+      <View style={styles.legal}>
+        <Button
+          title={busy === 'restore' ? 'Restoring…' : 'Restore purchases'}
+          variant="ghost"
+          onPress={() => {
+            if (!busy) void onRestore();
+          }}
+          hint="Re-checks this Apple ID with the App Store"
+        />
+        <View style={styles.legalRow}>
+          <Button title="Terms of use" variant="ghost" onPress={() => Linking.openURL(TERMS_URL)} />
+          <Button title="Privacy policy" variant="ghost" onPress={() => Linking.openURL(PRIVACY_URL)} />
+        </View>
+        <AppText variant="caption" color="textTertiary" style={styles.legalNote}>
+          Payment is taken by Apple through your Apple ID at confirmation. Subscriptions renew
+          automatically unless cancelled at least 24 hours before the end of the current period;
+          manage or cancel in Settings → Apple ID → Subscriptions. IntentNorth receives nothing
+          about you from the purchase.
+        </AppText>
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   topRow: { flexDirection: 'row', alignItems: 'center' },
-  grow: { flexGrow: 1 },
+  grow: { flexGrow: 1, flexShrink: 1 },
   sub: { marginTop: Spacing.sm },
   stack: { gap: Spacing.sm },
+  priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
+  busy: { marginTop: Spacing.xs },
+  retry: { marginTop: Spacing.sm },
+  note: { marginTop: Spacing.md },
+  freeLine: { marginBottom: Spacing.xs },
+  freeNote: { marginTop: Spacing.sm },
+  legal: { marginTop: Spacing.lg, gap: Spacing.xs },
+  legalRow: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm },
+  legalNote: { textAlign: 'center', marginTop: Spacing.sm },
 });

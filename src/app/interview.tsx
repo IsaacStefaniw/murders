@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -21,6 +21,7 @@ import {
   type InterviewAnswers,
 } from '@/features/onboarding/script';
 import { useOnboardingStore } from '@/features/onboarding/state';
+import { track } from '@/lib/telemetry';
 
 /**
  * The Life Interview. One question at a time, quick answers, a visible
@@ -30,6 +31,9 @@ export default function Interview() {
   const router = useRouter();
   const { answers, setAnswer } = useOnboardingStore();
   const [stepIndex, setStepIndex] = useState(0);
+  useEffect(() => {
+    void track('interview_started');
+  }, []);
   const [textDraft, setTextDraft] = useState('');
   /**
    * What the last answer changed, carried onto the next question.
@@ -52,6 +56,7 @@ export default function Interview() {
     // here would read the value before it landed.
     setLastReveal(step.reveal?.(justAnswered ?? answers) ?? null);
     if (stepIndex >= steps.length - 1) {
+      void track('interview_finished');
       router.replace('/plan-review');
     } else {
       setStepIndex(stepIndex + 1);

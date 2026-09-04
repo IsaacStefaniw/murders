@@ -12,6 +12,7 @@
  * a defect that shipped to TestFlight.
  */
 
+import { grantedEntitlement } from '@/features/plus/entitlement';
 import { behaviourPattern, momentNote } from '@/features/behaviours/patterns';
 import { composeFromText } from '@/features/goals/composer';
 import { nextCheckin } from '@/features/checkins/due';
@@ -65,6 +66,7 @@ const ANSWERS = {
 function onboard() {
   useAppStore.getState().resetAll();
   const built = buildLifeOperatingPlan(ANSWERS);
+  useAppStore.setState({ entitlement: grantedEntitlement() });
   useAppStore.getState().completeOnboarding({
     profile: built.profile,
     goals: built.goals,

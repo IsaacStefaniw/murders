@@ -758,6 +758,12 @@ export function profilePatchFor(
         trainingPreference:
           one === 'walking' ? 'outdoors' : ((one as LifeProfile['trainingPreference']) ?? 'mixed'),
       };
+    case 'sexAtBirth':
+      // Asked in the training hub weeks after onboarding. Without this case
+      // the answer reached the interview record and never the profile, so
+      // the library, the anatomy gating and the strength standards kept
+      // behaving as if it had never been asked.
+      return { sexAtBirth: (one as LifeProfile['sexAtBirth']) || undefined };
     case 'kidsCount':
       return { kidsCount: Number(one) || undefined };
     case 'household': {

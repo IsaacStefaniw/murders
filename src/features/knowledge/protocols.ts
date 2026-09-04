@@ -3524,6 +3524,31 @@ export function listedProtocols(sexAtBirth?: 'male' | 'female' | 'preferNotToSay
   return generalProtocols();
 }
 
+/**
+ * Does this routine apply to this body? A routine built from a protocol
+ * that carries `appliesTo` runs only for someone the app knows it applies
+ * to. This is the gate the plan itself enforces: the library stopped
+ * listing pelvic floor to a man, but a routine he had added before the
+ * label existed kept being planned every morning, and the coach note
+ * kept handing it the day's most prominent slot.
+ */
+export function routineApplies(
+  routine: { protocolId?: string },
+  sexAtBirth?: 'male' | 'female' | 'preferNotToSay',
+): boolean {
+  if (!routine.protocolId) return true;
+  const audience = protocolById(routine.protocolId)?.appliesTo;
+  if (!audience) return true;
+  return audiencesFor(sexAtBirth).includes(audience);
+}
+
+export function applicableRoutines<T extends { protocolId?: string }>(
+  routines: T[],
+  sexAtBirth?: 'male' | 'female' | 'preferNotToSay',
+): T[] {
+  return routines.filter((r) => routineApplies(r, sexAtBirth));
+}
+
 /** Audiences still worth offering as an opt-in, given what is already listed. */
 export function optInAudiencesFor(
   sexAtBirth?: 'male' | 'female' | 'preferNotToSay',

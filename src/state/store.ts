@@ -19,9 +19,11 @@ import { behaviourInfo } from '@/features/behaviours/catalog';
 import { assessGoal } from '@/features/goals/composer';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { detectGoalUnderserved } from '@/features/goals/underserved';
-import { protocolById, toRoutine } from '@/features/knowledge/protocols';
+import { applicableRoutines, protocolById, routineApplies, toRoutine } from '@/features/knowledge/protocols';
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
+import { NO_ENTITLEMENT, runningRoutines, type Entitlement } from '@/features/plus/entitlement';
+import { PERSIST_VERSION, migratePersisted, pruneHistory } from '@/state/hygiene';
 import {
   EMPTY_FOOD_PREFERENCES,
   type EnjoymentRating,
@@ -99,6 +101,8 @@ import type {
 export interface AppState {
   hydrated: boolean;
   onboarded: boolean;
+  /** Is this person Plus. Decided on the phone from what StoreKit says this Apple ID owns. */
+  entitlement: Entitlement;
   profile: LifeProfile | null;
   goals: Goal[];
   routines: Routine[];
@@ -417,6 +421,14 @@ export interface AppState {
 
   resetAll: () => void;
   setHydrated: () => void;
+  /** Trim history to what the screens still read. Runs once per visit. */
+  pruneHistory: () => void;
+  /**
+   * Record what StoreKit answered. Today and every later unapproved day
+   * are re-planned, because the coaches either just started running or
+   * just stopped — a cached plan from the other side of that line lies.
+   */
+  setEntitlement: (entitlement: Entitlement) => void;
 
   /** Preview Lab — compress the learning loop for testing. */
   clockOffsetMs: number;
@@ -428,6 +440,7 @@ export interface AppState {
 
 const initialData = {
   onboarded: false,
+  entitlement: NO_ENTITLEMENT as Entitlement,
   profile: null as LifeProfile | null,
   goals: [] as Goal[],
   routines: [] as Routine[],
@@ -650,6 +663,13 @@ export const useAppStore = create<AppState>()(
             return;
           }
           set({ previousOpenAt: last, lastOpenedAt: now });
+          get().pruneHistory();
+        },
+
+        pruneHistory: () => {
+          const { plans, behaviourEvents, reflections, workoutLogs, suggestions } = get();
+          const patch = pruneHistory({ plans, behaviourEvents, reflections, workoutLogs, suggestions }, todayKey());
+          if (Object.keys(patch).length > 0) set(patch);
         },
 
         updateProfile: (patch) => {
@@ -665,9 +685,17 @@ export const useAppStore = create<AppState>()(
         },
 
         regeneratePlan: (date) => {
-          const { profile, routines, plans, goals } = get();
+          const { profile, routines, plans, goals, entitlement } = get();
           if (!profile) throw new Error('Cannot plan without a profile');
-          const { unplaced, moved, ...plan } = generateDailyPlan(profile, routines, date, [], goals);
+          // The line. Without Plus the day keeps its shape — sleep, work,
+          // meals, whatever was fixed — and the coaches do not run, except
+          // the Habits & urges pathway, which is never charged for. What
+          // the others would have run is shown, locked, by the Today screen.
+          // Anatomy first: a routine that does not apply to this body is
+          // never planned, whatever the entitlement says.
+          const applicable = applicableRoutines(routines, profile.sexAtBirth);
+          const running = runningRoutines(applicable, entitlement.plus, get().paths.recovery?.goalId);
+          const { unplaced, moved, ...plan } = generateDailyPlan(profile, running, date, [], goals);
           // What did not fit is the visible half of arbitration. It used to
           // be destructured into `_unplaced` and dropped on the floor, which
           // meant the engine made the product's defining decision and then
@@ -1299,6 +1327,9 @@ export const useAppStore = create<AppState>()(
           } else {
             const protocol = protocolById(protocolId);
             if (!protocol) return false;
+            // The library does not list what does not apply, but a deep link
+            // or an older screen might; the store is the last gate.
+            if (!routineApplies({ protocolId: protocol.id }, profile?.sexAtBirth)) return false;
             set({ routines: [...routines, toRoutine(protocol, profile)] });
             nowActive = true;
           }
@@ -1661,6 +1692,16 @@ export const useAppStore = create<AppState>()(
           setClockOffsetMs(0);
           set({ ...initialData });
         },
+        setEntitlement: (entitlement) => {
+          const before = get().entitlement.plus;
+          set({ entitlement });
+          if (before === entitlement.plus || !get().profile) return;
+          const today = todayKey();
+          for (const date of Object.keys(get().plans)) {
+            if (date >= today && !get().plans[date]?.approvedAt) get().regeneratePlan(date);
+          }
+        },
+
         setHydrated: () => {
           setClockOffsetMs(get().clockOffsetMs);
           set({ hydrated: true });
@@ -1711,6 +1752,8 @@ export const useAppStore = create<AppState>()(
     {
       name: 'intent-os-store',
       storage: createJSONStorage(() => AsyncStorage),
+      version: PERSIST_VERSION,
+      migrate: migratePersisted,
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(
@@ -1725,6 +1768,15 @@ export const useAppStore = create<AppState>()(
         // already sat through.
         if (state.profile && Object.keys(state.interviewAnswers ?? {}).length === 0) {
           state.interviewAnswers = answersFromProfile(state.profile);
+        }
+        // Routines added before the anatomy label existed are switched off
+        // for a body they do not apply to, so no list shows them either.
+        if (state.profile && state.routines?.length) {
+          const sex = state.profile.sexAtBirth;
+          const held = state.routines.filter((r) => r.active && !routineApplies(r, sex));
+          if (held.length > 0) {
+            state.routines = state.routines.map((r) => (held.includes(r) ? { ...r, active: false } : r));
+          }
         }
         state.setHydrated();
       },
