@@ -49,3 +49,24 @@ test("renders the approved positioning and primary CTA", async () => {
   assert.match(html, /src="\/images\/intent-performance-retina\.webp"/);
   assert.doesNotMatch(html, /\/_next\/image\?/);
 });
+
+test("the page says which device this runs on, before it asks for five minutes", async () => {
+  // The product is iOS-only: HealthKit, StoreKit and the EAS profiles all
+  // assume it. An Android visitor who completes the profile builder and only
+  // then discovers that has been wasted, and the first thing they learn about
+  // the company is that it let that happen.
+  //
+  // This fails when Android ships, which is the right time to rewrite it.
+  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-platform`);
+  const { default: worker } = await import(workerUrl.href);
+  const response = await worker.fetch(
+    new Request("https://intentnorth.app/", { headers: { accept: "text/html" } }),
+    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
+    { waitUntil() {}, passThroughOnException() {} },
+  );
+  const html = await response.text();
+
+  assert.match(html, /iPhone only today/, "the CTA must disclose the platform before the time cost");
+  assert.match(html, /Which devices\?/, "the FAQ must answer the platform question");
+});
