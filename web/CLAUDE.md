@@ -39,6 +39,19 @@ npm test
 
 `npm test` performs the production build and runs the product-truth/rendering guardrails.
 
+Those guardrails read text. They cannot see a page that renders badly while
+saying the right words — a sentence stacked one word per line down a 48px
+column passes all of them, and reached the live site. `npm run test:layout`
+renders the built site in headless Chromium at eight widths and fails on text
+squeezed into a ribbon, sideways scrolling, or elements covering each other.
+
+It is not part of `npm test`, because a browser download would break the
+promise above that this project needs Node and npm and nothing else. It skips
+with a message if no browser is present; CI installs Chromium and runs it with
+`LAYOUT_STRICT=1` before every deploy, where skipping is a failure. If you
+change layout, run it — and if you cannot, say that you did not rather than
+reporting the change as checked.
+
 ## Where to work
 
 - `app/page.tsx` — page narrative, interactive profile builder and pathway content
@@ -152,7 +165,8 @@ Respect `prefers-reduced-motion`, keyboard navigation, focus visibility, semanti
 - The category difference is understandable in the first viewport.
 - A sceptical visitor can see what signal caused what change.
 - Shipped and developing capabilities remain clearly distinguished.
-- Desktop, tablet and mobile have been visually checked.
+- Desktop, tablet and mobile have been visually checked — `npm run test:layout`
+  is that check when a person cannot look, not a substitute for looking.
 - `npm run lint` passes.
 - `npm test` passes.
 - No generated UI is presented as product evidence.
