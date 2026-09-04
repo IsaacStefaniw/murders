@@ -329,7 +329,7 @@ export default function PathHub() {
       </AppText>
 
       <Button
-        title="Retune — retake the questions"
+        title="Change my answers"
         variant="ghost"
         onPress={() => setRetaking(true)}
         style={styles.buildButton}

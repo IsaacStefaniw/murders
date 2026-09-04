@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   heading: { fontSize: 18, lineHeight: 24, fontWeight: '600', letterSpacing: -0.3 },
   body: { fontSize: 16, lineHeight: 23, fontWeight: '400' },
   secondary: { fontSize: 15, lineHeight: 21, fontWeight: '400' },
-  caption: { fontSize: 13, lineHeight: 18, fontWeight: '400' },
+  caption: { fontSize: 14, lineHeight: 19, fontWeight: '400' },
   label: {
     fontSize: 12,
     lineHeight: 16,

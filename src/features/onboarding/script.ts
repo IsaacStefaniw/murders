@@ -511,6 +511,9 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
       { value: 'recovering', label: 'Recovering from injury or illness' },
       { value: 'pregnancy', label: 'Pregnant or recently postpartum' },
       { value: 'energy', label: 'Energy is unreliable' },
+      { value: 'bloodSugar', label: 'Blood sugar or a metabolic condition' },
+      { value: 'hormonal', label: 'Menopause or hormonal changes' },
+      { value: 'mentalHealth', label: 'Medication, or managing mental health' },
     ],
     reveal: (a) => {
       const picked = Array.isArray(a.constraints) ? a.constraints : [];
@@ -522,6 +525,15 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
       }
       if (picked.includes('joints')) {
         return 'Then the loaded, jarring movements come out and are replaced, not simply removed.';
+      }
+      if (picked.includes('bloodSugar')) {
+        return 'Then the walk after your biggest meal gets a fixed place, and food stays about steady energy, not restriction. Your GP’s plan comes first.';
+      }
+      if (picked.includes('hormonal')) {
+        return 'Then sleep gets the priority slots, training starts a notch lower, and the menopause practices are open in the library.';
+      }
+      if (picked.includes('mentalHealth')) {
+        return 'Then the plan stays gentle and keeps daylight, movement and sleep in every day. A missed day is information, never a verdict.';
       }
       return 'Then the plan starts conservative and builds from what you can actually do. If something hurts, a professional beats an app.';
     },

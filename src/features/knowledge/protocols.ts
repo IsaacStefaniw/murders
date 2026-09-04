@@ -226,7 +226,7 @@ export const PROTOCOLS: Protocol[] = [
     // real sessions — stalled goals went from a quarter to a third.
     finishBeforeSleepMin: 60,
     evidenceLevel: 'B',
-    title: 'Zone 2 cardio',
+    title: 'Easy cardio (Zone 2)',
     pillar: 'training',
     area: 'health',
     goalDomains: ['fitness', 'health'],
@@ -246,7 +246,7 @@ export const PROTOCOLS: Protocol[] = [
     // shows up in sleep-onset data, so this one keeps a wider margin.
     finishBeforeSleepMin: 120,
     evidenceLevel: 'B',
-    title: 'VO₂ intervals',
+    title: 'Hard intervals (VO₂ max)',
     pillar: 'training',
     area: 'health',
     goalDomains: ['fitness'],

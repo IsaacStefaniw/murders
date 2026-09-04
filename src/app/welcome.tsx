@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
@@ -25,17 +25,20 @@ export default function Welcome() {
           Build a life you actually follow.
         </AppText>
         <AppText variant="secondary" style={{ color: theme.textSecondary }}>
-          Three minutes of questions. Then IntentNorth plans your days around what you say matters —
-          and keeps learning as you live them.
+          Twelve quick questions, about two minutes. Then IntentNorth builds your week — training,
+          food, sleep, habits, money, work and family — around what you say matters, and adjusts it
+          when your days change.
         </AppText>
       </View>
       <Button title="Continue" onPress={() => router.push('/interview')} />
       <AppText variant="caption" style={styles.footnote}>
-        Your answers stay on this device until you connect an account.
+        No account. Nothing you enter leaves your phone.
       </AppText>
-      <AppText variant="caption" color="textTertiary" style={styles.build}>
-        Build {BUILD_TAG}
-      </AppText>
+      {Platform.OS !== 'web' ? (
+        <AppText variant="caption" color="textTertiary" style={styles.build}>
+          Build {BUILD_TAG}
+        </AppText>
+      ) : null}
     </Screen>
   );
 }

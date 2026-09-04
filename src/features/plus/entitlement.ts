@@ -147,12 +147,12 @@ export function meditationLengthNeedsPlus(minutes: number, plus: boolean): boole
 /** What Plus runs, in the order the paywall lists it. Copy lives here so
  * the paywall and Settings say the same thing. */
 export const PLUS_RUNS: readonly (readonly [string, string])[] = [
-  ['All seven coaches, running', 'Training, nutrition, sleep, mind, money, work and habits placed into your real days — and re-placed when the day changes.'],
-  ['The ladder', 'Foundation to advanced in every pathway: four-week training blocks with load progression and strength bands, and the deeper rungs everywhere else.'],
-  ['Apple Health regulates the day', 'Last night’s sleep, resting heart rate and HRV shape today’s session without you typing anything.'],
+  ['All seven coaches, running', 'Training, nutrition, money, work, habits and urges, relationship and family — real sessions placed into your real days, and moved when the day changes.'],
+  ['Levels you earn', 'Four levels in every program, earned from what you log: four-week training blocks that add load as you progress, and the deeper steps everywhere else.'],
+  ['Apple Health shapes the day', 'Last night’s sleep, resting heart rate and heart-rate variability (HRV) change today’s session without you typing anything.'],
   ['The weekly report and your history', 'What actually happened, against your own weeks — nobody else’s.'],
   ['Where this is heading', 'Projections from your own numbers: at this rate, when you arrive.'],
-  ['The full library', 'Every evidence-based protocol, one tap into your week.'],
+  ['The full library', 'All 177 practices, each with its evidence grade, one tap into your week.'],
   ['Guided sits beyond the reset', 'Spoken practices from five to twenty minutes.'],
 ];
 

@@ -43,7 +43,10 @@ export type PhysicalConstraint =
   | 'heart'
   | 'recovering'
   | 'pregnancy'
-  | 'energy';
+  | 'energy'
+  | 'bloodSugar'
+  | 'hormonal'
+  | 'mentalHealth';
 
 /** How a person's week is shaped — see features/onboarding/markets.ts. */
 export type WeekShapeKey =

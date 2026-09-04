@@ -37,6 +37,7 @@ import { displacedLine } from '@/features/planner/displaced';
 import { useAppStore } from '@/state/store';
 import type { PlanItem } from '@/types/domain';
 import { LockedSessions } from '@/features/plus/LockedSessions';
+import { PlusNudge } from '@/features/plus/PlusNudge';
 import { applicableRoutines } from '@/features/knowledge/protocols';
 import { DragToMove } from '@/features/today/DragToMove';
 import { knockOnLine } from '@/features/today/dragMath';
@@ -88,7 +89,14 @@ export default function Today() {
   }, [profile, date, ensurePlan, refreshSuggestions]);
 
   const plan = plans[date];
-  const openSuggestion = useMemo(() => suggestions.find((s) => s.status === 'open'), [suggestions]);
+  // Nothing to suggest on the first day: a pattern needs days to exist,
+  // and a card asking someone to "make the change" before they have done
+  // anything reads as noise.
+  const firstDay = !!profile && profile.createdAt.slice(0, 10) === date;
+  const openSuggestion = useMemo(
+    () => (firstDay ? undefined : suggestions.find((s) => s.status === 'open')),
+    [suggestions, firstDay],
+  );
   // Today leaks exactly one future moment; the Plan tab owns the week.
   const lookAheadHighlight = useMemo(() => {
     if (!profile) return null;
@@ -184,6 +192,7 @@ export default function Today() {
         Today
       </AppText>
       <AppText variant="title">{formatDateLong(date)}</AppText>
+      <PlusNudge />
       {momentum.done > 0 || momentum.milestonesMoved > 0 ? (
         <AppText variant="caption" color="success" style={styles.summary}>
           This week: {momentum.done} done
@@ -234,8 +243,8 @@ export default function Today() {
       {neverCompletedAnything ? (
         <Card style={styles.firstRun}>
           <AppText variant="secondary">
-            Tap any row below to start it, mark it done, or move it. Move something and
-            everything else shuffles around it — nothing here is fixed.
+            Tap a row to start it, finish it or move it. Move one thing and the rest
+            shuffles around it.
           </AppText>
         </Card>
       ) : null}
@@ -515,9 +524,6 @@ export default function Today() {
           happened and not only what IntentNorth suggested. */}
       <SectionHeader title="Already done" />
       <QuickLog />
-      <View style={styles.didIt}>
-        <LogDidIt date={date} />
-      </View>
       <View style={styles.didIt}>
         <LogDidIt date={date} />
       </View>

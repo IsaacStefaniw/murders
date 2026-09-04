@@ -22,7 +22,7 @@ export interface BreathProtocol {
 export const BREATH_PROTOCOLS: BreathProtocol[] = [
   {
     key: 'sigh',
-    name: 'Physiological sigh',
+    name: 'Double-inhale sigh',
     useFor: 'Fastest reset — urges, spikes of stress',
     rounds: 6,
     phases: [

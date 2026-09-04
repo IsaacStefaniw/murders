@@ -84,6 +84,14 @@ export default function Upgrade() {
   const period = (kind: PlusOffer['kind']) =>
     kind === 'annual' ? 'a year' : kind === 'monthly' ? 'a month' : 'once';
 
+  const perMonth = (displayPrice: string): string | null => {
+    const m = /([\d]+(?:[.,]\d+)?)/.exec(displayPrice);
+    if (!m) return null;
+    const n = Number(m[1].replace(',', '.'));
+    if (!Number.isFinite(n) || n <= 0) return null;
+    return displayPrice.replace(m[1], (n / 12).toFixed(2));
+  };
+
   const explain = (kind: PlusOffer['kind']) =>
     kind === 'lifetime'
       ? 'One payment. Yours on this Apple ID for good — no renewal.'
@@ -166,6 +174,11 @@ export default function Upgrade() {
                       </AppText>
                     </AppText>
                   </View>
+                  {o.kind === 'annual' && perMonth(o.displayPrice) ? (
+                    <AppText variant="caption" color="accent">
+                      About {perMonth(o.displayPrice)} a month, billed once a year.
+                    </AppText>
+                  ) : null}
                   <AppText variant="caption" color="textTertiary">
                     {explain(o.kind)}
                   </AppText>
