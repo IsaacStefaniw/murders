@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { RefreshCcw } from "lucide-react";
 import "./intent-motion-assets.css";
 
 type MotionStageOptions = {
@@ -12,37 +13,72 @@ function useMotionStages({ stages, interval = 1050 }: MotionStageOptions) {
   const ref = useRef<HTMLElement>(null);
   const [stage, setStage] = useState(0);
   const [inView, setInView] = useState(false);
+  const [reduced, setReduced] = useState(false);
+  // An explicit press outranks the device preference. Someone who asks to see
+  // it has asked for motion; reduced-motion is a default, not a prohibition.
+  const [asked, setAsked] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = (event: { matches: boolean }) => setReduced(event.matches);
+    sync(query);
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting),
+      ([entry]) => {
+        setInView(entry.isIntersecting);
+        // Rewind on the way out so it plays again on the way back. It used to
+        // play once per page load and hold, which meant a reader who scrolled
+        // past and returned was looking at a still and being told it moved.
+        if (!entry.isIntersecting) {
+          setStage(0);
+          setAsked(false);
+        }
+      },
       { threshold: 0.35 },
     );
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (reducedMotion.matches) {
-      const timeout = window.setTimeout(() => setStage(stages - 1), 0);
-      return () => window.clearTimeout(timeout);
-    }
-    if (!inView || stage >= stages - 1) return;
+  const still = reduced && !asked;
 
-    // The proof plays once and holds on the conclusion. This keeps the
-    // causal sequence clear without creating an endlessly moving surface.
+  useEffect(() => {
+    if (still || !inView || stage >= stages - 1) return;
+
+    // The proof plays and holds on the conclusion. This keeps the causal
+    // sequence clear without creating an endlessly moving surface.
     const timeout = window.setTimeout(
       () => setStage((current) => Math.min(current + 1, stages - 1)),
       interval,
     );
     return () => window.clearTimeout(timeout);
-  }, [inView, interval, stage, stages]);
+  }, [inView, interval, still, stage, stages]);
 
-  return { ref, stage };
+  const replay = useCallback(() => {
+    setAsked(true);
+    setStage(0);
+  }, []);
+
+  // Derived rather than stored, so the reduced-motion reader lands on the
+  // conclusion without a setState racing the timer above.
+  return { ref, stage: still ? stages - 1 : stage, replay };
+}
+
+/** Lets a reader see it again — and lets a reduced-motion reader see it at all. */
+function ReplayButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button className="iosm-replay" onClick={onClick} type="button">
+      <RefreshCcw aria-hidden />
+      <span>{label}</span>
+    </button>
+  );
 }
 
 function StageRail({ labels, stage }: { labels: string[]; stage: number }) {
@@ -70,7 +106,7 @@ function Arrow() {
 }
 
 export function LearningLoopMotion() {
-  const { ref, stage } = useMotionStages({ stages: 6, interval: 900 });
+  const { ref, stage, replay } = useMotionStages({ stages: 6, interval: 900 });
 
   return (
     <figure
@@ -82,6 +118,7 @@ export function LearningLoopMotion() {
       <header className="iosm-header">
         <p>THE LEARNING LOOP</p>
         <h2>Results change the next program.</h2>
+        <ReplayButton label="Play it again" onClick={replay} />
       </header>
 
       <StageRail
@@ -123,7 +160,7 @@ export function LearningLoopMotion() {
 }
 
 export function SharedProfileMotion() {
-  const { ref, stage } = useMotionStages({ stages: 4, interval: 1150 });
+  const { ref, stage, replay } = useMotionStages({ stages: 4, interval: 1150 });
 
   return (
     <figure
@@ -135,6 +172,7 @@ export function SharedProfileMotion() {
       <header className="iosm-header">
         <p>ONE CONTINUOUS PROFILE</p>
         <h2>Answer once. Continue with context.</h2>
+        <ReplayButton label="Play it again" onClick={replay} />
       </header>
 
       <div className="iosm-profile-story" aria-hidden="true">

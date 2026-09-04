@@ -429,7 +429,7 @@ export default function Home() {
             <article><span>WHILE YOU DO IT</span><strong>Sets tick, rests time themselves</strong><p>Short night or half the time? It shortens the session and keeps the heavy work, rather than cancelling it.</p></article>
           </div>
           <p className="deliverable-breadth">The same holds away from the gym: guided breathing, seven meditation scripts timed to the clock, a weekly review that ends in one decision, and the week&rsquo;s dinners chosen once while you are not hungry.</p>
-          <div className="causality-proof"><ShieldCheck /><p><strong>Truth boundary:</strong> this diagram represents product behaviour, not a fabricated app screen. Broader cross-domain arbitration remains the direction.</p></div></div>
+</div>
         <div className="learning-motion-wrap"><LearningLoopMotion /></div>
       </section>
 
@@ -439,7 +439,7 @@ export default function Home() {
           <p>The sentences on these screens are the ones the app produces. &ldquo;Your own recovery numbers are down this morning&mdash;main work stays, accessories rest today&rdquo; is a line the training code emits when your own recovery data drops, not a caption composed for a film.</p>
         </div>
         <Film />
-        <div className="causality-proof film-proof"><ShieldCheck /><p><strong>Truth boundary:</strong> screens are shown inside a device frame for presentation. The copy in them is the shipped application&rsquo;s own output. Broader cross-domain arbitration remains the direction, not staged proof.</p></div>
+        <div className="causality-proof film-proof"><ShieldCheck /><p>Screens sit in a device frame for presentation. Every sentence in them is the shipped application&rsquo;s own output, not copy written for a film.</p></div>
         <p className="film-caption">Named educators appear as attribution for practices distilled from their public teaching; it implies no endorsement of IntentNorth.</p>
       </div></section>
 

@@ -32,9 +32,21 @@ test("renders the approved positioning and primary CTA", async () => {
   assert.match(html, /Build my profile/);
   // Truth guardrail: public copy never uses "prescription".
   assert.doesNotMatch(html, /prescription/i);
-  // Engineering proof is transparent without presenting synthetic outcomes
-  // or unverified release and privacy claims as customer evidence.
-  assert.match(html, /diagram represents product behaviour, not a fabricated app screen/i);
+  // The diagram disclaimer this used to assert is gone, deliberately. It told a
+  // reader that a visibly abstract diagram was not an app screenshot — a doubt
+  // nobody had until it was raised — and spent the rest of its words on
+  // "cross-domain arbitration", which is not the product's positioning and is
+  // not language a visitor can parse. The disclosures that carry weight are
+  // still asserted: no implied endorsement in film.test.mjs, and the education
+  // boundary below.
+  assert.match(
+    html,
+    /Education, never diagnosis or personal advice/i,
+    "the health boundary is a legal requirement, not a stylistic choice",
+  );
+  // The film's screens are real, and saying so is a claim of strength rather
+  // than a hedge — which is why that one stayed when the diagram's went.
+  assert.match(html, /the shipped application&#x27;s own output|shipped application.s own output/i);
   // The interactive profile builder is a client component, so assert its
   // server-rendered disclosure rather than dialog copy loaded after hydration.
   assert.match(html, /Profile and first insight are free/i);
