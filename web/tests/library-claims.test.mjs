@@ -73,7 +73,11 @@ test("the library figures on the page match the library in the app", async () =>
   assert.equal(safety, 145, "safety-line count changed — update the page copy too");
   assert.equal(people, 188, "attribution count changed — update the page copy too");
 
-  for (const figure of [String(total), String(strong), String(safety), String(people)]) {
+  // The page leads with the weaker count rather than the A/B one now — "104 of
+  // the 177 are Mixed or weaker" says more than "73 graded A or B", because a
+  // reader can tell what the first one costs us to admit. The data check above
+  // still pins all four figures; this checks what the page actually states.
+  for (const figure of [String(total), String(weaker), String(safety), String(people)]) {
     assert.ok(html.includes(figure), `the page should state ${figure}`);
   }
   // The grade breakdown is spelled out in words; those must agree too.

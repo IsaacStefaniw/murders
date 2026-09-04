@@ -165,10 +165,14 @@ test("reps in reserve never returns, from anywhere", async () => {
   // asks that the category difference be understandable there, and the band
   // that used to be the only place it appeared sits 1,325px down on a phone.
   // These are the same three numbers the sequences below prove.
-  assert.match(html, /177<\/dt>|>177</, "the library figure left the hero");
-  assert.match(html, /each rated A to E/, "the first pillar");
-  assert.match(html, /plans to write yourself/, "the second pillar");
-  assert.match(html, /parts of your life, one plan/, "the third pillar");
+  // These were three counts. The people Isaac showed the site to did not
+  // understand them, and Isaac wrote "178" when passing that on — a number
+  // its own commissioner cannot recall is doing no work on a page a stranger
+  // reads once. They are three statements of what the app does now, and the
+  // exact figures moved into sentences further down where they can be read.
+  assert.match(html, /It plans your week/, "the first thing it does");
+  assert.match(html, /It changes when your week does/, "the second");
+  assert.match(html, /It shows how good the evidence is/, "the third — the differentiator");
   // The costly signal is the whole reason the first pillar works.
   assert.match(html, /104 of them|104 of the 177/, "the honesty that makes the ratings credible");
   // A reader has to be told what a rating means, not shown a letter.

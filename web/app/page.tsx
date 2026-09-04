@@ -43,10 +43,20 @@ const constraints = [
   "I am managing an injury", "I want ambitious targets",
 ];
 
+/**
+ * Three statements, not three counts.
+ *
+ * This was "177 practices, 0 plans to write yourself, 7 parts of your life".
+ * Isaac's testers did not understand the numbers, and Isaac himself wrote
+ * "178" when relaying that — which is the whole argument. A number that the
+ * person who commissioned it cannot recall is not doing any work on a page a
+ * stranger reads once. "177 practices" also answers a question nobody asked:
+ * how much stuff do we have. These answer what it does for you.
+ */
 const heroPillars = [
-  { figure: "177", lead: "practices, each rated A to E", note: ". We show the weak ratings too — 104 of them." },
-  { figure: "0", lead: "plans to write yourself", note: ". You pick a goal; the app writes the weeks." },
-  { figure: "7", lead: "parts of your life, one plan", note: ". They share what they know about you." },
+  { lead: "It plans your week.", note: "Sessions, meals and practices at real times, around what you already have on." },
+  { lead: "It changes when your week does.", note: "A bad night shortens the session and keeps the hard part, instead of cancelling it." },
+  { lead: "It shows how good the evidence is.", note: "Every practice is rated — including the ones where the evidence is weak." },
 ];
 
 const todayRows = [
@@ -394,11 +404,29 @@ const ladder = [
   { level: "ADVANCED", copy: "Heavier work, one deliberately hard week before the easy one, and single heavy lifts. Only offered once your record supports it." },
 ];
 
+/**
+ * Four answers, not four counts. Every number here is still exact and still
+ * checked against src/features/knowledge/protocols.ts by the guardrails — but
+ * it sits inside a sentence, where a reader can tell what it means, rather
+ * than alone in 48px type where they cannot.
+ */
 const libraryStats = [
-  { figure: "177", label: "practices in the library", note: "Every one graded for evidence and credited to the public work behind it." },
-  { figure: "73", label: "graded A or B", note: "The other 104 are C, D or E. The app shows you which, on every single one." },
-  { figure: "188", label: "researchers and practitioners credited", note: "Attribution for public teaching. Never endorsement." },
-  { figure: "145", label: "carry an explicit safety line", note: "Written in plain words, shown before you add anything to your week." },
+  {
+    label: "Every practice is rated.",
+    note: "A to E for the strength of the evidence, shown on the practice itself rather than buried in a footnote.",
+  },
+  {
+    label: "Most of it is not rated Strong.",
+    note: "104 of the 177 are Mixed or weaker, and the app tells you which. A library where everything is excellent is a library that is not rating anything.",
+  },
+  {
+    label: "It names where the work came from.",
+    note: "188 researchers and teachers are credited for the public work behind these practices. Credit, never endorsement.",
+  },
+  {
+    label: "It tells you when not to do something.",
+    note: "145 of them carry a safety note in plain words, shown before you add anything to your week.",
+  },
 ];
 
 /**
@@ -470,9 +498,9 @@ export default function Home() {
           <div className="hero-trust"><span><Check /> Free to start</span><span><LockKeyhole /> Nothing leaves your phone</span><span><Heart /> Hardest-moment support stays free</span></div>
           <dl className="hero-pillars">
             {heroPillars.map((pillar) => (
-              <div key={pillar.figure}>
-                <dt>{pillar.figure}</dt>
-                <dd><strong>{pillar.lead}</strong><span>{pillar.note}</span></dd>
+              <div key={pillar.lead}>
+                <dt>{pillar.lead}</dt>
+                <dd>{pillar.note}</dd>
               </div>
             ))}
           </dl>
@@ -643,13 +671,12 @@ export default function Home() {
 
       <section className="library-section section-shell" id="library">
         <div className="library-heading">
-          <div><p className="section-kicker">WHAT IS ACTUALLY IN IT</p><h2>Every practice is rated.<br />Then the app runs it for you.</h2></div>
-          <p>Most of what you are told about health cites nothing, or cites everything with equal confidence. Every practice here carries a grade, a named source and, where it matters, a caution&mdash;and none of it is a reading list. Tap one and it is scheduled into the week you actually have.</p>
+          <div><p className="section-kicker">THE OBVIOUS QUESTION</p><h2>How do you know<br />any of this works?</h2></div>
+          <p>Most health advice cites nothing, or cites everything as though it were equally certain. Here, every practice carries a plain rating for how strong the evidence behind it is &mdash; and where the evidence is thin, it says so rather than hoping you will not ask.</p>
         </div>
         <div className="library-stats">
           {libraryStats.map((stat) => (
             <article key={stat.label}>
-              <strong>{stat.figure}</strong>
               <span>{stat.label}</span>
               <p>{stat.note}</p>
             </article>

@@ -94,3 +94,26 @@ the app does, and a stale product screenshot fails silently.
 If frame 4 turns out not to be reachable from a seed in a reasonable amount of
 work, say so and hand back the first three. Three real frames and an honest gap
 is a better outcome than a fourth frame that was staged.
+
+---
+
+## Answered — 4 Sep 2026
+
+Frames one to three are captured, from one seed, with provenance in
+`docs/APP_SCREENSHOTS.md`. They are on the site: the library capture carries
+the rating explainer, and the before/after pair shows the same Monday going
+from fifteen planned items to sixteen with Morning light at 7:25am.
+
+**Frame four was not captured, and should not be.** The app session found that
+when a family block takes Morning light's hour, the scheduler drops the
+ten-minute practice rather than moving it into the free minutes left in its
+window. They recorded that as a scheduler weakness rather than staging around
+it, which is exactly what this request asked for — three real frames and an
+honest gap beats a fourth that was arranged.
+
+That weakness is now the most useful thing this request produced. A practice
+that quietly disappears when the week gets busy is the opposite of the claim
+the site makes about it, so it is a product bug worth fixing before it is a
+capture worth taking. When the scheduler moves the practice within its window
+instead of dropping it, frame four becomes reachable and this section can be
+deleted.

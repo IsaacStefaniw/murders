@@ -854,3 +854,22 @@ footer { border-top: 1px solid var(--fog); }
   .rating-scale > div { grid-template-columns: 1fr; gap: 4px; }
   .hero-shot img, .hero-shot figcaption { max-width: none; }
 }
+
+
+/* The hero three-up and the library four-up stopped being numbers.
+   "177 practices" answered a question nobody asked, and the giant numeral
+   made an unmemorable figure the loudest thing in the block. They are
+   statements now, so they set as statements. */
+.hero-pillars dt { font-family: inherit; font-size: 14px; font-weight: 750; line-height: 1.35; letter-spacing: 0; color: var(--ink); }
+.hero-pillars dd { margin-top: 6px; }
+.library-stats article > span { display: block; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: -.01em; }
+.library-stats article > p { margin-top: 8px; }
+
+@media (max-width: 620px) {
+  .hero-pillars { grid-template-columns: 1fr; }
+  .hero-pillars > div { padding: 11px 0 0; }
+  .hero-pillars > div + div { margin-top: 10px; padding-left: 0; border-left: 0; border-top: 1px solid var(--fog); }
+  .hero-pillars dt { font-size: 13.5px; }
+  .hero-pillars dd { display: block; font-size: 12px; }
+  .hero-pillars dd span { display: inline; }
+}
