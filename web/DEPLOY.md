@@ -35,6 +35,8 @@ Four hostnames attach to the same Worker:
 | --- | --- |
 | `intentnorth.app` | the site |
 | `www.intentnorth.app` | 301 → `intentnorth.app` |
+| `intentnorth.com.au` | 301 → `intentnorth.app` |
+| `www.intentnorth.com.au` | 301 → `intentnorth.app` |
 | `instinctnorth.app` | 301 → `intentnorth.app` |
 | `www.instinctnorth.app` | 301 → `intentnorth.app` |
 
@@ -58,9 +60,22 @@ browser level with no http fallback. In the minute or two before the
 certificate finishes issuing, browsers show a hard security error rather than a
 warning you can click past. That is the cert minting, not a broken attach.
 
+`.com.au` is deliberately an alias rather than the canonical Australian site.
+It is the name an Australian visitor is most likely to type, but the films' end
+cards, the App Store listing and every spoken introduction promise
+`intentnorth.app` — and two hosts serving identical HTML split the link equity
+between them. It redirects, keeping the path, so a deep link from a listing
+still lands where it was pointed.
+
 **Status: `intentnorth.app` is attached and serving** (confirmed 3 Sep 2026 —
-apex and `/privacy` both 200). `instinctnorth.app` is not attached, and it is
-not known whether that zone is on this Cloudflare account.
+apex and `/privacy` both 200). `intentnorth.com.au` is registered but not yet
+attached; its redirect is deployed and inert until it is. `instinctnorth.app`
+is not attached, and it is not known whether that zone is on this Cloudflare
+account.
+
+A `.com.au` must stay registered to the ABN holder whose name licensed it —
+auDA eligibility is checked against the registrant, not the domain's traffic,
+so a later change of entity is a licence question rather than a DNS one.
 
 The alternative is a `routes` array in `wrangler.jsonc`, which puts the wiring
 in version control. It is deliberately not committed, for two reasons that both
@@ -108,6 +123,7 @@ curl -sS -o /dev/null -w '%{http_code}\n' https://intent-operating-system.isaacs
 curl -sS -o /dev/null -w '%{http_code}\n' https://intentnorth.app/
 
 # 3. Each alias redirects, and keeps the path.
+curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' https://intentnorth.com.au/privacy
 curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' https://instinctnorth.app/privacy
 curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' https://www.intentnorth.app/
 

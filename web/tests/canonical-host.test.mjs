@@ -24,7 +24,13 @@ async function fetchHost(url) {
 }
 
 test("the alias domain redirects to the canonical one, permanently", async () => {
-  for (const host of ["instinctnorth.app", "www.instinctnorth.app", "www.intentnorth.app"]) {
+  for (const host of [
+    "instinctnorth.app",
+    "www.instinctnorth.app",
+    "www.intentnorth.app",
+    "intentnorth.com.au",
+    "www.intentnorth.com.au",
+  ]) {
     const response = await fetchHost(`https://${host}/`);
     assert.equal(response.status, 301, `${host} should redirect permanently`);
     assert.equal(response.headers.get("location"), "https://intentnorth.app/");
@@ -53,4 +59,16 @@ test("preview and local hosts are left alone", async () => {
     const response = await fetchHost(url);
     assert.equal(response.status, 200, `${url} should be served, not redirected`);
   }
+});
+
+test("the Australian domain keeps its path across the hop", async () => {
+  // .com.au is the name an Australian visitor is most likely to type, so its
+  // deep links matter more than the other aliases' — someone arriving at the
+  // privacy page from an App Store listing should land on the privacy page.
+  const response = await fetchHost("https://intentnorth.com.au/support?utm_source=appstore");
+  assert.equal(response.status, 301);
+  assert.equal(
+    response.headers.get("location"),
+    "https://intentnorth.app/support?utm_source=appstore",
+  );
 });

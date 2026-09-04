@@ -43,6 +43,12 @@ const ALIAS_HOSTS = new Set([
   "www.intentnorth.app",
   "instinctnorth.app",
   "www.instinctnorth.app",
+  // The Australian name, registered against the ABN. It redirects rather than
+  // serving, for the same reason as the others: the films' end cards, the App
+  // Store listing and every spoken introduction promise one address, and a
+  // second host serving the same HTML splits the link equity behind it.
+  "intentnorth.com.au",
+  "www.intentnorth.com.au",
 ]);
 
 /**
