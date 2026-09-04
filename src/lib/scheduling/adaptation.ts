@@ -149,8 +149,11 @@ export interface ManualMove {
  *   > same routine completion by time
  *   > general completion behaviour by time.
  *
- * "You moved 6 of your last 8 workouts to the evening — and completed 5 of
- * them. Make evenings the default?" This is IntentNorth working.
+ * "You've moved Training that sticks to the evening 6 of the last 8 times —
+ * and completed 5 of them. Make the evening the default?" This is IntentNorth
+ * working. The title is kept as the app names it: lower-casing a multi-word
+ * title and wedging it before "sessions" produced "training that sticks
+ * sessions", which reached two captures before it was caught.
  */
 export function detectMoveOutcome(
   moves: ManualMove[],
@@ -191,7 +194,7 @@ export function detectMoveOutcome(
     suggestions.push({
       id: newId('sug'),
       kind: 'move_routine',
-      message: `You've moved ${slotMoves.length} of your last ${own.length} ${routine.title.toLowerCase()} sessions to the ${target.label} — and completed ${completed} of them. Make the ${target.label} the default?`,
+      message: `You've moved ${routine.title} to the ${target.label} ${slotMoves.length} of the last ${own.length} times — and completed ${completed} of them. Make the ${target.label} the default?`,
       reason:
         'Your own moves, followed through, are the strongest evidence there is. The plan should follow what you actually do.',
       payload: {
