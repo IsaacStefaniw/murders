@@ -1,0 +1,21 @@
+# The gate every push runs: typecheck, lint, tests. Release workflows
+# assumed a green tree; nothing checked. Now something does.
+name: CI
+on:
+  push:
+    branches: ['**']
+  pull_request:
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit -p .
+      - run: npx eslint src
+      - run: npx jest --ci

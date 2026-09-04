@@ -77,6 +77,12 @@ Scored on impact for the person, effort, and whether it needs a new build.
 "OTA" means it ships to build 16 over the air with no review.
 
 ### Tier A — ship over the air before or right after launch
+
+Status 2026-09-04: items 1, 3, 5, 6 and 7 built and pushed (commits 83b0669,
+02e2700 and the wiring commit). Item 2 waits on two Apple Health read
+types, which is 1.1. Item 4 needs actual durations, which the workout
+session now records; the "usually" line follows once a few exist.
+Held from the production channel until Apple approves 1.0.
 1. **Sleep debt and the energy curve** from the sleep we already read:
    need estimate from a rolling 14-day window, debt = need − actual over
    the last 14 nights, and a morning/afternoon/evening energy shape from

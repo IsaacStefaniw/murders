@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 
 import { AppText } from '@/components/text';
@@ -14,6 +14,7 @@ import { useOnboardingStore } from '@/features/onboarding/state';
 import { formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import { track } from '@/lib/telemetry';
 
 const AREA_LABELS: Record<string, string> = {
   family: 'Family',
@@ -38,6 +39,10 @@ export default function PlanReview() {
 
   const plan = useMemo(() => buildLifeOperatingPlan(answers), [answers]);
   const [disabledRoutines, setDisabledRoutines] = useState<Set<string>>(new Set());
+  // The first insight is the free half of the promise; this is the moment it is seen.
+  useEffect(() => {
+    void track('first_insight_seen');
+  }, []);
 
   const approve = () => {
     completeOnboarding({

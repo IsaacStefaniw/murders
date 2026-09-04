@@ -50,6 +50,7 @@ export default function WorkoutSession() {
   }, []);
   const today = todayKey();
   const loggedSleep = metrics.find((m) => m.key === 'sleep.hours' && m.at.slice(0, 10) === today);
+  const [startedAt] = useState(() => Date.now());
   const [manualSleep, setManualSleep] = useState<number | null>(null);
   // A tap wins; otherwise today's logged value (incl. an Apple Health sync
   // landing after mount) pre-fills the chips.
@@ -169,8 +170,11 @@ export default function WorkoutSession() {
   };
 
   const finish = () => {
+    // What it actually took, not what was estimated; capped so a screen
+    // left open all afternoon does not become a four-hour session.
+    const elapsedMin = Math.max(1, Math.min(session.estimatedMin * 3, Math.round((Date.now() - startedAt) / 60000)));
     const note = `workout session · ${completedSets}/${totalSets} sets`;
-    if (log) saveWorkoutLog({ ...log, durationMin: session.estimatedMin, note });
+    if (log) saveWorkoutLog({ ...log, durationMin: elapsedMin, note });
     if (itemId && date) {
       setItemStatus(date, itemId, 'completed', {
         source: 'manual',
@@ -184,7 +188,7 @@ export default function WorkoutSession() {
       logCompletedActivity({
         title: 'Workout',
         area: 'health',
-        durationMin: session.estimatedMin,
+        durationMin: elapsedMin,
         sessionType: 'workout',
         note,
       });

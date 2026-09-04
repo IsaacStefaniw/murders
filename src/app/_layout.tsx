@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
@@ -8,6 +8,7 @@ import { StyleSheet, useColorScheme } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { useAppStore } from '@/state/store';
+import { onNotificationTap } from '@/lib/notifications';
 import { listenForPurchases } from '@/lib/purchases';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
@@ -21,6 +22,7 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
   const hydrated = useAppStore((s) => s.hydrated);
 
   const markOpened = useAppStore((s) => s.markOpened);
@@ -41,6 +43,15 @@ export default function RootLayout() {
     if (!hydrated) return undefined;
     return listenForPurchases();
   }, [hydrated]);
+
+  // A tapped notification lands on the thing it was about: the wind-down
+  // opens the breathing session, everything else opens today.
+  useEffect(() => {
+    if (!hydrated) return undefined;
+    return onNotificationTap((data) => {
+      router.push(data.kind === 'wind_down' ? '/session/breathe' : '/(tabs)/today');
+    });
+  }, [hydrated, router]);
 
   // Keeps the OS queue in step with what the app intends. No-ops entirely
   // while notifications are off, which is the default.

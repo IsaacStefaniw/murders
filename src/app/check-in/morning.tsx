@@ -11,7 +11,7 @@ import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import { proposeIntention } from '@/features/checkins/propose';
-import { formatTime, todayKey } from '@/lib/dates';
+import { addDays, formatTime, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 import type { BehaviourKey } from '@/types/domain';
 
@@ -27,6 +27,15 @@ export default function MorningCheckIn() {
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
   const goals = useAppStore((s) => s.goals);
+  const plans = useAppStore((s) => s.plans);
+  const moveItemToDate = useAppStore((s) => s.moveItemToDate);
+  const yesterday = addDays(date, -1);
+  // What yesterday left unresolved and still worth doing. One tap carries it
+  // into today at the first slot that fits; leaving it is also an answer.
+  const leftover = (plans[yesterday]?.items ?? []).filter(
+    (i) => !i.fixed && i.status === 'planned' && i.title !== 'Work',
+  );
+  const [carried, setCarried] = useState<Set<string>>(new Set());
 
   // IntentNorth proposes the intention; the user approves or overrides.
   const [proposal] = useState(() =>
@@ -111,6 +120,29 @@ export default function MorningCheckIn() {
           autoFocus
         />
       )}
+
+      {leftover.length > 0 ? (
+        <View>
+          <SectionHeader title="Left from yesterday" />
+          <AppText variant="caption" color="textTertiary">
+            Tap to carry it into today. Anything you leave here stays yesterday&apos;s.
+          </AppText>
+          <View style={styles.chips}>
+            {leftover.map((i) => (
+              <Chip
+                key={i.id}
+                label={carried.has(i.id) ? `✓ ${i.title}` : i.title}
+                selected={carried.has(i.id)}
+                onPress={() => {
+                  if (carried.has(i.id)) return;
+                  moveItemToDate(yesterday, i.id, date);
+                  setCarried((prev) => new Set(prev).add(i.id));
+                }}
+              />
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       {activeIntentions.length > 0 ? (
         <View>

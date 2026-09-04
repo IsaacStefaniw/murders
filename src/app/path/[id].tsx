@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
@@ -24,6 +24,7 @@ import { formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 import { LockedCard } from '@/features/plus/Locked';
+import { track } from '@/lib/telemetry';
 
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -39,6 +40,9 @@ export default function PathHub() {
   const def = PATHS[id as PathId];
 
   const profile = useAppStore((s) => s.profile);
+  useEffect(() => {
+    void track('coach_opened');
+  }, []);
   const plus = useAppStore((s) => s.entitlement.plus);
   const paths = useAppStore((s) => s.paths);
   const goals = useAppStore((s) => s.goals);

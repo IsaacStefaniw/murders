@@ -34,7 +34,15 @@ interface NotificationsModule {
   getAllScheduledNotificationsAsync: () => Promise<unknown[]>;
   setNotificationHandler: (handler: unknown) => void;
   setNotificationChannelAsync?: (id: string, channel: Record<string, unknown>) => Promise<unknown>;
+  addNotificationResponseReceivedListener?: (
+    listener: (response: NotificationResponseLike) => void,
+  ) => { remove: () => void };
+  getLastNotificationResponseAsync?: () => Promise<NotificationResponseLike | null>;
 }
+
+type NotificationResponseLike = {
+  notification: { request: { content: { data?: Record<string, unknown> } } };
+};
 
 /**
  * Without a handler, iOS does not present a notification that arrives while
@@ -173,6 +181,40 @@ export async function syncScheduledNotifications(
     }
   }
   return { scheduled, state };
+}
+
+/**
+ * What happens when a person taps a notification. The payload carries the
+ * kind the scheduler set; the handler decides where in the app that leads.
+ * The response that launched the app from cold is delivered too, once.
+ * Returns a cleanup; safe on a build without the module.
+ */
+export function onNotificationTap(handler: (data: Record<string, unknown>) => void): () => void {
+  let sub: { remove: () => void } | null = null;
+  let live = true;
+  void load().then(async (mod) => {
+    if (!mod || !live) return;
+    try {
+      const last = await mod.getLastNotificationResponseAsync?.();
+      const data = last?.notification.request.content.data;
+      if (data && live) handler(data);
+    } catch {
+      // No launch response; an ordinary open.
+    }
+    try {
+      sub =
+        mod.addNotificationResponseReceivedListener?.((r) => {
+          const data = r.notification.request.content.data;
+          if (data) handler(data);
+        }) ?? null;
+    } catch {
+      sub = null;
+    }
+  });
+  return () => {
+    live = false;
+    sub?.remove();
+  };
 }
 
 export async function cancelAllNotifications(): Promise<void> {

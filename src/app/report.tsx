@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
@@ -16,6 +16,7 @@ import { formatDateLong, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 import { LockedCard } from '@/features/plus/Locked';
+import { track } from '@/lib/telemetry';
 
 const AREA_LABELS: Record<string, string> = {
   family: 'Family',
@@ -32,6 +33,9 @@ export default function WeekReportScreen() {
   const router = useRouter();
   const theme = useTheme();
   const today = todayKey();
+  useEffect(() => {
+    void track('week_ended');
+  }, []);
   const plans = useAppStore((s) => s.plans);
   const goals = useAppStore((s) => s.goals);
   const metrics = useAppStore((s) => s.metrics);
