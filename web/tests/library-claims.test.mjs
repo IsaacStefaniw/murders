@@ -101,6 +101,18 @@ test("the screenshots the page names all exist", async () => {
   const listed = [...page.matchAll(/\{ file: "(app-[a-z-]+)"/g)].map(([, f]) => f);
 
   assert.ok(listed.length >= 6, `expected the screen list, found ${listed.length}`);
+
+  // app-today.jpg is held back a second time, for a different reason than the
+  // first. The retake is accurate to HEAD, but the sleep-debt paragraph on it
+  // ships over the air only once Apple approves 1.0 — build 16, the one in
+  // review, does not have it. Publishing it now would show a reviewer
+  // functionality the binary they are testing does not contain, in the exact
+  // window where that comparison is being made. Restore it the day the update
+  // ships; see docs/APP_SCREENSHOTS.md.
+  assert.ok(
+    !listed.includes("app-today"),
+    "app-today shows the sleep-debt line, which is not in the build under review — restore it once the OTA ships",
+  );
   for (const file of listed) {
     const info = await stat(new URL(`../public/images/app/${file}.jpg`, import.meta.url));
     assert.ok(info.size > 10_000, `${file}.jpg is missing or too small to be a screenshot`);

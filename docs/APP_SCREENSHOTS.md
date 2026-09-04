@@ -36,6 +36,35 @@ show it yet; the update ships the day the approval lands. If the site goes
 live before that, the caption should not promise sleep debt as shipped, or
 the Today screen should wait for the update.
 
+## Held back right now
+
+`app-today.jpg` is captured, accurate to `7b7f690`, and **not on the site** —
+acting on the honesty note above rather than despite it.
+
+The sleep-debt paragraph it shows ships over the air only once Apple approves
+1.0. Build 16, the one currently in review, does not contain it. A reviewer
+comparing the marketing site against the binary in front of them is exactly the
+audience that would notice, in exactly the window where it matters, and the
+cost of waiting is one screenshot out of eight for a few days.
+
+The alternative the note offers — caption it as not-yet-shipped — was not taken
+because the section's whole framing is "every sentence in these is the shipped
+application's own output". One asterisked exception weakens that claim for the
+other seven.
+
+**Restore it the day the update ships.** Add `app-today` back to `appScreens`
+in `web/app/page.tsx` and delete the assertion in
+`web/tests/library-claims.test.mjs` that blocks it.
+
+## Also worth fixing before the retake is used
+
+The pattern suggestion reads "You've moved 6 of your last 6 **training that
+sticks** sessions to the evening". `src/lib/scheduling/adaptation.ts:194`
+interpolates `routine.title.toLowerCase()` where the doc comment at `:152`
+shows the intended shape with a generic noun — "6 of your last 8 workouts".
+Any multi-word routine title garbles the sentence. It is the app's own output,
+so the screenshot is honest; it just reads as broken.
+
 ## History
 
 `app-today.jpg` was pulled from the strip on 2026-09-04 because its capture
