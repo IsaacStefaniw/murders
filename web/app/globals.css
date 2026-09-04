@@ -873,3 +873,14 @@ footer { border-top: 1px solid var(--fog); }
   .hero-pillars dd { display: block; font-size: 12px; }
   .hero-pillars dd span { display: inline; }
 }
+
+/* Beside the alcohol explanation, not in the footer. The person reading that
+   paragraph at 1am is the one who needs it, and a line at the bottom of a
+   long page is a line they will not reach. */
+.mechanism-support { margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--fog); color: var(--muted); font-size: 12.5px; line-height: 1.55; }
+
+/* The price was at 88% of the page. "You are cheap and generous and you hid
+   both" — the executive reviewer, who ran out of attention before reaching it. */
+.hero-price { max-width: 520px; margin: 16px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.hero-price strong { color: var(--ink); font-size: 14px; font-weight: 750; }
+.hero-price span { display: block; margin-top: 3px; }

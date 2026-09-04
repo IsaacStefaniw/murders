@@ -249,7 +249,7 @@ function PlanBuilder({ open, setOpen }: { open: boolean; setOpen: (open: boolean
             <DialogHeader><p className="section-kicker">YOUR OPERATING PROFILE</p><DialogTitle>Build around the person before building the plan.</DialogTitle><DialogDescription>Define what should improve, what needs to reduce and what your real life will allow. Then make the next 12 weeks explicit.</DialogDescription></DialogHeader>
             <div className="intro-proof-grid"><div><Target /><span>What moves forward</span></div><div><TimerReset /><span>What stops pulling you back</span></div><div><LineChart /><span>What the results change</span></div></div>
             <div className="disclosure-card"><Check /><p><strong>Your profile and first personal insight are free.</strong> Complete daily programs and ongoing optimisation are premium. Recovery, urge and hardest-moment support remain free—always.</p></div>
-            <div className="profile-continuity"><ShieldCheck /><p>This creates a profile preview in this browser. The app reuses known context; connecting this web profile to the app is the next product connection.</p></div>
+            <div className="profile-continuity"><ShieldCheck /><p><strong>Nothing you type here is sent anywhere.</strong> This preview is stored in this browser and nowhere else &mdash; there is no account, no database and no server holding it. Close the tab and it is gone. Carrying a profile across to the app is something we have not built yet.</p></div>
             <Button className="plan-next" onClick={() => setStep(1)}>Begin my profile <ArrowRight /></Button>
             <p className="plan-time">About five minutes · iPhone only today · Premium explained before commitment</p>
           </div>
@@ -495,6 +495,11 @@ export default function Home() {
           <h1>The health advice you have read,<br />turned into a plan you can follow.</h1>
           <p className="hero-lede">IntentNorth takes 177 practices from published research, rates the evidence behind each one, and builds them into your week — training, food, sleep, habits, work, money and family. Then it changes the plan when your week changes, and tells you why.</p>
           <div className="hero-actions"><AppStoreCta /><a className="text-link" href="#how">See how it works <ArrowDown /></a></div>
+          <p className="hero-price">
+            <strong>AU$89.99 a year</strong> for all seven areas &mdash; about seven fifty a month,
+            with nothing held back for a higher tier. <span>Free to start, and the urge and
+            hardest-moment support is free permanently.</span>
+          </p>
           <div className="hero-trust"><span><Check /> Free to start</span><span><LockKeyhole /> Nothing leaves your phone</span><span><Heart /> Hardest-moment support stays free</span></div>
           <dl className="hero-pillars">
             {heroPillars.map((pillar) => (
@@ -550,8 +555,8 @@ export default function Home() {
       <section className="causality-section section-shell">
         <div className="causality-copy"><p className="section-kicker">WHAT YOU ACTUALLY GET</p><h2>You never build<br />a program again.</h2><p>Not a dashboard and not a suggestion. Four weeks at a time: two to build, one harder, one easier so you recover. Written for the goal you pick, fitted around the week you actually have, and run with you session by session.</p>
           <div className="deliverable-grid">
-            <article><span>THE BLOCK</span><strong>Week 2 of 4 · upper body</strong><p>Four weeks at a time, sized to your days, your equipment and the weights you already lift.</p></article>
-            <article><span>TODAY, ALREADY DECIDED</span><strong>Bench 4 × 6 at 90kg</strong><p>Rest 120s. About 45 minutes. Nothing left to work out at the gym door.</p></article>
+            <article><span>YOUR MONDAY</span><strong>Sixteen things, already placed</strong><p>Breakfast, ten minutes of morning light, a session, two blocks of focused work, dinner decided. You did not write any of it.</p></article>
+            <article><span>WHEN YOU SLEPT BADLY</span><strong>It shortens, it does not cancel</strong><p>The session keeps the part that matters and drops the rest. Twenty minutes instead of fifty, and it says why.</p></article>
             <article><span>WHILE YOU DO IT</span><strong>Sets tick, rests time themselves</strong><p>Slept badly, or only have half the time? It shortens the session and keeps the hard part, instead of cancelling it.</p></article>
           </div>
           <p className="deliverable-breadth">The same holds away from the gym: guided breathing, seven meditation scripts timed to the clock, a weekly review that ends in one decision, and the week&rsquo;s dinners chosen once while you are not hungry.</p>
@@ -561,11 +566,10 @@ export default function Home() {
 
       <section className="film-section" id="film"><div className="section-shell">
         <div className="film-heading">
-          <div><p className="section-kicker light">THE PRODUCT, ON SCREEN</p><h2>Nothing here was<br />written for the camera.</h2></div>
-          <p>The sentences on these screens are the ones the app produces. &ldquo;Your own recovery numbers are down this morning&rdquo; is a line the app writes when your own numbers drop, not a caption composed for a film.</p>
+          <div><p className="section-kicker light">THE PRODUCT, ON SCREEN</p><h2>Watch it plan<br />a week.</h2></div>
+          <p>Everything on these screens is what the app actually says. Press play if you want to watch it work.</p>
         </div>
         <Film />
-        <div className="causality-proof film-proof"><ShieldCheck /><p>Screens sit in a device frame for presentation. Every sentence in them is the shipped application&rsquo;s own output, not copy written for a film.</p></div>
         <p className="film-caption">Named educators appear as attribution for practices distilled from their public teaching; it implies no endorsement of IntentNorth.</p>
       </div></section>
 
@@ -579,7 +583,8 @@ export default function Home() {
             <span className="mechanism-kicker">WHAT YOU SEE WHEN YOU LOG A DRINK AT 8:45PM</span>
             <p className="mechanism-text">“Alcohol shortens the night, not the sleep. It speeds falling asleep, then suppresses REM and fragments the second half as it clears—which is why a drink can feel like it helped and still cost you the morning.”</p>
             <div className="mechanism-meta"><span className="grade">EVIDENCE B</span><span>Meta-analyses of alcohol and sleep architecture</span></div>
-            <p className="mechanism-lever"><strong>The lever:</strong> most of it comes back if the last drink lands three or more hours before bed.</p>
+            <p className="mechanism-lever"><strong>What helps:</strong> in these studies, leaving three or more hours between the last drink and bed recovered much of the lost sleep quality. Drinking less, or not at all, helps more.</p>
+            <p className="mechanism-support">If drinking is something you want to stop rather than time differently, that is what the free part of this app is for &mdash; and if it feels bigger than an app, talk to your doctor or a support line. In Australia the National Alcohol and Other Drug Hotline is 1800 250 015, any hour of any day.</p>
             <p className="mechanism-rule">No verdict. No streak to break. An explanation, and the one thing that changes it.</p>
           </div><div className="free-principle"><Heart /><p><strong>We never charge for someone’s hardest moment.</strong> Urge, reset and lapse-recovery support remains free.</p></div><div className="behaviour-cta"><BuildPlanButton onClick={() => setPlanOpen(true)} /><small>Build what improves—and what gets out of the way.</small></div></div>
         </div>
@@ -630,7 +635,7 @@ export default function Home() {
       <section className="screens-section" id="screens"><div className="section-shell">
         <div className="screens-heading">
           <div><p className="section-kicker light">THE APP ITSELF</p><h2>Eight screens.<br />No press play required.</h2></div>
-          <p>Every sentence in these is the shipped application&rsquo;s own output. Nothing was written for a screenshot, and nothing here is a design comp.</p>
+          <p>These are photographs of the app, taken from the build.</p>
         </div>
         <div className="screens-strip">
           {appScreens.map((screen) => (
@@ -656,11 +661,7 @@ export default function Home() {
           ))}
         </ol>
         <div className="ladder-proof">
-          <article>
-            <strong>5,376</strong>
-            <span>different four-week plans</span>
-            <p>Four goals × four levels × four day-counts × three equipment sets × four focus lifts × seven constraint states. Every combination was generated and hashed: 5,376 plans, no two identical.</p>
-          </article>
+          
           <article>
             <strong>&ldquo;This is too easy&rdquo;</strong>
             <span>is a button</span>
@@ -731,7 +732,7 @@ export default function Home() {
         <div className="human-overlay"><p className="section-kicker light">THE HUMAN STAKE</p><h2>High performance should expand your life—not consume it.</h2><p>The goal is not more optimisation. It is a system capable of learning while the person, family and work behind the goal remain visible.</p></div>
       </section>
 
-      <section className="commitment-section"><div className="section-shell commitment-grid"><div><p className="section-kicker light">YOUR NEXT 12 WEEKS</p><h2>Build the profile.<br />See the first leverage point.</h2><p>Define what moves forward, what stops pulling you back and what the plan must protect. Your first insight is free.</p><BuildPlanButton inverse onClick={() => setPlanOpen(true)}>Build my profile</BuildPlanButton><small>About five minutes · iPhone only today · No payment taken · Premium terms shown before payment</small></div><div className="commitment-list"><article><span>01</span><div><strong>Choose the outcomes</strong><p>Training, sleep, nutrition, focus, leadership, money or presence.</p></div></article><article><span>02</span><div><strong>Name the friction</strong><p>The patterns that repeatedly take the week off course.</p></div></article><article><span>03</span><div><strong>Make the commitment</strong><p>The system reflects it back before revealing your architecture.</p></div></article><article><span>04</span><div><strong>Understand the boundary</strong><p>Profile and first insight are free. Complete programs are premium.</p></div></article></div></div></section>
+      <section className="commitment-section"><div className="section-shell commitment-grid"><div><p className="section-kicker light">YOUR NEXT 12 WEEKS</p><h2>See what your<br />first week would be.</h2><p>Answer a few questions and we will show you what the app would put in your week. It is free, and nothing you type leaves this browser.</p><BuildPlanButton inverse onClick={() => setPlanOpen(true)}>Build my profile</BuildPlanButton><small>About five minutes · iPhone only today · No payment taken · Premium terms shown before payment</small></div><div className="commitment-list"><article><span>01</span><div><strong>Choose the outcomes</strong><p>Training, sleep, nutrition, focus, leadership, money or presence.</p></div></article><article><span>02</span><div><strong>Name what gets in the way</strong><p>The patterns that repeatedly take the week off course.</p></div></article><article><span>03</span><div><strong>Make the commitment</strong><p>You see it written back to you before anything is built.</p></div></article><article><span>04</span><div><strong>Understand the boundary</strong><p>Profile and first insight are free. Complete programs are premium.</p></div></article></div></div></section>
 
       <section className="founder-section section-shell"><div><p className="section-kicker">WHY THIS EXISTS</p><h2>Nothing would tell me what to change.</h2></div><p>“I had a ring telling me I slept badly, a training app that knew my bench and nothing else, and a calendar full of other people&rsquo;s priorities. Every one of them was right about its own slice and silent on the trade-off—so the plan never actually changed. I just felt worse about it. I wanted one thing that held all of it, decided what today should be, and told me why.”</p><span>— Isaac Stefaniw, founder</span></section>
 

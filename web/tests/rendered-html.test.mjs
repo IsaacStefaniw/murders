@@ -47,9 +47,14 @@ test("renders the approved positioning and primary CTA", async () => {
     /Education, never diagnosis or personal advice/i,
     "the health boundary is a legal requirement, not a stylistic choice",
   );
-  // The film's screens are real, and saying so is a claim of strength rather
-  // than a hedge — which is why that one stayed when the diagram's went.
-  assert.match(html, /the shipped application&#x27;s own output|shipped application.s own output/i);
+  // The film's "these screens are real" note is gone too, and this now guards
+  // its absence. Three separate passages defended the authenticity of our own
+  // screenshots. Four of five cold reviewers read that as guilt: "nobody says
+  // that unless someone accused them" (Sam), "a company arguing with a critic,
+  // not talking to me" (Jo), "three defences against an accusation nobody
+  // made" (Priya). Written to be scrupulous, received as suspicious.
+  assert.doesNotMatch(html, /written for the camera|design comp|written for a screenshot/i,
+    "arguing that our screenshots are real makes readers wonder what is fake");
   // The interactive profile builder is a client component, so assert its
   // server-rendered disclosure rather than dialog copy loaded after hydration.
   assert.match(html, /Profile and first insight are free/i);
