@@ -111,15 +111,14 @@ export default function Library() {
       </View>
       <AppText variant="title">Evidence-based practices</AppText>
       <AppText variant="secondary" style={styles.intro}>
-        Practices distilled, in IntentNorth&apos;s own words, from the public evidence-based teaching
-        of Tim Ferriss, Andrew Huberman, Peter Attia, Rhonda Patrick, Jordan Peterson and David
-        Sinclair. Add one and IntentNorth plans it into your real week — and adapts it like anything
-        else you do.
+        Practices distilled, in IntentNorth&apos;s own words, from public, evidence-based teaching.
+        Each one names its sources, shows how good the evidence is and says where it stops. Add one
+        and it is planned into your real week.
       </AppText>
       {!plus ? (
         <LockedCard
           title={`${openCount} of ${total} open`}
-          body={`The first ${FREE_PROTOCOLS_PER_PILLAR} in every pillar are open to read and add. The other ${total - openCount} are listed by name and run with Plus.`}
+          body={`The first ${FREE_PROTOCOLS_PER_PILLAR} in every area are open to read and add. The other ${total - openCount} are listed by name and run with Plus.`}
         />
       ) : null}
       <AppText variant="caption" color="textTertiary" style={styles.disclaimer}>

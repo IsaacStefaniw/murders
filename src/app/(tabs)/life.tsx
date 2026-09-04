@@ -114,6 +114,10 @@ export default function Life() {
         Coaches
       </AppText>
       <AppText variant="title">What you&apos;re building</AppText>
+      <AppText variant="caption" color="textTertiary">
+        A coach here is a program, not a person: each one builds and runs a plan for one part of
+        your life, from the same answers.
+      </AppText>
       {profile.lifeVision ? (
         <AppText variant="secondary" style={styles.vision}>
           “{profile.lifeVision}”
@@ -127,9 +131,9 @@ export default function Life() {
         promise="One more thing IntentNorth can use across every coach."
       />
 
-      <SectionHeader title="Paths" />
+      <SectionHeader title="Programs" />
       <AppText variant="caption" color="textTertiary">
-        Guided programs. A few questions each — every answer changes what gets built.
+        One program for each part of life. A few questions each — every answer changes what gets built.
       </AppText>
       <View style={styles.stack}>
         {PATH_ORDER.map((pathId) => {
@@ -180,7 +184,7 @@ export default function Life() {
         >
           <AppText variant="heading">Practice library</AppText>
           <AppText variant="caption" color="textTertiary">
-            All the evidence-based protocols behind the paths, à la carte.
+            All 177 practices behind the programs, each with its evidence grade, one tap into your week.
           </AppText>
         </Card>
       </View>

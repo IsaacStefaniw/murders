@@ -10,6 +10,7 @@ import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { PATHS } from '@/features/paths/definitions';
+import { describeConstraints } from '@/features/onboarding/constraints';
 import { useOnboardingStore } from '@/features/onboarding/state';
 import { formatTime } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
@@ -60,9 +61,10 @@ export default function PlanReview() {
     // carries tailored milestones, check-ins and advice, not just blocks.
     for (const start of plan.pathStarts) startPath(start.id, start.answers);
     resetOnboarding();
-    // The first insight is free; running it is Plus. The paywall sits
-    // here, once, and never again mid-session.
-    router.replace('/upgrade?from=onboarding' as never);
+    // The first insight is free; running it is Plus. The offer sits on
+    // Today as a card that can be dismissed, and every locked session opens
+    // it on tap — never as a gate between the plan and the first day.
+    router.replace('/(tabs)/today' as never);
   };
 
   const toggleRoutine = (id: string) => {
@@ -80,10 +82,14 @@ export default function PlanReview() {
   return (
     <Screen>
       <AppText variant="label" color="accent" style={styles.top}>
-        Your Life Operating Plan
+        Your plan
       </AppText>
       <AppText variant="title">
         Here&apos;s what I think matters most, {plan.profile.firstName}.
+      </AppText>
+      <AppText variant="secondary">
+        Your first week, built from your answers. Change any of it now or later — nothing here is
+        fixed.
       </AppText>
 
       <SectionHeader title="Priorities" />
@@ -100,14 +106,14 @@ export default function PlanReview() {
 
       {plan.pathStarts.length > 0 ? (
         <View>
-          <SectionHeader title="Paths starting today" />
+          <SectionHeader title="Programs starting today" />
           <View style={styles.stack}>
             {plan.pathStarts.map((p) => (
               <Card key={p.id}>
                 <AppText variant="heading">{PATHS[p.id].title}</AppText>
                 <AppText variant="caption" color="textTertiary">
-                  Built from your answers — milestones, check-ins and guidance from day one. Tune
-                  it any time under Life → Paths.
+                  Built from your answers — steps, check-ins and guidance from day one. Change it
+                  any time under Coaches.
                 </AppText>
               </Card>
             ))}
@@ -149,6 +155,26 @@ export default function PlanReview() {
       </View>
         </>
       )}
+
+      {describeConstraints(plan.profile.constraints).length > 0 ? (
+        <View>
+          <SectionHeader title="Planned around" />
+          <View style={styles.stack}>
+            {describeConstraints(plan.profile.constraints).map((c) => (
+              <Card key={c.label}>
+                <AppText variant="heading">{c.label}</AppText>
+                <AppText variant="caption" color="textTertiary">
+                  {c.effect}
+                </AppText>
+              </Card>
+            ))}
+          </View>
+          <AppText variant="caption" color="textTertiary">
+            A sensible default, not an assessment. Anything that hurts, or anything being managed,
+            is a conversation for a professional.
+          </AppText>
+        </View>
+      ) : null}
 
       <SectionHeader title="Weekly rhythm" />
       <View style={styles.stack}>

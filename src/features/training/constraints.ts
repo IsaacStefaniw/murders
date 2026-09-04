@@ -102,6 +102,7 @@ export function intensityCeiling(
   if (constraints.includes('recovering') || constraints.includes('heart')) return 0.7;
   if (constraints.includes('pregnancy') || constraints.includes('joints')) return 0.75;
   if (constraints.includes('energy') || constraints.includes('balance')) return 0.8;
+  if (constraints.includes('hormonal') || constraints.includes('mentalHealth')) return 0.85;
   return 0.9;
 }
 

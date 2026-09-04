@@ -70,7 +70,7 @@ export function ReadinessCard() {
         ) : null}
       </View>
       <AppText variant="caption" color="textTertiary" style={styles.gap}>
-        Compared against your own nights and your own two-week normal, never a population average —
+        Measured against your own nights, never a population average —
         these numbers only mean anything relative to you.
       </AppText>
     </Card>

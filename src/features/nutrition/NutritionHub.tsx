@@ -56,7 +56,7 @@ export function NutritionHub() {
         {plan.proteinTarget ? (
           <Card style={styles.row}>
             <AppText variant="body" style={styles.grow}>
-              Protein anchor
+              Protein target
             </AppText>
             <AppText variant="heading">
               {plan.proteinTarget.minG}–{plan.proteinTarget.maxG} g/day
@@ -129,7 +129,7 @@ export function NutritionHub() {
       <QuestionCard domain="nutrition" />
 
       {/* The ladder — one lever at a time, in the order YOUR answers set. */}
-      <SectionHeader title="The lever ladder" />
+      <SectionHeader title="One lever at a time" />
       <View style={styles.stack}>
         {plan.levers.map((l) => (
           <Card key={l.id} style={{ opacity: l.state === 'later' ? 0.55 : 1 }}>

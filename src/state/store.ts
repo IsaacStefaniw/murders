@@ -432,6 +432,9 @@ export interface AppState {
 
   /** Preview Lab — compress the learning loop for testing. */
   clockOffsetMs: number;
+  /** When the Plus card on Today was dismissed; null means show it. */
+  plusNudgeDismissedAt: string | null;
+  dismissPlusNudge: () => void;
   advanceToNextMorning: () => void;
   jumpToEvening: () => void;
   resetClock: () => void;
@@ -471,6 +474,7 @@ const initialData = {
   pathIntensityPush: {} as Partial<Record<PathId, boolean>>,
   workBlock: null as WorkBlock | null,
   clockOffsetMs: 0,
+  plusNudgeDismissedAt: null as string | null,
   voicePreference: null as string | null,
 };
 
@@ -1692,6 +1696,8 @@ export const useAppStore = create<AppState>()(
           setClockOffsetMs(0);
           set({ ...initialData });
         },
+        dismissPlusNudge: () => set({ plusNudgeDismissedAt: new Date().toISOString() }),
+
         setEntitlement: (entitlement) => {
           const before = get().entitlement.plus;
           set({ entitlement });

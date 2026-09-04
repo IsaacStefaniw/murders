@@ -1,5 +1,12 @@
 # Film brief — the hero film, rebuilt around the positioning
 
+> **Revision 2, 2026-09-04.** User feedback: nobody could tell what we sell.
+> `docs/POSITIONING_REVIEW.md` replaces §6 with a thirty-second script that
+> opens on the problem in plain words. The masters for it are
+> `docs/film/film9-30s-plain.py`; the films are `intentnorth-week-30s` and
+> `-vertical`. §1–§5, §7 and §8 still hold.
+
+
 Written 2026-09-04 as the brief an agency would be handed, and then worked
 to. It replaces the 45s "coaching spine" cut (`film5`) and the 16s vertical
 (`film6`) as the reference for anything that moves on the site or in the
