@@ -85,8 +85,17 @@ export function ProtocolGradingMotion() {
         </article>
         <div className={stage >= 3 ? "iosm-placed is-visible" : "iosm-placed"}>
           <span>PLACED IN YOUR WEEK</span>
-          <strong>06:50, every day</strong>
-          <p>Wake 06:30, plus twenty.</p>
+          <div className="iosm-placed-shots">
+            <figure>
+              <img alt="" height={1800} loading="lazy" src="/images/app/app-protocol-2-week-before.jpg" width={840} />
+              <figcaption>Before · 15 planned</figcaption>
+            </figure>
+            <figure className="is-after">
+              <img alt="" height={1800} loading="lazy" src="/images/app/app-protocol-3-week-after.jpg" width={840} />
+              <figcaption>After · 16 planned</figcaption>
+            </figure>
+          </div>
+          <p>7:25am, between breakfast and training. The scheduler chose the hour.</p>
         </div>
       </div>
 
@@ -94,15 +103,17 @@ export function ProtocolGradingMotion() {
         <span>WHY</span>
         <p>It is anchored to your wake time, not to a clock.</p>
         <small>
-          The grade and the safety line stay attached to the practice for as long as you keep it.
-          Nothing in this library arrives without both.
+          Those two screens are the application&rsquo;s own week view, captured before and after one
+          tap — not a drawing of it. The grade and the safety line stay attached to the practice for
+          as long as you keep it; nothing in this library arrives without both.
         </small>
       </div>
 
       <figcaption className="iosm-sr-only" id="iosm-library-description">
         A diagram of the practice library: 177 protocols graded A to E — 13 A, 60 B, 63 C, 33 D and
-        8 E — with one, Morning light at grade B, chosen and placed at 06:50, twenty minutes after a
-        06:30 wake time, carrying its evidence grade and its safety line.
+        8 E — with one, Morning light at grade B, chosen and placed. Two captures of the
+        application\u2019s own week screen show it before the practice was added, with fifteen items
+        planned, and after, with sixteen and Morning light at 7:25am between breakfast and training.
       </figcaption>
     </figure>
   );

@@ -140,8 +140,14 @@ test("reps in reserve never returns, from anywhere", async () => {
     assert.match(html, new RegExp(`>${figure}<`), `grade count ${figure} is missing`);
   }
   assert.match(html, /104 of 177 are C or weaker/, "the honest half of the library claim is gone");
-  // toRoutine anchors morning-light to wake + 20; protocols.test.ts:118 pins 06:50.
-  assert.match(html, /06:50/, "the placement the library sequence proves");
+  // The placement beat is no longer drawn. The app session captured the same
+  // seeded week before and after toggleProtocol('morning-light'), so the page
+  // shows the application's own week screen going from 15 items to 16 with the
+  // practice at 7:25am — real evidence in the place a diagram used to stand.
+  // Provenance is in docs/APP_SCREENSHOTS.md.
+  assert.match(html, /app-protocol-2-week-before\.jpg/, "the before capture");
+  assert.match(html, /app-protocol-3-week-after\.jpg/, "the after capture");
+  assert.match(html, /7:25am/, "the hour the scheduler chose");
   assert.match(html, /Never look at the sun directly/, "the safety line must travel with the practice");
 
   // b) A program that lives with you — programme.ts.
