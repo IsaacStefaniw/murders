@@ -66,6 +66,12 @@ public/video/*.jpg
 !public/video/intentnorth-week-30s-vertical.webm
 !public/video/intentnorth-week-30s-vertical.mp4
 !public/video/intentnorth-week-30s-vertical-poster.jpg
+!public/video/intentnorth-heard-50s.webm
+!public/video/intentnorth-heard-50s.mp4
+!public/video/intentnorth-heard-50s-poster.jpg
+!public/video/intentnorth-heard-50s-vertical.webm
+!public/video/intentnorth-heard-50s-vertical.mp4
+!public/video/intentnorth-heard-50s-vertical-poster.jpg
 # Nothing that is not media belongs under public/ — the handover README
 # deployed to intentnorth.app/video/README.md and sat live with internal
 # legal notes in it. The website branch has a build guard for md/txt/log;

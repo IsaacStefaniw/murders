@@ -1,5 +1,12 @@
 # Film brief — the hero film, rebuilt around the positioning
 
+> **Revision 3, 2026-09-04.** Isaac: the four-apps opener is not the
+> customer's problem. The problem is hearing good advice and losing it by
+> Tuesday because nobody researches it, writes it down and puts it into
+> their week. `docs/PROBLEM_STATEMENT.md` is now the reference; the film is
+> `docs/film/film10-50s-heard-it.py` (`intentnorth-heard-50s`, fifty
+> seconds, no counts, the evidence grading instead).
+>
 > **Revision 2, 2026-09-04.** User feedback: nobody could tell what we sell.
 > `docs/POSITIONING_REVIEW.md` replaces §6 with a thirty-second script that
 > opens on the problem in plain words. The masters for it are
