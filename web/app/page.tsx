@@ -46,6 +46,12 @@ const constraints = [
   "I am managing an injury", "I want ambitious targets",
 ];
 
+const heroPillars = [
+  { figure: "177", lead: "graded practices", note: ". We publish the 104 we grade C or weaker." },
+  { figure: "4", lead: "phased weeks per goal", note: ". Re-shaped when your week changes, not rebuilt by you." },
+  { figure: "7", lead: "coaches, one profile", note: ". Four levels each, earned from your own log." },
+];
+
 const todayRows = [
   { id: "train", label: "Train", icon: Dumbbell, planned: "Upper A — main work, then the accessory list", action: "Upper A — main work stays, accessories rest today", reason: "HRV and resting heart rate below your own baseline, not a population band. Every main lift stays; the accessory list drops to one.", signal: true },
   { id: "eat", label: "Eat", icon: Leaf, action: "Protein anchor 165–198g · kitchen closes 7:30pm", reason: "Three weeks of trend, never one heavy morning." },
@@ -403,9 +409,17 @@ export default function Home() {
         <div className="hero-copy">
           <p className="section-kicker">THE PERSONAL OPERATING SYSTEM</p>
           <h1>Your whole life.<br />One system that learns.</h1>
-          <p className="hero-lede">Your results should change what happens next. Seven specialists—training, food, habits, work, money, your relationship and your family—work from one operating profile, and every change carries its reason.</p>
+          <p className="hero-lede">Your results should change what happens next. Seven specialists work from one profile, and every change they make carries its reason.</p>
           <div className="hero-actions"><BuildPlanButton onClick={() => setPlanOpen(true)} /><a className="text-link" href="#depth">See all seven <ArrowDown /></a></div>
           <div className="hero-trust"><span><Check /> Free operating profile</span><span><LockKeyhole /> Nothing leaves your phone</span><span><Heart /> Hardest-moment support stays free</span></div>
+          <dl className="hero-pillars">
+            {heroPillars.map((pillar) => (
+              <div key={pillar.figure}>
+                <dt>{pillar.figure}</dt>
+                <dd><strong>{pillar.lead}</strong><span>{pillar.note}</span></dd>
+              </div>
+            ))}
+          </dl>
         </div>
         <div className="hero-stage" aria-label="Today’s decisions across seven specialist pathways">
           <div className="hero-image-wrap"><Image src="/images/intent-os-hero-family-transition-v2.webp" alt="A professional closing a laptop and returning attention to family life" width={1536} height={1024} priority unoptimized sizes="(max-width: 1120px) 80vw, 43vw" /></div>

@@ -154,4 +154,15 @@ test("reps in reserve never returns, from anywhere", async () => {
   assert.match(html, /36 sessions across 16 weeks/, "the training gate");
   assert.match(html, /10 sessions across 4 weeks/, "the nutrition gate");
   assert.match(html, /a top rung that cannot be selected/, "the ladder claim");
+
+  // The three claims in the first viewport. CLAUDE.md's definition of done
+  // asks that the category difference be understandable there, and the band
+  // that used to be the only place it appeared sits 1,325px down on a phone.
+  // These are the same three numbers the sequences below prove.
+  assert.match(html, /177<\/dt>|>177</, "the library figure left the hero");
+  assert.match(html, /graded practices/, "the first pillar");
+  assert.match(html, /phased weeks per goal/, "the second pillar");
+  assert.match(html, /coaches, one profile/, "the third pillar");
+  // The costly signal is the whole reason the first pillar works.
+  assert.match(html, /We publish the 104 we grade C or weaker/, "the honesty that makes the grading credible");
 });
