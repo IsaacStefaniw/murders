@@ -107,6 +107,13 @@ full view — by name — of every coach, rung and protocol. Everything that
 > No account. No analytics. Nothing you enter leaves your device. Apple Health is read, never written. Save a backup any time; delete the app and it is gone.
 >
 > IntentNorth provides education and structured planning. It is not medical, psychological or financial advice, and it does not diagnose or treat any condition.
+>
+> Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+> Privacy Policy: https://intentnorth.app/privacy
+
+The two links at the end are required by guideline 3.1.2 for any app with
+auto-renewable subscriptions: the first submission of 1.0 was rejected on
+2026-09-04 for their absence, with the binary itself unchanged.
 
 Every figure above is counted from the shipped code: 177 / 145 / 188 from
 the protocol library, 16 from the behaviour catalogue, 7 meditation scripts,
