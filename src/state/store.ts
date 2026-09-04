@@ -23,6 +23,7 @@ import { applicableRoutines, protocolById, routineApplies, toRoutine } from '@/f
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { NO_ENTITLEMENT, runningRoutines, type Entitlement } from '@/features/plus/entitlement';
+import { PERSIST_VERSION, migratePersisted, pruneHistory } from '@/state/hygiene';
 import {
   EMPTY_FOOD_PREFERENCES,
   type EnjoymentRating,
@@ -420,6 +421,8 @@ export interface AppState {
 
   resetAll: () => void;
   setHydrated: () => void;
+  /** Trim history to what the screens still read. Runs once per visit. */
+  pruneHistory: () => void;
   /**
    * Record what StoreKit answered. Today and every later unapproved day
    * are re-planned, because the coaches either just started running or
@@ -660,6 +663,13 @@ export const useAppStore = create<AppState>()(
             return;
           }
           set({ previousOpenAt: last, lastOpenedAt: now });
+          get().pruneHistory();
+        },
+
+        pruneHistory: () => {
+          const { plans, behaviourEvents, reflections, workoutLogs, suggestions } = get();
+          const patch = pruneHistory({ plans, behaviourEvents, reflections, workoutLogs, suggestions }, todayKey());
+          if (Object.keys(patch).length > 0) set(patch);
         },
 
         updateProfile: (patch) => {
@@ -1742,6 +1752,8 @@ export const useAppStore = create<AppState>()(
     {
       name: 'intent-os-store',
       storage: createJSONStorage(() => AsyncStorage),
+      version: PERSIST_VERSION,
+      migrate: migratePersisted,
       partialize: (state) =>
         Object.fromEntries(
           Object.entries(state).filter(
