@@ -127,4 +127,31 @@ test("reps in reserve never returns, from anywhere", async () => {
   assert.match(html, /main work, then the accessory list/, "the hero lost its before state");
   assert.match(html, /main work stays, accessories rest today/, "the hero lost its after state");
   assert.match(html, /against your own baseline/, "the hero lost the signal that causes the change");
+
+  // The three positioning sequences, one per claim Isaac set. Each is a
+  // diagram of behaviour the app actually has, so each number below is checked
+  // against the file that produces it rather than against the page that shows
+  // it. If a sequence is ever replaced by prose again, this fails.
+
+  // a) Proven protocols, synthesised and rated — protocols.ts.
+  // The distribution is the asset: publishing that most of the library is
+  // mid-grade is only worth doing if the grading is real.
+  for (const figure of ["13", "60", "63", "33", "8"]) {
+    assert.match(html, new RegExp(`>${figure}<`), `grade count ${figure} is missing`);
+  }
+  assert.match(html, /104 of 177 are C or weaker/, "the honest half of the library claim is gone");
+  // toRoutine anchors morning-light to wake + 20; protocols.test.ts:118 pins 06:50.
+  assert.match(html, /06:50/, "the placement the library sequence proves");
+  assert.match(html, /Never look at the sun directly/, "the safety line must travel with the practice");
+
+  // b) A program that lives with you — programme.ts.
+  assert.match(html, /build, build, progress, deload/, "the four phased weeks");
+  assert.match(html, /It shrinks when your week does/, "the beat no competitor shows");
+
+  // c) Seven coaches, one profile — level.ts. These are LEVEL_THRESHOLDS
+  // verbatim: training established is 36 sessions across 16 weeks, nutrition
+  // developing is 10 across 4.
+  assert.match(html, /36 sessions across 16 weeks/, "the training gate");
+  assert.match(html, /10 sessions across 4 weeks/, "the nutrition gate");
+  assert.match(html, /a top rung that cannot be selected/, "the ladder claim");
 });

@@ -10,7 +10,9 @@ import {
   Wallet, Wind, X, Zap,
 } from "lucide-react";
 
-import { LearningLoopMotion, SharedProfileMotion, TodayCardMotion } from "@/components/intent-motion";
+import {
+  PlanGrowsMotion, ProtocolGradingMotion, SevenCoachesMotion, TodayCardMotion,
+} from "@/components/intent-motion";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
@@ -430,7 +432,7 @@ export default function Home() {
           </div>
           <p className="deliverable-breadth">The same holds away from the gym: guided breathing, seven meditation scripts timed to the clock, a weekly review that ends in one decision, and the week&rsquo;s dinners chosen once while you are not hungry.</p>
 </div>
-        <div className="learning-motion-wrap"><LearningLoopMotion /></div>
+        <div className="learning-motion-wrap"><PlanGrowsMotion /></div>
       </section>
 
       <section className="film-section" id="film"><div className="section-shell">
@@ -486,7 +488,7 @@ export default function Home() {
 
       <section className="profile-section section-shell">
         <div className="profile-copy"><p className="section-kicker">ONE OPERATING PROFILE</p><h2>Answer once.<br />Context compounds.</h2><p>Each pathway begins with specialist depth. Known information carries forward only where it is relevant, so a new goal does not mean another generic interview.</p><div className="profile-now"><span>SHIPPED TODAY</span><strong>Deep learning loops within pathways, plus sleep-informed training.</strong></div></div>
-        <div className="profile-motion-wrap"><SharedProfileMotion /><p className="diagram-note">System-behaviour diagram. The app already avoids repeated questions; web-to-app profile linking is the next connection.</p></div>
+        <div className="profile-motion-wrap"><SevenCoachesMotion /><p className="diagram-note">Levels are earned from your own log. Connecting this web profile to the app is the next product connection.</p></div>
       </section>
 
       <section className="depth-section" id="depth"><div className="section-shell"><div className="depth-heading"><div><p className="section-kicker light">SPECIALIST DEPTH</p><h2>One profile does not mean one shallow plan.</h2></div><p>Whole-life context matters only when each pathway is deep enough to act on it.</p></div><PathwayDepth /></div></section>
@@ -557,11 +559,7 @@ export default function Home() {
             </article>
           ))}
         </div>
-        <div className="library-flow">
-          <article><span>ONE TAP</span><strong>Add to my plan</strong><p>The same button on every practice, with its grade and its caution already read.</p></article>
-          <article><span>THEN NOTHING</span><strong>It finds the hour</strong><p>Anchored to your wake or your bedtime where that matters, placed around what is already in the week.</p></article>
-          <article><span>AND AFTER</span><strong>It adapts like the rest</strong><p>It moves when the week moves, and it answers to your results the same way your training block does.</p></article>
-        </div>
+        <div className="library-motion-wrap"><ProtocolGradingMotion /></div>
         <div className="library-honesty">
           <ShieldCheck />
           <p><strong>Most of it is not an A, and it says so.</strong> Thirteen practices are grade A. Sixty are B. The remaining hundred and four are C, D or E&mdash;useful, reasoned, and openly marked as weaker evidence. A system that graded everything highly would be easier to sell and worth less to trust.</p>

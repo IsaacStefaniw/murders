@@ -1,8 +1,6 @@
-export {
-  LearningLoopMotion,
-  SharedProfileMotion,
-  MissedTuesdayMotion,
-} from "./MotionProofs";
 export { TodayCardMotion, type TodayRow } from "./TodayCardMotion";
-
-
+export {
+  ProtocolGradingMotion,
+  PlanGrowsMotion,
+  SevenCoachesMotion,
+} from "./PositioningMotion";

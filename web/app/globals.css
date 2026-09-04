@@ -769,3 +769,5 @@ footer { border-top: 1px solid var(--fog); }
   .library-flow { grid-template-columns: 1fr; }
   .library-flow article + article::before { left: 50%; top: -13px; transform: translateX(-50%) rotate(135deg); }
 }
+
+.library-motion-wrap { margin-top: 34px; }
