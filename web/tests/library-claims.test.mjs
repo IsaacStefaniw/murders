@@ -124,15 +124,20 @@ test("the screenshots the page names all exist", async () => {
 
 });
 
-test("the 5,376 figure ships with the derivation that lets a reader check it", async () => {
-  // A bare five-figure number is a boast. With its six factors printed beside
-  // it, a sceptic can multiply: 4 x 4 x 4 x 3 x 4 x 7 = 5,376.
+test("the 5,376 figure stays off the page", async () => {
+  // Four of the five cold reviewers rejected this number and none defended it.
+  // "A developer's changelog" (Sam). "You counted a cartesian product; my
+  // spreadsheet also generates infinite unique plans, and hashing proves
+  // nothing about quality" (Dev). "5,376 is a worse number than 1 — it means
+  // nothing was chosen for me" (Priya). "Decoration masquerading as proof"
+  // (the plain-language reviewer).
+  //
+  // The figure is true and the derivation was sound. It answered a question
+  // nobody asked, in the voice of the people who built it. This guard keeps it
+  // off, rather than keeping it honest.
   const html = await renderHome();
-  assert.match(html, /5,376/);
-  assert.equal(4 * 4 * 4 * 3 * 4 * 7, 5376, "the stated factors must multiply to the claim");
-  for (const factor of [/four goals/i, /four levels/i, /four day-counts/i, /three equipment/i, /four focus lifts/i, /seven constraint states/i]) {
-    assert.match(html, factor, `the derivation is missing a factor: ${factor}`);
-  }
+  assert.doesNotMatch(html, /5,376/, "the combinatorics boast is back");
+  assert.doesNotMatch(html, /hashed/i, "engineering process is not a selling point");
 });
 
 test("the price on the page is the price Isaac set", async () => {
