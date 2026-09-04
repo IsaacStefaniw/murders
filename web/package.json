@@ -10,7 +10,7 @@
     "dev": "node scripts/sites-env.mjs -- vite",
     "build": "node scripts/build-verified.mjs",
     "start": "node scripts/sites-env.mjs -- vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/legal-pages.test.mjs tests/canonical-host.test.mjs tests/film.test.mjs tests/library-claims.test.mjs tests/public-assets.test.mjs tests/no-database.test.mjs",
+    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/legal-pages.test.mjs tests/canonical-host.test.mjs tests/film.test.mjs tests/library-claims.test.mjs tests/public-assets.test.mjs tests/no-database.test.mjs tests/hero-overlap.test.mjs",
     "lint": "node scripts/sites-env.mjs -- eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "node scripts/sites-env.mjs -- drizzle-kit generate",
     "test:ui": "node --test tests/ui-components.test.mjs"

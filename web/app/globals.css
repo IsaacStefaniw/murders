@@ -483,6 +483,10 @@ footer { border-top: 1px solid var(--fog); }
   .hero-trust { margin-top: 17px; }
   .hero-stage { min-height: 350px; }
   .hero-image-wrap { display: none; }
+  /* The -56px above pulls the card over the bottom of the hero photo. With the
+     photo hidden here it pulled over the trust row instead, burying the
+     hardest-moment line under a 97.5% opaque card. */
+  .today-card { margin-top: 0; }
   .plan-engine-card { width: 100%; position: relative; inset: auto; padding: 18px; }
   .engine-head { align-items: flex-start; gap: 12px; }
   .engine-journey { grid-template-columns: 1fr 14px 1.1fr 14px 1fr; gap: 4px; }
