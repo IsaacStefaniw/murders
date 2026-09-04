@@ -30,7 +30,7 @@ describe('copy that opens on what is missing', () => {
   });
 
   it('leaves honest copy alone, including copy that mentions an absence', () => {
-    expect(findings('Saturday morning is wide open — dinner somewhere new?')).toHaveLength(0);
+    expect(findings('Saturday morning is wide open — a morning outdoors?')).toHaveLength(0);
     expect(findings('Two sessions this week, and nothing on the calendar for Sunday.')).toHaveLength(0);
     expect(findings('Yours to spend — want to put something in it?')).toHaveLength(0);
   });
