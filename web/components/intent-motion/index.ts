@@ -3,5 +3,6 @@ export {
   SharedProfileMotion,
   MissedTuesdayMotion,
 } from "./MotionProofs";
+export { TodayCardMotion, type TodayRow } from "./TodayCardMotion";
 
 

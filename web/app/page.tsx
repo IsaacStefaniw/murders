@@ -10,7 +10,7 @@ import {
   Wallet, Wind, X, Zap,
 } from "lucide-react";
 
-import { LearningLoopMotion, SharedProfileMotion } from "@/components/intent-motion";
+import { LearningLoopMotion, SharedProfileMotion, TodayCardMotion } from "@/components/intent-motion";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
@@ -45,7 +45,7 @@ const constraints = [
 ];
 
 const todayRows = [
-  { id: "train", label: "Train", icon: Dumbbell, action: "Upper A — main work stays, accessories rest today", reason: "Your own recovery numbers are down this morning. The session keeps its heavy work and drops a set from the last accessory.", signal: true },
+  { id: "train", label: "Train", icon: Dumbbell, planned: "Upper A — main work, then the accessory list", action: "Upper A — main work stays, accessories rest today", reason: "HRV and resting heart rate below your own baseline, not a population band. Every main lift stays; the accessory list drops to one.", signal: true },
   { id: "eat", label: "Eat", icon: Leaf, action: "Protein anchor 165–198g · kitchen closes 7:30pm", reason: "Three weeks of trend, never one heavy morning." },
   { id: "habits", label: "Habits", icon: TimerReset, action: "Phone docks outside the room at 9:45pm", reason: "The slip window is after 10pm, so the change happens before it." },
   { id: "work", label: "Work", icon: Brain, action: "Deep block 9–11, before the first meeting", reason: "3.2 of 7 target hours last week. That is a calendar problem." },
@@ -407,21 +407,10 @@ export default function Home() {
         </div>
         <div className="hero-stage" aria-label="Today’s decisions across seven specialist pathways">
           <div className="hero-image-wrap"><Image src="/images/intent-os-hero-family-transition-v2.webp" alt="A professional closing a laptop and returning attention to family life" width={1536} height={1024} priority unoptimized sizes="(max-width: 1120px) 80vw, 43vw" /></div>
-          <div className="today-card">
-            <div className="engine-head"><span>TODAY · DECIDED FOR YOU</span><span className="live-dot">7 SPECIALISTS · 1 PROFILE</span></div>
-            <ul className="today-rows">
-              {todayRows.map((row) => (
-                <li key={row.id} className={row.signal ? "today-row is-signal" : "today-row"}>
-                  <span className="today-domain"><row.icon aria-hidden="true" />{row.label}</span>
-                  <span className="today-detail">
-                    <strong>{row.action}</strong>
-                    <small>{row.reason}</small>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <div className="engine-proof"><Check /> Every line carries the reason it changed</div>
-          </div>
+          <TodayCardMotion
+            rows={todayRows}
+            signal={{ label: "Readiness", detail: "against your own baseline" }}
+          />
         </div>
       </section>
 

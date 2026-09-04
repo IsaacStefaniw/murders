@@ -94,4 +94,25 @@ test("reps in reserve never returns, from anywhere", async () => {
 
   assert.doesNotMatch(html, /reps in reserve/i, "the app has no concept of reps in reserve");
   assert.doesNotMatch(html, /\bRIR\b/, "same claim, abbreviated");
+
+  // autoregulate() in features/training/programme.ts has two distinct paths and
+  // the hero used to mix them. On the recovery path nothing drops a set: every
+  // non-accessory exercise is kept and the accessory list is sliced to one.
+  // Dropping a set belongs to fitToTime, the time-pressure path, and even there
+  // whole accessories are removed before any set is trimmed. Attaching the
+  // wrong mechanism to a recovery reason is the same class of error as the
+  // volume percentage and the reps in reserve: a sentence about the app that
+  // the app does not do.
+  assert.doesNotMatch(
+    html,
+    /drops a set from the last accessory/i,
+    "the recovery path removes accessories; it does not trim a set",
+  );
+
+  // The hero plays the causality rather than asserting it. Both halves of the
+  // swap must be present, or the animation has silently become a static card
+  // again — which is what Isaac found, twice.
+  assert.match(html, /main work, then the accessory list/, "the hero lost its before state");
+  assert.match(html, /main work stays, accessories rest today/, "the hero lost its after state");
+  assert.match(html, /against your own baseline/, "the hero lost the signal that causes the change");
 });
