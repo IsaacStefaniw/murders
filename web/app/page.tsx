@@ -305,6 +305,12 @@ function BehaviourLoop() {
   );
 }
 
+const plusTiers = [
+  { kind: "Yearly", price: "AU$89.99", per: "a year", note: "About seven fifty a month. The way most people buy it." },
+  { kind: "Monthly", price: "AU$14.99", per: "a month", note: "Leave whenever. No notice period, no winback email." },
+  { kind: "Lifetime", price: "AU$249", per: "once", note: "Paid once, kept forever, including everything added later." },
+];
+
 const appScreens = [
   { file: "app-coaches", label: "Seven coaches", note: "One profile, seven specialists." },
   { file: "app-training", label: "Training", note: "The block, and where you are in it." },
@@ -423,7 +429,7 @@ export default function Home() {
         <div className="category-intro"><p className="section-kicker light">THE CATEGORY DIFFERENCE</p><h2>Moving time is easy.<br />Changing the program is valuable.</h2></div>
         <article><span>AI CALENDAR</span><strong>Moves the action</strong><p>Protects time and rearranges a task.</p></article>
         <article><span>SPECIALIST APP</span><strong>Optimises one slice</strong><p>Understands its domain, often without the rest of your context.</p></article>
-        <article className="category-intent"><span>IntentNorth</span><strong>Changes the action</strong><p>The measured result changes the next load, target or protocol—with the reason shown.</p></article>
+        <article className="category-intent"><span>IntentNorth</span><strong>Deepens the program</strong><p>A graded library feeds seven pathways, each with four levels you earn from your own log. The plan gets harder as you do—and every change carries its reason.</p></article>
       </div></section>
 
       <section className="causality-section section-shell">
@@ -583,6 +589,31 @@ export default function Home() {
       <section className="commitment-section"><div className="section-shell commitment-grid"><div><p className="section-kicker light">YOUR NEXT 12 WEEKS</p><h2>Build the profile.<br />See the first leverage point.</h2><p>Define what moves forward, what stops pulling you back and what the plan must protect. Your first insight is free.</p><BuildPlanButton inverse onClick={() => setPlanOpen(true)}>Build my operating profile</BuildPlanButton><small>About five minutes · iPhone only today · No payment taken · Premium terms shown before payment</small></div><div className="commitment-list"><article><span>01</span><div><strong>Choose the outcomes</strong><p>Training, sleep, nutrition, focus, leadership, money or presence.</p></div></article><article><span>02</span><div><strong>Name the friction</strong><p>The patterns that repeatedly take the week off course.</p></div></article><article><span>03</span><div><strong>Make the commitment</strong><p>The system reflects it back before revealing your architecture.</p></div></article><article><span>04</span><div><strong>Understand the boundary</strong><p>Profile and first insight are free. Complete programs are premium.</p></div></article></div></div></section>
 
       <section className="founder-section section-shell"><div><p className="section-kicker">WHY THIS EXISTS</p><h2>Nothing would tell me what to change.</h2></div><p>“I had a ring telling me I slept badly, a training app that knew my bench and nothing else, and a calendar full of other people&rsquo;s priorities. Every one of them was right about its own slice and silent on the trade-off—so the plan never actually changed. I just felt worse about it. I wanted one thing that held all of it, decided what today should be, and told me why.”</p><span>— Isaac Stefaniw, founder</span></section>
+
+      <section className="pricing-section section-shell" id="pricing">
+        <div className="pricing-heading">
+          <div><p className="section-kicker">WHAT IT COSTS</p><h2>One price for all seven.<br />Not one per coach.</h2></div>
+          <p>Plus unlocks the complete program in every pathway. There is no per-coach upgrade, no tier that withholds a domain, and nothing that costs more once you are further along.</p>
+        </div>
+        <div className="pricing-grid">
+          {plusTiers.map((tier) => (
+            <article key={tier.kind}>
+              <span className="pricing-kind">{tier.kind}</span>
+              <strong>{tier.price}</strong>
+              <span className="pricing-per">{tier.per}</span>
+              <p>{tier.note}</p>
+            </article>
+          ))}
+        </div>
+        <div className="pricing-free">
+          <Heart />
+          <div>
+            <strong>Free, and staying free.</strong>
+            <p>Your operating profile and first insight. Recovery, urge and lapse support&mdash;every part of it, permanently. We never charge for someone&rsquo;s hardest moment, and that is a line in the code rather than a promotion.</p>
+          </div>
+        </div>
+        <p className="pricing-note">Prices are Australian dollars. The App Store shows yours in your own currency and charges through your Apple account&mdash;we never see a card. Nothing is taken on this website.</p>
+      </section>
 
       <section className="faq-section section-shell"><div><p className="section-kicker">BEFORE YOU COMMIT</p><h2>Clear boundaries build better trust.</h2></div><div className="faq-grid"><article><strong>Is this a calendar?</strong><p>No. Time can be protected, but the differentiator is that measured outcomes change the program itself.</p></article><article><strong>What is real today?</strong><p>Deep pathway learning and sleep-informed training. Broader interaction management is direction, not staged proof.</p></article><article><strong>What remains free?</strong><p>Your profile, first insight, and recovery, urge and hardest-moment support—permanently.</p></article><article><strong>Which devices?</strong><p>iPhone, today. The plan reads sleep and heart-rate data from Apple Health, which is why it starts there. Android is a decision we have not made rather than a feature we are hiding.</p></article><article><strong>Is this medical or financial advice?</strong><p>No. IntentNorth provides education, structured experiments and progress support. Seek a qualified professional for personal advice.</p></article></div></section>
 

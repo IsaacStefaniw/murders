@@ -703,3 +703,24 @@ footer { border-top: 1px solid var(--fog); }
   .screens-heading, .ladder-heading { grid-template-columns: 1fr; gap: 18px; }
   .ladder-proof { grid-template-columns: 1fr; }
 }
+
+/* ---- pricing ---- */
+.pricing-section { padding-block: clamp(64px, 8vw, 104px); }
+.pricing-heading { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: end; }
+.pricing-heading > p { margin: 0; color: var(--muted); font-size: 17px; line-height: 1.65; }
+.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 44px; }
+.pricing-grid article { padding: 30px 26px; border: 1px solid var(--fog); border-radius: var(--radius); background: var(--white); }
+.pricing-kind { display: block; font-size: 11px; font-weight: 900; letter-spacing: .16em; color: var(--green-dark); }
+.pricing-grid strong { display: block; margin-top: 16px; font-size: 38px; line-height: 1; letter-spacing: -.02em; color: var(--ink); }
+.pricing-per { display: block; margin-top: 6px; font-size: 14px; color: var(--muted); }
+.pricing-grid p { margin: 16px 0 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.pricing-free { display: flex; gap: 14px; align-items: flex-start; margin-top: 22px; padding: 24px 26px; border-radius: var(--radius); background: var(--paper-deep); }
+.pricing-free svg { flex: none; width: 20px; height: 20px; color: var(--green-dark); }
+.pricing-free strong { display: block; font-size: 15px; color: var(--ink); }
+.pricing-free p { margin: 8px 0 0; font-size: 14px; line-height: 1.65; color: var(--ink-soft); }
+.pricing-note { margin: 18px 0 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
+
+@media (max-width: 900px) {
+  .pricing-heading { grid-template-columns: 1fr; gap: 18px; }
+  .pricing-grid { grid-template-columns: 1fr; }
+}
