@@ -70,6 +70,11 @@
 .iosm-reason.is-visible { opacity: 1; transform: translateY(0); }
 .iosm-reason span { color: var(--iosm-green-dark); font-size: 8px; font-weight: 850; letter-spacing: .14em; }
 .iosm-reason p { margin: 0; font-size: 11px; font-weight: 700; line-height: 1.45; }
+/* The generalisation sits under the reason, across the full width. Without the
+   span it becomes a third grid item and wraps into the 48px label column, one
+   word per line — which is how it shipped, and how Isaac found it on a phone. */
+.iosm-reason small { grid-column: 1 / -1; margin-top: 8px; color: var(--iosm-muted); font-size: 12px; font-weight: 500; line-height: 1.55; }
+.iosm-reason--dark small { color: var(--iosm-sage); }
 
 .iosm-profile-story { display: grid; grid-template-columns: minmax(230px, 1fr) minmax(110px, .42fr) minmax(230px, 1fr); gap: 22px; align-items: center; margin-top: 46px; }
 .iosm-surface { min-height: 252px; padding: 22px; border: 1px solid var(--iosm-fog); background: var(--iosm-white); box-shadow: 0 22px 58px rgba(17, 21, 18, .06); }
@@ -160,9 +165,3 @@
 }
 
 
-
-/* The learn step carries the generalisation: the loop is not training-only. */
-.iosm-reason small {
-  display: block; margin-top: 8px; font-size: 12px; line-height: 1.55;
-  color: var(--muted, #59635b);
-}
