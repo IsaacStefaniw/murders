@@ -433,7 +433,7 @@ export default function Home() {
       </div></section>
 
       <section className="causality-section section-shell">
-        <div className="causality-copy"><p className="section-kicker">WHAT YOU ACTUALLY GET</p><h2>It builds the plan.<br />Then it walks you through it.</h2><p>Not a dashboard and not a suggestion. A real program for each goal you choose, placed into the week you actually have—and then run with you, session by session.</p>
+        <div className="causality-copy"><p className="section-kicker">WHAT YOU ACTUALLY GET</p><h2>You never build<br />a program again.</h2><p>Not a dashboard and not a suggestion. Four phased weeks—build, build, progress, deload—written for each goal you choose, placed into the week you actually have, and then run with you session by session. You choose the goal. It does the programming.</p>
           <div className="deliverable-grid">
             <article><span>THE BLOCK</span><strong>Week 2 of 4 · Upper A</strong><p>Four phased weeks—build, build, progress, deload—sized to your days, your equipment and your own lifts.</p></article>
             <article><span>TODAY, ALREADY DECIDED</span><strong>Bench 4 × 6 at 90kg</strong><p>Rest 120s. About 45 minutes. Nothing left to work out at the gym door.</p></article>
@@ -556,8 +556,8 @@ export default function Home() {
 
       <section className="library-section section-shell" id="library">
         <div className="library-heading">
-          <div><p className="section-kicker">WHAT IS ACTUALLY IN IT</p><h2>A library that tells you<br />how good its own evidence is.</h2></div>
-          <p>Most of what you are told about health cites nothing, or cites everything with equal confidence. Every practice in IntentNorth carries a grade, a named source and, where it matters, a caution&mdash;so you can tell a randomised trial from a reasonable idea before you build your week on it.</p>
+          <div><p className="section-kicker">WHAT IS ACTUALLY IN IT</p><h2>177 practices that grade<br />themselves, then run themselves.</h2></div>
+          <p>Most of what you are told about health cites nothing, or cites everything with equal confidence. Every practice here carries a grade, a named source and, where it matters, a caution&mdash;and none of it is a reading list. Tap one and it is scheduled into the week you actually have.</p>
         </div>
         <div className="library-stats">
           {libraryStats.map((stat) => (
@@ -567,6 +567,11 @@ export default function Home() {
               <p>{stat.note}</p>
             </article>
           ))}
+        </div>
+        <div className="library-flow">
+          <article><span>ONE TAP</span><strong>Add to my plan</strong><p>The same button on every practice, with its grade and its caution already read.</p></article>
+          <article><span>THEN NOTHING</span><strong>It finds the hour</strong><p>Anchored to your wake or your bedtime where that matters, placed around what is already in the week.</p></article>
+          <article><span>AND AFTER</span><strong>It adapts like the rest</strong><p>It moves when the week moves, and it answers to your results the same way your training block does.</p></article>
         </div>
         <div className="library-honesty">
           <ShieldCheck />
