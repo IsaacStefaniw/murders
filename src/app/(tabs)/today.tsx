@@ -37,6 +37,7 @@ import { displacedLine } from '@/features/planner/displaced';
 import { useAppStore } from '@/state/store';
 import type { PlanItem } from '@/types/domain';
 import { LockedSessions } from '@/features/plus/LockedSessions';
+import { applicableRoutines } from '@/features/knowledge/protocols';
 
 const EVENING_START = 17 * 60;
 
@@ -305,7 +306,13 @@ export default function Today() {
         </Card>
       )}
 
-      {!plus ? <LockedSessions routines={routines} date={date} recoveryGoalId={recoveryGoalId} /> : null}
+      {!plus ? (
+        <LockedSessions
+          routines={applicableRoutines(routines, profile.sexAtBirth)}
+          date={date}
+          recoveryGoalId={recoveryGoalId}
+        />
+      ) : null}
 
       {overdueItems.length > 0 ? (
         <View>

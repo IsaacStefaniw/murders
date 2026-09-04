@@ -19,7 +19,7 @@ import { behaviourInfo } from '@/features/behaviours/catalog';
 import { assessGoal } from '@/features/goals/composer';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { detectGoalUnderserved } from '@/features/goals/underserved';
-import { protocolById, toRoutine } from '@/features/knowledge/protocols';
+import { applicableRoutines, protocolById, routineApplies, toRoutine } from '@/features/knowledge/protocols';
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { NO_ENTITLEMENT, runningRoutines, type Entitlement } from '@/features/plus/entitlement';
@@ -681,7 +681,10 @@ export const useAppStore = create<AppState>()(
           // meals, whatever was fixed — and the coaches do not run, except
           // the Habits & urges pathway, which is never charged for. What
           // the others would have run is shown, locked, by the Today screen.
-          const running = runningRoutines(routines, entitlement.plus, get().paths.recovery?.goalId);
+          // Anatomy first: a routine that does not apply to this body is
+          // never planned, whatever the entitlement says.
+          const applicable = applicableRoutines(routines, profile.sexAtBirth);
+          const running = runningRoutines(applicable, entitlement.plus, get().paths.recovery?.goalId);
           const { unplaced, moved, ...plan } = generateDailyPlan(profile, running, date, [], goals);
           // What did not fit is the visible half of arbitration. It used to
           // be destructured into `_unplaced` and dropped on the floor, which
@@ -1314,6 +1317,9 @@ export const useAppStore = create<AppState>()(
           } else {
             const protocol = protocolById(protocolId);
             if (!protocol) return false;
+            // The library does not list what does not apply, but a deep link
+            // or an older screen might; the store is the last gate.
+            if (!routineApplies({ protocolId: protocol.id }, profile.sexAtBirth)) return false;
             set({ routines: [...routines, toRoutine(protocol, profile)] });
             nowActive = true;
           }
@@ -1750,6 +1756,15 @@ export const useAppStore = create<AppState>()(
         // already sat through.
         if (state.profile && Object.keys(state.interviewAnswers ?? {}).length === 0) {
           state.interviewAnswers = answersFromProfile(state.profile);
+        }
+        // Routines added before the anatomy label existed are switched off
+        // for a body they do not apply to, so no list shows them either.
+        if (state.profile && state.routines?.length) {
+          const sex = state.profile.sexAtBirth;
+          const held = state.routines.filter((r) => r.active && !routineApplies(r, sex));
+          if (held.length > 0) {
+            state.routines = state.routines.map((r) => (held.includes(r) ? { ...r, active: false } : r));
+          }
         }
         state.setHydrated();
       },
