@@ -1319,7 +1319,7 @@ export const useAppStore = create<AppState>()(
             if (!protocol) return false;
             // The library does not list what does not apply, but a deep link
             // or an older screen might; the store is the last gate.
-            if (!routineApplies({ protocolId: protocol.id }, profile.sexAtBirth)) return false;
+            if (!routineApplies({ protocolId: protocol.id }, profile?.sexAtBirth)) return false;
             set({ routines: [...routines, toRoutine(protocol, profile)] });
             nowActive = true;
           }
