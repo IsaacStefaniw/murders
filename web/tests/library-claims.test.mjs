@@ -100,11 +100,22 @@ test("the screenshots the page names all exist", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const listed = [...page.matchAll(/\{ file: "(app-[a-z-]+)"/g)].map(([, f]) => f);
 
-  assert.ok(listed.length >= 8, `expected the screen list, found ${listed.length}`);
+  assert.ok(listed.length >= 6, `expected the screen list, found ${listed.length}`);
   for (const file of listed) {
     const info = await stat(new URL(`../public/images/app/${file}.jpg`, import.meta.url));
     assert.ok(info.size > 10_000, `${file}.jpg is missing or too small to be a screenshot`);
   }
+
+  // app-today.jpg is deliberately not published. Its capture predates two app
+  // fixes (ac1b51f, 7d8446b) and shows the look-ahead card suggesting dinner on
+  // a Saturday morning, opening on an absence — a line that now exists in the
+  // codebase only as a regression test. A screenshot is product evidence, so
+  // publishing a fixed bug is worse than publishing nothing. See
+  // docs/APP_SCREENSHOTS.md; delete this assertion when it is retaken.
+  assert.ok(
+    !listed.includes("app-today"),
+    "app-today.jpg shows a defect the app no longer has — retake it before publishing",
+  );
 });
 
 test("the 5,376 figure ships with the derivation that lets a reader check it", async () => {
