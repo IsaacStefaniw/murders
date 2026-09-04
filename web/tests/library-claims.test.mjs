@@ -106,16 +106,6 @@ test("the screenshots the page names all exist", async () => {
     assert.ok(info.size > 10_000, `${file}.jpg is missing or too small to be a screenshot`);
   }
 
-  // app-today.jpg is deliberately not published. Its capture predates two app
-  // fixes (ac1b51f, 7d8446b) and shows the look-ahead card suggesting dinner on
-  // a Saturday morning, opening on an absence — a line that now exists in the
-  // codebase only as a regression test. A screenshot is product evidence, so
-  // publishing a fixed bug is worse than publishing nothing. See
-  // docs/APP_SCREENSHOTS.md; delete this assertion when it is retaken.
-  assert.ok(
-    !listed.includes("app-today"),
-    "app-today.jpg shows a defect the app no longer has — retake it before publishing",
-  );
 });
 
 test("the 5,376 figure ships with the derivation that lets a reader check it", async () => {

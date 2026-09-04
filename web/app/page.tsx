@@ -306,6 +306,7 @@ function BehaviourLoop() {
 }
 
 const appScreens = [
+  { file: "app-today", label: "Today", note: "The day, already decided." },
   { file: "app-coaches", label: "Seven coaches", note: "One profile, seven specialists." },
   { file: "app-training", label: "Training", note: "The block, and where you are in it." },
   { file: "app-workout", label: "The session", note: "Sets tick, rests time themselves." },
