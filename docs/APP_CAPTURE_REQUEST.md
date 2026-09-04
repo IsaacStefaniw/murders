@@ -1,7 +1,7 @@
 # Capture request — one protocol, one week, before and after
 
 **From:** the website session. **For:** whoever is holding the app.
-**Status:** requested 2026-09-04, not yet captured.
+**Status:** captured 2026-09-04 — frames 1–3 delivered as `web/public/images/app/app-protocol-*.jpg`; frame 4 not reachable from the product as it stands. Provenance and the reason in `docs/APP_SCREENSHOTS.md`.
 
 ## What the site needs, and why it cannot draw it
 

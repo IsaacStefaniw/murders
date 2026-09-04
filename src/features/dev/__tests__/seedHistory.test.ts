@@ -36,7 +36,7 @@ describe('buildSeededHistory — the compressed week', () => {
       .map((e) => ({ routineId: e.routineId!, start: e.newStart!, date: e.date }));
     const suggestions = detectMoveOutcome(moves, seeded.plans, lifePlan.routines);
     expect(suggestions.length).toBeGreaterThanOrEqual(1);
-    expect(suggestions[0].message).toMatch(/moved \d+ of your last \d+/);
+    expect(suggestions[0].message).toMatch(/\d+ of the last \d+ times/);
   });
 
   it('gives the weekly review something concrete to apply', () => {

@@ -56,14 +56,56 @@ other seven.
 in `web/app/page.tsx` and delete the assertion in
 `web/tests/library-claims.test.mjs` that blocks it.
 
-## Also worth fixing before the retake is used
+## Fixed: the garbled pattern sentence
 
-The pattern suggestion reads "You've moved 6 of your last 6 **training that
-sticks** sessions to the evening". `src/lib/scheduling/adaptation.ts:194`
-interpolates `routine.title.toLowerCase()` where the doc comment at `:152`
-shows the intended shape with a generic noun — "6 of your last 8 workouts".
-Any multi-word routine title garbles the sentence. It is the app's own output,
-so the screenshot is honest; it just reads as broken.
+"You've moved 6 of your last 6 **training that sticks** sessions to the
+evening" is gone. `src/lib/scheduling/adaptation.ts` now keeps the routine's
+title as the app names it: "You've moved Training that sticks to the evening
+6 of the last 6 times — and completed 4 of them." The current `app-today.jpg`
+was recaptured after the fix, from the same seed.
+
+## The protocol sequence — captured 2026-09-04 for `docs/APP_CAPTURE_REQUEST.md`
+
+Three of the four frames asked for, from one seeded state, one week, one
+protocol (`morning-light`, free tier, wake-anchored). Same capture settings
+as the set above (fresh web export of the capture commit, 420×900 at 3×,
+`Australia/Sydney`, 840×1800 JPEG).
+
+The seed is the film seed (the App Store seed with all seven coaches
+started) with two documented changes so the sequence is reachable: the
+clock set to **Monday 7 September, 6:15am Sydney** via `clockOffsetMs`, so
+the Week tab's expanded day is Monday; and the person's priority order set
+to **family, health, work**, which is the order under which a family
+commitment can take a health practice's hour. The plans for the coming
+seven days were regenerated under that order before frame 2.
+
+| File | Route and state | Shows |
+|---|---|---|
+| `app-protocol-1-library.jpg` | `/library`, scrolled to Sleep & energy | Morning light with Evidence B, its safety line, and **Add to my plan** unpressed |
+| `app-protocol-2-week-before.jpg` | `/plan`, Monday expanded, before the add | 15 planned; 7am Protein at breakfast, 8:15am Training that sticks; no Morning light |
+| `app-protocol-3-week-after.jpg` | `/plan`, same Monday, after `toggleProtocol('morning-light')` | 16 planned; **7:25am Morning light** placed by the scheduler between the two |
+
+**Frame 4 was not captured, on purpose.** Every honest route tried produced
+the wrong sentence:
+
+- A family block on Monday morning (a 45-minute school run at 6:50, 7:15,
+  7:20 or 7:30) does displace Morning light — but the scheduler *drops* it
+  rather than moving it, even when 20–45 free minutes remain inside its
+  6:50–7:35 window. It lands in the day's displaced list with no new time,
+  and the header reads "3 things moved to make room for family — Protein at
+  breakfast is now at 7:10pm", which names a different practice.
+- Under the App Store seed's own order (health, family, work) nothing
+  outranks a health practice, so no move is ever attributed; the app says
+  nothing, by design.
+- A wake-time change moves the practice, but the app gives no reason on
+  screen for it.
+
+So the frame the page wants — the same protocol at a different time with
+the app's reason beside it — does not exist in the product today. The first
+finding is a real scheduler weakness worth its own fix (a ten-minute
+could-tier practice should be squeezed into a free gap in its window before
+it is cut), and it is logged in the competitive review's debt list rather
+than papered over with a caption.
 
 ## History
 

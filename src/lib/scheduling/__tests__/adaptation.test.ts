@@ -181,7 +181,7 @@ describe('detectMoveOutcome — moved-then-completed learning', () => {
     const dates = ['2026-09-01', '2026-09-03', '2026-09-05', '2026-09-08'];
     const suggestions = detectMoveOutcome(movesTo('17:45', dates), planWith(dates, 'completed'), [gym]);
     expect(suggestions).toHaveLength(1);
-    expect(suggestions[0].message).toMatch(/moved 4 of your last 4 .* completed 4/);
+    expect(suggestions[0].message).toMatch(/moved .+ to the \w+ 4 of the last 4 times .* completed 4/);
     expect(suggestions[0].payload).toMatchObject({ routineId: 'gym', preferredStart: '17:30' });
     expect(suggestions[0].confidence).toBeGreaterThanOrEqual(0.9);
   });
