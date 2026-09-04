@@ -72,6 +72,10 @@ export interface RungRoutine {
   /** Protected work is never displaced. Used sparingly and on purpose. */
   protectedBlock?: boolean;
   tier?: Routine['tier'];
+  /** Carved out of the work day rather than placed into free time. */
+  duringWork?: boolean;
+  /** See Routine.anchorToWorkEnd. */
+  anchorToWorkEnd?: boolean;
 }
 
 const WEEKEND: Weekday[] = [6];
@@ -296,6 +300,11 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
           area: 'work',
           energy: 'evening',
           tier: 'should',
+          // The last ten minutes of the work day, not a clock time: at
+          // 17:00 inside a 13:30–17:30 block it was pushed past dinner and
+          // landed at ten to nine, which is not a shutdown.
+          duringWork: true,
+          anchorToWorkEnd: true,
         },
       ],
       milestones: ['One protected block survives a full week', 'Five days ended knowing tomorrow’s first move'],
@@ -362,6 +371,10 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       routines: [
         {
           title: 'Two-minute reset — available instantly',
+          // The pathway's own build already schedules a breath reset when
+          // that is the chosen replacement; this rung is the same tool and
+          // must not appear twice in one evening.
+          covers: ['session:breathe'],
           durationMin: 5,
           days: [1, 2, 3, 4, 5, 6, 0],
           preferredStart: '20:00',
@@ -681,6 +694,8 @@ export function ladderFor(
         flexible: !r.protectedBlock,
         protected: r.protectedBlock === true,
         protocolId: r.protocolId,
+        duringWork: r.duringWork,
+        anchorToWorkEnd: r.anchorToWorkEnd,
         // Marks this as programme structure rather than an evidence-based
         // practice. The "no orphan blocks" rule exists so nothing can claim
         // a health benefit without a graded source behind it; a weekly

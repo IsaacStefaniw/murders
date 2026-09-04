@@ -42,14 +42,62 @@ describe('workBlocks', () => {
     expect(blocks.map((b) => `${b.start}-${b.end}`)).toEqual(['09:00-12:00', '13:30-17:30']);
   });
 
-  it('carves during-work routines out as named fixed blocks', () => {
+  it('carves during-work routines out as named fixed blocks, with no sliver of work before one', () => {
     const blocks = workBlocks(profile, '2026-09-01', [deepWork]);
     expect(blocks.map((b) => `${b.title} ${b.start}-${b.end}`)).toEqual([
-      'Work 09:00-09:15',
-      'Deep work block 09:15-10:15',
-      'Work 10:15-12:00',
+      'Deep work block 09:00-10:00',
+      'Work 10:00-12:00',
       'Work 13:30-17:30',
     ]);
+  });
+
+  it('keeps a piece of the work day that is long enough to be one', () => {
+    const later: Routine = { ...deepWork, preferredStart: '09:45', preferredEnd: '10:45' };
+    const blocks = workBlocks(profile, '2026-09-01', [later]);
+    expect(blocks.map((b) => `${b.title} ${b.start}-${b.end}`)).toEqual([
+      'Work 09:00-09:45',
+      'Deep work block 09:45-10:45',
+      'Work 10:45-12:00',
+      'Work 13:30-17:30',
+    ]);
+  });
+
+  it('a short tail after the last carve-out folds into the work block before it', () => {
+    const late: Routine = { ...deepWork, durationMin: 30, preferredStart: '14:00', preferredEnd: '14:30' };
+    const blocks = workBlocks({ ...profile, workEnd: '14:45' }, '2026-09-01', [late]);
+    expect(blocks.map((b) => `${b.title} ${b.start}-${b.end}`)).toEqual([
+      'Work 09:00-12:00',
+      'Work 13:30-14:00',
+      'Deep work block 14:00-14:30',
+      'Work 14:30-14:45',
+    ]);
+    const tail = workBlocks({ ...profile, workEnd: '12:15' }, '2026-09-01', []);
+    expect(tail.map((b) => `${b.title} ${b.start}-${b.end}`)).toEqual(['Work 09:00-12:15']);
+  });
+
+  it('a ritual anchored to the end of the day sits against it, whatever the hours are', () => {
+    const shutdown: Routine = {
+      ...deepWork,
+      id: 'sd',
+      title: 'Shutdown',
+      durationMin: 10,
+      preferredStart: '17:00',
+      preferredEnd: '18:30',
+      anchorToWorkEnd: true,
+    };
+    for (const workEnd of ['17:30', '17:00', '18:45']) {
+      const blocks = workBlocks({ ...profile, workEnd }, '2026-09-01', [shutdown]);
+      const last = blocks[blocks.length - 1];
+      expect(last.title).toBe('Shutdown');
+      expect(last.end).toBe(workEnd);
+    }
+  });
+
+  it('a block that would run past the end of the day is pulled back into it, not dropped', () => {
+    const lateStart: Routine = { ...deepWork, preferredStart: '17:00', preferredEnd: '18:00' };
+    const blocks = workBlocks(profile, '2026-09-01', [lateStart]);
+    const dw = blocks.find((b) => b.title === 'Deep work block');
+    expect(dw).toEqual(expect.objectContaining({ start: '16:30', end: '17:30' }));
   });
 
   it('skips during-work routines on non-work days', () => {
@@ -79,7 +127,8 @@ describe('generateDailyPlan', () => {
     const dw = plan.items.filter((i) => i.title === 'Deep work block');
     expect(dw).toHaveLength(1);
     expect(dw[0].fixed).toBe(true);
-    expect(dw[0].start).toBe('09:15');
+    // It starts when the day does: a fifteen-minute sliver of "Work" before it is not a block.
+    expect(dw[0].start).toBe('09:00');
   });
 });
 

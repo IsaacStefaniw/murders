@@ -113,8 +113,13 @@ function withLadder(
   const level = levelFromAnswers(answers);
   const ladder = ladderFor(path, level, profile, plan.goal.id);
   const existingTitles = new Set(plan.routines.map((r) => r.title));
+  // A rung's `covers` names either a protocol id or a session type as
+  // `session:<type>` — the same identity mergeRoutines competes on.
   const existingProtocols = new Set(
-    plan.routines.map((r) => r.protocolId).filter((id): id is string => Boolean(id)),
+    plan.routines.flatMap((r) => [
+      ...(r.protocolId ? [r.protocolId] : []),
+      ...(r.sessionType ? [`session:${r.sessionType}`] : []),
+    ]),
   );
   const added = ladder.routines.filter((r, i) => {
     if (existingTitles.has(r.title)) return false;
@@ -643,6 +648,10 @@ export const PATHS: Record<PathId, PathDefinition> = {
 
       const routines: Routine[] = [];
       for (const id of ids) {
+        // Anyone with kids already has the device-free family dinner on the
+        // plan from the interview, every night. Adding the weekday version
+        // here put two dinners on one evening.
+        if (id === 'device-free-meal' && profile?.kidsCount) continue;
         const protocol = protocolById(id);
         if (protocol) routines.push(toRoutine(protocol, profile, plan.goal.id));
       }

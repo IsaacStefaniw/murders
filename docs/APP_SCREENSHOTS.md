@@ -64,6 +64,37 @@ title as the app names it: "You've moved Training that sticks to the evening
 6 of the last 6 times — and completed 4 of them." The current `app-today.jpg`
 was recaptured after the fix, from the same seed.
 
+## The example day — captured 2026-09-04, the commit that adds it
+
+`app-example-day.jpg` is the `/example-day` screen, reachable from the
+welcome screen before a single question is asked. No seed: the screen
+builds its own person (Sam: set hours, three training days, a partner and
+two kids, broken sleep, health first) through the interview builder, starts
+every coach through the same pathway builders a real profile uses, merges
+them the way the store does, and runs the next Monday through the
+scheduler. Every line on it is the planner's output for that person; change
+the answers in `src/app/example-day.tsx` and the day changes.
+
+What it shows, top to bottom: protein at breakfast, morning light, a
+ninety-minute growth block and an hour of deep work carved out of the work
+hours, the remaining work as a block with its length, lunch kept free with
+the session inside it, the afternoon block, the shutdown ritual closing the
+work day, the family dinner with tonight's dish decided, the walk, one
+thing named for the relationship, the two-minute reset, the wind-down.
+
+Same capture settings as the set above (420×900, 3×, downsampled to
+840×1800). The scratchpad also holds the full length of the screen at 2×
+(`app-example-day-full.png`, 840×3440), which is the one that proves the
+whole day; the 840×1800 fold ends at the afternoon work block.
+
+Four engine fixes came out of looking at this screen, and they change the
+real Today for anyone with the same coaches running: no slivers of "Work"
+shorter than half an hour, one family dinner rather than the interview's
+and the family pathway's, one breath reset rather than the build's and the
+rung's, and the shutdown ritual anchored to the end of the work hours
+instead of being pushed past dinner. `src/features/paths/__tests__/oneOfEach.test.ts`
+holds all four.
+
 ## The protocol sequence — captured 2026-09-04 for `docs/APP_CAPTURE_REQUEST.md`
 
 Three of the four frames asked for, from one seeded state, one week, one
