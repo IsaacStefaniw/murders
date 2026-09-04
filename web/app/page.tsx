@@ -423,20 +423,20 @@ function Film() {
           autoPlay
           playsInline
           preload="none"
-          poster="/video/intentnorth-coaching-45s-poster.jpg"
+          poster="/video/intentnorth-intent-45s-poster.jpg"
         >
           {/* WebM first because the browser takes the first source it can play,
               and the VP9 re-encode is 2.0MB against the MP4's 3.2MB. The MP4
               is the fallback that Safari before 14.1 and some in-app browsers
               need — without it they show nothing rather than degrading. */}
-          <source src="/video/intentnorth-coaching-45s.webm" type="video/webm" />
-          <source src="/video/intentnorth-coaching-45s.mp4" type="video/mp4" />
+          <source src="/video/intentnorth-intent-45s.webm" type="video/webm" />
+          <source src="/video/intentnorth-intent-45s.mp4" type="video/mp4" />
           Your browser cannot play this film.
         </video>
       ) : (
         <>
           <Image
-            src="/video/intentnorth-coaching-45s-poster.jpg"
+            src="/video/intentnorth-intent-45s-poster.jpg"
             alt="A frame from the film: the line &quot;Sets, reps, rest and load. Decided.&quot; beside a session screen listing the day's lifts"
             width={1280}
             height={720}
@@ -444,7 +444,7 @@ function Film() {
             sizes="(max-width: 1120px) 92vw, 1100px"
           />
           <button type="button" className="film-play" onClick={() => setPlaying(true)}>
-            <span><Play aria-hidden /> Play the film · 48 seconds, no sound</span>
+            <span><Play aria-hidden /> Play the film · 47 seconds, no sound</span>
           </button>
         </>
       )}
