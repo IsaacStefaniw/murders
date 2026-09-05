@@ -32,6 +32,23 @@ export type TrainingEquipment = 'gym' | 'home' | 'dumbbells' | 'bodyweight';
  * stops at `established` on purpose: `advanced` is earned in
  * features/paths/level, never selected on a form.
  */
+/**
+ * How many sessions a week the person already does, from the intake's
+ * frequency answer. A block must never hand someone fewer days than they
+ * are already training: the interview's default of three was quietly
+ * cutting a five-day lifter to three and calling it a programme.
+ */
+export function sessionsPerWeekFloor(frequency?: string): number {
+  switch (frequency) {
+    case '3-4':
+      return 3;
+    case '5+':
+      return 5;
+    default:
+      return 0;
+  }
+}
+
 export const LEVEL_FROM_EXPERIENCE: Record<TrainingExperience, PathLevel> = {
   new: 'foundation',
   returning: 'developing',
@@ -83,6 +100,8 @@ export interface PrescribedExercise {
   rpe?: number;
   restSec: number;
   accessory?: boolean;
+  /** Set when the person swapped this in for the programmed movement. */
+  swappedFrom?: string;
 }
 
 export type TrainingPhase = 'build' | 'progress' | 'deload';

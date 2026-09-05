@@ -12,6 +12,7 @@ import { BEHAVIOUR_CATALOG, behaviourInfo } from '@/features/behaviours/catalog'
 import { buildGoalPlan, type GoalPlan, type ParsedGoal } from '@/features/goals/goalPlanner';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { DOMAIN_QUESTIONS, answered, type DomainQuestion } from '@/features/knowledge/questionBank';
+import { sessionsPerWeekFloor } from '@/features/training/programme';
 import { newId } from '@/lib/dates';
 import type { BehaviourKey, LifeProfile, Routine } from '@/types/domain';
 
@@ -166,6 +167,18 @@ export const PATHS: Record<PathId, PathDefinition> = {
         lines.push('Strength three days, easy cardio twice — the aerobic base is the piece most lifters skip, and it pays the longest.');
       } else {
         lines.push('Three days, main lifts first. The coach shrinks a session when time collapses — it never cancels it.');
+      }
+      const floor = sessionsPerWeekFloor(answers.frequency);
+      if (floor >= 3) {
+        lines.push(
+          `You already train ${answers.frequency === '5+' ? 'five or more' : 'three or four'} days a week, so the block keeps that cadence rather than starting you over — what changes is the structure: loads that move on purpose, and an easier week that lets them stick.`,
+        );
+      }
+      if (answered(answers, 'limiter', 'nothing')) {
+        lines.push('Nothing to fix, then. The block adds progression, not volume: each week asks a little more than the last, and the retest at the end tells you what it bought.');
+      }
+      if (answered(answers, 'limiter', 'plateau')) {
+        lines.push('A plateau is usually a dose problem. The load changes every week of the block, the fourth week backs off, and the retest says whether the number moved — or why it did not.');
       }
       if (answered(answers, 'limiter', 'time')) {
         lines.push('Time is your limiter, so nothing in this program needs more than 30–45 minutes, warm-up included.');

@@ -48,19 +48,35 @@ export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
   fitness: [
     {
       key: 'experience',
-      question: 'Where are you starting from?',
+      question: 'Where are you at with training right now?',
       options: [
         { value: 'new', label: 'Basically starting fresh' },
         { value: 'returning', label: 'Coming back after a break' },
-        { value: 'consistent', label: 'Already training, want more' },
-        { value: 'unsure', label: 'Honestly, it comes and goes' },
+        { value: 'consistent', label: 'Training regularly and it is going well' },
+        { value: 'unsure', label: 'It comes and goes' },
+      ],
+    },
+    {
+      // The intake used to assume the person was not training well: it
+      // never asked how often, and every option in the next question was a
+      // reason it was not working. Someone training four days a week and
+      // enjoying it had nothing true to tap.
+      key: 'frequency',
+      question: 'How many sessions in a normal week, at the moment?',
+      options: [
+        { value: '0', label: 'None right now' },
+        { value: '1-2', label: 'One or two' },
+        { value: '3-4', label: 'Three or four' },
+        { value: '5+', label: 'Five or more' },
       ],
     },
     {
       key: 'limiter',
-      question: 'What usually gets in the way? Pick any that ring true.',
+      question: 'What gets in the way, if anything? Pick any that ring true.',
       multi: true,
       options: [
+        { value: 'nothing', label: 'Not much — I want it sharper, not easier' },
+        { value: 'plateau', label: 'I have stalled on the same numbers' },
         { value: 'time', label: 'The day fills up before I get to it' },
         { value: 'energy', label: 'I am too wrung out by then' },
         { value: 'boredom', label: 'It gets repetitive and I drift' },
