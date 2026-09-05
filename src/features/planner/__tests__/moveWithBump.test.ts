@@ -1,4 +1,4 @@
-import { candidateStartsFor, moveWithBump } from '@/features/planner/moveWithBump';
+import { candidateStartsFor, moveWithBump, pastStartsFor } from '@/features/planner/moveWithBump';
 import { toMinutes } from '@/lib/dates';
 import type { DailyPlan, PlanItem } from '@/types/domain';
 
@@ -218,5 +218,26 @@ describe('the offers stop where the date does', () => {
     const candidates = candidateStartsFor(plan, 'training', nightOwl);
     const last = candidates[candidates.length - 1];
     expect(toMinutes(last.start)).toBeGreaterThanOrEqual(22 * 60);
+  });
+});
+
+describe('a thing that already happened can be put where it happened', () => {
+  it('offers the times that ended before now, latest first, never the future', () => {
+    const plan = day(
+      at('09:00', '12:00', 'Work', { id: 'work', fixed: true }),
+      at('14:00', '14:30', 'Walk', { id: 'walk' }),
+    );
+    const past = pastStartsFor(plan, 'walk', ctx, toMinutes('13:30'));
+    expect(past.length).toBeGreaterThan(0);
+    for (const c of past) expect(toMinutes(c.start) + 30).toBeLessThanOrEqual(toMinutes('13:30'));
+    for (let i = 1; i < past.length; i += 1) expect(past[i].start < past[i - 1].start).toBe(true);
+    // The morning before work is in, priced honestly; the work hours say so.
+    expect(past.some((c) => c.start === '08:00' && !c.hitsFixed)).toBe(true);
+    expect(past.find((c) => c.start === '10:00')?.hitsFixed).toBe(true);
+  });
+
+  it('is empty first thing, when nothing could have happened yet', () => {
+    const plan = day(at('14:00', '14:30', 'Walk', { id: 'walk' }));
+    expect(pastStartsFor(plan, 'walk', ctx, toMinutes('06:45'))).toEqual([]);
   });
 });

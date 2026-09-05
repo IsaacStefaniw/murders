@@ -10,6 +10,7 @@ import { sessionForItem } from '@/features/modalities/registry';
 import { smartMoveOptions } from '@/features/planner/moveOptions';
 import {
   candidateStartsFor,
+  pastStartsFor,
   type Displacement,
 } from '@/features/planner/moveWithBump';
 import { addDays, durationMinutes, formatTime, nowMinutes, todayKey } from '@/lib/dates';
@@ -47,7 +48,9 @@ export function ItemActions({
   const goals = useAppStore((s) => s.goals);
 
   const setMilestoneDone = useAppStore((s) => s.setMilestoneDone);
-  const [mode, setMode] = useState<'idle' | 'move' | 'choose' | 'skip' | 'milestone'>(initialMode);
+  const [mode, setMode] = useState<'idle' | 'move' | 'choose' | 'happened' | 'skip' | 'milestone'>(
+    initialMode,
+  );
   /** What else moved to make room. Shown once, then cleared on the next action. */
   const [knockOn, setKnockOn] = useState<Displacement[]>([]);
   const session = item.status === 'planned' ? sessionForItem(item, goals) : null;
@@ -102,6 +105,46 @@ export function ItemActions({
     return (
       <View style={styles.row}>
         <Button title="Undo" variant="ghost" onPress={() => { setItemStatus(date, item.id, 'planned'); finish(); }} />
+      </View>
+    );
+  }
+
+  // Today only: the times this could already have happened at. Chosen
+  // from here it is moved AND marked done in one tap, so it lands as a
+  // fact rather than as something overdue.
+  const happenedAt =
+    date === todayKey() && item.status === 'planned'
+      ? pastStartsFor(plan, item.id, { wakeTime: profile.wakeTime, sleepTime: profile.sleepTime }, nowMinutes())
+      : [];
+  const recordHappened = (start: string) => {
+    moveItem(date, item.id, start);
+    setItemStatus(date, item.id, 'completed', {
+      source: 'manual',
+      confidence: 1,
+      at: new Date().toISOString(),
+      note: `happened at ${formatTime(start)}, logged after`,
+    });
+    if (goal && nextMilestone) setMode('milestone');
+    else finish();
+  };
+
+  if (mode === 'happened') {
+    return (
+      <View style={styles.column}>
+        <AppText variant="caption" color="textTertiary">
+          It already happened — when?
+        </AppText>
+        <View style={styles.chips}>
+          {happenedAt.map((c) => (
+            <Chip
+              key={c.start}
+              label={c.bumps > 0 ? `${formatTime(c.start)} · moves ${c.bumps}` : formatTime(c.start)}
+              hint="Puts it where it happened and marks it done."
+              onPress={() => recordHappened(c.start)}
+            />
+          ))}
+          <Chip label="Cancel" onPress={() => setMode('idle')} />
+        </View>
       </View>
     );
   }
@@ -174,6 +217,9 @@ export function ItemActions({
                 }}
               />
             ) : null}
+            {happenedAt.length > 0 ? (
+              <Chip label="It already happened…" onPress={() => setMode('happened')} />
+            ) : null}
             <Chip label="Cancel" onPress={() => setMode('idle')} />
           </View>
         </View>
@@ -223,6 +269,13 @@ export function ItemActions({
                   onPress={() => applyMove(c.start)}
                 />
               ))}
+          {happenedAt.length > 0 ? (
+            <Chip
+              label="It already happened…"
+              hint="Put it at the time it actually happened, earlier today, and mark it done."
+              onPress={() => setMode('happened')}
+            />
+          ) : null}
           <Chip label="Cancel" onPress={() => setMode('idle')} />
         </View>
       </View>

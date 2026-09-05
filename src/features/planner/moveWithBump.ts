@@ -216,3 +216,28 @@ export function candidateStartsFor(
   }
   return out;
 }
+
+/**
+ * The times this item could have happened at, latest first.
+ *
+ * The picker deliberately offers only times still ahead, because moving
+ * something into the morning at 3pm used to file it under "did it
+ * happen?" and read as a verdict. But a walk taken at 11 that the plan had
+ * at 2 is not a move — it is a fact, and the person could not record it.
+ * These are the slots that end at or before now; the caller marks the
+ * item done at the same moment it moves it, so it lands as a thing that
+ * happened, never as a thing overdue.
+ */
+export function pastStartsFor(
+  plan: DailyPlan,
+  itemId: string,
+  ctx: { wakeTime: string; sleepTime: string; stepMin?: number },
+  nowMin: number,
+): TimeCandidate[] {
+  const item = plan.items.find((i) => i.id === itemId);
+  if (!item) return [];
+  const duration = durationOf(item);
+  return candidateStartsFor(plan, itemId, ctx)
+    .filter((c) => toMinutes(c.start) + duration <= nowMin)
+    .sort((a, b) => b.start.localeCompare(a.start));
+}
