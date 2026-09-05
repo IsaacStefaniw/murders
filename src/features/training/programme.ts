@@ -11,7 +11,8 @@
  * never medical advice.
  */
 
-import { estimate1Rm, latest, type MetricObservation } from '@/features/model/metrics';
+import { estimate1Rm, type MetricObservation } from '@/features/model/metrics';
+import { strengthBaseline } from '@/features/training/baseline';
 import type { PathLevel } from '@/features/paths/level';
 import { newId } from '@/lib/dates';
 import type { PhysicalConstraint } from '@/types/domain';
@@ -137,11 +138,15 @@ const LIFT_METRIC: Record<string, string> = {
   ohp: 'strength.ohp.e1rm',
 };
 
-export function baselinesFrom(metrics: MetricObservation[]): TrainingProgramme['baselines'] {
+export function baselinesFrom(
+  metrics: MetricObservation[],
+  now: Date = new Date(),
+): TrainingProgramme['baselines'] {
   const out: TrainingProgramme['baselines'] = {};
   for (const [lift, key] of Object.entries(LIFT_METRIC)) {
-    const obs = latest(metrics, key);
-    if (obs) out[lift as keyof TrainingProgramme['baselines']] = obs.value;
+    // The weighted read, not the latest reading — see baseline.ts.
+    const read = strengthBaseline(metrics, key, now);
+    if (read) out[lift as keyof TrainingProgramme['baselines']] = read.value;
   }
   return out;
 }
