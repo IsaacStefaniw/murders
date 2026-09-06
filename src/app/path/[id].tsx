@@ -324,8 +324,9 @@ export default function PathHub() {
         })}
       </View>
       <AppText variant="caption" color="textTertiary" style={styles.why}>
-        These are scheduled into your real days automatically — and adapt as IntentNorth learns when
-        they actually happen for you.
+        {plus || def.id === 'recovery'
+          ? 'These are scheduled into your real days automatically — and adapt as IntentNorth learns when they actually happen for you.'
+          : 'With Plus these go into your real days automatically, and adapt as IntentNorth learns when they actually happen for you.'}
       </AppText>
 
       <Button

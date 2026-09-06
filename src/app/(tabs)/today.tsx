@@ -146,6 +146,11 @@ export default function Today() {
     (i) => meaningful(i) && i.id !== nowItem?.id && toMinutes(i.start) >= EVENING_START,
   );
   const doneCount = plan.items.filter((i) => i.status === 'completed').length;
+  // The tap-a-row hint is only true when there is a row. On a free day, or
+  // on the free tier where the sessions are shown locked, it pointed at
+  // nothing and read as a bug.
+  const hasTappableRow =
+    !!nowItem || overdueItems.length > 0 || nextItems.length > 0 || tonightItems.length > 0;
   // True only until the very first thing is ever ticked off, across every
   // day the app has planned.
   // Not memoised: it sits after an early return, and `.some()` stops at
@@ -240,7 +245,7 @@ export default function Today() {
         </Card>
       ) : null}
 
-      {neverCompletedAnything ? (
+      {neverCompletedAnything && hasTappableRow ? (
         <Card style={styles.firstRun}>
           <AppText variant="secondary">
             Tap a row to start it, finish it or move it. Move one thing and the rest
@@ -331,6 +336,20 @@ export default function Today() {
         </Card>
       )}
 
+      {/* After eight, the reset comes before everything else on the page:
+          at 9pm it was five sections down, two screens on a small phone,
+          which is not "two taps to the breath reset". */}
+      {isEvening ? (
+        <View>
+          <SectionHeader title="Any time" />
+          <View style={styles.chipsRow}>
+            <Chip label="Breathe" onPress={() => router.push('/session/breathe' as never)} />
+            <Chip label="Journal" onPress={() => router.push('/session/journal' as never)} />
+            <Chip label="Meditate" onPress={() => router.push('/session/meditate' as never)} />
+          </View>
+        </View>
+      ) : null}
+
       {!plus ? (
         <LockedSessions
           routines={applicableRoutines(routines, profile.sexAtBirth)}
@@ -413,7 +432,7 @@ export default function Today() {
       {interventions.map((iv) => (
         <Card key={iv.intention.id}>
           <AppText variant="heading">
-            {iv.at} — ahead of it
+            {formatTime(iv.at)} — ahead of it
           </AppText>
           <AppText variant="secondary" style={styles.tonightLine}>
             {behaviourInfo(iv.intention.behaviour).label} usually lands{' '}
@@ -469,6 +488,13 @@ export default function Today() {
           onPress={isEvening && !hasEveningReflection ? () => router.push('/check-in/evening') : undefined}
           accessibilityLabel="Tonight"
         >
+          {plan.intention ? (
+            // Labelled: on its own, the morning's intention read as a
+            // stray sentence under "Tonight".
+            <AppText variant="caption" color="textTertiary">
+              Your intention for today
+            </AppText>
+          ) : null}
           {plan.intention || plan.protectBehaviour ? (
             <AppText variant="body" style={styles.tonightLine}>
               {plan.intention ??
@@ -508,12 +534,12 @@ export default function Today() {
       ) : null}
 
       {/* Always something to do — sessions run on demand, not only when scheduled. */}
-      <SectionHeader title="Any time" />
+      <SectionHeader title={isEvening ? 'Also any time' : 'Any time'} />
       <View style={styles.chipsRow}>
-        <Chip label="Breathe" onPress={() => router.push('/session/breathe' as never)} />
-        <Chip label="Journal" onPress={() => router.push('/session/journal' as never)} />
+        {!isEvening ? <Chip label="Breathe" onPress={() => router.push('/session/breathe' as never)} /> : null}
+        {!isEvening ? <Chip label="Journal" onPress={() => router.push('/session/journal' as never)} /> : null}
         <Chip label="Plan meals" onPress={() => router.push('/session/meals' as never)} />
-        <Chip label="Meditate" onPress={() => router.push('/session/meditate' as never)} />
+        {!isEvening ? <Chip label="Meditate" onPress={() => router.push('/session/meditate' as never)} /> : null}
         <Chip label="Train" onPress={() => router.push('/session/workout' as never)} />
       </View>
 

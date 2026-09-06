@@ -24,7 +24,7 @@ const AREA_LABELS: Record<string, string> = {
   work: 'Work',
   growth: 'Personal growth',
   enjoyment: 'Enjoyment',
-  admin: 'Life admin',
+  admin: 'Money & security',
 };
 
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -222,8 +222,8 @@ export default function PlanReview() {
 
 const styles = StyleSheet.create({
   top: { marginBottom: Spacing.sm },
-  pillars: { flexDirection: 'row', gap: Spacing.sm },
-  pillar: { flex: 1, gap: Spacing.xs },
+  pillars: { gap: Spacing.sm },
+  pillar: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   stack: { gap: Spacing.sm },
   routineRow: {
     flexDirection: 'row',

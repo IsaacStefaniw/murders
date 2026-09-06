@@ -42,6 +42,7 @@ const DAY_LABEL = (p: Protocol) =>
 function ProtocolCard({ protocol }: { protocol: Protocol }) {
   const routines = useAppStore((s) => s.routines);
   const toggleProtocol = useAppStore((s) => s.toggleProtocol);
+  const plus = useAppStore((s) => s.entitlement.plus);
   const active = routines.some((r) => r.protocolId === protocol.id && r.active);
 
   return (
@@ -77,7 +78,9 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
       />
       {active ? (
         <AppText variant="caption" color="success">
-          IntentNorth schedules this into your week automatically.
+          {plus
+            ? 'IntentNorth schedules this into your week automatically.'
+            : 'On your plan. Plus places it into your days; until then it is listed on its coach’s hub.'}
         </AppText>
       ) : null}
     </Card>
