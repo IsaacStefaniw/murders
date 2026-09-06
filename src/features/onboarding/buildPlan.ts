@@ -820,14 +820,25 @@ export function profilePatchFor(
  * Deferred answers that belong to a pathway's intake rather than the
  * profile — the ones whose whole job is to change what that coach builds.
  */
-export const PATH_ANSWER_FOR: Record<string, { path: PathId; key: string }> = {
+export const PATH_ANSWER_FOR: Record<
+  string,
+  {
+    path: PathId;
+    key: string;
+    /** Interview values the pathway spells differently. */
+    translate?: Record<string, string>;
+  }
+> = {
   trainingExperience: { path: 'training', key: 'experience' },
   trainingSetup: { path: 'training', key: 'setup' },
   age: { path: 'training', key: 'age' },
   foodAim: { path: 'nutrition', key: 'aim' },
   foodTrouble: { path: 'nutrition', key: 'trouble' },
   weight: { path: 'nutrition', key: 'weightKg' },
-  money: { path: 'money', key: 'aim' },
+  // The money coach reads `mode`, and its clarity mode is the interview's
+  // short check-in. Written under `aim`, the answer reached nothing: the
+  // hub's lines stayed on saving whatever the person said.
+  money: { path: 'money', key: 'mode', translate: { checkin: 'clarity' } },
   moneyAutomation: { path: 'money', key: 'automation' },
   workStyle: { path: 'work', key: 'style' },
   sleepQuality: { path: 'recovery', key: 'sleepQuality' },

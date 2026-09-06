@@ -654,7 +654,7 @@ export const useAppStore = create<AppState>()(
           const route = PATH_ANSWER_FOR[stepId];
           const one = Array.isArray(value) ? value[0] : value;
           if (route && one && get().paths[route.path]) {
-            get().updatePathAnswers(route.path, { [route.key]: one });
+            get().updatePathAnswers(route.path, { [route.key]: route.translate?.[one] ?? one });
           }
 
           // A behaviour named here is a behaviour to protect against, and
@@ -673,6 +673,9 @@ export const useAppStore = create<AppState>()(
           // with the answer just given.
           if (route?.path === 'training' || stepId === 'trainingSetup') get().buildTrainingBlock();
           if (route?.path === 'work') get().buildWorkBlock();
+          // Pressure is a recovery answer that the work block reads; a block
+          // already built is rebuilt so its deep-hours target says so.
+          if (stepId === 'pressure' && get().workBlock) get().buildWorkBlock();
           if (patch && ('wakeTime' in patch || 'workDays' in patch || 'trainingPreference' in patch)) {
             get().regeneratePlan(todayKey());
           }
@@ -1376,6 +1379,17 @@ export const useAppStore = create<AppState>()(
               [id]: { startedAt: new Date().toISOString(), answers, goalId: plan.goal.id },
             },
           });
+          // An intake answer is a deferred interview question by another
+          // name. Recorded under the interview's own id, so the hub does
+          // not ask again what it was just told, and so a question that
+          // waits on one of them (food trouble waits on the aim) is offered.
+          const mirrored: InterviewAnswers = {};
+          for (const [stepId, route] of Object.entries(PATH_ANSWER_FOR)) {
+            if (route.path === id && answers[route.key] !== undefined) mirrored[stepId] = answers[route.key];
+          }
+          if (Object.keys(mirrored).length > 0) {
+            set({ interviewAnswers: { ...get().interviewAnswers, ...mirrored } });
+          }
           // The new program should be visible across the whole week now.
           if (get().profile) {
             const today = todayKey();
