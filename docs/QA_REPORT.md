@@ -649,4 +649,33 @@ workout screen's sleep pre-fill, one line, waiting on the file.
 
 ## Integration seams
 
-Filled in when Workstream D lands.
+Workstream D. Six suites under `src/features/integration/__tests__/`, one
+per seam, thirty-seven tests, each driving the real store from a reset
+through the interview builder, the plan review's pathway starts and
+onward, asserting at every hop, green under UTC and Sydney. Whole suite
+after: 121 suites, 1,524 tests.
+
+| # | Seam | Verdict |
+|---|---|---|
+| 1 | Interview answer to profile to routine to plan item to Today row, every deferred answer | Fixed |
+| 2 | Logged set to metric to weighted baseline to next block's load to hub number to level card | Pass |
+| 3 | Apple Health sleep to readiness to auto-regulated session to the note | Pass |
+| 4 | Behaviour log to pattern to timed intervention to the breath session, Plus off | Pass |
+| 5 | Goal with a metric target to milestone ladder to a satisfying reading to the tick to the weekly report | Pass |
+| 6 | Backup, restore on a clean store, seams one to five still true | Pass |
+
+**Seam one had three holes** (commit `bf8895c`): a late money answer was
+written under a key the money coach never reads, so "paying down debt"
+changed nothing and the hub kept talking about investing; the coach hubs
+re-asked the intake's own questions and, through a skip rule, never
+offered the food-trouble or automation questions; a pressure answer left
+the work block's deep-hours target stale. All three fixed in
+`src/features/onboarding/buildPlan.ts` and `src/state/store.ts`, pinned by
+the seam tests.
+
+**Open from this workstream.** Deferred answers whose only consumer is
+the opening interview's builder (sleep quality, mind, more-of, household
+fields) land on the profile and never on the calendar; a `routinesForAnswer`
+step is proposed in the scratch report. Three path keys (`setup`, `age`,
+`weightKg`) are written and never read. Notifications are off by default,
+so the timed intervention is a card before it is a push.

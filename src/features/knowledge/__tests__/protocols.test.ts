@@ -157,7 +157,7 @@ describe('domain pathways', () => {
 
   it('unscoped, the library is an index rather than a briefing', () => {
     const ctx = knowledgeContext();
-    expect(ctx).toContain('Zone 2');
+    expect(ctx).toContain('Easy cardio');
     // Titles and grades only: enough to know what exists, small enough to
     // send. Summaries are the scoped call's job.
     expect(ctx).not.toContain('Steady "can still hold a conversation" cardio');

@@ -137,7 +137,7 @@ export function BodyNumbers() {
             title="Enter my numbers"
             variant="secondary"
             style={styles.gap}
-            hint="Height, weight, waist, resting heart rate, HRV and cardio fitness."
+            hint="Height, weight, waist, resting heart rate, heart-rate variability and cardio fitness."
             onPress={() => setOpen(true)}
           />
         </Card>

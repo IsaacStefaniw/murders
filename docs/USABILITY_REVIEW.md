@@ -344,4 +344,48 @@ From the tally over every captured screen. "Fixed" names the commit.
 
 ## Round three
 
-Filled in when the round-three persona review lands.
+A hundred fresh personas, none used in round two, on the pack built from
+the fixed export (commit `964694f`, forty-two screens). Same brief, same
+tags, so the three rounds compare. Full report:
+`docs/review/round3-report.md`.
+
+| | Round one (1,000) | Round two (100) | Round three (100) |
+|---|---|---|---|
+| Understood what it is | 96% | 99% | 99% |
+| Would pay: yes | 40% | 42% | 37% |
+| Mean severity (5 worst) | 2.52 | 2.37 | 2.34 |
+| Paywall too early | 30% | 44% | 13% |
+| Free tier unclear | 14% | 23% | 18% |
+| Health condition ignored | 31% | 4% | 7% |
+| Interview too long | 20% | 9% | 11% |
+| Jargon | 24% | 20% | 32% |
+| Copy too long | 12% | 11% | 20% |
+| Interview missing option | 8% | 5% | 13% |
+| Would recommend | 38% | 47% | 45% |
+| Reasons helpful | 31% | 54% | 45% |
+| Privacy trust good | 22% | 48% | 50% |
+| Evidence grades helpful | 12% | 10% | 17% |
+
+**What the numbers say.** Holding the Plus card to the second day did
+what it was meant to: the paywall complaint fell by two thirds and is now
+below round one. Understanding, trust and the reasons on every line held.
+Would-pay dipped within the noise of a hundred-person sample (thirty-seven
+against forty-two), with the same three markets driving it as before:
+students, carers and retirees on price.
+
+**What rose, and what was done about it.** Jargon rose to a third, and
+the list was short and specific: "Zone 2" (34 mentions), HRV (29), VO₂ max
+(14), "the aerobic base" (13). The two practice titles now read "Easy
+cardio, talking pace" and "Hard intervals", with the technical name in the
+summary where a person who wants it can find it; "the aerobic base" is
+"the easy, steady work" everywhere; the guard bans all three from titles.
+Copy too long doubled, concentrated on the plan review's reveals and the
+evidence-grade sentence; that is the next copy pass and is listed under
+open items. Interview missing option rose to thirteen, almost all from
+shift workers (a roster) and carers (work-day questions that assume a
+job), which are the two market departures already recorded above.
+
+**Where people stopped.** Eighty-three did not stop. Five stopped on the
+Coaches tab on the free tier, three on a coach hub, two on a plan review
+that showed a training example to someone who came for money or drinking.
+Nobody stopped on the paywall.

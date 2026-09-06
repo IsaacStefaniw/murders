@@ -4,6 +4,14 @@ For the session that picks this up. Written 2026-09-05 at commit `67e94f9`
 on `claude/rename-murders-folder-goh5q0`. Everything here is on that
 branch; nothing in this brief lives anywhere else.
 
+> **Status, 2026-09-06.** This brief has been run once, in the session
+> that wrote it. Deliverables on the branch: `docs/COMPETITIVE_REVIEW_2.md`,
+> `docs/USABILITY_REVIEW.md` with `docs/review/round3-report.md`, and
+> `docs/QA_REPORT.md`. Tests went from 908 to 1,524. Thirty-three fixes
+> landed in nine commits from `671a2f7` to the head. What is still open is
+> listed in the three reports; the next session starts from those open
+> lists, not from section 4 again, and re-runs only what it changes.
+
 This is a review with teeth. The deliverable is not a document about the
 app. It is the app, better, with every finding either fixed and tested or
 written down with a reproduction and a reason it was not fixed. The
