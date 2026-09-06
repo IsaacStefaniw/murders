@@ -286,16 +286,19 @@ describe('the development grant', () => {
   });
 
   /**
-   * Skipped, not failing: the fix belongs in src/state/store.ts, which
-   * another workstream owns. Persisted state survives a development build
-   * being replaced by a release build on the same device, and StoreKit
-   * cannot correct it when it is unreachable (a simulator, an offline
-   * first launch, web). One line in onRehydrateStorage closes it:
-   *   state.entitlement = reconcileEntitlement(state.entitlement, NO_ENTITLEMENT, __DEV__);
+   * Persisted state survives a development build being replaced by a
+   * release build on the same device, and StoreKit cannot correct a grant
+   * it never made when it is unreachable (a simulator, an offline first
+   * launch, web). onRehydrateStorage drops the development grant on a
+   * release build — and only that: reconciling against NO_ENTITLEMENT
+   * would also drop a real purchase until StoreKit answered, locking a
+   * paying person out of an offline launch.
    */
-  it.skip('a persisted grant is dropped at hydration on a release build', () => {
+  it('a persisted grant is dropped at hydration on a release build, and a purchase is not', () => {
     const src = fs.readFileSync(path.join(process.cwd(), 'src/state/store.ts'), 'utf8');
-    expect(src).toMatch(/reconcileEntitlement\(state\.entitlement, NO_ENTITLEMENT, __DEV__\)/);
+    expect(src).toMatch(/state\.entitlement\?\.source === 'dev' && !__DEV__/);
+    expect(src).toMatch(/state\.entitlement = NO_ENTITLEMENT;/);
+    expect(src).not.toMatch(/reconcileEntitlement\(state\.entitlement, NO_ENTITLEMENT/);
   });
 
   it('the StoreKit refresh keeps the grant only where __DEV__ says so', () => {

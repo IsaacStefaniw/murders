@@ -7,7 +7,7 @@
  * hours and minutes, never a score. Nothing here diagnoses.
  */
 import type { MetricObservation } from '@/features/model/metrics';
-import { toHHMM, toMinutes } from '@/lib/dates';
+import { dateKeyOfIso, toHHMM, toMinutes } from '@/lib/dates';
 import type { EnergyProfile } from '@/types/domain';
 
 export const DEBT_WINDOW_NIGHTS = 14;
@@ -35,11 +35,13 @@ export interface SleepDebt {
 
 function nightsOf(metrics: MetricObservation[], now: Date, windowNights: number): number[] {
   const cutoff = new Date(now.getTime() - windowNights * 86400e3).toISOString();
-  // One reading per night: the last written for that date wins.
+  // One reading per night, keyed by the local morning it was read on: the
+  // last written for that date wins. Keyed by UTC date, a six o'clock
+  // sync and an eleven o'clock correction in Sydney were two nights.
   const byDate = new Map<string, number>();
   for (const o of metrics) {
     if (o.key !== 'sleep.hours' || o.at < cutoff) continue;
-    byDate.set(o.at.slice(0, 10), o.value);
+    byDate.set(dateKeyOfIso(o.at), o.value);
   }
   return [...byDate.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([, v]) => v);
 }

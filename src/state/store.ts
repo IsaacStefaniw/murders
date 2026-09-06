@@ -67,6 +67,7 @@ import {
 import { moveWithBump, type Displacement } from '@/features/planner/moveWithBump';
 import { describeDisplaced, describeMoved } from '@/features/planner/displaced';
 import { mergeRoutines } from '@/features/planner/mergeRoutines';
+import { reconcilePlan } from '@/features/planner/reconcile';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
 import {
   applyMoveRoutine,
@@ -193,8 +194,13 @@ export interface AppState {
     newStart: string,
     initiatedBy?: 'user' | 'intent',
   ) => Displacement[];
-  /** Move a plan item to another day, at the first slot that actually fits. */
-  moveItemToDate: (date: string, itemId: string, targetDate: string) => void;
+  /**
+   * Move a plan item to another day, as close to its own time as that day
+   * allows. Returns what it displaced there, like every other move; when
+   * the day has no room even after bumping, the item stays put and the
+   * one entry returned names it with `to: null`.
+   */
+  moveItemToDate: (date: string, itemId: string, targetDate: string) => Displacement[];
   /** Shorten an item to fit the time that exists — recovery, not compliance. */
   shortenItem: (date: string, itemId: string, newDurationMin: number) => void;
   /** Add a one-off item (an anticipation plan, a spontaneous commitment). */
@@ -726,8 +732,21 @@ export const useAppStore = create<AppState>()(
             ...describeDisplaced(unplaced, plan.items, profile.priorities),
           ];
           const previous = plans[date];
+          // A day already lived in is a record, not a draft. Rebuilding it
+          // wholesale undid the workout ticked off at seven, forgot the
+          // skip, snapped a moved block back and dropped an added one —
+          // every routine edit, goal add or library toggle erased the
+          // day's ledger. What the person did or decided is kept and the
+          // engine's arrangement is re-laid around it.
+          const items = reconcilePlan(
+            plan.items,
+            previous?.items,
+            new Set(running.map((r) => r.id)),
+            { wakeTime: profile.wakeTime, sleepTime: profile.sleepTime },
+          );
           const next: DailyPlan = {
             ...plan,
+            items,
             displaced: displaced.length > 0 ? displaced : undefined,
             intention: previous?.intention,
             protectBehaviour: previous?.protectBehaviour,
@@ -873,7 +892,7 @@ export const useAppStore = create<AppState>()(
         moveItemToDate: (date, itemId, targetDate) => {
           const { profile } = get();
           const item = get().plans[date]?.items.find((i) => i.id === itemId);
-          if (!item || item.fixed || !profile) return;
+          if (!item || item.fixed || !profile) return [];
           const targetPlan = get().ensurePlan(targetDate);
           const slots = availableStartsFor({ ...item, id: '' }, targetPlan, profile, 12);
           // Land as close to the original time as the target day allows.
@@ -891,8 +910,24 @@ export const useAppStore = create<AppState>()(
             movedFrom: item.movedFrom ?? item.start,
             status: 'planned',
           };
+          // A full tomorrow used to take the item at its own time, on top
+          // of whatever was there, with nothing displaced and nothing said.
+          // The chosen time is granted and the flexible day re-laid around
+          // it, exactly as a move within a day or an added block is — and
+          // when even that finds no room, the item stays where it is and
+          // the answer says so, rather than two things sharing one hour.
+          const outcome = moveWithBump(
+            { ...targetPlan, items: [...targetPlan.items, movedItem] },
+            movedItem.id,
+            newStart,
+            { wakeTime: profile.wakeTime, sleepTime: profile.sleepTime },
+          );
+          const noRoom = outcome.overlapsFixed || outcome.displaced.some((d) => d.to === null);
+          if (noRoom) {
+            return [{ id: item.id, title: item.title, from: item.start, to: null }];
+          }
           updatePlanItems(date, (items) => items.filter((i) => i.id !== itemId));
-          updatePlanItems(targetDate, (items) => [...items, movedItem]);
+          updatePlanItems(targetDate, () => outcome.items);
           record(
             eventFor(item, date, 'rescheduled', {
               originalStart: item.start,
@@ -900,7 +935,19 @@ export const useAppStore = create<AppState>()(
               newDate: targetDate,
             }),
           );
+          for (const d of outcome.displaced) {
+            const bumped = targetPlan.items.find((i) => i.id === d.id);
+            if (!bumped || !d.to) continue;
+            record(
+              eventFor(bumped, targetDate, 'rescheduled', {
+                originalStart: d.from,
+                newStart: d.to,
+                initiatedBy: 'intent',
+              }),
+            );
+          }
           get().refreshSuggestions();
+          return outcome.displaced;
         },
 
         shortenItem: (date, itemId, newDurationMin) => {
@@ -1798,6 +1845,15 @@ export const useAppStore = create<AppState>()(
         ),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
+        // App data survives a development build being replaced by a release
+        // build on the same device, and StoreKit cannot correct a grant it
+        // never made when it is unreachable — a simulator, an offline first
+        // launch. Only the development grant is dropped here: a real
+        // purchase stays until StoreKit says otherwise, so a paying person
+        // launching offline is not locked out.
+        if (state.entitlement?.source === 'dev' && !__DEV__) {
+          state.entitlement = NO_ENTITLEMENT;
+        }
         // Anyone who onboarded before the interview was split has a
         // profile but no stored answers. Reconstructing what the profile
         // can prove is what stops them being asked eighteen questions they

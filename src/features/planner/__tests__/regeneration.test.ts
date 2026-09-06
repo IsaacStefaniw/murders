@@ -48,14 +48,14 @@ const editSomeRoutine = (exceptId?: string) => {
 const itemsOn = (date: string) => useAppStore.getState().plans[date]!.items;
 
 /**
- * The four rows below fail today: `regeneratePlan` in src/state/store.ts
- * replaces the day's items wholesale, so a completed workout comes back
- * as planned, a skip is forgotten, a moved block snaps back and an added
- * one vanishes. The store is owned by another workstream in this review;
- * the tests are left here, skipped, for the fix to turn on.
+ * The four rows below failed: `regeneratePlan` in src/state/store.ts
+ * replaced the day's items wholesale, so a completed workout came back
+ * as planned, a skip was forgotten, a moved block snapped back and an
+ * added one vanished. `reconcilePlan` (src/features/planner/reconcile.ts)
+ * is what keeps them now.
  */
 describe('E1–E4 a day already lived in survives a rebuild', () => {
-  it.skip('keeps a completed item completed', () => {
+  it('keeps a completed item completed', () => {
     const date = onboard();
     const item = itemsOn(date).find((i) => !i.fixed)!;
     useAppStore.getState().setItemStatus(date, item.id, 'completed');
@@ -63,7 +63,7 @@ describe('E1–E4 a day already lived in survives a rebuild', () => {
     expect(itemsOn(date).find((i) => i.id === item.id)).toMatchObject({ status: 'completed' });
   });
 
-  it.skip('keeps a skipped item skipped', () => {
+  it('keeps a skipped item skipped', () => {
     const date = onboard();
     const item = itemsOn(date).find((i) => !i.fixed)!;
     useAppStore.getState().setItemStatus(date, item.id, 'skipped');
@@ -71,7 +71,7 @@ describe('E1–E4 a day already lived in survives a rebuild', () => {
     expect(itemsOn(date).find((i) => i.id === item.id)).toMatchObject({ status: 'skipped' });
   });
 
-  it.skip('keeps a moved item where the person put it', () => {
+  it('keeps a moved item where the person put it', () => {
     const date = onboard();
     const item = itemsOn(date).find((i) => !i.fixed)!;
     useAppStore.getState().moveItem(date, item.id, '20:00');
@@ -79,7 +79,7 @@ describe('E1–E4 a day already lived in survives a rebuild', () => {
     expect(itemsOn(date).find((i) => i.id === item.id)).toMatchObject({ start: '20:00', movedFrom: item.start });
   });
 
-  it.skip('keeps a block the person added', () => {
+  it('keeps a block the person added', () => {
     const date = onboard();
     useAppStore.getState().addPlanItem(date, { title: 'Coffee with Dan', area: 'enjoyment', start: '07:00', durationMin: 30 });
     editSomeRoutine();

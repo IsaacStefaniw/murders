@@ -256,14 +256,13 @@ describe('D7 to tomorrow', () => {
 
 describe('D7b to a tomorrow with no room', () => {
   /**
-   * Fails today: `moveItemToDate` in src/state/store.ts falls back to the
-   * item's own start when the target day offers no free slot, and appends
-   * it — so it lands on top of whatever is there, with nothing displaced
-   * and nothing reported. Every other move goes through `moveWithBump`;
-   * this one should too. The store is owned by another workstream in this
-   * review; the test is left here, skipped, for the fix to turn on.
+   * `moveItemToDate` used to fall back to the item's own start when the
+   * target day offered no free slot and append it — on top of whatever was
+   * there, with nothing displaced and nothing reported. It now goes
+   * through `moveWithBump` like every other move and returns what it
+   * displaced.
    */
-  it.skip('either finds room by bumping, or says so — never a silent overlap', () => {
+  it('either finds room by bumping, or says so — never a silent overlap', () => {
     const date = onboard();
     const tomorrow = addDays(date, 1);
     useAppStore.getState().ensurePlan(tomorrow);

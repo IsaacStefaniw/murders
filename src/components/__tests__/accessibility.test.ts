@@ -114,3 +114,92 @@ describe('large text', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+/**
+ * The three shared controls, held to the floor by their own source.
+ *
+ * A control that reaches VoiceOver as "button" with no name, or a chip
+ * that does not say whether it is selected, is a control that works for
+ * sighted people only. The shape is pinned here so a refactor that drops
+ * a prop fails a test rather than a person.
+ */
+describe('the shared controls', () => {
+  const source = (name: string) => readFileSync(join(SRC, 'components', name), 'utf8');
+
+  it('Button is a button, named by its title, and says when it is disabled', () => {
+    const s = source('button.tsx');
+    expect(s).toMatch(/accessibilityRole="button"/);
+    expect(s).toMatch(/accessibilityLabel=\{title\}/);
+    expect(s).toMatch(/accessibilityState=\{\{ disabled/);
+    expect(s).toMatch(/title: string;/);
+  });
+
+  it('Chip is a button that announces selected and disabled', () => {
+    const s = source('chip.tsx');
+    expect(s).toMatch(/accessibilityRole="button"/);
+    expect(s).toMatch(/accessibilityState=\{\{ selected, disabled \}\}/);
+    // The visible label is the accessible name: it is the only text child.
+    expect(s).toMatch(/label: string;/);
+    expect(s).toMatch(/\{label\}/);
+  });
+
+  it('Field requires a label and hands it to the input whether or not it is drawn', () => {
+    const s = source('field.tsx');
+    expect(s).toMatch(/^\s+label: string;/m);
+    expect(s).not.toMatch(/label\?: string/);
+    expect(s).toMatch(/accessibilityLabel=\{label\}/);
+    expect(s).toMatch(/accessibilityHint=\{hint\}/);
+    expect(s).toMatch(/accessibilityState=\{\{ disabled: !editable \}\}/);
+  });
+
+  it('every hint prop on the shared controls reaches accessibilityHint', () => {
+    for (const control of ['button.tsx', 'chip.tsx', 'field.tsx']) {
+      expect(source(control)).toMatch(/accessibilityHint=\{hint\}/);
+    }
+  });
+});
+
+/**
+ * Type sizes. The reading floor for anything a person is expected to read
+ * is 14pt: below that, the smallest Dynamic Type step is already hard for
+ * the reading-glasses market in docs/MARKETS.md. `label` is an uppercase
+ * eyebrow at 12pt — a heading decoration, not a caption — and is reported
+ * rather than pinned.
+ */
+describe('type sizes', () => {
+  const sizes = (): Record<string, number> => {
+    const s = readFileSync(join(SRC, 'components', 'text.tsx'), 'utf8');
+    const out: Record<string, number> = {};
+    for (const m of s.matchAll(/^\s+(\w+): \{[^}]*?fontSize: (\d+)/gms)) out[m[1]] = Number(m[2]);
+    return out;
+  };
+
+  it('captions are at least 14pt, secondary at least 15, body at least 16', () => {
+    const t = sizes();
+    expect(t.caption).toBeGreaterThanOrEqual(14);
+    expect(t.secondary).toBeGreaterThanOrEqual(15);
+    expect(t.body).toBeGreaterThanOrEqual(16);
+    expect(Object.keys(t).sort()).toEqual(['body', 'caption', 'display', 'heading', 'label', 'secondary', 'title']);
+  });
+
+  /**
+   * charts.tsx draws 9pt axis ticks. Every chart carries an
+   * accessibilityLabel that says the numbers in words, so the ticks are
+   * decoration for people who can see them — but 9pt is small for the
+   * reading-glasses market and is reported as open in the QA report
+   * rather than pinned here.
+   */
+  it('no screen or feature sets a font size under 14 on text a person reads', () => {
+    const offenders: string[] = [];
+    for (const file of tsxFiles(SRC)) {
+      if (file.endsWith(join('components', 'charts.tsx'))) continue;
+      for (const line of readFileSync(file, 'utf8').split('\n')) {
+        const m = line.match(/fontSize: (\d+)/);
+        if (m && Number(m[1]) < 14 && !file.endsWith(join('components', 'text.tsx'))) {
+          offenders.push(`${rel(file)}: ${line.trim()}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});

@@ -19,6 +19,7 @@
  */
 
 import { latest, type MetricObservation } from '@/features/model/metrics';
+import { dateKeyOfIso, toDateKey } from '@/lib/dates';
 
 export type ReadinessBand = 'ready' | 'caution' | 'back-off';
 
@@ -63,10 +64,13 @@ export function baselineFor(
   key: string,
   now = new Date(),
 ): number | null {
-  const today = now.toISOString().slice(0, 10);
+  // Local days on both sides. Read in UTC, a reading taken at seven in
+  // Sydney belonged to yesterday until eleven — so it was counted into the
+  // baseline it was meant to be judged against, and then judged stale.
+  const today = toDateKey(now);
   const cutoff = new Date(now.getTime() - BASELINE_DAYS * 86400e3).toISOString();
   const values = metrics
-    .filter((o) => o.key === key && o.at >= cutoff && o.at.slice(0, 10) !== today)
+    .filter((o) => o.key === key && o.at >= cutoff && dateKeyOfIso(o.at) !== today)
     .map((o) => o.value);
   return values.length >= MIN_READINGS ? median(values) : null;
 }
@@ -75,7 +79,7 @@ export function baselineFor(
 function todayValue(metrics: MetricObservation[], key: string, now: Date): number | null {
   const obs = latest(metrics, key);
   if (!obs) return null;
-  return obs.at.slice(0, 10) === now.toISOString().slice(0, 10) ? obs.value : null;
+  return dateKeyOfIso(obs.at) === toDateKey(now) ? obs.value : null;
 }
 
 /**

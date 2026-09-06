@@ -9,6 +9,7 @@
  */
 
 import { observe, type MetricObservation } from '@/features/model/metrics';
+import { dateKeyOfIso } from '@/lib/dates';
 
 export interface SleepSegment {
   /** ISO timestamps. */
@@ -125,13 +126,16 @@ export function snapshotObservations(
   existing: MetricObservation[],
   todayIso = new Date().toISOString(),
 ): MetricObservation[] {
-  const today = todayIso.slice(0, 10);
+  // "Today" is the local day. Compared as UTC dates, a seven o'clock hand
+  // entry in Sydney and an eleven o'clock sync fell on different days, and
+  // the sync wrote a second reading over the person's own.
+  const today = dateKeyOfIso(todayIso);
   const out: MetricObservation[] = [];
   for (const { key, field, onChangeOnly } of SNAPSHOT_KEYS) {
     const raw = snapshot[field];
     if (raw == null || !Number.isFinite(raw) || raw <= 0) continue;
     const value = Math.round(raw * 10) / 10;
-    if (existing.some((o) => o.key === key && o.at.slice(0, 10) === today)) continue;
+    if (existing.some((o) => o.key === key && dateKeyOfIso(o.at) === today)) continue;
     if (onChangeOnly) {
       const previous = existing
         .filter((o) => o.key === key)

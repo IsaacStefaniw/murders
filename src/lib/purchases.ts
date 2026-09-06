@@ -32,6 +32,7 @@ import {
   PLUS_PRODUCTS,
   PLUS_SUBSCRIPTION_IDS,
   entitlementFromPurchases,
+  reconcileEntitlement,
   type Entitlement,
   type PurchaseLike,
 } from '@/features/plus/entitlement';
@@ -85,10 +86,10 @@ export async function refreshEntitlement(): Promise<Entitlement> {
   try {
     const owned = await getAvailablePurchases();
     const next = entitlementFromPurchases(owned.map(toLike));
-    // A development grant is not overwritten by an honest "nothing owned".
-    if (current.source === 'dev' && !next.plus) return current;
-    useAppStore.getState().setEntitlement(next);
-    return next;
+    const kept = reconcileEntitlement(current, next, __DEV__);
+    if (kept === current) return current;
+    useAppStore.getState().setEntitlement(kept);
+    return kept;
   } catch {
     return current;
   }
