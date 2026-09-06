@@ -215,7 +215,7 @@ export const PRESET_GROUPS: PresetGroup[] = [
         text: 'Meditate every day for a year',
         label: 'Meditate daily',
         commitment: '10 minutes, in the app, most mornings',
-        domain: 'personal',
+        domain: 'health',
         path: 'recovery',
       },
       {

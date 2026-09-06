@@ -78,6 +78,20 @@ export function grantedEntitlement(source: 'dev' = 'dev'): Entitlement {
   return { plus: true, source, checkedAt: new Date().toISOString() };
 }
 
+/**
+ * What to keep after StoreKit has answered.
+ *
+ * A development grant is not overwritten by an honest "nothing owned" —
+ * but only in a development build. App data survives a build being
+ * replaced on the same device, so a grant made in a development build
+ * could hydrate into a release build; there, Apple's answer wins every
+ * time. A real purchase replaces the grant in either build.
+ */
+export function reconcileEntitlement(current: Entitlement, next: Entitlement, devBuild: boolean): Entitlement {
+  if (current.source === 'dev' && devBuild && !next.plus) return current;
+  return next;
+}
+
 /** How many protocols per pillar are open to read without Plus. */
 export const FREE_PROTOCOLS_PER_PILLAR = 5;
 

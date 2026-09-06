@@ -672,6 +672,23 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   // ambition); keep one of each protocol. The same rule now guards every
   // later merge into the store — see features/planner/mergeRoutines.
   const dedupedRoutines = dedupeRoutines(routines);
+  // The dropped twin may have belonged to a goal — a business ambition's
+  // deep-work carve beside the one asked for by name. The goal then named
+  // a routine that no longer existed. It points at the survivor instead,
+  // which adopts the goal if it had none of its own.
+  const survivors = new Set(dedupedRoutines.map((r) => r.id));
+  for (const goal of goals) {
+    goal.routineIds = goal.routineIds.flatMap((id) => {
+      if (survivors.has(id)) return [id];
+      const dropped = routines.find((r) => r.id === id);
+      const kept = dropped?.protocolId
+        ? dedupedRoutines.find((r) => r.protocolId === dropped.protocolId)
+        : undefined;
+      if (!kept) return [];
+      if (!kept.goalId) kept.goalId = goal.id;
+      return kept.goalId === goal.id && !goal.routineIds.includes(kept.id) ? [kept.id] : [];
+    });
+  }
 
   // Paths the answers already justify — started at approval, so the first
   // day carries tailored milestones, check-ins and advice, not just blocks.

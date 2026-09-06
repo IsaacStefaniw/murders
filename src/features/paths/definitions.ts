@@ -132,12 +132,20 @@ function withLadder(
   const routines = suppress
     ? plan.routines
     : [...plan.routines, ...fitLadderToBudget(added, level)];
+  const existingMilestones = plan.goal.milestones ?? [];
+  const existingMilestoneTitles = new Set(existingMilestones.map((m) => m.title));
   return {
     ...plan,
     routines,
     goal: {
       ...plan.goal,
-      milestones: [...(plan.goal.milestones ?? []), ...ladder.milestones],
+      // The family goal plan and the family foundation rung both promise
+      // "One outing that actually happened"; the same step twice reads as a
+      // bug and can only be ticked once. The pathway's own wording wins.
+      milestones: [
+        ...existingMilestones,
+        ...ladder.milestones.filter((m) => !existingMilestoneTitles.has(m.title)),
+      ],
       routineIds: routines.map((r) => r.id),
     },
   };
@@ -507,6 +515,10 @@ export const PATHS: Record<PathId, PathDefinition> = {
         walk: { title: 'The urge answer: walk it off', durationMin: 20 },
         read: { title: 'The urge answer: read instead', durationMin: 20 },
         message: { title: 'The urge answer: message someone real', durationMin: 10 },
+        // 'tidy' and 'water' were offered on the intake and then handed the
+        // breath reset, so two of the six taps changed nothing.
+        tidy: { title: 'The urge answer: one small job with your hands', durationMin: 10 },
+        water: { title: 'The urge answer: make a drink, slowly', durationMin: 5 },
       };
       const base = routineByReplacement[replacement] ?? routineByReplacement.breathe;
       const routine: Routine = {
@@ -554,9 +566,13 @@ export const PATHS: Record<PathId, PathDefinition> = {
         boredom: 'Boredom urges want stimulation, not sedation — the replacement gives your hands and mind something real.',
         social: 'Social triggers are decided in advance: know your drink, your line, and your exit before you arrive.',
         evening: 'Evening at home is the classic window. The replacement is scheduled right into it — same time, every night.',
+        // 'tired' and 'lowmood' are on the intake and had no line, so the
+        // hub showed a blank where the first sentence should have been.
+        tired: 'Running on empty is when the urge costs least to give in to — the answer is small on purpose, because a tired evening cannot carry a big one.',
+        lowmood: 'A bad day makes the habit feel like relief. The replacement is something kind that is not the habit, and logging the day is what shows the pattern.',
         unsure: 'Not sure of the trigger? Log each urge with one tap and IntentNorth will find the pattern within two weeks.',
       };
-      lines.push(triggerLine[answers.trigger ?? 'unsure']);
+      lines.push(triggerLine[answers.trigger ?? 'unsure'] ?? triggerLine.unsure);
       lines.push('One miss is noise. Two in a row is the fork — that’s when IntentNorth steps in, not with shame, with a plan.');
       if (answers.wave === 'evening') {
         lines.push('Your urges run long, so the answer isn’t outlasting one wave — it’s changing the evening’s shape before it starts.');
@@ -669,7 +685,10 @@ export const PATHS: Record<PathId, PathDefinition> = {
         if (protocol) routines.push(toRoutine(protocol, profile, plan.goal.id));
       }
       // Under-fives can't sustain a three-hour outing or a 25-minute sit.
-      if (answers.ages === 'under5') {
+      // A multi-answer question: a family with an under-five and a
+      // primary-schooler tapped both, and the outing is still sized to the
+      // youngest.
+      if (answered(answers, 'ages', 'under5')) {
         for (const r of routines) {
           if (r.protocolId === 'family-adventure') r.durationMin = 90;
           if (r.protocolId === 'one-on-one-child') r.durationMin = 15;
@@ -724,7 +743,10 @@ export const PATHS: Record<PathId, PathDefinition> = {
       if (answers.blocker === 'logistics') {
         lines.push('Your problem is deciding, not caring. The outing goes in the calendar before the week starts, or it doesn’t happen.');
       }
-      if (answers.ages === 'under5') {
+      // A multi-answer question: a family with an under-five and a
+      // primary-schooler tapped both, and the outing is still sized to the
+      // youngest.
+      if (answered(answers, 'ages', 'under5')) {
         lines.push('Sized to the youngest: 90-minute adventures and 15-minute one-on-ones. An outing nobody enjoyed is worse than a slow morning at home.');
       }
       lines.push('Much of this research is correlational — settled families sustain rituals as much as rituals settle families. Graded C and D, and said plainly.');
