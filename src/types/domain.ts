@@ -287,6 +287,13 @@ export interface Routine {
    */
   duringWork?: boolean;
   /**
+   * A during-work routine that closes the day — a shutdown ritual — sits
+   * against the end of the work hours, whatever they are, rather than at a
+   * clock time that may fall inside a fixed block and be pushed into the
+   * evening.
+   */
+  anchorToWorkEnd?: boolean;
+  /**
    * Programme structure introduced by a pathway rung, rather than an
    * evidence-based practice from the protocol library.
    *

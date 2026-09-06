@@ -304,6 +304,9 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
       id: newId('r'),
       title: hasKids ? 'Family dinner' : 'Dinner together',
       area: 'family',
+      // It is the device-free meal practice, so the library shows it as
+      // already on and the family pathway does not schedule it a second time.
+      protocolId: 'device-free-meal',
       days: [0, 1, 2, 3, 4, 5, 6],
       durationMin: 45,
       preferredStart: '18:00',

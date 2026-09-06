@@ -15,7 +15,7 @@
 import { grantedEntitlement } from '@/features/plus/entitlement';
 import { useAppStore } from '@/state/store';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
-import { todayKey, toMinutes } from '@/lib/dates';
+import { addDays, todayKey, toMinutes, weekdayOf } from '@/lib/dates';
 import type { PlanItem } from '@/types/domain';
 
 const overlaps = (a: PlanItem, b: PlanItem) =>
@@ -40,7 +40,10 @@ const setup = () => {
     routines: built.routines,
     behaviourIntentions: built.behaviourIntentions,
   });
-  const date = todayKey();
+  // The next Monday, not today: the test is about displacing a flexible
+  // block, and a weekend for this profile has none to displace.
+  const today = todayKey();
+  const date = addDays(today, (8 - weekdayOf(today)) % 7 || 7);
   useAppStore.getState().ensurePlan(date);
   return date;
 };

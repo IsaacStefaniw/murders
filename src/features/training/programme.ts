@@ -11,7 +11,8 @@
  * never medical advice.
  */
 
-import { estimate1Rm, latest, type MetricObservation } from '@/features/model/metrics';
+import { estimate1Rm, type MetricObservation } from '@/features/model/metrics';
+import { strengthBaseline } from '@/features/training/baseline';
 import type { PathLevel } from '@/features/paths/level';
 import { newId } from '@/lib/dates';
 import type { PhysicalConstraint } from '@/types/domain';
@@ -32,6 +33,23 @@ export type TrainingEquipment = 'gym' | 'home' | 'dumbbells' | 'bodyweight';
  * stops at `established` on purpose: `advanced` is earned in
  * features/paths/level, never selected on a form.
  */
+/**
+ * How many sessions a week the person already does, from the intake's
+ * frequency answer. A block must never hand someone fewer days than they
+ * are already training: the interview's default of three was quietly
+ * cutting a five-day lifter to three and calling it a programme.
+ */
+export function sessionsPerWeekFloor(frequency?: string): number {
+  switch (frequency) {
+    case '3-4':
+      return 3;
+    case '5+':
+      return 5;
+    default:
+      return 0;
+  }
+}
+
 export const LEVEL_FROM_EXPERIENCE: Record<TrainingExperience, PathLevel> = {
   new: 'foundation',
   returning: 'developing',
@@ -83,6 +101,8 @@ export interface PrescribedExercise {
   rpe?: number;
   restSec: number;
   accessory?: boolean;
+  /** Set when the person swapped this in for the programmed movement. */
+  swappedFrom?: string;
 }
 
 export type TrainingPhase = 'build' | 'progress' | 'deload';
@@ -118,11 +138,15 @@ const LIFT_METRIC: Record<string, string> = {
   ohp: 'strength.ohp.e1rm',
 };
 
-export function baselinesFrom(metrics: MetricObservation[]): TrainingProgramme['baselines'] {
+export function baselinesFrom(
+  metrics: MetricObservation[],
+  now: Date = new Date(),
+): TrainingProgramme['baselines'] {
   const out: TrainingProgramme['baselines'] = {};
   for (const [lift, key] of Object.entries(LIFT_METRIC)) {
-    const obs = latest(metrics, key);
-    if (obs) out[lift as keyof TrainingProgramme['baselines']] = obs.value;
+    // The weighted read, not the latest reading — see baseline.ts.
+    const read = strengthBaseline(metrics, key, now);
+    if (read) out[lift as keyof TrainingProgramme['baselines']] = read.value;
   }
   return out;
 }

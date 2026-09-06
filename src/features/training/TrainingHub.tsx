@@ -15,6 +15,7 @@ import { QuestionCard } from '@/features/model/QuestionCard';
 import { LevelCard } from '@/features/paths/LevelCard';
 import { weekOf } from '@/features/training/programme';
 import { useAppStore } from '@/state/store';
+import { strengthBaseline } from '@/features/training/baseline';
 import { latestMaxes } from '@/features/training/level';
 import { assessStrength, BAND_LABEL, type StrengthLift } from '@/features/training/standards';
 
@@ -141,15 +142,22 @@ export function TrainingHub() {
           <SectionHeader title="Your strongest single lift" />
           <View style={styles.stack}>
             {knownLifts.map((l) => {
-              const now = latest(metrics, l.key)!;
+              const read = strengthBaseline(metrics, l.key)!;
               const t = trend(metrics, l.key, 90);
               return (
                 <Card key={l.key} style={styles.row}>
-                  <AppText variant="body" style={styles.grow}>
-                    {l.label}
-                  </AppText>
+                  <View style={styles.grow}>
+                    <AppText variant="body">{l.label}</AppText>
+                    <AppText variant="caption" color="textTertiary">
+                      {read.fromRetest && read.observations === 1
+                        ? 'From your retest'
+                        : read.observations === 1
+                          ? 'One session so far'
+                          : `Best of ${read.observations} sessions, last 12 weeks`}
+                    </AppText>
+                  </View>
                   <AppText variant="heading">
-                    {t && t.direction !== 'flat' ? `${t.from} → ${t.to}` : now.value}{' '}
+                    {t && t.direction !== 'flat' ? `${t.from} → ${t.to}` : read.value}{' '}
                     {metricDef(l.key)?.unit}
                   </AppText>
                   {t?.direction === 'up' ? (

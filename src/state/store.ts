@@ -34,10 +34,12 @@ import {
   type NotificationSettings,
 } from '@/features/notifications/schedule';
 import { observationsFrom } from '@/features/training/log';
+import { swapKey } from '@/features/training/swap';
 import {
   baselinesFrom,
   buildProgramme,
   LEVEL_FROM_EXPERIENCE,
+  sessionsPerWeekFloor,
   type TrainingInputs,
   type TrainingProgramme,
 } from '@/features/training/programme';
@@ -318,6 +320,17 @@ export interface AppState {
   /** Training v2 — the current four-week block. */
   trainingProgramme: TrainingProgramme | null;
   buildTrainingBlock: () => void;
+  /**
+   * The person's own changes to a programmed day. A session swap is per
+   * date — "I did legs yesterday, give me upper today" — and clears when
+   * the day is put back to the programme's pick. An exercise swap is per
+   * block and session, so a movement swapped once stays swapped for the
+   * four weeks rather than being re-asked every visit.
+   */
+  sessionSwaps: Record<string, number>;
+  swapSession: (date: string, index: number | null) => void;
+  exerciseSwaps: Record<string, string>;
+  swapExercise: (programmeId: string, sessionTitle: string, from: string, to: string | null) => void;
 
   /**
    * A voluntary cap on a pathway's level — "this is too hard, take it
@@ -467,6 +480,8 @@ const initialData = {
   questionLog: {} as Record<string, string>,
   dismissedCheckins: {} as Record<string, string>,
   trainingProgramme: null as TrainingProgramme | null,
+  sessionSwaps: {} as Record<string, number>,
+  exerciseSwaps: {} as Record<string, string>,
   interviewAnswers: {} as InterviewAnswers,
   lastOpenedAt: null as string | null,
   previousOpenAt: null as string | null,
@@ -522,7 +537,7 @@ export function deriveTrainingInputs(
       (pathAnswers?.experience as TrainingInputs['experience']) ??
       (goal === 'strength' ? 'consistent' : 'returning'),
     level,
-    daysAvailable: profile.trainingDaysPerWeek,
+    daysAvailable: Math.max(profile.trainingDaysPerWeek, sessionsPerWeekFloor(pathAnswers?.frequency)),
     sessionMin: profile.trainingDurationMin >= 45 ? 60 : 30,
     equipment,
     focusLift,
@@ -1186,6 +1201,21 @@ export const useAppStore = create<AppState>()(
               baselinesFrom(metrics),
             ),
           });
+        },
+
+        swapSession: (date, index) => {
+          const next = { ...get().sessionSwaps };
+          if (index == null) delete next[date];
+          else next[date] = index;
+          set({ sessionSwaps: next });
+        },
+
+        swapExercise: (programmeId, sessionTitle, from, to) => {
+          const key = swapKey(programmeId, sessionTitle, from);
+          const next = { ...get().exerciseSwaps };
+          if (to == null || to === from) delete next[key];
+          else next[key] = to;
+          set({ exerciseSwaps: next });
         },
 
         setPathIntensityPush: (path, push) => {

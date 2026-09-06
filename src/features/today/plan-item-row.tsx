@@ -31,7 +31,7 @@ interface PlanItemRowProps {
  * Only shown from half an hour up — a five-minute item saying "5m" is noise,
  * and its length was never what anybody was trying to work out.
  */
-function lengthLabel(item: PlanItem): string | null {
+export function lengthLabel(item: Pick<PlanItem, 'start' | 'end'>): string | null {
   const mins = durationMinutes(item.start, item.end);
   if (mins < 30) return null;
   const h = Math.floor(mins / 60);

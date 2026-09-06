@@ -31,6 +31,7 @@
  */
 
 import { type MetricObservation } from '@/features/model/metrics';
+import { strengthBaseline } from '@/features/training/baseline';
 import { distinctWeeks, type LevelEvidence, type PathLevel } from '@/features/paths/level';
 import type { LifeProfile, WorkoutLog } from '@/types/domain';
 
@@ -124,14 +125,16 @@ export function trainingEvidence(
   };
 }
 
-/** The most recent e1RM observed for each main lift. */
-export function latestMaxes(metrics: MetricObservation[]): LiftMaxes {
+/**
+ * What each main lift is worth now: the weighted baseline (see
+ * baseline.ts), not the most recent reading. A warm-up-only session used
+ * to move the level assessment the same way it moved the loads.
+ */
+export function latestMaxes(metrics: MetricObservation[], now: Date = new Date()): LiftMaxes {
   const out: LiftMaxes = {};
   for (const lift of STRENGTH_LIFTS) {
-    const own = metrics
-      .filter((o) => o.key === metricKeyFor(lift))
-      .sort((a, b) => a.at.localeCompare(b.at));
-    if (own.length > 0) out[lift] = own[own.length - 1].value;
+    const read = strengthBaseline(metrics, metricKeyFor(lift), now);
+    if (read) out[lift] = read.value;
   }
   return out;
 }

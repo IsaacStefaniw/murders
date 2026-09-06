@@ -16,6 +16,7 @@ import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/traini
 import { defaultRepsFrom, SetLogger, topRepsFrom } from '@/features/training/SetLogger';
 import { readinessFrom } from '@/features/health/readiness';
 import { autoRegulate, weekOf } from '@/features/training/programme';
+import { alternativesFor, applyExerciseSwaps } from '@/features/training/swap';
 import { dateKeyToDate, durationMinutes, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
@@ -42,6 +43,21 @@ export default function WorkoutSession() {
   const programme = useAppStore((s) => s.trainingProgramme);
   const metrics = useAppStore((s) => s.metrics);
   const addMetric = useAppStore((s) => s.addMetric);
+  const sessionSwaps = useAppStore((s) => s.sessionSwaps);
+  const exerciseSwaps = useAppStore((s) => s.exerciseSwaps);
+  const swapSession = useAppStore((s) => s.swapSession);
+  const swapExercise = useAppStore((s) => s.swapExercise);
+  const sessionDate = date ?? todayKey();
+
+  // Which of this week's sessions today is: the programme's pick by
+  // weekday, unless the person chose another one for this date. "I did
+  // legs yesterday and want to press today" was not possible before.
+  const week = programme ? weekOf(programme) : null;
+  const weekSessions = programme && week ? programme.weeks[week - 1].sessions : [];
+  const weekday = dateKeyToDate(sessionDate).getDay();
+  const programmedIdx =
+    weekSessions.length > 0 ? Math.floor((weekday * weekSessions.length) / 7) % weekSessions.length : 0;
+  const sessionIdx = Math.min(sessionSwaps[sessionDate] ?? programmedIdx, Math.max(weekSessions.length - 1, 0));
 
   // Cross-pathway: last night's sleep adjusts today's session.
   // With Apple Health connected the number arrives on its own.
@@ -65,25 +81,25 @@ export default function WorkoutSession() {
   const readiness = useMemo(() => readinessFrom(metrics), [metrics]);
 
   const session = useMemo(() => {
-    const weekday = dateKeyToDate(date ?? todayKey()).getDay();
     // Training v2: when a block is active, today runs the PROGRAMME —
     // your lifts, your loads — auto-regulated to the time that exists
     // and the night that actually happened.
-    const week = programme ? weekOf(programme) : null;
     if (programme && week) {
       const wk = programme.weeks[week - 1];
-      const idx = Math.floor((weekday * wk.sessions.length) / 7) % wk.sessions.length;
-      const adjusted = autoRegulate(wk.sessions[idx], {
+      const programmed = wk.sessions[sessionIdx];
+      const adjusted = autoRegulate(programmed, {
         availableMin,
         sleptHours: sleptHours ?? undefined,
         age: programme.inputs.age,
         readiness: readiness?.band,
       });
+      const exercises = applyExerciseSwaps(adjusted.exercises, exerciseSwaps, programme.id, programmed.title);
       return {
         title: `Week ${week} · ${adjusted.title}`,
+        programmedTitle: programmed.title,
         estimatedMin: adjusted.estimatedMin,
         note: adjusted.note ?? wk.focus,
-        exercises: adjusted.exercises.map((e) => ({
+        exercises: exercises.map((e) => ({
           name: e.name,
           sets: e.sets,
           reps: `${e.reps}${e.loadKg ? ` @ ${e.loadKg} kg` : e.rpe ? ` · ${effortWords(e.rpe)}` : ''}`,
@@ -91,15 +107,15 @@ export default function WorkoutSession() {
           // Carried through rather than baked into the label: the set
           // logger prefills from it, and a string cannot be prefilled from.
           loadKg: e.loadKg,
+          swappedFrom: e.swappedFrom,
         })),
       };
     }
     return buildWorkout(availableMin, profile?.trainingPreference ?? 'mixed', weekday);
-  }, [availableMin, profile?.trainingPreference, date, programme, sleptHours, readiness?.band]);
+  }, [availableMin, profile?.trainingPreference, weekday, programme, week, sessionIdx, exerciseSwaps, sleptHours, readiness?.band]);
 
   const workoutLogs = useAppStore((s) => s.workoutLogs);
   const saveWorkoutLog = useAppStore((s) => s.saveWorkoutLog);
-  const sessionDate = date ?? todayKey();
 
   /**
    * One log per training day, derived rather than held in state: created on
@@ -228,6 +244,26 @@ export default function WorkoutSession() {
         </View>
       ) : null}
 
+      {programme && weekSessions.length > 1 ? (
+        <View style={styles.sleepRow}>
+          <AppText variant="caption" color="textTertiary">
+            {loggedSets.length > 0 ? 'Session:' : 'Swap the session:'}
+          </AppText>
+          {weekSessions.map((s, i) => (
+            <Chip
+              key={s.title}
+              label={s.title}
+              selected={i === sessionIdx}
+              // Once a set is logged the day is this session; a swap now
+              // would leave the sets under a title they do not belong to.
+              disabled={loggedSets.length > 0 && i !== sessionIdx}
+              hint={i === programmedIdx ? 'The programme’s pick for today' : 'Run this session today instead'}
+              onPress={() => swapSession(sessionDate, i === programmedIdx ? null : i)}
+            />
+          ))}
+        </View>
+      ) : null}
+
       {restLeft > 0 ? (
         <Card style={{ backgroundColor: theme.accentSoft, borderColor: theme.accent, marginTop: Spacing.lg }}>
           <AppText variant="heading" color="accent">
@@ -249,25 +285,66 @@ export default function WorkoutSession() {
               : null;
           // What the person walks in wanting to know, in priority order: what
           // the programme says today, else what they did last time.
-          const reference = next
-            ? next.reason
-            : last
-              ? `last time: ${last.set.weightKg ? `${last.set.weightKg} kg × ` : ''}${last.set.reps}`
-              : undefined;
+          const swappedFrom = 'swappedFrom' in e ? e.swappedFrom : undefined;
+          const reference = swappedFrom
+            ? `swapped in for ${swappedFrom} — go by effort until it has its own numbers`
+            : next
+              ? next.reason
+              : last
+                ? `last time: ${last.set.weightKg ? `${last.set.weightKg} kg × ` : ''}${last.set.reps}`
+                : undefined;
+          // The movements that keep this one's pattern on this person's
+          // equipment. Only while nothing is logged under the current name.
+          const programmedName = swappedFrom ?? e.name;
+          const alternatives =
+            programme && 'programmedTitle' in session && setsFor(e.name).length === 0
+              ? alternativesFor(programmedName, programme.inputs.equipment).filter((a) => a !== e.name).slice(0, 3)
+              : [];
           return (
-            <SetLogger
-              key={e.name}
-              exercise={e.name}
-              prescribedSets={e.sets}
-              prescribedReps={`${e.reps}${e.restSec > 0 ? ` · rest ${e.restSec}s` : ''}`}
-              sets={setsFor(e.name)}
-              suggestedWeightKg={('loadKg' in e ? e.loadKg : undefined) ?? next?.weightKg ?? last?.set.weightKg}
-              suggestedReps={targetReps}
-              reference={reference}
-              onAddSet={(reps, weightKg) => addSet(e.name, e.restSec, reps, weightKg)}
-              onEditSet={editSet}
-              onRemoveSet={removeSet}
-            />
+            <View key={programmedName} style={styles.stack}>
+              <SetLogger
+                exercise={e.name}
+                prescribedSets={e.sets}
+                prescribedReps={`${e.reps}${e.restSec > 0 ? ` · rest ${e.restSec}s` : ''}`}
+                sets={setsFor(e.name)}
+                suggestedWeightKg={('loadKg' in e ? e.loadKg : undefined) ?? next?.weightKg ?? last?.set.weightKg}
+                suggestedReps={targetReps}
+                reference={reference}
+                onAddSet={(reps, weightKg) => addSet(e.name, e.restSec, reps, weightKg)}
+                onEditSet={editSet}
+                onRemoveSet={removeSet}
+              />
+              {alternatives.length > 0 || swappedFrom ? (
+                <View style={styles.swapRow}>
+                  <AppText variant="caption" color="textTertiary">
+                    Swap:
+                  </AppText>
+                  {swappedFrom ? (
+                    <Chip
+                      label={`Back to ${swappedFrom}`}
+                      hint="The programme’s pick"
+                      onPress={() =>
+                        programme && 'programmedTitle' in session
+                          ? swapExercise(programme.id, session.programmedTitle, swappedFrom, null)
+                          : undefined
+                      }
+                    />
+                  ) : null}
+                  {alternatives.map((alt) => (
+                    <Chip
+                      key={alt}
+                      label={alt}
+                      hint="Same pattern, this movement instead, for the rest of the block"
+                      onPress={() =>
+                        programme && 'programmedTitle' in session
+                          ? swapExercise(programme.id, session.programmedTitle, programmedName, alt)
+                          : undefined
+                      }
+                    />
+                  ))}
+                </View>
+              ) : null}
+            </View>
           );
         })}
       </View>
@@ -294,6 +371,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
   },
   stack: { gap: Spacing.sm },
+  swapRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: Spacing.xs },
   exercise: {
     flexDirection: 'row',
     alignItems: 'center',

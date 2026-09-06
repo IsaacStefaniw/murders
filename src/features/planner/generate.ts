@@ -17,6 +17,8 @@ import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine } from '@/types/do
 
 const LUNCH_START = 12 * 60;
 const LUNCH_END = 13 * 60 + 30;
+/** Shorter than this, a piece of the work day is a sliver, not a block. */
+const MIN_WORK_FRAGMENT_MIN = 30;
 
 export function workBlocks(
   profile: LifeProfile,
@@ -38,9 +40,15 @@ export function workBlocks(
   }
   for (const r of routines) {
     if (!r.duringWork || !r.active || !r.days.includes(weekday)) continue;
-    const start = Math.max(workStart, toMinutes(r.preferredStart));
-    const end = start + r.durationMin;
-    if (end > workEnd) continue;
+    const duration = r.durationMin;
+    if (duration > workEnd - workStart) continue;
+    // Clamped into the day rather than dropped: a block that prefers 17:00
+    // in a day that ends at 17:00 still belongs to that day. A ritual that
+    // closes the day sits against its end, whatever the hours are.
+    const start = r.anchorToWorkEnd
+      ? workEnd - duration
+      : Math.min(Math.max(workStart, toMinutes(r.preferredStart)), workEnd - duration);
+    const end = start + duration;
     carves.push({
       start,
       end,
@@ -63,7 +71,11 @@ export function workBlocks(
     // Two carve-outs can prefer the same start (deep work + a growth
     // block); the later one shifts to follow the earlier, never overlaps.
     const duration = carve.end - carve.start;
-    const start = Math.max(carve.start, cursor);
+    let start = Math.max(carve.start, cursor);
+    // A fragment of the work day shorter than half an hour is not a block
+    // anyone can use, and on the screen "Work 9:00–9:15" read as missing
+    // data. The carve-out starts at the cursor instead.
+    if (start > cursor && start - cursor < MIN_WORK_FRAGMENT_MIN) start = cursor;
     const end = start + duration;
     if (end > workEnd) continue;
     if (start > cursor) {
@@ -75,7 +87,15 @@ export function workBlocks(
     cursor = end;
   }
   if (cursor < workEnd) {
-    blocks.push({ title: 'Work', start: toHHMM(cursor), end: toHHMM(workEnd), area: 'work' });
+    const last = blocks[blocks.length - 1];
+    const tail = workEnd - cursor;
+    // The same rule at the end of the day: a short tail folds into the
+    // plain work block it follows, when there is one right behind it.
+    if (tail < MIN_WORK_FRAGMENT_MIN && last && !last.routineId && last.title === 'Work' && toMinutes(last.end) === cursor) {
+      last.end = toHHMM(workEnd);
+    } else {
+      blocks.push({ title: 'Work', start: toHHMM(cursor), end: toHHMM(workEnd), area: 'work' });
+    }
   }
   return blocks;
 }

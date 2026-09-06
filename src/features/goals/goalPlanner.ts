@@ -10,6 +10,7 @@
 
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { answered } from '@/features/knowledge/questionBank';
+import { sessionsPerWeekFloor } from '@/features/training/programme';
 import { newId } from '@/lib/dates';
 import type {
   Goal,
@@ -185,7 +186,12 @@ export function buildGoalPlan(
       // Cadence honours what the user actually asked for in the interview.
       const fresh = answers.experience === 'new';
       const shortOnTime = answered(answers, 'limiter', 'time');
-      const cadence = fresh ? 2 : Math.min(Math.max(profile?.trainingDaysPerWeek ?? 3, 2), 6);
+      const cadence = fresh
+        ? 2
+        : Math.min(
+            Math.max(profile?.trainingDaysPerWeek ?? 3, sessionsPerWeekFloor(answers.frequency), 2),
+            6,
+          );
       const spread: Weekday[] = [1, 3, 5, 6, 2, 4, 0];
       milestones = fresh
         ? [milestone('Two sessions done — any two'), milestone('Four consistent weeks')]
