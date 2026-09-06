@@ -22,6 +22,8 @@ import { PlanItemRow } from '@/features/today/plan-item-row';
 import { QuickAdd } from '@/features/today/QuickAdd';
 import {
   addDays,
+  dateKeyOfIso,
+  durationMinutes,
   formatDateLong,
   formatTime,
   nowMinutes,
@@ -92,7 +94,7 @@ export default function Today() {
   // Nothing to suggest on the first day: a pattern needs days to exist,
   // and a card asking someone to "make the change" before they have done
   // anything reads as noise.
-  const firstDay = !!profile && profile.createdAt.slice(0, 10) === date;
+  const firstDay = !!profile && dateKeyOfIso(profile.createdAt) === date;
   const openSuggestion = useMemo(
     () => (firstDay ? undefined : suggestions.find((s) => s.status === 'open')),
     [suggestions, firstDay],
@@ -128,7 +130,11 @@ export default function Today() {
   // item is never manufactured into urgency — "nothing needs you right now"
   // is a real, deliberate state.
   const nowItem =
-    pending.find((i) => toMinutes(i.start) <= now && toMinutes(i.end) > now) ?? null;
+    // Measured by length, not by the end time: a block that ends at
+    // midnight has an end of 00:00, which is never after now.
+    pending.find(
+      (i) => toMinutes(i.start) <= now && toMinutes(i.start) + durationMinutes(i.start, i.end) > now,
+    ) ?? null;
   // The day's ledger: items whose window has passed, resolved or not.
   // Unresolved ones need an honest answer (the adaptation engine needs the
   // skip data as much as the user needs closure); resolved ones stay put so

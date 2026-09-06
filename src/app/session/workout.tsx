@@ -18,7 +18,7 @@ import { defaultRepsFrom, SetLogger, topRepsFrom } from '@/features/training/Set
 import { readinessFrom } from '@/features/health/readiness';
 import { autoRegulate, complexLiftsAllowed, weekOf } from '@/features/training/programme';
 import { alternativesFor, applyExerciseSwaps } from '@/features/training/swap';
-import { dateKeyToDate, durationMinutes, todayKey } from '@/lib/dates';
+import { dateKeyOfIso, dateKeyToDate, durationMinutes, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 import type { LoggedSet } from '@/types/domain';
@@ -66,7 +66,7 @@ export default function WorkoutSession() {
     void syncAppleHealth();
   }, []);
   const today = todayKey();
-  const loggedSleep = metrics.find((m) => m.key === 'sleep.hours' && m.at.slice(0, 10) === today);
+  const loggedSleep = metrics.find((m) => m.key === 'sleep.hours' && dateKeyOfIso(m.at) === today);
   const [startedAt] = useState(() => Date.now());
   const [manualSleep, setManualSleep] = useState<number | null>(null);
   // A tap wins; otherwise today's logged value (incl. an Apple Health sync

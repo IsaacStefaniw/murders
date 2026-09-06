@@ -97,7 +97,7 @@ describe('sleep debt', () => {
  * `dateKeyOfIso(m.at) === today` in src/app/session/workout.tsx.
  */
 describe('the workout screen’s sleep pre-fill', () => {
-  it.skip('reads the day of a reading locally (src/app/session/workout.tsx, training-owned)', () => {
+  it('reads the day of a reading locally', () => {
     const source = readFileSync(join(__dirname, '..', '..', '..', 'app', 'session', 'workout.tsx'), 'utf8');
     expect(source).not.toMatch(/\.at\.slice\(0, 10\)/);
     expect(source).toMatch(/dateKeyOfIso\(m\.at\)/);
