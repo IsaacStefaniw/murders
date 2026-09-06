@@ -47,6 +47,18 @@ export const isImmovable = (item: PlanItem): boolean =>
   item.fixed || item.status === 'completed';
 
 const durationOf = (item: PlanItem): number => durationMinutes(item.start, item.end);
+const startOf = (item: PlanItem): number => toMinutes(item.start);
+// Through the duration, not the stored end: a block that ends at midnight
+// stores "00:00", which read as minute zero and so never clashed with
+// anything.
+const endOf = (item: PlanItem): number => startOf(item) + durationOf(item);
+
+/**
+ * A skipped item is not happening. It takes up no room, so nothing needs
+ * to move around it — and it is never itself moved, because telling
+ * someone "Reading moved to 8pm" about a thing they skipped is nonsense.
+ */
+const occupies = (item: PlanItem): boolean => item.status !== 'skipped';
 
 const busyFrom = (items: PlanItem[]): FixedCommitment[] =>
   items.map((i) => ({ title: i.title, start: i.start, end: i.end }));
@@ -106,18 +118,21 @@ export function moveWithBump(
     movedFrom: target.movedFrom ?? target.start,
   };
 
+  const others = plan.items.filter((i) => i.id !== itemId);
+  const untouched = others.filter((i) => !occupies(i));
+
   // Immovable things, plus the chosen placement, are the fixed points the
   // rest of the day has to fit around.
-  const anchors = plan.items.filter((i) => i.id !== itemId && isImmovable(i));
+  const anchors = others.filter((i) => occupies(i) && isImmovable(i));
   const overlapsFixed = anchors.some(
-    (a) => toMinutes(a.start) < movedStart + duration && toMinutes(a.end) > movedStart,
+    (a) => startOf(a) < movedStart + duration && endOf(a) > movedStart,
   );
 
   const placed: PlanItem[] = [...anchors, moved];
   const displaced: Displacement[] = [];
 
-  const toReplace = plan.items
-    .filter((i) => i.id !== itemId && !isImmovable(i))
+  const toReplace = others
+    .filter((i) => occupies(i) && !isImmovable(i))
     .sort((a, b) => {
       const tier = TIER_ORDER[a.tier] - TIER_ORDER[b.tier];
       return tier !== 0 ? tier : toMinutes(a.start) - toMinutes(b.start);
@@ -146,7 +161,7 @@ export function moveWithBump(
   }
 
   return {
-    items: placed.sort((a, b) => a.start.localeCompare(b.start)),
+    items: [...placed, ...untouched].sort((a, b) => a.start.localeCompare(b.start)),
     displaced,
     overlapsFixed,
   };
@@ -196,7 +211,7 @@ export function candidateStartsFor(
   // something past midnight from this menu.
   dayEnd = Math.min(dayEnd, 1440);
 
-  const others = plan.items.filter((i) => i.id !== itemId);
+  const others = plan.items.filter((i) => i.id !== itemId && occupies(i));
   const out: TimeCandidate[] = [];
   // Now is a floor on where the offers start, never a redefinition of the
   // day. Past it entirely and there is simply nothing left to offer.
@@ -205,9 +220,7 @@ export function candidateStartsFor(
 
   for (let start = first; start + duration <= dayEnd; start += step) {
     const end = start + duration;
-    const clashes = others.filter(
-      (o) => toMinutes(o.start) < end && toMinutes(o.end) > start,
-    );
+    const clashes = others.filter((o) => startOf(o) < end && endOf(o) > start);
     out.push({
       start: toHHMM(start),
       bumps: clashes.filter((o) => !isImmovable(o)).length,

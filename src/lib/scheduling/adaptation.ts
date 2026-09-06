@@ -18,6 +18,20 @@ const SLOT_WINDOWS: Record<Slot, { start: string; end: string; label: string }> 
   evening: { start: '17:30', end: '20:30', label: 'evening' },
 };
 
+/** The slot as a phrase that follows a verb: slipping in the morning, at lunchtime. */
+const IN_SLOT: Record<Slot, string> = {
+  morning: 'in the morning',
+  midday: 'at lunchtime',
+  evening: 'in the evening',
+};
+
+/*
+ * Every message keeps a routine's title exactly as the app names it. The
+ * titles are sentences of their own — "Training that sticks", "Date night
+ * with Sam" — and lower-casing one, or wedging it in front of "sessions",
+ * produced "Two training that sticks sessions slipped" on a real screen.
+ */
+
 function slotOf(start: string): Slot {
   const m = toMinutes(start);
   if (m < 11 * 60) return 'morning';
@@ -71,7 +85,7 @@ export function detectSlotMismatch(history: PlanItem[], routines: Routine[]): Su
     suggestions.push({
       id: newId('sug'),
       kind: 'move_routine',
-      message: `${SLOT_WINDOWS[currentSlot].label[0].toUpperCase()}${SLOT_WINDOWS[currentSlot].label.slice(1)} ${routine.title.toLowerCase()} isn't sticking. You complete ${target.label} activities far more consistently. Make ${target.label} the default?`,
+      message: `${routine.title} keeps slipping ${IN_SLOT[currentSlot]}. You complete ${target.label} activities far more consistently. Make ${target.label} the default?`,
       reason: `You skipped ${skipped} of the last ${items.length} scheduled sessions, while your ${target.label} completion rate is ${Math.round(best.rate * 100)}%.`,
       payload: {
         routineId: routine.id,
@@ -123,7 +137,7 @@ export function detectMissedTwice(history: PlanItem[], routines: Routine[]): Sug
     suggestions.push({
       id: newId('sug'),
       kind: 'protect_time',
-      message: `Two ${routine.title.toLowerCase()} sessions slipped. Protect the next one?`,
+      message: `${routine.title} slipped twice in a row. Protect the next one?`,
       reason:
         'One miss is noise — two in a row is where routines tend to unravel. ' +
         'Protecting the next session resets the pattern; nothing is broken.',
@@ -228,7 +242,7 @@ export function detectMovePattern(moves: ManualMove[], routines: Routine[]): Sug
     suggestions.push({
       id: newId('sug'),
       kind: 'move_routine',
-      message: `You keep moving ${routine.title.toLowerCase()} to the ${target.label}. Make that the default?`,
+      message: `You keep moving ${routine.title} to the ${target.label}. Make that the default?`,
       reason: `You've manually moved it there twice — the plan should follow you, not the other way round.`,
       payload: {
         routineId: routine.id,
