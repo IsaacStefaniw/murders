@@ -15,7 +15,7 @@ import { buildWorkout } from '@/features/modalities/gym/program';
 import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/training/log';
 import { defaultRepsFrom, SetLogger, topRepsFrom } from '@/features/training/SetLogger';
 import { readinessFrom } from '@/features/health/readiness';
-import { autoRegulate, weekOf } from '@/features/training/programme';
+import { autoRegulate, complexLiftsAllowed, weekOf } from '@/features/training/programme';
 import { alternativesFor, applyExerciseSwaps } from '@/features/training/swap';
 import { dateKeyToDate, durationMinutes, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
@@ -93,6 +93,8 @@ export default function WorkoutSession() {
         age: programme.inputs.age,
         readiness: readiness?.band,
       });
+      // Under fifteen minutes there is no session, on either path.
+      if (!adjusted) return null;
       const exercises = applyExerciseSwaps(adjusted.exercises, exerciseSwaps, programme.id, programmed.title);
       return {
         title: `Week ${week} · ${adjusted.title}`,
@@ -294,11 +296,17 @@ export default function WorkoutSession() {
                 ? `last time: ${last.set.weightKg ? `${last.set.weightKg} kg × ` : ''}${last.set.reps}`
                 : undefined;
           // The movements that keep this one's pattern on this person's
-          // equipment. Only while nothing is logged under the current name.
+          // equipment, under the same rules the block was built with.
+          // Only while nothing is logged under the current name.
           const programmedName = swappedFrom ?? e.name;
           const alternatives =
             programme && 'programmedTitle' in session && setsFor(e.name).length === 0
-              ? alternativesFor(programmedName, programme.inputs.equipment).filter((a) => a !== e.name).slice(0, 3)
+              ? alternativesFor(programmedName, programme.inputs.equipment, {
+                  complexLifts: complexLiftsAllowed(programme.inputs),
+                  constraints: programme.inputs.constraints,
+                })
+                  .filter((a) => a !== e.name)
+                  .slice(0, 3)
               : [];
           return (
             <View key={programmedName} style={styles.stack}>

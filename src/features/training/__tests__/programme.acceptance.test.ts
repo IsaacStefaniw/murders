@@ -109,7 +109,8 @@ describe('auto-regulation: reality outranks the plan', () => {
   const session = intermediate.weeks[0].sessions[0];
 
   it('short sleep + tight window keeps the stimulus, cuts accessories', () => {
-    const adjusted = autoRegulate(session, { availableMin: 32, sleptHours: 5.7, age: 38 });
+    // Thirty-two minutes is a real window, so a session comes back.
+    const adjusted = autoRegulate(session, { availableMin: 32, sleptHours: 5.7, age: 38 })!;
     expect(adjusted.estimatedMin).toBeLessThanOrEqual(32);
     expect(adjusted.note).toContain('keeping the stimulus');
     // The focus lift survives.
