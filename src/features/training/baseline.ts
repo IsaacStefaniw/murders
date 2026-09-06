@@ -59,8 +59,10 @@ export function strengthBaseline(
   }
   const considered = lastRetest >= 0 ? own.slice(lastRetest) : own;
 
+  // Whole days, so a session logged this morning is not already a fraction
+  // of a day old by tonight. The discount is per week; hours are noise.
   const ageDays = (o: MetricObservation) =>
-    Math.max(0, (now.getTime() - new Date(o.at).getTime()) / 86400e3);
+    Math.max(0, Math.floor((now.getTime() - new Date(o.at).getTime()) / 86400e3));
   const recent = considered.filter((o) => ageDays(o) <= WINDOW_DAYS);
   // Nothing in the window: the last thing known, discounted to the floor,
   // is still a better start than pretending there is no history.

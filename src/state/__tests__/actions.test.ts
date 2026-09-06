@@ -118,7 +118,7 @@ describe('saving a workout', () => {
    * The weighting lives in src/features/training/baseline.ts, owned by the
    * training workstream; whole local days is the fix. Skipped until then.
    */
-  it.skip('a session logged this morning is not discounted by tonight (training-owned: baseline.ts ages in fractional days)', () => {
+  it('a session logged this morning is not discounted by tonight', () => {
     onboard();
     jest.useFakeTimers().setSystemTime(new Date(2026, 8, 7, 21, 30, 0, 0));
     useAppStore.getState().saveWorkoutLog(benchLog('2026-09-07', 100, 5));

@@ -171,7 +171,7 @@ export function LevelCard({
               variant="ghost"
               hint={
                 pushing
-                  ? 'Return to the standard prescription for this level.'
+                  ? 'Back to the plan this level normally runs.'
                   : 'Add a set, a little load and one more accessory. The movements stay the same.'
               }
               onPress={() => onPush(!pushing)}

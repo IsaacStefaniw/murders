@@ -56,7 +56,7 @@ export const LEVEL_BLURB: Record<PathId, Record<PathLevel, string>> = {
   training: {
     foundation: 'Fewer movements, lighter loads, a technical focus every session. The point is to learn the patterns and finish every session able to do it again.',
     developing: 'Barbell work comes in, sets go up, loads stop being cautious. Enough volume to drive progress, not enough to bury a week.',
-    established: 'Full prescribed volume and intensity, a peak week, and a heavy top set on the lift you care most about.',
+    established: 'Full volume and intensity, a peak week, and a heavy top set on the lift you care most about.',
     advanced: 'Higher intensity, an overreach week before the deload, and top singles. This is only offered once the log supports it.',
   },
   nutrition: {

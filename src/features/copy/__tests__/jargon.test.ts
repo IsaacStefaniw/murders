@@ -30,12 +30,10 @@ const BANNED: { phrase: RegExp; why: string; open?: string }[] = [
   {
     phrase: /standard prescription/,
     why: 'say "the usual dose" — a program, never a prescription',
-    open: 'src/features/paths/LevelCard.tsx is owned by the paths workstream; the line is "Return to the standard prescription for this level."',
   },
   {
     phrase: /\bprescribed\b/,
     why: 'say "full" or "the programmed" — a program, never a prescription',
-    open: 'src/features/paths/level.ts is owned by the paths workstream; the line is the established-level blurb "Full prescribed volume and intensity"',
   },
 ];
 
