@@ -394,6 +394,25 @@ export interface PlanItem {
   movedFrom?: string;
   /** Original duration before a shorten-to-fit, in minutes. */
   shortenedFromMin?: number;
+  /**
+   * When the person actually began — stamped by Start on the row, and by a
+   * guided session opening from it.
+   *
+   * Absent means nobody said when it began, which is a normal state: a
+   * block ticked off in passing has no honest start, and inventing one
+   * would poison every length learned from it.
+   */
+  startedAt?: string; // ISO timestamp
+  /**
+   * How long it actually took, in whole minutes: the gap between starting
+   * and marking it done, capped the way a guided session's elapsed time is
+   * capped so a screen left open all afternoon is not a four-hour block.
+   *
+   * Only ever measured. A block with no `startedAt` records nothing rather
+   * than falling back to the length that was planned — the planned length
+   * is the number this exists to check.
+   */
+  actualMin?: number;
   evidence?: CompletionEvidence;
 }
 

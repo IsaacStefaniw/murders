@@ -28,6 +28,20 @@ interface ItemActionsProps {
 }
 
 /**
+ * "Started 7:02" — the stamp read back in the app's own clock format.
+ *
+ * A stamp that will not parse says nothing rather than "Invalid Date": an
+ * older or restored item is allowed to have written anything there.
+ */
+export function startedAtLabel(startedAt: string | undefined): string | null {
+  if (!startedAt) return null;
+  const at = new Date(startedAt);
+  if (Number.isNaN(at.getTime())) return null;
+  const hhmm = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+  return `Started ${formatTime(hhmm)}`;
+}
+
+/**
  * The single action surface for a plan item: Done, intelligent Move,
  * Shorten where it makes sense, and Skip that offers recovery before
  * surrender. Optimises for recovery, never guilt.
@@ -42,6 +56,7 @@ export function ItemActions({
 }: ItemActionsProps) {
   const router = useRouter();
   const setItemStatus = useAppStore((s) => s.setItemStatus);
+  const startItem = useAppStore((s) => s.startItem);
   const moveItem = useAppStore((s) => s.moveItem);
   const moveItemToDate = useAppStore((s) => s.moveItemToDate);
   const shortenItem = useAppStore((s) => s.shortenItem);
@@ -364,23 +379,54 @@ export function ItemActions({
    * The secondary row wraps as well, so the same thing cannot happen again
    * at a larger text size.
    */
+  /**
+   * Start is where the honest length comes from.
+   *
+   * Marking something done says it happened; it says nothing about how
+   * long it took, and the planned length is exactly the number the app
+   * should not be believing. Starting stamps the moment, Done measures the
+   * gap, and after three of those the row and the plan can say how long
+   * this really takes — the one thing no competitor knows about YOUR
+   * things. A block done without starting records no length rather than a
+   * made-up one, so nothing here is ever an estimate.
+   *
+   * Already started, the button becomes the fact: "Started 7:02". Pressing
+   * Start twice cannot restart the clock.
+   */
+  const startedLabel = startedAtLabel(item.startedAt);
+
   return (
     <View style={styles.column}>
+      {startedLabel ? (
+        <AppText variant="caption" color="textTertiary">
+          {startedLabel}
+        </AppText>
+      ) : null}
       {session ? (
+        // Still offered once started: coming back to the guided session is
+        // normal, and it cannot restart the clock.
         <Button
-          title="Start"
-          hint="Opens the guided session for this block."
+          title={startedLabel ? 'Back to the session' : 'Start'}
+          variant={startedLabel ? 'secondary' : 'primary'}
+          hint="Opens the guided session, and starts the clock so the plan learns how long this really takes."
           onPress={() => {
+            startItem(date, item.id);
             const query = new URLSearchParams(session.params).toString();
             router.push((query ? `${session.route}?${query}` : session.route) as never);
             onDone?.();
           }}
         />
-      ) : null}
+      ) : startedLabel ? null : (
+        <Button
+          title="Start"
+          hint="Starts the clock, so the plan learns how long this really takes. Mark it done when you finish."
+          onPress={() => startItem(date, item.id)}
+        />
+      )}
       <View style={styles.row}>
         <Button
           title="Done"
-          variant={session ? 'secondary' : 'primary'}
+          variant={startedLabel ? 'primary' : 'secondary'}
           onPress={() => {
             setItemStatus(date, item.id, 'completed');
             if (goal && nextMilestone) {
