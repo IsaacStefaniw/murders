@@ -6,8 +6,8 @@ for the PMID on 2026-09-08 and the design and sample size read from it. The
 last column is the part a reviewer cannot reconstruct: why that grade, and
 not the one above it. Supporting sources are the ones the protocol's `why`
 also leans on. The full per-topic ledgers (about 190 verified records,
-including the ones that argue against these cards) are in the five research
-files this round produced; anything marked unverified in those files was
+including the ones that argue against these cards) are in `ledgers/` beside this
+file; anything marked unverified in those files was
 not built on here.
 
 Grades: A many studies agree · B tested and it held up (controlled trials,
