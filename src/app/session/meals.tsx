@@ -156,6 +156,18 @@ export default function MealsSession() {
         }}
         style={styles.save}
       />
+      {/* The list is built from the saved week, so it is offered once
+          there is one — this week's just now, or the last one locked in.
+          Before this, "Saved ✓" was the end of the flow and nine people
+          out of nine went looking for the list. */}
+      {saved || mealPlan ? (
+        <Button
+          title="Shopping list for the week"
+          variant="secondary"
+          onPress={() => router.push('/nutrition/shopping' as never)}
+          style={styles.sub}
+        />
+      ) : null}
       <AppText variant="caption" color="textTertiary" style={styles.sub}>
         A plan that admits real life survives real life — leftovers night is deliberate. No
         calorie targets, no rules; educational structure, not dietary advice.

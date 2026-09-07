@@ -299,6 +299,10 @@ export const PATHS: Record<PathId, PathDefinition> = {
         lines.push('Add your weight to get a personal protein target — it’s the one number that matters most.');
       }
       lines.push('Dinners decided Sunday = seven days of willpower decisions deleted.');
+      // The second number, beside protein: the developing rung promised
+      // "protein and fibre targets known" and the fibre half never reached
+      // a screen. About 30 g is the library's rounding of the Lancet range.
+      lines.push('About 30 g of fibre a day — beans, lentils, oats, fruit, skins. The best-supported food number there is, and the shopping list carries it.');
       if (answers.aim === 'weight') {
         lines.push('Kitchen closes ~3 hours before bed. The eating window does quiet work; no counting required.');
       }
