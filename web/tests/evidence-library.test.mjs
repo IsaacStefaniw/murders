@@ -14,15 +14,33 @@ import { readFile } from "node:fs/promises";
  * safety string onto the next line, and two of those are the notes telling a
  * reader with a history of restriction to skip the practice entirely. A
  * silently missing safety note is the worst thing this page could do.
+ *
+ * It reads all six practice files, not just protocols.ts. protocols.ts holds
+ * 177 of the 204 and spreads the other five in, so a check anchored on that
+ * one file agreed with a generator that had the same blind spot — which is
+ * exactly how 27 practices and 26 safety notes stayed off the site.
  */
+const LIBRARY_FILES = [
+  "protocols.ts",
+  "protocols.money.ts",
+  "protocols.supplements.ts",
+  "protocols.work.ts",
+  "protocols.people.ts",
+  "protocols.habits.ts",
+];
+
 test("the published library matches the app's practice file", async () => {
   const json = JSON.parse(
     await readFile(new URL("../app/evidence/library.json", import.meta.url), "utf8"),
   );
-  const source = await readFile(
-    new URL("../../src/features/knowledge/protocols.ts", import.meta.url),
-    "utf8",
-  );
+  const sources = await Promise.all(LIBRARY_FILES.map((name) =>
+    readFile(new URL(`../../src/features/knowledge/${name}`, import.meta.url), "utf8")));
+  const source = sources.join("\n");
+
+  // If protocols.ts ever spreads a seventh file, this fails here rather than
+  // publishing a short library that every other check agrees with.
+  const spreads = [...sources[0].matchAll(/^ {2}\.\.\.[A-Z_]+_PROTOCOLS,$/gm)].length;
+  assert.equal(spreads, LIBRARY_FILES.length - 1, "protocols.ts spreads a file this test does not read");
 
   const declared = [...source.matchAll(/^ {4}id: '/gm)].length;
   assert.equal(json.total, declared, "the published count disagrees with the app");
@@ -51,5 +69,5 @@ test("the published library matches the app's practice file", async () => {
 
   // The claim the page leads with, computed rather than typed.
   const weaker = json.counts.C + json.counts.D + json.counts.E;
-  assert.equal(weaker, 104, "the 'mixed or weaker' figure changed — the page copy says 104");
+  assert.equal(weaker, 122, "the 'mixed or weaker' figure changed — the page copy says 122");
 });

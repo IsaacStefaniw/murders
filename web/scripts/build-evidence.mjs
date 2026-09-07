@@ -20,7 +20,23 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const appFile = path.resolve(here, "../../src/features/knowledge/protocols.ts");
+/**
+ * All six files, not one.
+ *
+ * protocols.ts declares 177 practices and then spreads in five more files —
+ * money, supplements, work, people and habits — so the exported PROTOCOLS
+ * array is 204. Reading only protocols.ts understated every library figure on
+ * the site by 27 practices, and left 26 safety notes off a health page.
+ */
+const appDir = path.resolve(here, "../../src/features/knowledge");
+const appFiles = [
+  "protocols.ts",
+  "protocols.money.ts",
+  "protocols.supplements.ts",
+  "protocols.work.ts",
+  "protocols.people.ts",
+  "protocols.habits.ts",
+].map((name) => path.join(appDir, name));
 const out = path.resolve(here, "../app/evidence/library.json");
 
 const GRADE_MEANING = {
@@ -32,19 +48,71 @@ const GRADE_MEANING = {
 };
 
 /**
- * Read one field, whether the value sits on the same line or wraps to the next.
+ * Module-level string constants, so a field written as an identifier or
+ * interpolated into a template literal resolves to the words a reader sees.
  *
- * Three protocols wrap — fasting-window, portion-defaults and batch-cook —
- * because the formatter breaks long strings. A same-line-only regex silently
- * dropped exactly those three safety notes, and two of them are the ones
- * warning a reader with a history of restriction to skip the practice
- * entirely. Losing those quietly is the worst failure this script could have.
+ * Two exist: DEPENDENCE_LINE in protocols.habits.ts, which four urge
+ * protocols use as their whole safety note, and SUPPLEMENT_SAFETY_LINE,
+ * which closes the safety note of all eight supplements. Both say the
+ * things that most need saying — "that is a doctor's call", "stopping
+ * suddenly after heavy daily drinking can be dangerous" — so resolving
+ * them is not a tidiness exercise.
  */
-function field(block, name) {
+function readConstants(text) {
+  const table = new Map();
+  for (const m of text.matchAll(/^(?:export )?const ([A-Z][A-Z0-9_]*) =\s*\n?\s*'((?:[^'\\]|\\.)*)';/gm)) {
+    table.set(m[1], m[2].replace(/\\'/g, "'").replace(/\\\\/g, "\\"));
+  }
+  return table;
+}
+
+/**
+ * Read one field, whatever shape the value is written in.
+ *
+ * Four shapes appear in the six files, and each one that this function did
+ * not handle silently dropped a safety note rather than failing loudly:
+ *
+ *   1. A single- or double-quoted string on the same line.
+ *   2. The same, wrapped to the next line by the formatter. Three protocols
+ *      do this — fasting-window, portion-defaults and batch-cook — and two
+ *      of them are the ones telling a reader with a history of restriction
+ *      to skip the practice entirely.
+ *   3. A template literal, used by the eight supplements so they can end on
+ *      the shared safety line.
+ *   4. A bare identifier, used by the four urge protocols.
+ *
+ * The safety-count guard below is what forced each of these to be written.
+ */
+function field(block, name, constants) {
   const single = block.match(new RegExp(`^    ${name}:\\s*\\n?\\s*'((?:[^'\\\\]|\\\\.)*)'`, "m"));
-  if (single) return single[1].replace(/\\'/g, "'").replace(/\\\\/g, "\\").replace(/\s+/g, " ").trim();
+  if (single) return clean(single[1].replace(/\\'/g, "'").replace(/\\\\/g, "\\"));
+
   const double = block.match(new RegExp(`^    ${name}:\\s*\\n?\\s*"([^"]*)"`, "m"));
-  return double ? double[1].replace(/\s+/g, " ").trim() : null;
+  if (double) return clean(double[1]);
+
+  const template = block.match(new RegExp(`^    ${name}:\\s*\\n?\\s*\`([^\`]*)\``, "m"));
+  if (template) {
+    return clean(template[1].replace(/\$\{([A-Z][A-Z0-9_]*)\}/g, (whole, id) => {
+      const value = constants.get(id);
+      // An unresolved placeholder would publish "${SUPPLEMENT_SAFETY_LINE}"
+      // to a reader as though it were the warning. Better to stop the build.
+      if (value === undefined) throw new Error(`${name} interpolates ${id}, which is not a string constant this script can read`);
+      return value;
+    }));
+  }
+
+  const identifier = block.match(new RegExp(`^    ${name}: ([A-Z][A-Z0-9_]*),$`, "m"));
+  if (identifier) {
+    const value = constants.get(identifier[1]);
+    if (value === undefined) throw new Error(`${name} is written as ${identifier[1]}, which is not a string constant this script can read`);
+    return clean(value);
+  }
+
+  return null;
+}
+
+function clean(text) {
+  return text.replace(/\s+/g, " ").trim();
 }
 
 function list(block, name) {
@@ -53,22 +121,36 @@ function list(block, name) {
   return [...match[1].matchAll(/'((?:[^'\\]|\\.)*)'/g)].map((m) => m[1].replace(/\\'/g, "'"));
 }
 
-const source = await readFile(appFile, "utf8");
+const sources = await Promise.all(appFiles.map((file) => readFile(file, "utf8")));
+const source = sources.join("\n");
+const constants = readConstants(source);
+
+// The spread lines are how protocols.ts pulls the other five in. If one is
+// ever added or removed there and not here, this catches it rather than
+// silently publishing a short library again.
+const spreads = [...sources[0].matchAll(/^ {2}\.\.\.([A-Z_]+_PROTOCOLS),$/gm)].map((m) => m[1]);
+if (spreads.length !== appFiles.length - 1) {
+  throw new Error(
+    `protocols.ts spreads ${spreads.length} other files (${spreads.join(", ")}) but this script reads `
+    + `${appFiles.length - 1}. Add the missing file, or the site will understate the library again.`,
+  );
+}
+
 const starts = [...source.matchAll(/^ {4}id: '/gm)].map((m) => m.index);
-if (starts.length === 0) throw new Error("no protocols found — the app file's shape changed");
+if (starts.length === 0) throw new Error("no protocols found — the app files' shape changed");
 
 const practices = starts.map((start, i) => {
   const block = source.slice(start, starts[i + 1] ?? source.length);
-  const grade = field(block, "evidenceLevel");
+  const grade = field(block, "evidenceLevel", constants);
   return {
-    id: field(block, "id"),
-    title: field(block, "title"),
+    id: field(block, "id", constants),
+    title: field(block, "title", constants),
     grade,
     gradeLabel: GRADE_MEANING[grade]?.label ?? null,
-    pillar: field(block, "pillar"),
-    summary: field(block, "summary"),
-    why: field(block, "why"),
-    safety: field(block, "safety"),
+    pillar: field(block, "pillar", constants),
+    summary: field(block, "summary", constants),
+    why: field(block, "why", constants),
+    safety: field(block, "safety", constants),
     attribution: list(block, "attribution"),
     durationMin: Number(block.match(/^ {4}durationMin: (\d+)/m)?.[1] ?? 0) || null,
   };

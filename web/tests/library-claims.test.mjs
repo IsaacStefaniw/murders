@@ -7,26 +7,39 @@ import { readFile } from "node:fs/promises";
  *
  * A marketing figure that drifts from the code is not a typo — under s18 of
  * the Australian Consumer Law it is misleading conduct, and s18 has no intent
- * requirement. So this test does not check that the page says "177"; it counts
+ * requirement. So this test does not check that the page says "204"; it counts
  * the library itself and checks the page agrees. When the library grows, this
  * test fails, and the copy gets updated in the same commit as the data.
+ *
+ * It counts all six files, not one. protocols.ts declares 177 practices and
+ * then spreads in money, supplements, work, people and habits — so the real
+ * library is 204. This test read only protocols.ts and therefore passed while
+ * every figure on the site was understated by 27 practices, 26 safety notes
+ * and 24 credited people. A guardrail that counts the same wrong way as the
+ * copy it is guarding is worse than no guardrail, because it is believed.
  *
  * The count is line-anchored rather than brace-anchored on purpose. A brace
  * walker trips over apostrophes inside prose comments ("IntentNorth's"), which
  * open a phantom string and swallow real braces — that mistake under-counted
  * the library by more than half while looking entirely plausible.
  */
-async function countLibrary() {
-  const url = new URL("../../src/features/knowledge/protocols.ts", import.meta.url);
-  const lines = (await readFile(url, "utf8")).split("\n");
+const LIBRARY_FILES = [
+  "protocols.ts",
+  "protocols.money.ts",
+  "protocols.supplements.ts",
+  "protocols.work.ts",
+  "protocols.people.ts",
+  "protocols.habits.ts",
+];
 
-  const start = lines.findIndex((l) => l.startsWith("export const PROTOCOLS: Protocol[] = ["));
-  assert.ok(start > -1, "the PROTOCOLS array should be findable");
+function readArray(lines, file) {
+  const start = lines.findIndex((l) => /^export const [A-Z_]+: Protocol\[\] = \[$/.test(l));
+  assert.ok(start > -1, `${file} should declare a Protocol[] array`);
   const end = lines.indexOf("];", start + 1);
   // Without this, a reformat that changes the array terminator makes the slice
   // run to end-of-file and the failure reads "update the page copy", which
   // would send the next person to fix entirely the wrong thing.
-  assert.ok(end > start, "the PROTOCOLS array should have a findable terminator");
+  assert.ok(end > start, `${file}'s array should have a findable terminator`);
 
   const protocols = [];
   let current = null;
@@ -34,6 +47,26 @@ async function countLibrary() {
     if (line === "  {") protocols.push((current = []));
     else if (current) current.push(line);
   }
+  return protocols;
+}
+
+async function countLibrary() {
+  const files = await Promise.all(LIBRARY_FILES.map(async (name) => ({
+    name,
+    lines: (await readFile(new URL(`../../src/features/knowledge/${name}`, import.meta.url), "utf8")).split("\n"),
+  })));
+
+  // The spread lines are how protocols.ts pulls the other five in. If a
+  // seventh file is ever added there and not here, this fails rather than
+  // quietly under-counting the library the way this test used to.
+  const spreads = files[0].lines.filter((l) => /^ {2}\.\.\.[A-Z_]+_PROTOCOLS,$/.test(l));
+  assert.equal(
+    spreads.length,
+    LIBRARY_FILES.length - 1,
+    `protocols.ts spreads ${spreads.length} other files but this test reads ${LIBRARY_FILES.length - 1}`,
+  );
+
+  const protocols = files.flatMap((file) => readArray(file.lines, file.name));
 
   const grades = {};
   let safety = 0;
@@ -68,31 +101,36 @@ test("the library figures on the page match the library in the app", async () =>
   const strong = grades.A + grades.B;
   const weaker = total - strong;
 
-  assert.equal(total, 177, "protocol count changed — update the page copy too");
-  assert.equal(strong, 73, "A/B count changed — update the page copy too");
-  assert.equal(safety, 145, "safety-line count changed — update the page copy too");
-  assert.equal(people, 188, "attribution count changed — update the page copy too");
+  assert.equal(total, 204, "protocol count changed — update the page copy too");
+  assert.equal(strong, 82, "A/B count changed — update the page copy too");
+  assert.equal(safety, 171, "safety-line count changed — update the page copy too");
+  assert.equal(people, 212, "attribution count changed — update the page copy too");
 
-  // The page leads with the weaker count rather than the A/B one now — "104 of
-  // the 177 are Mixed or weaker" says more than "73 graded A or B", because a
+  // The page leads with the weaker count rather than the A/B one now — "122 of
+  // the 204 are Mixed or weaker" says more than "82 graded A or B", because a
   // reader can tell what the first one costs us to admit. The data check above
   // still pins all four figures; this checks what the page actually states.
   for (const figure of [String(total), String(weaker), String(safety), String(people)]) {
     assert.ok(html.includes(figure), `the page should state ${figure}`);
   }
-  // The grade breakdown is spelled out in words; those must agree too.
-  assert.match(html, new RegExp(`${grades.A === 13 ? "Thirteen" : grades.A} practices are grade A`, "i"));
-  assert.ok(
-    html.includes(`hundred and four`) && weaker === 104,
-    "the weaker-evidence count in the copy must match the data",
-  );
+  // The grade breakdown is spelled out in words, so the words are checked
+  // against the data rather than against each other. The previous version
+  // read `grades.A === 13 ? "Thirteen" : grades.A`, which would have looked
+  // for the digit "15" on a page that spells the number out — a check that
+  // fails for the right reason only by accident.
+  const WORDS = { 15: "Fifteen", 67: "Sixty-seven", 122: "hundred and twenty-two" };
+  for (const count of [grades.A, grades.B, weaker]) {
+    const word = WORDS[count];
+    assert.ok(word, `no spelled-out form recorded for ${count} — add one when the library changes`);
+    assert.ok(html.includes(word), `the page should spell ${count} as "${word}"`);
+  }
 });
 
 test("the page never implies the whole library is strongly evidenced", async () => {
   const html = await renderHome();
-  // The failure mode this guards is "177 evidence-based practices" as a bare
-  // boast. 104 of them are C or below, and the page has to carry that.
-  assert.doesNotMatch(html, /177 (strongly|well|rigorously) evidenced/i);
+  // The failure mode this guards is "204 evidence-based practices" as a bare
+  // boast. 122 of them are C or below, and the page has to carry that.
+  assert.doesNotMatch(html, /204 (strongly|well|rigorously) evidenced/i);
   assert.match(html, /C, D or E/, "the weaker grades must be named on the page");
 });
 

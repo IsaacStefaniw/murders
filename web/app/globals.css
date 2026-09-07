@@ -712,6 +712,12 @@ footer { border-top: 1px solid var(--fog); }
 .library-honesty svg { flex: none; width: 20px; height: 20px; color: var(--green-dark); }
 .library-honesty p { margin: 0; font-size: 14px; line-height: 1.65; color: var(--ink-soft); }
 
+/* The way out of the section and into the whole library. */
+.library-open { margin: 18px 0 0; }
+.library-open a { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--green-dark); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--green-dark) 35%, transparent); padding-bottom: 2px; }
+.library-open a:hover { border-bottom-color: var(--green-dark); }
+.library-open svg { width: 16px; height: 16px; }
+
 @media (max-width: 1000px) { .library-stats { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 900px) { .library-heading { grid-template-columns: 1fr; gap: 18px; } }
 @media (max-width: 560px) { .library-stats { grid-template-columns: 1fr; } }

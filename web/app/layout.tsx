@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   // own plain-language rule forbids, carrying no word anyone would search.
   title: "IntentNorth — one weekly plan for training, food, sleep and habits",
   description:
-    "An iPhone app that turns 177 rated practices into a weekly plan for your training, food, sleep, habits, work, money and family — and changes the plan when your week changes.",
+    "An iPhone app that turns 204 rated practices into a weekly plan for your training, food, sleep, habits, work, money and family — and changes the plan when your week changes.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

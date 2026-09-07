@@ -58,7 +58,7 @@ const constraints = [
 const heroPillars = [
   { lead: "It plans your week.", note: "Sessions, meals and practices at real times, around what you already have on." },
   { lead: "It changes when your week does.", note: "A bad night shortens the session and keeps the hard part, instead of cancelling it." },
-  { lead: "It shows its evidence.", note: "Every practice rated A to E for the research behind it. We publish the weak ones — 104 of 177." },
+  { lead: "It shows its evidence.", note: "Every practice rated A to E for the research behind it. We publish the weak ones — 122 of 204." },
 ];
 
 const todayRows = [
@@ -359,10 +359,10 @@ const plusTiers = [
 
 // Counts verified against src/features/knowledge/protocols.ts.
 const ratingScale = [
-  { grade: "A", label: "Strong", count: 13, meaning: "Repeatedly tested in people, with results that agree." },
-  { grade: "B", label: "Good", count: 60, meaning: "Solid human studies, with some room left for argument." },
-  { grade: "C", label: "Mixed", count: 63, meaning: "Reasonable evidence, smaller studies, or results that conflict." },
-  { grade: "D", label: "Thin", count: 33, meaning: "Early or indirect evidence. Worth trying, not worth promising." },
+  { grade: "A", label: "Strong", count: 15, meaning: "Repeatedly tested in people, with results that agree." },
+  { grade: "B", label: "Good", count: 67, meaning: "Solid human studies, with some room left for argument." },
+  { grade: "C", label: "Mixed", count: 73, meaning: "Reasonable evidence, smaller studies, or results that conflict." },
+  { grade: "D", label: "Thin", count: 41, meaning: "Early or indirect evidence. Worth trying, not worth promising." },
   { grade: "E", label: "Practice", count: 8, meaning: "No trial behind it. Widely used and openly labelled as experience, not proof." },
 ];
 
@@ -471,15 +471,15 @@ const libraryStats = [
   },
   {
     label: "Most of it is not rated Strong.",
-    note: "104 of the 177 are Mixed or weaker, and the app tells you which. A library where everything is excellent is a library that is not rating anything.",
+    note: "122 of the 204 are Mixed or weaker, and the app tells you which. A library where everything is excellent is a library that is not rating anything.",
   },
   {
     label: "It names where the work came from.",
-    note: "188 researchers and teachers are credited for the public work behind these practices. Credit, never endorsement.",
+    note: "212 researchers and teachers are credited for the public work behind these practices. Credit, never endorsement.",
   },
   {
     label: "It tells you when not to do something.",
-    note: "145 of them carry a safety note in plain words, shown before you add anything to your week.",
+    note: "171 of them carry a safety note in plain words, shown before you add anything to your week.",
   },
 ];
 
@@ -778,7 +778,7 @@ export default function Home() {
               <p className="rating-example-safety">Never look at the sun directly; through-window light counts for less but still counts.</p>
               <span className="rating-example-foot">Added to your week in one tap. The app picks the hour.</span>
             </div>
-            <p className="rating-honesty"><strong>104 of the 177 are rated C or weaker, and we say
+            <p className="rating-honesty"><strong>122 of the 204 are rated C or weaker, and we say
             so on the practice.</strong> A library that claimed everything in it was excellent would
             be telling you nothing.</p>
           </div>
@@ -790,8 +790,14 @@ export default function Home() {
         </div>
         <div className="library-honesty">
           <ShieldCheck />
-          <p><strong>Most of it is not an A, and it says so.</strong> Thirteen practices are grade A. Sixty are B. The remaining hundred and four are C, D or E&mdash;useful, reasoned, and openly marked as weaker evidence. A system that graded everything highly would be easier to sell and worth less to trust.</p>
+          <p><strong>Most of it is not an A, and it says so.</strong> Fifteen practices are grade A. Sixty-seven are B. The remaining hundred and twenty-two are C, D or E&mdash;useful, reasoned, and openly marked as weaker evidence. A system that graded everything highly would be easier to sell and worth less to trust.</p>
         </div>
+        {/*
+          The claim above is only worth making if it can be checked. Every one
+          of the 204 is published at /evidence with its grade, its reasoning
+          and its safety note, before anyone downloads anything.
+        */}
+        <p className="library-open"><Link href="/evidence">Read all 204 practices, with their ratings and safety notes <ArrowRight /></Link></p>
       </section>
 
       <section className="science-section section-shell" id="science">
@@ -839,7 +845,7 @@ export default function Home() {
 
       <section className="disclaimer-section section-shell"><ShieldCheck /><p><strong>Education, never diagnosis or personal advice.</strong> Training, nutrition, recovery, mindfulness and financial content is educational. Research links describe evidence and limitations; observational findings do not prove causation. If an urge or behaviour creates immediate risk, contact local emergency or professional support.</p></section>
 
-      <footer><div className="footer-inner section-shell"><Logo /><p>Your whole life. One system that learns.</p><nav className="footer-links" aria-label="Legal and support"><Link href="/privacy">Privacy</Link><Link href="/support">Support</Link></nav><button onClick={() => setPlanOpen(true)}>Build my profile <ArrowRight /></button></div></footer>
+      <footer><div className="footer-inner section-shell"><Logo /><p>Your whole life. One system that learns.</p><nav className="footer-links" aria-label="Legal and support"><Link href="/evidence">The evidence library</Link><Link href="/privacy">Privacy</Link><Link href="/support">Support</Link></nav><button onClick={() => setPlanOpen(true)}>Build my profile <ArrowRight /></button></div></footer>
       <div className="mobile-conversion"><span><strong>Your first insight is free</strong><small>Premium explained upfront</small></span><button onClick={() => setPlanOpen(true)}>Build profile <ArrowRight /></button></div>
     </main>
   );

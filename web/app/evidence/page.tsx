@@ -7,7 +7,7 @@ import library from "./library.json";
 export const metadata: Metadata = {
   title: "Every practice, and how good the evidence behind it is",
   description:
-    "All 177 practices in IntentNorth, each rated A to E for the strength of the research behind it, with what it will not do. 104 are rated Mixed or weaker and we say which.",
+    "All 204 practices in IntentNorth, each rated A to E for the strength of the research behind it, with what it will not do. 122 are rated Mixed or weaker and we say which.",
   alternates: { canonical: "/evidence" },
 };
 

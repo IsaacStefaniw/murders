@@ -16,13 +16,15 @@
  *   2. The page does not scroll sideways.
  *   3. Elements that must not cover each other do not.
  *
+ * It does this for every route in app/sitemap.ts, not only the home page.
+ *
  * It is deliberately not part of `npm test`. CLAUDE.md promises this project
  * builds with Node and npm and nothing else, and a browser download is not
  * nothing. CI installs Chromium and runs it before deploying; locally it runs
  * only if a browser is already there, and says so plainly when it is not.
  */
 import { spawn } from "node:child_process";
-import { readdir } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -33,6 +35,30 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const PORT = Number(process.env.LAYOUT_PORT ?? 4317);
 const BASE = `http://127.0.0.1:${PORT}`;
 const WIDTHS = [360, 393, 430, 620, 768, 1024, 1280, 1440];
+// The other pages get three widths rather than eight. The home page is where
+// the two live bugs happened and where the breakpoints are dense; a phone, a
+// tablet and a wide desktop catch the same three failure classes elsewhere for
+// a fifth of the wall clock.
+const SECONDARY_WIDTHS = [360, 768, 1440];
+
+/**
+ * Every route in the sitemap, read from the sitemap.
+ *
+ * Checking only "/" was the reason /evidence, /sleep-debt and
+ * /whoop-alternative shipped with no rendered check at all — three pages
+ * built in one afternoon, none of them ever looked at. Reading the list from
+ * app/sitemap.ts means the next page added there is checked without anyone
+ * remembering to add it here.
+ */
+async function routes() {
+  const file = path.join(projectRoot, "app", "sitemap.ts");
+  const source = await readFile(file, "utf8");
+  const paths = [...source.matchAll(/^\s*\{ url: "https:\/\/intentnorth\.app(\/[a-z-]*)"/gm)].map((m) => m[1]);
+  if (!paths.includes("/")) {
+    throw new Error("check-layout: could not read the route list out of app/sitemap.ts");
+  }
+  return paths.map((route) => ({ route, widths: route === "/" ? WIDTHS : SECONDARY_WIDTHS }));
+}
 
 // A text block this narrow, carrying this much text, over this many lines is
 // not a design decision. The thresholds are loose on purpose: the failure this
@@ -130,9 +156,17 @@ if (stale.length) {
 const browser = await chromium.launch({ executablePath: browserPath() });
 const failures = [];
 
-for (const width of WIDTHS) {
+for (const { route, widths } of await routes()) {
+  console.log(`  ${route}`);
+  for (const width of widths) {
   const page = await browser.newPage({ viewport: { width, height: 900 } });
-  await page.goto(BASE, { waitUntil: "networkidle" });
+  const response = await page.goto(BASE + route, { waitUntil: "networkidle" });
+  // A 404 renders cleanly and would report "clean" for a page that is gone.
+  if (!response || !response.ok()) {
+    failures.push(`${width}px  ${route} returned ${response?.status() ?? "no response"}`);
+    await page.close();
+    continue;
+  }
   // Let the in-view motion components settle on their final stage.
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.waitForTimeout(900);
@@ -193,17 +227,18 @@ for (const width of WIDTHS) {
   }, { ...RIBBON, pairs: MUST_NOT_COVER });
 
   for (const r of found.ribbons) {
-    failures.push(`${width}px  text ribbon: <${r.tag} class="${r.cls}"> is ${r.width}px wide holding ${r.chars} characters over ~${r.lines} lines — "${r.text}…"`);
+    failures.push(`${width}px ${route}  text ribbon: <${r.tag} class="${r.cls}"> is ${r.width}px wide holding ${r.chars} characters over ~${r.lines} lines — "${r.text}…"`);
   }
   if (found.overflow) {
-    failures.push(`${width}px  the page scrolls sideways: content ${found.overflow.scrollWidth}px in a ${found.overflow.clientWidth}px viewport`);
+    failures.push(`${width}px ${route}  the page scrolls sideways: content ${found.overflow.scrollWidth}px in a ${found.overflow.clientWidth}px viewport`);
   }
   for (const c of found.covered) {
-    failures.push(`${width}px  ${c.b} covers ${c.a} by ${c.vertical}px vertically and ${c.horizontal}px horizontally`);
+    failures.push(`${width}px ${route}  ${c.b} covers ${c.a} by ${c.vertical}px vertically and ${c.horizontal}px horizontally`);
   }
 
-  console.log(`  ${String(width).padStart(5)}px  ${found.ribbons.length + (found.overflow ? 1 : 0) + found.covered.length === 0 ? "clean" : "PROBLEMS"}`);
+  console.log(`  ${String(width).padStart(7)}px  ${found.ribbons.length + (found.overflow ? 1 : 0) + found.covered.length === 0 ? "clean" : "PROBLEMS"}`);
   await page.close();
+  }
 }
 
 await browser.close();

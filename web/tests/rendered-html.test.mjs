@@ -157,7 +157,7 @@ test("reps in reserve never returns, from anywhere", async () => {
 
   // a) The practices are rated, and the weak ratings are published. The counts
   // are checked against src/features/knowledge/protocols.ts.
-  for (const figure of ["13", "60", "63", "33", "8"]) {
+  for (const figure of ["15", "67", "73", "41", "8"]) {
     assert.match(html, new RegExp(`>${figure}<`), `rating count ${figure} is missing`);
   }
   assert.match(html, /A protocol is a practice/, "the page must say what a protocol is before leaning on the word");
@@ -186,9 +186,9 @@ test("reps in reserve never returns, from anywhere", async () => {
   // The evidence rating is the organising idea rather than a section, so the
   // promise has to be in the first viewport with the number that costs us
   // something to publish.
-  assert.match(html, /104 of 177/, "the admission that makes the rating credible");
+  assert.match(html, /122 of 204/, "the admission that makes the rating credible");
   // The costly signal is the whole reason the first pillar works.
-  assert.match(html, /104 of them|104 of the 177/, "the honesty that makes the ratings credible");
+  assert.match(html, /122 of them|122 of the 204/, "the honesty that makes the ratings credible");
   // A reader has to be told what a rating means, not shown a letter.
   for (const word of ["Strong", "Good", "Mixed", "Thin", "Practice"]) {
     assert.match(html, new RegExp(`>${word}<`), `the rating scale lost "${word}"`);

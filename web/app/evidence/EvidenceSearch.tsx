@@ -8,7 +8,7 @@ import library from "./library.json";
  * Search the whole practice library, in the browser.
  *
  * The research verdict on the evidence idea was "change it, then build it":
- * 177 pages targeting "does X work" would not have ranked, because those
+ * 204 pages targeting "does X work" would not have ranked, because those
  * queries are tiny in Australia and Google answers them inline. But the
  * lookup is still the product's argument made visible — the site says every
  * practice is rated and, until now, showed one.
