@@ -53,6 +53,8 @@ GA4  (account 407085201, property 553023885, isaac@intentnorth.app)
   key events marked:       none — events not present yet. Only page_view, first_visit and session_start have fired.
                            profile_complete and app_store_click are wired in the bundle (/assets/analytics-*.js)
                            but no visitor has triggered them, so they cannot be marked until they appear.
+                           Admin → Events lists only GA4's three default key events (close_convert_lead,
+                           purchase, qualify_lead), each "No stream data detected"; leave them alone.
   ios stream:              absent, confirmed. Streams list shows one Web stream only (IntentNorth,
                            https://intentnorth.app, 15731030818, G-DZL9DH7HH9). Nothing added.
   google signals:          no prompt appeared; nothing changed.
