@@ -33,8 +33,11 @@ const onboard = () => {
     routines: built.routines,
     behaviourIntentions: built.behaviourIntentions,
   });
+  // A weekday inside the seven days a rebuild regenerates: today when it
+  // is one, else the coming Monday. A week out is beyond the window.
   const today = todayKey();
-  const date = addDays(today, (8 - weekdayOf(today)) % 7 || 7);
+  const wd = weekdayOf(today);
+  const date = wd >= 1 && wd <= 5 ? today : addDays(today, (8 - wd) % 7);
   useAppStore.getState().ensurePlan(date);
   return date;
 };

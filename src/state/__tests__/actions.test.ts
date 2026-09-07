@@ -268,8 +268,15 @@ describe('adding to a day', () => {
 
   it('moveItem returns what it displaced and keeps every item', () => {
     onboard();
-    const date = addDays(todayKey(), 1);
-    const plan = useAppStore.getState().ensurePlan(date);
+    // The first coming day with two flexible things on it: a training day
+    // for this profile. Which weekday that is depends on today.
+    let date = addDays(todayKey(), 1);
+    let plan = useAppStore.getState().ensurePlan(date);
+    for (let d = 2; d <= 6; d += 1) {
+      if (plan.items.filter((i) => !i.fixed && i.status === 'planned').length > 1) break;
+      date = addDays(todayKey(), d);
+      plan = useAppStore.getState().ensurePlan(date);
+    }
     const flexible = plan.items.filter((i) => !i.fixed && i.status === 'planned');
     expect(flexible.length).toBeGreaterThan(1);
     const [mover, target] = flexible;
