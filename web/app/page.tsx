@@ -571,16 +571,16 @@ export default function Home() {
           <div className="hero-image-wrap"><Image src="/images/intent-os-hero-family-transition-v2.webp" alt="A professional closing a laptop and returning attention to family life" width={1536} height={1024} priority unoptimized sizes="(max-width: 1120px) 80vw, 43vw" /></div>
           <figure className="hero-shot">
             <img
-              alt="A Monday planned by the app: breakfast, morning light, two work blocks, a protected lunch and a training session"
+              alt="A Monday planned by the app, showing sixteen things placed from 7am"
               height={1800}
-              src="/images/app/app-example-day.jpg"
+              src="/images/app/app-protocol-3-week-after.jpg"
               width={840}
             />
             <figcaption>
               <span>One day, planned by the app</span>
-              Breakfast, light, two blocks of focused work, a lunch it refuses to let work run
-              over, a session that fits inside it. Built for an example person, by the same
-              planner your answers feed. Yours looks different, and every line says why.
+              Breakfast, ten minutes of morning light, a session, two blocks of focused work.
+              Every line was placed by the app at an hour it chose, around everything else in
+              the week.
             </figcaption>
           </figure>
         </div>

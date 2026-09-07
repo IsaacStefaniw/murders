@@ -166,3 +166,52 @@ Same provenance rules as before: one seed, documented, in
 `docs/APP_SCREENSHOTS.md`. And if the honest answer is that the app does not
 yet produce a day that full, that is a product finding worth more than a
 photograph — say so and we will show something else.
+
+---
+
+## Third request — the lunch window reads as a double-booking (5 Sep 2026)
+
+`app-example-day.jpg` was on the site as the hero image for about an hour. It
+came off because Isaac read two consecutive rows as a scheduling error:
+
+    12:00pm   Lunch — kept free            1h 30m   Work never runs over it · the session fits inside
+    12:15pm   Training that sticks         30m      Health
+
+His words: "the day has lunch at 12pm then work out at 12:15pm?"
+
+**Nothing is double-booked.** `src/app/example-day.tsx:130-142` synthesises the
+lunch row from the gap between two fixed work blocks — 12:00 to 13:30 — and the
+thirty-minute session genuinely sits inside it. The logic is right and the
+intent is good: showing that the gap is deliberate and that work never eats it.
+
+**The presentation is what fails.** A protected *window* is rendered as an
+*appointment*, in the same chronological list, with the same card, in the same
+type. A reader scanning times top to bottom sees lunch start at 12:00 and a
+workout start at 12:15 and concludes the planner has made a mistake. The meta
+line already says "the session fits inside" and it did not save it — which is
+the useful finding, because it means no amount of caption will.
+
+Worth stressing: this is the one screen most likely to be someone's first
+impression of the product, and the failure is that a correct plan looks broken.
+That is worse than a plan that is merely thin.
+
+Suggested fixes, best first:
+
+1. **Render the window as a container**, with the items inside it nested — an
+   inset band or a bracket that visually holds the session, so the relationship
+   is spatial rather than something the reader must infer from a meta line.
+2. **Or drop the synthetic row when something already sits inside it** and put
+   the message on the session instead: "12:15pm Training that sticks — fits
+   inside your protected lunch."
+3. **Or move the window out of the timeline** entirely and state it as a rule
+   above the day: "Lunch 12:00–1:30 is protected. Work never runs over it."
+
+Option 2 is the smallest change and would have prevented this. Option 1 is
+probably the right product answer, because the same collision will happen with
+any window that contains anything.
+
+The site is showing `app-protocol-3-week-after.jpg` again in the meantime,
+which Isaac has already criticised for the bare "Work" rows and a thin
+afternoon. Both frames have a problem; this one just has the worse kind. A
+re-render of the example day with any of the three fixes goes straight back on
+the hero.
