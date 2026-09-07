@@ -69,15 +69,15 @@ describe('the worked example: Save $100,000 by June 2028, from $12,000 today', (
   });
 
   it('computes the monthly amount from the gap and the months', () => {
-    // 662 days is 21.75 months; $88,000 over that is $4,046 a month.
-    expect(savingsPace(12000, 100000, TODAY, '2028-06-30')).toEqual({ perMonth: 4046, months: 21.7 });
+    // 21 whole months to 30 June 2028; $88,000 over 21 transfers is $4,191 a month, rounded up.
+    expect(savingsPace(12000, 100000, TODAY, '2028-06-30')).toEqual({ perMonth: 4191, months: 21 });
     const { goal } = draft();
-    expect(goal.pace).toEqual({ perMonth: 4046, unit: '$', startValue: 12000, startDate: TODAY, targetValue: 100000 });
+    expect(goal.pace).toEqual({ perMonth: 4191, unit: '$', startValue: 12000, startDate: TODAY, targetValue: 100000 });
   });
 
   it('drafts the steps: transfer, first $1k more, a month of expenses, quarters, done — each dated', () => {
     const { goal } = draft();
-    // Dated at $4,046 a month from $12,000: each amount lands where the
+    // Dated at $4,191 a month from $12,000: each amount lands where the
     // straight line from today to 30 June 2028 crosses it.
     expect(goal.milestones!.map((m) => [m.title, m.dueDate])).toEqual([
       ['The transfer set up on payday', '2026-09-14'],
@@ -105,8 +105,8 @@ describe('the worked example: Save $100,000 by June 2028, from $12,000 today', (
     const { goal, routines } = draft();
     const amounts = goal.milestones!.filter((m) => m.doneWhen?.kind === 'metric');
     for (const m of amounts) {
-      expect(m.how).toBe('$4,046 a month moved on payday, before anything else · Money check-in on Sundays');
-      expect(m.intention).toBe('When pay lands, I will move the $4,046 before anything else is spent.');
+      expect(m.how).toBe('$4,191 a month moved on payday, before anything else · Money check-in on Sundays');
+      expect(m.intention).toBe('When pay lands, I will move the $4,191 before anything else is spent.');
     }
     expect(routines.some((r) => r.protocolId === 'money-checkin')).toBe(true);
     const ask = goal.checkins!.find((c) => c.source === 'ask')!;
@@ -117,13 +117,13 @@ describe('the worked example: Save $100,000 by June 2028, from $12,000 today', (
   it('says where the plan lands from day one, then where the real rate lands', () => {
     const { goal } = draft();
     const key = `goal.${goal.id}.saved`;
-    expect(paceLanding(goal, [], TODAY)!.headline).toBe('At $4,046 a month from $12,000 you land on 30 Jun 2028.');
+    expect(paceLanding(goal, [], TODAY)!.headline).toBe('At $4,191 a month from $12,000 you land on 30 Jun 2028.');
 
     // Three months in and $10,000 further along: $3,333 a month lands late.
     const reading = { ...observe(key, 22000), at: '2026-12-07T09:00:00.000Z' };
     const slow = paceLanding(goal, [reading], '2026-12-07')!;
     expect(slow.verdict).toBe('behind');
-    expect(slow.headline).toBe('At $3,345 a month you land on 16 Nov 2028 — You said 30 Jun 2028; that needs $4,046 a month from here.');
+    expect(slow.headline).toBe('At $3,345 a month you land on 16 Nov 2028 — You said 30 Jun 2028; that needs $4,191 a month from here.');
 
     // $15,000 further along in the same time: ahead.
     const fast = paceLanding(goal, [{ ...reading, value: 27000 }], '2026-12-07')!;

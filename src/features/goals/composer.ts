@@ -43,6 +43,7 @@ import type {
 } from '@/types/domain';
 
 import { latest, type MetricObservation } from '@/features/model/metrics';
+import { monthsBetween as wholeMonthsBetween } from '@/features/money/plan';
 
 import { buildGoalPlan, parseGoal, timeframeToDate, type GoalPlan, type ParsedGoal } from './goalPlanner';
 import { STALL_DAYS } from './stalled';
@@ -120,6 +121,8 @@ const daysBetween = (from: string, to: string): number =>
 
 const DAYS_PER_MONTH = 30.4375;
 
+
+/** Months as a fraction of the average month: the pace of a lift or a weight, not of transfers. */
 const monthsBetween = (from: string, to: string): number => daysBetween(from, to) / DAYS_PER_MONTH;
 
 /**
@@ -136,9 +139,11 @@ export function savingsPace(
   today: string,
   targetDate: string,
 ): { perMonth: number; months: number } | null {
-  const months = monthsBetween(today, targetDate);
-  if (months <= 0 || target <= current) return null;
-  return { perMonth: Math.round((target - current) / months), months: Math.round(months * 10) / 10 };
+  if (target <= current || targetDate <= today) return null;
+  // Whole months, the money coach's count, rounded up: that many transfers
+  // of this amount reach the target on the date.
+  const months = wholeMonthsBetween(today, targetDate);
+  return { perMonth: Math.ceil((target - current) / months), months };
 }
 
 /**
@@ -699,7 +704,9 @@ export function paceLanding(goal: Goal, metrics: MetricObservation[], today = to
     };
   }
 
-  const landsOn = addDays(today, Math.round((remaining / pace.perMonth) * DAYS_PER_MONTH));
+  // The plan's own pace lands on the date by construction; the arithmetic
+  // is only needed when the goal has no date to aim at.
+  const landsOn = target ?? addDays(today, Math.round((remaining / pace.perMonth) * DAYS_PER_MONTH));
   return {
     headline: `At ${describePace(pace)} from ${fmt(current, unit)} you land on ${formatDay(landsOn)}.`,
     landsOn,

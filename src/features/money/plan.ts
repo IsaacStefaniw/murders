@@ -231,7 +231,13 @@ export interface SavingsPlan {
 const round = (n: number) => Math.round(n);
 
 /** Whole calendar months from one date key to another, floored at one. */
-function monthsBetween(from: string, to: string): number {
+/**
+ * Whole calendar months from one day to another, never fewer than one:
+ * the number of monthly transfers between them. The goal composer counts
+ * with this too, so a goal and the money hub never disagree about the same
+ * money.
+ */
+export function monthsBetween(from: string, to: string): number {
   const a = dateKeyToDate(from);
   const b = dateKeyToDate(to);
   let months = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
@@ -294,7 +300,9 @@ export function savingsPlan(input: SavingsPlanInput): SavingsPlan {
   const byDate = input.byDate < today ? addDays(today, 1) : input.byDate;
 
   const monthsToDate = monthsBetween(today, byDate);
-  const monthlyNeeded = round(monthlyFor(balance, target, monthsToDate, monthlyRate));
+  // Rounded up, so that many transfers of this amount reach the target on
+  // the date rather than landing a few dollars short a month later.
+  const monthlyNeeded = Math.ceil(monthlyFor(balance, target, monthsToDate, monthlyRate));
   const weeklyNeeded = round((monthlyNeeded * 12) / 52);
 
   const capacity = input.monthlyCapacity;
