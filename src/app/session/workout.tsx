@@ -17,8 +17,8 @@ import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/traini
 import { defaultRepsFrom, SetLogger, topRepsFrom } from '@/features/training/SetLogger';
 import { readinessFrom } from '@/features/health/readiness';
 import { autoRegulate, complexLiftsAllowed, weekOf } from '@/features/training/programme';
-import { alternativesFor, applyExerciseSwaps } from '@/features/training/swap';
-import { dateKeyOfIso, dateKeyToDate, durationMinutes, todayKey } from '@/lib/dates';
+import { alternativesFor, applyExerciseSwaps, sessionIndexFor } from '@/features/training/swap';
+import { dateKeyOfIso, dateKeyToDate, durationMinutes, formatDateLong, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 import type { LoggedSet } from '@/types/domain';
@@ -51,14 +51,19 @@ export default function WorkoutSession() {
   const sessionDate = date ?? todayKey();
 
   // Which of this week's sessions today is: the programme's pick by
-  // weekday, unless the person chose another one for this date. "I did
-  // legs yesterday and want to press today" was not possible before.
+  // weekday, unless the person chose another one for this date — and
+  // after a swap the rest of the week moves on from it, so pressing on
+  // Monday instead of squatting does not bring pressing back on Wednesday.
   const week = programme ? weekOf(programme) : null;
   const weekSessions = programme && week ? programme.weeks[week - 1].sessions : [];
   const weekday = dateKeyToDate(sessionDate).getDay();
-  const programmedIdx =
-    weekSessions.length > 0 ? Math.floor((weekday * weekSessions.length) / 7) % weekSessions.length : 0;
-  const sessionIdx = Math.min(sessionSwaps[sessionDate] ?? programmedIdx, Math.max(weekSessions.length - 1, 0));
+  // What the programme expects today without this date's own swap: its
+  // pick, or the next in order after an earlier swap this week. Tapping
+  // that chip stores nothing, so the order keeps running.
+  const { [sessionDate]: ownSwap, ...earlierSwaps } = sessionSwaps;
+  const expected = sessionIndexFor(sessionDate, weekSessions.length, earlierSwaps);
+  const sessionIdx =
+    ownSwap != null ? Math.min(ownSwap, Math.max(weekSessions.length - 1, 0)) : expected.index;
 
   // Cross-pathway: last night's sleep adjusts today's session.
   // With Apple Health connected the number arrives on its own.
@@ -278,11 +283,22 @@ export default function WorkoutSession() {
               // Once a set is logged the day is this session; a swap now
               // would leave the sets under a title they do not belong to.
               disabled={loggedSets.length > 0 && i !== sessionIdx}
-              hint={i === programmedIdx ? 'The programme’s pick for today' : 'Run this session today instead'}
-              onPress={() => swapSession(sessionDate, i === programmedIdx ? null : i)}
+              hint={
+                i === expected.index
+                  ? expected.rotatedFrom
+                    ? 'Next in order after the swap earlier this week'
+                    : 'The programme’s pick for today'
+                  : 'Run this session today instead — the rest of the week moves on from it'
+              }
+              onPress={() => swapSession(sessionDate, i === expected.index ? null : i)}
             />
           ))}
         </View>
+      ) : null}
+      {programme && expected.rotatedFrom && ownSwap == null ? (
+        <AppText variant="caption" color="textTertiary" style={styles.note}>
+          After the swap on {formatDateLong(expected.rotatedFrom)}, the rest of this week runs on from it.
+        </AppText>
       ) : null}
 
       {restLeft > 0 ? (

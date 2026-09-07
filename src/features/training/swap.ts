@@ -6,6 +6,7 @@ import type {
   PrescribedExercise,
   TrainingEquipment,
 } from "@/features/training/programme";
+import { addDays, weekdayOf } from "@/lib/dates";
 import type { PhysicalConstraint } from "@/types/domain";
 
 /**
@@ -193,4 +194,65 @@ export function applyExerciseSwaps(
     const { loadKg: _dropped, ...rest } = e;
     return { ...rest, name: to, rpe: e.rpe ?? 7, swappedFrom: e.name };
   });
+}
+
+/**
+ * Which of the week's sessions a date runs, with the rest of the week
+ * moved on after a swap.
+ *
+ * The block's sessions run in order across the week: with four sessions,
+ * Sunday and Monday are the first, Tuesday and Wednesday the second, and
+ * so on. A swap used to change one date and nothing else, so a person who
+ * pressed on Monday instead of squatting got the programme's Wednesday —
+ * pressing again. Now a swap sets the order from that day forward: the
+ * next session is the one after the swapped one, and the pattern order is
+ * kept from there. The days before the swap keep what they were, because
+ * what already happened is not re-planned.
+ *
+ * The cycle runs Sunday to Saturday, the same week the programme's own
+ * pick uses, so a swap never reaches into the next week's order. A later
+ * swap in the same week restarts the order from itself. Where two dates
+ * share a programmed session (more training days than sessions), the day
+ * after a swap still moves on, so the session just done is never the next
+ * one offered.
+ */
+export interface SessionPick {
+  /** The session to run on the date. */
+  index: number;
+  /** The programme's own pick for the date, before any swap. */
+  programmed: number;
+  /** The date whose swap set the order this pick follows, when one did. */
+  rotatedFrom?: string;
+}
+
+export function programmedSessionIndex(date: string, sessionCount: number): number {
+  if (sessionCount <= 0) return 0;
+  return Math.floor((weekdayOf(date) * sessionCount) / 7) % sessionCount;
+}
+
+export function sessionIndexFor(
+  date: string,
+  sessionCount: number,
+  swaps: Record<string, number>,
+): SessionPick {
+  const n = Math.max(sessionCount, 1);
+  const programmed = programmedSessionIndex(date, n);
+  const own = swaps[date];
+  if (own != null) return { index: Math.min(own, n - 1), programmed };
+  // The most recent swap earlier in this Sunday-to-Saturday cycle.
+  let from: string | null = null;
+  for (let back = 1; back <= weekdayOf(date); back += 1) {
+    const day = addDays(date, -back);
+    if (swaps[day] != null) {
+      from = day;
+      break;
+    }
+  }
+  if (from == null) return { index: programmed, programmed };
+  const swappedTo = Math.min(swaps[from], n - 1);
+  const swappedProgrammed = programmedSessionIndex(from, n);
+  // How far this date sits after the swapped day in the programme's order;
+  // at least one step, so the session just done is never offered next.
+  const stepsOn = Math.max(1, programmed - swappedProgrammed);
+  return { index: (swappedTo + stepsOn) % n, programmed, rotatedFrom: from };
 }

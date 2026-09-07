@@ -47,6 +47,41 @@ export function answeredValues(answers: Record<string, string>, key: string): st
 export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
   fitness: [
     {
+      // The block used to guess what someone wanted from the words in
+      // their goal title — "build" meant muscle, "kg" meant fat loss — and
+      // there was no way to say it plainly, or to change it. This is the
+      // first thing a coach asks, so it is the first thing asked here.
+      key: 'want',
+      question: 'What do you want from training?',
+      options: [
+        { value: 'stronger', label: 'Get stronger' },
+        { value: 'muscle', label: 'Build muscle' },
+        { value: 'leaner', label: 'Get leaner' },
+        { value: 'fitter', label: 'Get fitter for running or a sport' },
+        { value: 'keep', label: 'Keep what I have' },
+      ],
+    },
+    {
+      // One flat list, because the intake shows every question at once:
+      // a lift for the strength answer, a body area for muscle or leaner,
+      // a distance for fitter. The hub's "change what I'm training for"
+      // shows only the ones that fit the answer above (training/want.ts).
+      key: 'focus',
+      question: 'Where first? The lift, the body area or the distance that fits.',
+      options: [
+        { value: 'bench', label: 'Bench' },
+        { value: 'squat', label: 'Squat' },
+        { value: 'deadlift', label: 'Deadlift' },
+        { value: 'ohp', label: 'Overhead press' },
+        { value: 'upper', label: 'Upper body' },
+        { value: 'lower', label: 'Lower body' },
+        { value: 'whole', label: 'Whole body' },
+        { value: '5k', label: '5 km' },
+        { value: '10k', label: '10 km or more' },
+        { value: 'sport', label: 'A sport, not a distance' },
+      ],
+    },
+    {
       key: 'experience',
       question: 'Where are you at with training right now?',
       options: [

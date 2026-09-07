@@ -62,6 +62,17 @@ const JOINT_SAFE: Record<string, string> = {
 export const COMPLEX_LIFTS = ['Deadlift', 'Trap-bar deadlift', 'Overhead press'];
 
 /**
+ * Loaded variants the swap table knows that the joint swaps never named,
+ * because the block never programmed them. The swap menu offered them
+ * beside a sore knee or shoulder all the same: a front squat next to the
+ * box squat that replaced the back squat. Same rule as JOINT_SAFE — the
+ * loaded, deep-range or jarring version stays out while the joint is the
+ * limit — and the same conservative reading of one sentence about
+ * someone. The block's own accessories pass through it too.
+ */
+const JOINT_LOADED = ['Front squat', 'Leg press', 'Dumbbell lunges', 'Dips', 'Hip thrusts', 'Chin-ups'];
+
+/**
  * Whether a movement is one the joint and injury swaps take out. Used by
  * the swap menu so the loaded squat a sore knee swapped away is not
  * offered straight back as an alternative to its replacement.
@@ -72,7 +83,20 @@ export function ruledOutByConstraints(
 ): boolean {
   if (!constraints || constraints.length === 0) return false;
   if (!constraints.includes('joints') && !constraints.includes('recovering')) return false;
-  return name in JOINT_SAFE;
+  return name in JOINT_SAFE || JOINT_LOADED.includes(name);
+}
+
+/**
+ * Whether hard intervals stay out of a conditioning session. Near-maximal
+ * effort is the point of them, and a scaled-down version would be easy
+ * cardio with the wrong name — so beside a heart condition, a pregnancy
+ * or an injury the session is easy pace, and says why.
+ */
+export function rulesOutHardIntervals(constraints: PhysicalConstraint[] | undefined): boolean {
+  if (!constraints || constraints.length === 0) return false;
+  return (
+    constraints.includes('heart') || constraints.includes('recovering') || constraints.includes('pregnancy')
+  );
 }
 
 /** Balance work belongs early in the session, not tacked on at the end. */

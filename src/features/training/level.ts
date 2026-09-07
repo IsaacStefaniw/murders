@@ -146,9 +146,12 @@ export function latestMaxes(metrics: MetricObservation[], now: Date = new Date()
 export function measuredTrainingLevel(
   metrics: MetricObservation[],
   profile?: Pick<LifeProfile, 'weightKg' | 'sexAtBirth' | 'age'> | null,
+  // The clock the baselines age against. Without it a reading exactly on
+  // a band bar drifted under the bar by the time anyone looked.
+  now: Date = new Date(),
 ): PathLevel | null {
   if (!profile) return null;
-  const { band } = assessStrength(latestMaxes(metrics), profile);
+  const { band } = assessStrength(latestMaxes(metrics, now), profile);
   if (!band) return null;
   return BAND_TO_LEVEL[band];
 }
