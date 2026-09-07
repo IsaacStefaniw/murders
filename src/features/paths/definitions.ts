@@ -12,6 +12,7 @@ import { BEHAVIOUR_CATALOG, behaviourInfo } from '@/features/behaviours/catalog'
 import { buildGoalPlan, type GoalPlan, type ParsedGoal } from '@/features/goals/goalPlanner';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { DOMAIN_QUESTIONS, answered, type DomainQuestion } from '@/features/knowledge/questionBank';
+import { moneySteps } from '@/features/money/plan';
 import { sessionsPerWeekFloor } from '@/features/training/programme';
 import { newId } from '@/lib/dates';
 import type { BehaviourKey, LifeProfile, Routine } from '@/types/domain';
@@ -315,7 +316,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
     id: 'money',
     title: 'Money',
     promise:
-      'Automation first, then a weekly half-hour that keeps drift small. The goal gets paid before the month starts — willpower budgeting is not a system.',
+      'One automatic transfer on payday, a target with a date, and a weekly number that moves it. The goal gets paid before the month starts; willpower budgeting is not a system.',
     questions: [
       ...(DOMAIN_QUESTIONS.finance ?? []),
       {
@@ -327,38 +328,71 @@ export const PATHS: Record<PathId, PathDefinition> = {
           { value: 'no', label: 'All manual' },
         ],
       },
+      {
+        // Asked here rather than after the build: the first two steps are
+        // sized from it, and the review found the hub asking it under a
+        // program that had just been built without it.
+        key: 'buffer',
+        question: 'If income stopped, how long could you keep going?',
+        options: [
+          { value: 'none', label: 'Under a month' },
+          { value: 'some', label: 'One to three months' },
+          { value: 'solid', label: 'Three months or more' },
+        ],
+      },
     ],
-    build: (answers, profile) =>
-      withLadder('money', buildGoalPlan(parsed('Money, running itself', 'finance', 'admin'), profile, undefined, answers), answers, profile),
+    build: (answers, profile) => {
+      const plan = buildGoalPlan(parsed('Money, running itself', 'finance', 'admin'), profile, undefined, answers);
+      // The money coach owns its steps: one list, in order, from the
+      // answers (src/features/money/plan.ts). The goal planner's generic
+      // finance milestones said the same things in different words, and
+      // the hub was showing both lists.
+      const now = new Date().toISOString();
+      const milestones = moneySteps(answers).map((s) => ({
+        id: newId('ms'),
+        title: s.title,
+        done: s.done,
+        doneAt: s.done ? now : undefined,
+      }));
+      return withLadder('money', { ...plan, goal: { ...plan.goal, milestones } }, answers, profile);
+    },
     insights: (answers) => {
       const lines: string[] = [];
-      if (answers.mode !== 'debt') {
-        lines.push(
-          'Investing, the boring way that works: automate it, keep costs low, spread wide, and let time compound. Picking winners is a hobby, not a plan. (Education, never financial advice.)',
-        );
-        lines.push('Order of operations: emergency buffer → expensive debt → then investing.');
-      }
       if (answers.automation === 'no') {
-        lines.push('First move, this week: automate one transfer on payday. Everything after that is observation, not discipline.');
+        lines.push('First move, this week: automate one transfer on the day pay lands. Even a small one. Everything after that is watching, not discipline.');
       } else if (answers.automation === 'partial') {
-        lines.push('Finish the automation: every recurring decision you delete is a decision that can’t go wrong on a bad day.');
+        lines.push('Finish the automation: every recurring decision you delete is a decision that cannot go wrong on a bad week.');
       } else {
-        lines.push('Automation is running — the weekly check-in is now about catching drift early, not forcing behaviour.');
-      }
-      if (answers.mode === 'debt') {
-        lines.push('Order of operations: list every rate → pick the payoff order → automate the extra payment. The maths does the motivating.');
-      }
-      if (answers.mode === 'clarity') {
-        lines.push('One place, one monthly number. Clarity precedes every good money decision.');
+        lines.push('Automation is running, so the weekly check-in is about catching drift early, not forcing behaviour.');
       }
       if (answers.buffer === 'none') {
-        lines.push('Under a month of buffer means the buffer IS the goal — everything else waits until one month is banked.');
+        lines.push('Under a month of buffer means the buffer is the goal. Everything else waits until one month is banked, somewhere you can reach it.');
       } else if (answers.buffer === 'some') {
-        lines.push('One to three months of buffer: grow it to three, then the surplus goes to work.');
+        lines.push('One to three months banked: grow it to three, the figure Moneysmart suggests, then the surplus goes to work.');
       } else if (answers.buffer === 'solid') {
-        lines.push('Three-plus months banked — the buffer question is answered; the check-in is about putting the surplus to work.');
+        lines.push('Three months or more banked. The buffer question is answered; the check-in is about putting the surplus to work.');
       }
-      lines.push('Sunday, 30 minutes. Small and weekly beats big and never.');
+      if (answers.mode === 'debt') {
+        lines.push('The order: list every rate, pick one payoff order you will finish, automate the extra payment against the first debt. A card or buy-now-pay-later balance comes before any investing; a student loan (HELP) is indexed once a year in June and sits later.');
+      } else {
+        lines.push('The order after the buffer: expensive debt, then investing the boring way, low cost, spread wide, every month, untouched. Whether that means extra on the home loan, more into super, or outside both depends on your tax rate, your age and your loan, and that choice belongs with a licensed adviser. Education, never financial advice.');
+      }
+      if (answers.mode === 'saving') {
+        lines.push('Name the amount and the date on this screen. People who write a specific target save more than people who mean to, and the coach turns it into a monthly amount and dated steps.');
+      }
+      if (answers.mode === 'clarity' || answers.mode === 'getting_on_top' || answers.mode === 'unsure') {
+        lines.push('One place, one monthly number. Clarity comes before every good money decision.');
+      }
+      if (answers.mode === 'lasting') {
+        lines.push('Making it last is a drawdown question: how much comes out each year and from where. Writing it down is education; setting it is a licensed adviser conversation.');
+      }
+      if (answered(answers, 'leak', 'recurring')) {
+        lines.push('Subscriptions run for years on inattention. Listing every one is a single evening; cancelling the dead ones is usually the fastest money in this whole program.');
+      }
+      if (answers.raise === 'absorbed') {
+        lines.push('The last rise was absorbed. The defence that works is deciding the share of the next one before it lands.');
+      }
+      lines.push('Each week, one number: what went in. Small and weekly beats big and never.');
       return lines;
     },
   },

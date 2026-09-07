@@ -18,6 +18,8 @@
  */
 
 import { newId, toHHMM, toMinutes } from '@/lib/dates';
+
+import { MONEY_PROTOCOLS } from './protocols.money';
 import type {
   GoalDomain,
   LifeArea,
@@ -3437,6 +3439,7 @@ export const PROTOCOLS: Protocol[] = [
     tier: 'could',
     safety: 'For some people, parting with things is genuinely distressing rather than merely tedious — enough that rooms stop being usable. Difficulty discarding possessions is a recognised clinical condition with real help available, and it belongs with your doctor rather than with a tidying schedule. IntentNorth cannot tell which situation you are in and this is not an assessment. Never run a pass on someone else’s belongings without their agreement.',
   },
+  ...MONEY_PROTOCOLS,
 ];
 
 export const protocolById = (id: string): Protocol | undefined =>
