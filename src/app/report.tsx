@@ -172,6 +172,24 @@ export default function WeekReportScreen() {
         </View>
       ) : null}
 
+      {report.learnedTimings.length > 0 ? (
+        <View>
+          <SectionHeader title="How long things really take" />
+          <View style={styles.stack}>
+            {report.learnedTimings.map((t) => (
+              <Card key={t.title}>
+                <AppText variant="body">
+                  {t.title} usually takes you {t.minutes} min.
+                </AppText>
+                <AppText variant="caption" color="textTertiary">
+                  Measured across {t.count} sessions. The plan holds that now.
+                </AppText>
+              </Card>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
       {report.byArea.length > 0 ? (
         <View>
           <SectionHeader title="Where the week went" />

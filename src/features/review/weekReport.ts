@@ -4,6 +4,7 @@
  * no grades, no streaks, no shame. Rolling seven days including today.
  */
 
+import { learnedDurations } from '@/lib/scheduling/adaptation';
 import { addDays } from '@/lib/dates';
 import type { DailyPlan, Goal, LifeArea } from '@/types/domain';
 
@@ -18,6 +19,12 @@ export interface WeekReport {
   bestDay: { date: string; done: number } | null;
   /** Most-completed titles — the practices that actually carried the week. */
   topWins: { title: string; count: number }[];
+  /**
+   * How long a thing actually takes this person, once three real sessions
+   * have been measured. The median, not this week's number, which is why
+   * it is worth saying at all.
+   */
+  learnedTimings: { title: string; minutes: number; count: number }[];
 }
 
 export function buildWeekReport(
@@ -69,5 +76,30 @@ export function buildWeekReport(
       .map(([title, count]) => ({ title, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 3),
+    // Learned from every day the app still holds, not just this week: a
+    // median of three sessions is the point at which it is worth saying.
+    learnedTimings: learnedTimingsFrom(plans),
   };
+}
+
+/**
+ * The two things whose real length the app has learned, most-measured
+ * first. Titles come from the items themselves, so a routine renamed
+ * since is named as it is now.
+ */
+function learnedTimingsFrom(
+  plans: Record<string, DailyPlan>,
+): { title: string; minutes: number; count: number }[] {
+  const all = Object.values(plans).flatMap((p) => p.items);
+  const titleOf = new Map<string, string>();
+  for (const item of all) if (item.routineId) titleOf.set(item.routineId, item.title);
+  return Object.entries(learnedDurations(all))
+    .map(([routineId, learned]) => ({
+      title: titleOf.get(routineId) ?? '',
+      minutes: learned.minutes,
+      count: learned.count,
+    }))
+    .filter((t) => t.title !== '')
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 2);
 }

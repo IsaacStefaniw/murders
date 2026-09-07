@@ -42,6 +42,7 @@ export default function WorkoutSession() {
   const profile = useAppStore((s) => s.profile);
   const plans = useAppStore((s) => s.plans);
   const setItemStatus = useAppStore((s) => s.setItemStatus);
+  const startItem = useAppStore((s) => s.startItem);
   const logCompletedActivity = useAppStore((s) => s.logCompletedActivity);
 
   const item = itemId && date ? plans[date]?.items.find((i) => i.id === itemId) : undefined;
@@ -78,6 +79,13 @@ export default function WorkoutSession() {
   useEffect(() => {
     void syncAppleHealth();
   }, []);
+
+  // A session opened from anywhere but the row still gets measured, so the
+  // learned duration is the truth about the session rather than about how
+  // it was reached.
+  useEffect(() => {
+    if (itemId && date) startItem(date, itemId);
+  }, [itemId, date, startItem]);
   const today = todayKey();
   const loggedSleep = metrics.find((m) => m.key === 'sleep.hours' && dateKeyOfIso(m.at) === today);
   const [startedAt] = useState(() => Date.now());
