@@ -20,6 +20,12 @@ const queryClient = new QueryClient({
   },
 });
 
+/** Where a tapped notification lands, by what it was about. */
+const TAP_ROUTE: Record<string, string> = {
+  wind_down: '/session/breathe',
+  rest: '/session/workout',
+};
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
@@ -45,11 +51,13 @@ export default function RootLayout() {
   }, [hydrated]);
 
   // A tapped notification lands on the thing it was about: the wind-down
-  // opens the breathing session, everything else opens today.
+  // opens the breathing session, a finished rest goes back to the set that
+  // is waiting, and everything else opens today.
   useEffect(() => {
     if (!hydrated) return undefined;
     return onNotificationTap((data) => {
-      router.push(data.kind === 'wind_down' ? '/session/breathe' : '/(tabs)/today');
+      const kind = typeof data.kind === 'string' ? data.kind : '';
+      router.push((TAP_ROUTE[kind] ?? '/(tabs)/today') as never);
     });
   }, [hydrated, router]);
 
