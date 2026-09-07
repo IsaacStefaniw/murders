@@ -672,7 +672,7 @@ is never the next one offered. This was competitive review item 5.
 
 ## What Isaac decides
 
-- Training: whether `physical` work and a trade's day keep the focus carve at all; this is the work coach's PW-O3, pinned by a test as a product decision.
+- Training: whether `physical` work and a trade's day keep the focus carve at all; this is the work coach's PW-O3, pinned by a test as a product decision. Decided 7 Sep 2026: no focus block for hands-on work; shutdown and weekly shape only, the block stays in the library. Done.
 - Training: whether the 6 to 7 h sleep chip should do something or the chips should be two (QA TR-O4).
 - Training: yes or no to the freshness function, the per-set effort chip, and the lock-screen rest timer once Apple approves 1.0.
 - Training: whether accessories rotate per block for the person who finds it repetitive.
@@ -681,7 +681,7 @@ is never the next one offered. This was competitive review item 5.
 - Nutrition: whether the energy aim's protein band drops to 1.2 to 1.6 g/kg for someone not training; a cross-coach call.
 - Nutrition: whether "anything you take already" stays a hub toggle or moves to the intake.
 - Nutrition: whether to pursue a retailer cart integration or leave share-as-text.
-- Money: which month count the app uses for the savings pace, the composer's or `savingsPlan`'s; it changes the number on the screen.
+- Money: which month count the app uses for the savings pace. Decided by the code on 7 Sep 2026: whole calendar months from one function, rounded up. Done.
 - Money: whether the hub asks for a month of expenses, and whether it ever takes an interest rate.
 - Goals: whether the wizard asks for the obstacle, the missing half of mental contrasting.
 - Work: whether a carer skips the carve and the meeting-load question (interview file).
