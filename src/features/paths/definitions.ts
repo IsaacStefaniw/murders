@@ -14,7 +14,7 @@ import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { DOMAIN_QUESTIONS, answered, type DomainQuestion } from '@/features/knowledge/questionBank';
 import { moneySteps } from '@/features/money/plan';
 import { sessionsPerWeekFloor } from '@/features/training/programme';
-import { newId } from '@/lib/dates';
+import { newId, toHHMM, toMinutes } from '@/lib/dates';
 import type { BehaviourKey, LifeProfile, Routine } from '@/types/domain';
 
 import { fitLadderToBudget, ladderFor } from './programme';
@@ -419,15 +419,71 @@ export const PATHS: Record<PathId, PathDefinition> = {
           { value: 'varies', label: 'No two weeks are the same' },
         ],
       },
+      {
+        // Asked in the intake rather than left to the hub's question card:
+        // the block is built from it, and the insight below promises where
+        // the focus block goes. A promise the build did not keep was the
+        // finding that put it here.
+        key: 'meetingLoad',
+        question: 'How much of your week is meetings?',
+        options: [
+          { value: 'none', label: 'Hardly any' },
+          { value: 'light', label: 'Under a quarter' },
+          { value: 'half', label: 'Around half' },
+          { value: 'heavy', label: 'Most of it' },
+        ],
+      },
     ],
     build: (answers, profile) => {
       const plan = buildGoalPlan(parsed('A week that produces', 'business', 'work'), profile, undefined, answers);
-      // Makers get the deep-work carve-out even when focus isn't the named
+      const workStart = profile?.workStart ?? '09:00';
+      /** Add a library practice once, or reshape the one already there. */
+      const shape = (protocolId: string, patch: Partial<Routine> = {}) => {
+        const existing = plan.routines.find((r) => r.protocolId === protocolId);
+        if (existing) {
+          Object.assign(existing, patch);
+          return;
+        }
+        const protocol = protocolById(protocolId);
+        if (protocol) plan.routines.push({ ...toRoutine(protocol, profile, plan.goal.id), ...patch });
+      };
+
+      // Makers get the focus block even when focus isn't the named
       // bottleneck — the growth block alone doesn't protect making time.
-      if (answers.style !== 'manager' && !plan.routines.some((r) => r.protocolId === 'deep-work')) {
-        const deepWork = protocolById('deep-work');
-        if (deepWork) plan.routines.push(toRoutine(deepWork, profile, plan.goal.id));
+      // Every style except manager, including physical: whether a trade
+      // should get a thinking block carved from the work day is a product
+      // decision (QA report, PW-O3) and is left exactly as it was.
+      if (answers.style !== 'manager') {
+        if (answers.meetingLoad === 'heavy') {
+          // Before the first call, or it does not happen: the block moves
+          // to the start of the work day, and the window stays tight so
+          // the scheduler cannot drift it into the meetings.
+          shape('deep-work', {
+            preferredStart: workStart,
+            preferredEnd: toHHMM((toMinutes(workStart) + 75) % 1440),
+          });
+        } else if (answers.meetingLoad === 'light' || answers.meetingLoad === 'none') {
+          // A light week is an asset: a third making block, not one.
+          shape('deep-work', { days: [1, 2, 4] });
+        } else {
+          shape('deep-work');
+        }
       }
+      // A manager in a heavy week has no block to move; what they own is
+      // the meeting list, so the week gets a slot for cutting one.
+      if (answers.style === 'manager' && answers.meetingLoad === 'heavy') {
+        shape('meeting-trim');
+      }
+
+      // Each bottleneck answer changes the plan or it is not worth asking.
+      // Focus is handled by the goal planner (the focus block); sales and
+      // delivery change the milestones there. The rest were asked and
+      // ignored until now.
+      if (answered(answers, 'bottleneck', 'admin')) shape('message-batching');
+      if (answered(answers, 'bottleneck', 'people')) shape('delegation-pass');
+      if (answered(answers, 'bottleneck', 'visibility')) shape('work-made-visible');
+      if (answered(answers, 'bottleneck', 'direction')) shape('week-preview');
+
       // `team` and `bigBet` were both asked and both ignored. Someone
       // leading people and someone working alone need different weeks, and
       // a named big bet is the only thing that makes a growth block about
@@ -436,7 +492,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
         plan.routines.push({
           id: newId('r'),
           goalId: plan.goal.id,
-          title: 'One-on-ones \u2014 the work only you can do',
+          title: 'One-on-ones — the work only you can do',
           area: 'work',
           days: [2],
           durationMin: 45,
@@ -463,13 +519,17 @@ export const PATHS: Record<PathId, PathDefinition> = {
       }
       return withLadder('work', plan, answers, profile);
     },
-    insights: (answers) => {
+    insights: (answers, profile) => {
       const lines: string[] = [];
+      const workStart = profile?.workStart ?? '09:00';
       if (answers.style === 'maker' || answers.style === 'mixed') {
         lines.push('Mornings are for making. Meetings that can move, move after lunch.');
       }
       if (answers.style === 'manager') {
         lines.push('Your leverage is the weekly review: one lever named, one thing stopped, every week.');
+      }
+      if (answers.style === 'varies' || answers.style === 'physical') {
+        lines.push('The week does not repeat, so the plan is small: close each shift knowing the next one’s first move, and a modest focus target rather than a maker’s.');
       }
       if (answered(answers, 'bottleneck', 'sales')) {
         lines.push('The growth block opens with the sales levers until that milestone is done.');
@@ -478,14 +538,28 @@ export const PATHS: Record<PathId, PathDefinition> = {
         lines.push('Fix the delivery bottleneck before chasing growth — capacity first, then volume.');
       }
       if (answered(answers, 'bottleneck', 'focus')) {
-        lines.push('“No time to think” is a calendar problem. The deep-work block is the fix, and it’s protected.');
+        lines.push('“No time to think” is a calendar problem. The focus block is the fix, and it’s protected.');
       }
-      if (answers.meetingLoad === 'heavy') {
-        lines.push('Meetings own most of the week — the deep-work block sits before the first call, or it doesn’t happen.');
-      } else if (answers.meetingLoad === 'light') {
-        lines.push('Light meeting load is an asset: two protected making blocks, not one.');
+      if (answered(answers, 'bottleneck', 'admin')) {
+        lines.push('Messages go in batches — one booked slot a day, closed in between. Graded C: one small trial found lower daily stress.');
       }
-      lines.push('The weekly review closes the loop: what moved, what stalled, the one lever for next week.');
+      if (answered(answers, 'bottleneck', 'people')) {
+        lines.push('Too much sits with you, so a weekly delegation pass is on the calendar: one recurring thing handed over with an owner and a date.');
+      }
+      if (answered(answers, 'bottleneck', 'visibility')) {
+        lines.push('A short written note each week to the people your work affects — plain facts travel further than adjectives.');
+      }
+      if (answered(answers, 'bottleneck', 'direction')) {
+        lines.push('Busy but not sure it is the right busy: fifteen Sunday minutes name the three things that matter before the inbox names them for you.');
+      }
+      if (answers.meetingLoad === 'heavy' && answers.style !== 'manager') {
+        lines.push(`Meetings own most of the week — the focus block sits at ${workStart}, before the first call, or it doesn’t happen.`);
+      } else if (answers.meetingLoad === 'heavy') {
+        lines.push('Meetings own most of the week, and they are yours: fifteen minutes on Friday cuts or shortens one.');
+      } else if (answers.meetingLoad === 'light' || answers.meetingLoad === 'none') {
+        lines.push('A light meeting load is an asset: three protected making blocks, not two.');
+      }
+      lines.push('The weekly review closes the loop: what moved, what ate the block, the one lever for next week — and next week changes from the answers.');
       return lines;
     },
   },

@@ -26,6 +26,7 @@ import { protocolById } from '@/features/knowledge/protocols';
 import { computeCohortMetrics, shareableSummary } from '@/features/analytics/cohort';
 import { BodyNumbers } from '@/features/health/BodyNumbers';
 import { WeeklyReviewPanel } from '@/features/review/WeeklyReviewPanel';
+import { WorkNumbers } from '@/features/work/WorkNumbers';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { behaviourInfo } from '@/features/behaviours/catalog';
@@ -252,6 +253,8 @@ export default function Data() {
           </Card>
         </>
       ) : null}
+
+      <WorkNumbers />
 
       {practices.length > 0 ? (
         <>

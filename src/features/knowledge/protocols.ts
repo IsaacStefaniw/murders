@@ -31,6 +31,8 @@ import type {
   Weekday,
 } from '@/types/domain';
 
+import { WORK_PROTOCOLS } from './protocols.work';
+
 export type Pillar =
   | 'sleep'
   | 'training'
@@ -3450,6 +3452,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   ...MONEY_PROTOCOLS,
   ...SUPPLEMENT_PROTOCOLS,
+  ...WORK_PROTOCOLS,
 ];
 
 export const protocolById = (id: string): Protocol | undefined =>
