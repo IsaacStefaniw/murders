@@ -520,7 +520,9 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
     developing: {
       routines: [
         {
-          covers: ['one-on-one-child'],
+          // The teenage and under-five builds already carry the one-at-a-
+          // time practice under their own names.
+          covers: ['one-on-one-child', 'teen-side-by-side', 'child-led-play'],
           title: 'One-on-one time — one child, no phone',
           durationMin: 45,
           days: [4],

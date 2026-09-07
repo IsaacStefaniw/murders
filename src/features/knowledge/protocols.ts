@@ -21,6 +21,7 @@ import { SUPPLEMENT_PROTOCOLS } from '@/features/knowledge/protocols.supplements
 import { newId, toHHMM, toMinutes } from '@/lib/dates';
 
 import { MONEY_PROTOCOLS } from './protocols.money';
+import { PEOPLE_PROTOCOLS } from './protocols.people';
 import type {
   GoalDomain,
   LifeArea,
@@ -3453,6 +3454,7 @@ export const PROTOCOLS: Protocol[] = [
   ...MONEY_PROTOCOLS,
   ...SUPPLEMENT_PROTOCOLS,
   ...WORK_PROTOCOLS,
+  ...PEOPLE_PROTOCOLS,
 ];
 
 export const protocolById = (id: string): Protocol | undefined =>

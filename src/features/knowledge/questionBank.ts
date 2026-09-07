@@ -204,6 +204,20 @@ export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
   // generic plan. Each answer below changes which protocol leads.
   relationship: [
     {
+      // Every relationship question presumed a partner. Someone with nobody
+      // on the profile got "how are things with them, honestly?" and a
+      // build of partner practices. Asked first, so the rest can be read
+      // in the right light.
+      key: 'with',
+      question: 'Who is this about?',
+      options: [
+        { value: 'partner', label: 'My partner' },
+        { value: 'early', label: 'Someone new — early days' },
+        { value: 'solo', label: 'Nobody right now — the people I am close to' },
+        { value: 'unsure', label: 'Not sure what to call it yet' },
+      ],
+    },
+    {
       key: 'temperature',
       question: 'How are things right now, honestly?',
       options: [
@@ -236,14 +250,31 @@ export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
   ],
   family: [
     {
+      // "A spread of ages" did nothing a multi-answer could not, and there
+      // was no honest answer for a grandparent, a carer or a couple with
+      // no children — the intake presumed kids (QA open item PW-O6).
       key: 'ages',
       multi: true,
-      question: 'How old are the kids?',
+      question: 'How old are the kids, if there are kids?',
       options: [
         { value: 'under5', label: 'Under 5' },
         { value: 'primary', label: 'Primary school' },
         { value: 'teens', label: 'Teenagers' },
-        { value: 'mixed', label: 'A spread of ages' },
+        { value: 'adult', label: 'Grown up and moved out' },
+        { value: 'none', label: 'No kids' },
+      ],
+    },
+    {
+      // A carer looking after a parent had nothing in this coach at all;
+      // a grandparent asked for grandchildren-specific ideas. Both change
+      // the build completely.
+      key: 'others',
+      multi: true,
+      question: 'Anyone else this time is for?',
+      options: [
+        { value: 'grandkids', label: 'The grandchildren' },
+        { value: 'parent', label: 'A parent I care for' },
+        { value: 'nobody', label: 'No one else' },
       ],
     },
     {
@@ -254,6 +285,7 @@ export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
         { value: 'logistics', label: 'Logistics and admin' },
         { value: 'scattered', label: 'Everyone’s on a screen' },
         { value: 'energy', label: 'Nothing left in the tank' },
+        { value: 'stretched', label: 'I am stretched thin and short with them' },
       ],
     },
     {
