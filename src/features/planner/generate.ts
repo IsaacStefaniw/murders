@@ -10,7 +10,8 @@
  */
 
 import { buildDailyPlan, computeFreeWindows } from '@/lib/scheduling/engine';
-import type { FixedCommitment, MovedPlacement } from '@/lib/scheduling/engine';
+import type { EnergyPlacement, FixedCommitment, MovedPlacement } from '@/lib/scheduling/engine';
+import { energyShape } from '@/features/health/sleepDebt';
 import { withProtocolBounds } from '@/features/knowledge/protocols';
 import { durationMinutes, toHHMM, toMinutes, weekdayOf } from '@/lib/dates';
 import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine, Weekday } from '@/types/domain';
@@ -233,7 +234,7 @@ export function generateDailyPlan(
    * exactly; the store fills it from the person's own finished blocks.
    */
   learnedDurationMin: Record<string, number> = {},
-): DailyPlan & { unplaced: Routine[]; moved: MovedPlacement[] } {
+): DailyPlan & { unplaced: Routine[]; moved: MovedPlacement[]; energy: EnergyPlacement[] } {
   // Sized before anything is placed, so the carve-out of the work day and
   // the free-time placement both hold the same, real length.
   const sized = applyLearnedDurations(routines, learnedDurationMin);
@@ -255,6 +256,10 @@ export function generateDailyPlan(
     // The answer to "which parts of life matter most" finally reaches the
     // code that decides which of two things gets the hour.
     priorities: profile.priorities,
+    // The energy shape has been computed for the readiness card since it
+    // existed and has never reached the code that decides what happens at
+    // nine in the morning. It is a tie-break only: see scheduling/energy.ts.
+    energy: energyShape(profile.wakeTime, profile.energyProfile),
     goalFocus: goalFocusMap(goals),
     // during-work routines are already in the fixed list — don't place twice.
     // Bounds are stamped here rather than trusted from each producer.
