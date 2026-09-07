@@ -542,7 +542,7 @@ two never disagree about the same money. The hub's card comes from
 - Heading: "$100,000 by June 2028".
 - Sentence, before any weekly entry: "To land on June 2028 you need $4,191 a month, about $967 a week."
 - Under it: "$12,000 there now · next: a quarter there, $25,000 by January 2027".
-- The rungs: the first $1,000 (reached), a tenth of the way (reached), a quarter there $25,000 by January 2027, halfway $50,000 by July 2027, three quarters $75,000 by January 2028, done $100,000 by July 2028.
+- The rungs: the first $1,000 (reached), a tenth of the way (reached), a quarter there $25,000 by January 2027, halfway $50,000 by July 2027, three quarters $75,000 by January 2028, done $100,000 by June 2028.
 
 **The weekly number moves it.** "What went in this week?" on the hub
 writes `finance.weeklyIn` and adds to `goal.<id>.saved`.
