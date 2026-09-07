@@ -177,7 +177,11 @@ test("reps in reserve never returns, from anywhere", async () => {
   // exact figures moved into sentences further down where they can be read.
   assert.match(html, /It plans your week/, "the first thing it does");
   assert.match(html, /It changes when your week does/, "the second");
-  assert.match(html, /It shows how good the evidence is/, "the third — the differentiator");
+  assert.match(html, /It shows its evidence/, "the third — the differentiator");
+  // The evidence rating is the organising idea rather than a section, so the
+  // promise has to be in the first viewport with the number that costs us
+  // something to publish.
+  assert.match(html, /104 of 177/, "the admission that makes the rating credible");
   // The costly signal is the whole reason the first pillar works.
   assert.match(html, /104 of them|104 of the 177/, "the honesty that makes the ratings credible");
   // A reader has to be told what a rating means, not shown a letter.

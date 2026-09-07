@@ -921,3 +921,19 @@ footer { border-top: 1px solid var(--fog); }
   .walk-shot img { max-width: 320px; }
   .walk-tabs button { font-size: 11px; padding: 8px 12px; }
 }
+
+
+/* Two calls to action sit side by side on desktop. On a phone the App Store
+   badge is 250px wide on its own and the pair overflowed to 486px in a 360px
+   viewport — caught by check-layout before it shipped, which is the reason
+   that guard exists. */
+.hero-actions { flex-wrap: wrap; }
+@media (max-width: 620px) {
+  .hero-actions { flex-direction: column; align-items: stretch; gap: 12px; }
+  .hero-actions > * { width: 100%; justify-content: center; }
+  .cta-appstore { justify-content: center; }
+  .cta-appstore.is-pending em { margin-left: 0; }
+}
+.covers-through { max-width: 720px; margin: 26px 0 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.covers-through strong { color: var(--ink); }
+@media (max-width: 900px) { .covers-grid { grid-template-columns: 1fr; } }
