@@ -560,10 +560,11 @@ export const PATHS: Record<PathId, PathDefinition> = {
 
       // Makers get the focus block even when focus isn't the named
       // bottleneck — the growth block alone doesn't protect making time.
-      // Every style except manager, including physical: whether a trade
-      // should get a thinking block carved from the work day is a product
-      // decision (QA report, PW-O3) and is left exactly as it was.
-      if (answers.style !== 'manager') {
+      // Managers run on the weekly review instead. Hands-on work gets the
+      // shutdown and the weekly shape, not a thinking block carved from a
+      // day spent on your feet; the block stays in the library for anyone
+      // who wants it. Isaac's decision, 7 September 2026.
+      if (answers.style !== 'manager' && answers.style !== 'physical') {
         if (answers.meetingLoad === 'heavy') {
           // Before the first call, or it does not happen: the block moves
           // to the start of the work day, and the window stays tight so

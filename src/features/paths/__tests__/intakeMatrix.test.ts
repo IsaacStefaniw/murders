@@ -433,7 +433,8 @@ describe('nutrition, money and work — the whole intake', () => {
     for (const style of styles) {
       for (const team of teams) {
         const build = PATHS.work.build({ style, team, bottleneck: 'delivery', bigBet: 'no' }, base);
-        expect(build.routines.some((r) => r.protocolId === 'deep-work')).toBe(style !== 'manager');
+        // Managers run on the review; hands-on work gets no carve (Isaac, 7 Sep 2026).
+        expect(build.routines.some((r) => r.protocolId === 'deep-work')).toBe(style !== 'manager' && style !== 'physical');
         expect(build.routines.some((r) => /One-on-ones/.test(r.title))).toBe(team === 'directs' || team === 'leaders');
         expect(build.routines.some((r) => r.protocolId === 'weekly-business-review')).toBe(true);
         expect(collisions(build.routines)).toEqual([]);

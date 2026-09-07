@@ -511,7 +511,7 @@ user-facing; the ladder test uses clear margins. Proposed patch: thread
 a swap on the free tier, and the log title after a swap need a rendered
 `workout.tsx`.
 
-**PW-O2 (P3, content decision, Isaac).** Eight dishes claim `dairy_free`
+**PW-O2 (decided 7 Sep 2026: keep the label, show the may-contain line).** Eight dishes claim `dairy_free`
 or `gluten_free` while listing milk or gluten under `mayContain`.
 Reproduction: `DISHES.filter(d => (d.compatible.includes('dairy_free') &&
 d.mayContain.includes('milk')) || (d.compatible.includes('gluten_free') &&
@@ -523,7 +523,7 @@ pattern label does not. Proposed: drop the pattern from those records, or
 reword the pattern labels as "…-compatible as written". Not changed, being
 a claim about food.
 
-**PW-O3 (P2, product decision, Isaac).** Work pathway: every style except
+**PW-O3 (decided 7 Sep 2026: hands-on work gets no focus block; fixed in the work pathway).** Work pathway: every style except
 `manager` gets the deep-work carve, including `physical` ("On my feet,
 hands-on work"). Reproduction: `PATHS.work.build({ style: 'physical', team:
 'solo' }, profile).routines.some(r => r.protocolId === 'deep-work')` is
