@@ -227,38 +227,40 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
     },
   },
 
+  // The money milestones share their titles with `moneySteps` in
+  // src/features/money/plan.ts, on purpose. The intake answers produce the
+  // early steps (the transfer, the first month, the debt, the leaks) and
+  // the rungs add the later ones, so the goal carries ONE list in order
+  // and the hub never shows a second. A title that appears in both is
+  // deduplicated by withLadder; a title that appears in neither has no
+  // sentence under it on the hub.
   money: {
     foundation: {
       routines: [
         {
+          // Saturday morning, not Sunday evening: the goal planner already
+          // puts the money check-in and the pay-rise rule at 7pm Sunday,
+          // and the review found all three in one slot.
           title: 'Set up one automatic transfer',
           durationMin: 20,
-          days: SUNDAY,
-          preferredStart: '19:00',
-          preferredEnd: '20:30',
+          days: [6],
+          preferredStart: '10:00',
+          preferredEnd: '12:00',
           area: 'admin',
-          energy: 'evening',
+          energy: 'morning',
           tier: 'should',
         },
       ],
-      milestones: ['One account, one number to watch', 'One transfer running by itself'],
-      note: 'One account, one automatic transfer, one number. Everything after this is observation rather than discipline.',
+      milestones: ['One month of expenses, banked'],
+      note: 'One automatic transfer and the first month banked. Everything after this is watching rather than discipline.',
     },
     developing: {
-      routines: [
-        {
-          title: 'Savings rate check — one number',
-          durationMin: 10,
-          days: SUNDAY,
-          preferredStart: '19:30',
-          preferredEnd: '20:30',
-          area: 'admin',
-          energy: 'evening',
-          tier: 'could',
-        },
-      ],
-      milestones: ['A savings rate you actually know', 'One month of buffer banked', 'The first debt ordered properly'],
-      note: 'A savings rate, a buffer target, and the first debt put in the right order.',
+      // The weekly number is logged on the hub, in the check-in the goal
+      // planner already schedules; a second Sunday block for it was the
+      // same ten minutes twice.
+      routines: [],
+      milestones: ['A savings rate you know'],
+      note: 'The share of income kept, known roughly and watched as a trend.',
     },
     established: {
       // A "monthly" hour scheduled every Sunday is a monthly hour twelve
@@ -267,24 +269,16 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       // otherwise the title says one thing and the plan does another, and
       // the person is the one who has to notice.
       routines: [],
-      milestones: [
-        'Three months of buffer banked',
-        'An invested percentage you chose on purpose',
-        'A full money hour done this month',
-      ],
-      note: 'The full ladder — buffer, debt, invested percentage — tracked monthly rather than felt vaguely.',
+      milestones: ['Three months of expenses, banked', 'Investing set up to run by itself'],
+      note: 'Three months banked and the investing running by itself. Where it goes is a licensed adviser conversation; education, never financial advice.',
     },
     advanced: {
       // Same as the month above: a quarterly review cannot be a weekly
       // block, so it is something to have done rather than something on
       // every Sunday.
       routines: [],
-      milestones: [
-        'Allocation set across accounts',
-        'A drawdown plan written down',
-        'Allocation reviewed this quarter',
-      ],
-      note: 'Allocation across accounts and a drawdown plan, reviewed quarterly. Education, never financial advice.',
+      milestones: ['The transfer raised a notch', 'A drawdown plan written down'],
+      note: 'The transfer raised when the trend has held, and a drawdown plan written down. Education, never financial advice.',
     },
   },
 
