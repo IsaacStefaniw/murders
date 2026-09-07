@@ -45,7 +45,12 @@ import {
 } from '@/features/training/programme';
 import { answersFromProfile, PATH_ANSWER_FOR, profilePatchFor } from '@/features/onboarding/buildPlan';
 import type { InterviewAnswers } from '@/features/onboarding/script';
-import { buildExecutiveBlock, type WorkBlock, type WorkInputs } from '@/features/work/programme';
+import {
+  buildExecutiveBlock,
+  retargetBlock,
+  type WorkBlock,
+  type WorkInputs,
+} from '@/features/work/programme';
 import {
   completionEvidence,
   levelFor,
@@ -1429,12 +1434,20 @@ export const useAppStore = create<AppState>()(
         updatePathAnswers: (id, patch) => {
           const entry = get().paths[id];
           if (!entry) return;
+          const answers = { ...entry.answers, ...patch };
           set({
             paths: {
               ...get().paths,
-              [id]: { ...entry, answers: { ...entry.answers, ...patch } },
+              [id]: { ...entry, answers },
             },
           });
+          // A meeting-load or pressure answer given after the work block was
+          // built re-aims the block it is already in, rather than waiting
+          // for the next one.
+          const { workBlock, profile } = get();
+          if (id === 'work' && workBlock && profile) {
+            set({ workBlock: retargetBlock(workBlock, deriveWorkInputs(profile, answers)) });
+          }
         },
 
         toggleProtocol: (protocolId) => {

@@ -129,9 +129,9 @@ describe('a later meeting-load answer re-aims the block without restarting it', 
     s().buildWorkBlock();
     const started = s().workBlock!.startedAt;
     s().updatePathAnswers('work', { meetingLoad: 'heavy' });
-    // The store does not rebuild (that would restart week one); the hub
-    // re-aims through retargetBlock. Both facts pinned here.
+    // The store does not rebuild (that would restart week one); it re-aims
+    // the block it is in through retargetBlock: same start, new target.
     expect(s().workBlock!.startedAt).toBe(started);
-    expect(s().workBlock!.inputs.meetingLoad).toBe('light');
+    expect(s().workBlock!.inputs.meetingLoad).toBe('heavy');
   });
 });
