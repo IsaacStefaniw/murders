@@ -35,7 +35,7 @@
  */
 
 import { newId } from '@/lib/dates';
-import type { GoalMilestone, LifeProfile, Routine, Weekday } from '@/types/domain';
+import type { GoalMilestone, LifeProfile, Routine, SessionType, Weekday } from '@/types/domain';
 
 import type { PathId } from './definitions';
 import { LEVEL_ORDER, levelRank, type PathLevel } from './level';
@@ -69,6 +69,12 @@ export interface RungRoutine {
   area: Routine['area'];
   energy: Routine['energy'];
   protocolId?: string;
+  /**
+   * What tapping the block runs. The recovery foundation rung was a
+   * "two-minute reset" that nothing could open as a breath session,
+   * because the rung had no session type to hand the row.
+   */
+  sessionType?: SessionType;
   /** Protected work is never displaced. Used sparingly and on purpose. */
   protectedBlock?: boolean;
   tier?: Routine['tier'];
@@ -375,6 +381,9 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
           // that is the chosen replacement; this rung is the same tool and
           // must not appear twice in one evening.
           covers: ['session:breathe'],
+          // Runnable: the row opens the breath session. Without this the
+          // rung was a block on the day that nothing could start.
+          sessionType: 'breathe',
           durationMin: 5,
           days: [1, 2, 3, 4, 5, 6, 0],
           preferredStart: '20:00',
@@ -391,6 +400,13 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       routines: [
         {
           title: 'Evening check — did the moment come, what happened',
+          // The evening check IS the urge log: one line per urge, written
+          // before any judgement, which is the best-supported single
+          // ingredient in this area. The rung used to be an empty block
+          // with the same name.
+          protocolId: 'urge-log',
+          covers: ['urge-log'],
+          sessionType: 'journal',
           durationMin: 5,
           days: [1, 2, 3, 4, 5, 6, 0],
           preferredStart: '21:00',
@@ -401,12 +417,19 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
         },
       ],
       milestones: ['The usual trigger named out loud', 'A counter-move ready before the moment arrives'],
-      note: 'Trigger patterns named, and a counter-move ready before the moment rather than during it.',
+      note: 'The log is the evening check now: one line per urge, and the pattern shows after four.',
     },
     established: {
       routines: [
         {
           title: 'Weekly pattern review — when it actually wins',
+          // The weekly review is the three-moment if-then plan: the A-grade
+          // practice this pathway is built on, written once a week from
+          // what the log showed. It carries the protocol and not the
+          // journal session type, because the evening check below already
+          // is the journal session and a build holds one of each.
+          protocolId: 'trigger-if-then',
+          covers: ['trigger-if-then'],
           durationMin: 15,
           days: SUNDAY,
           preferredStart: '18:00',
@@ -417,7 +440,7 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
         },
       ],
       milestones: ['The pattern mapped across four weeks', 'Interventions timed to your real window'],
-      note: 'The pattern is mapped from what you logged, and the interventions are timed to it rather than to the clock.',
+      note: 'The pattern is mapped from what you logged, and the week’s three riskiest moments get a written plan.',
     },
     advanced: {
       routines: [
@@ -694,6 +717,7 @@ export function ladderFor(
         flexible: !r.protectedBlock,
         protected: r.protectedBlock === true,
         protocolId: r.protocolId,
+        sessionType: r.sessionType,
         duringWork: r.duringWork,
         anchorToWorkEnd: r.anchorToWorkEnd,
         // Marks this as programme structure rather than an evidence-based

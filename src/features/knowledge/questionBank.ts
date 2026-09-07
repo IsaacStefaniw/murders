@@ -7,6 +7,7 @@
  * (docs/KNOWLEDGE.md).
  */
 
+import { BEHAVIOUR_CATALOG } from '@/features/behaviours/catalog';
 import type { GoalDomain } from '@/types/domain';
 
 export interface DomainQuestion {
@@ -43,6 +44,57 @@ export function answeredValues(answers: Record<string, string>, key: string): st
   const raw = answers[key];
   return raw ? raw.split(',').filter(Boolean) : [];
 }
+
+/**
+ * The Habits & urges intake.
+ *
+ * Kept out of DOMAIN_QUESTIONS on purpose: the goal wizard asks every
+ * question under a goal's domain, and a typed "drink less" goal builds no
+ * routine from a trigger, so asking there would break the rule at the top
+ * of this file. The recovery pathway reads these directly.
+ *
+ * The trigger is multi-answer. A person who drinks when stressed AND when
+ * everyone else is having one told us two things; the first named leads
+ * the plan and the hour, and the hub speaks to each.
+ */
+export const RECOVERY_QUESTIONS: DomainQuestion[] = [
+  {
+    key: 'behaviour',
+    question: 'Which habit are we working on first?',
+    // Mirrors BEHAVIOUR_CATALOG rather than restating a subset of it — a
+    // habit missing from this list was a habit the path could not start
+    // on, which is how `shopping` ended up trackable in Settings and
+    // unreachable here.
+    options: BEHAVIOUR_CATALOG.map((b) => ({ value: b.key, label: b.label })),
+  },
+  {
+    key: 'trigger',
+    question: 'When does it usually win? Pick any that ring true.',
+    multi: true,
+    options: [
+      { value: 'stress', label: 'When the pressure is on' },
+      { value: 'boredom', label: 'When there is nothing to do' },
+      { value: 'social', label: 'When other people are doing it' },
+      { value: 'evening', label: 'Evenings at home, once things go quiet' },
+      { value: 'tired', label: 'When I am running on empty' },
+      { value: 'lowmood', label: 'When the day has gone badly' },
+      { value: 'unsure', label: 'Honestly not sure — help me find it' },
+    ],
+  },
+  {
+    key: 'replacement',
+    question: 'What could stand in its place?',
+    options: [
+      { value: 'breathe', label: 'A two-minute breath reset' },
+      { value: 'walk', label: 'A short walk, outside if I can' },
+      { value: 'read', label: 'Reading something on paper' },
+      { value: 'message', label: 'Messaging someone who knows' },
+      { value: 'tidy', label: 'Doing one small physical task' },
+      { value: 'water', label: 'Making tea, or a cold glass of water' },
+      { value: 'unsure', label: 'Help me pick — match it to my trigger' },
+    ],
+  },
+];
 
 export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
   fitness: [
