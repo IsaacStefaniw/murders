@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -12,6 +12,7 @@ import {
 
 import { ScreenWalkthrough } from "@/components/intent-motion";
 
+import { track } from "./analytics";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
@@ -169,7 +170,7 @@ const APP_STORE_URL = "";
 function AppStoreCta() {
   if (APP_STORE_URL) {
     return (
-      <a className="cta-appstore" href={APP_STORE_URL}>
+      <a className="cta-appstore" href={APP_STORE_URL} onClick={() => track("app_store_click")}>
         <Apple aria-hidden="true" />
         <span><small>Download on the</small><strong>App Store</strong></span>
       </a>
@@ -218,7 +219,19 @@ function PlanBuilder({ open, setOpen }: { open: boolean; setOpen: (open: boolean
       : current.length < limit ? [...current, value] : current);
   }
 
+  // The two marketing events, and everything the ad platforms get.
+  //
+  // track() has no payload parameter, so neither of these can carry an
+  // answer even by accident — see the reasoning in app/analytics.tsx. Step 02
+  // asks what somebody wants to reduce, and "an urge I want support with" is
+  // one of the options; that is health information, and Meta's own terms
+  // forbid sending it. A bare "they finished" optimises just as well.
+  useEffect(() => {
+    if (open) track("profile_start");
+  }, [open]);
+
   function continueFlow() {
+    if (step === 4) track("profile_complete");
     if (step === 4 && !commitment) {
       const outcomes = chosenLabels.length ? chosenLabels.join(", ") : "make meaningful progress";
       const subtraction = chosenFriction ? ` while reducing ${chosenFriction.label.toLowerCase()}` : "";

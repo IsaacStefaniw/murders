@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { Analytics } from "./analytics";
 import "./globals.css";
 
 /**
@@ -92,7 +94,10 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

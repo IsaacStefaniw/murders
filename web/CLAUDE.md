@@ -157,6 +157,38 @@ The guardrail permits it the moment `healthkit.ts` carries the backfill.
 The wearable story is a door, not the hero. The hero has to keep working for
 the person with no device, who is the larger market.
 
+## Marketing measurement, and the line it does not cross
+
+Isaac's decision, 7 Sep 2026: **the privacy promise is about the app and the
+health data in it, not about whether a marketing website may count visits and
+retarget.** That line is real and every privacy-forward company draws it.
+`app/analytics.tsx` carries Google Analytics, the Meta pixel and the Reddit
+pixel; paste the IDs into `ANALYTICS` there and they switch on. They are public
+IDs, visible in any page's source, so they are committed rather than hidden in
+an env var that would silently disable measurement in a build nobody checked.
+With the IDs empty, no third-party script ships at all.
+
+**The questionnaire's answers never leave the browser, and no event carries
+them.** This one is not a preference. Step 02 of the profile builder asks what
+someone wants to reduce and one option is "an urge I want support with", which
+makes the answer set health information under s6 of the Privacy Act 1988 —
+sensitive information, needing consent under APP 3.3, not merely disclosure.
+Meta's Business Tools Terms separately prohibit sending health data to the
+pixel; doing it is the conduct behind the US hospital-pixel litigation.
+
+Nothing is lost by the boundary: an ad platform optimises on the event, not on
+its payload, so a bare `profile_complete` buys the same audience as one stuffed
+with answers. `track()` therefore takes **no second parameter** — the safety is
+structural rather than a rule to remember —  and
+`tests/analytics-boundary.test.mjs` enforces the closed event list, the empty
+payload, the answers never appearing in a `gtag`/`fbq`/`rdt`/`fetch` call, and
+that `/privacy` describes whatever is actually wired.
+
+Whatever else changes here, these stay true and are separately guarded: there
+is no analytics SDK in the app, no advertising identifiers or ad networks in
+it, and Apple Health data is never used for advertising. The App Store privacy
+label and the `/whoop-alternative` comparison both rest on them.
+
 ## Product-truth boundaries
 
 Keep these constraints intact in every iteration:

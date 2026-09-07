@@ -121,8 +121,26 @@ export default function PrivacyPage() {
       <p>
         Like any website, ours is served by a hosting provider that processes standard
         request information — IP address, browser type, page requested — in order to
-        deliver the page and defend against abuse. We do not run advertising or
-        analytics scripts on it.
+        deliver the page and defend against abuse.
+      </p>
+      <p>
+        <strong>This website does run marketing measurement, and the app does not.</strong>{" "}
+        We use Google Analytics to count visits, and advertising pixels from Meta and
+        Reddit so we can measure whether an ad worked and show our ads to people who
+        have been here before. Those set cookies and tell those companies that a browser
+        visited a page on this site. If you would rather they did not, a tracker blocker
+        or your browser&rsquo;s ad-privacy settings will stop them, and the site works
+        exactly the same without them.
+      </p>
+      <p>
+        <strong>What they never receive is anything you type.</strong> If you use the
+        profile builder, your answers stay in your own browser&rsquo;s local storage and
+        are not sent to us or to anyone else. The only thing an advertising platform is
+        told is that somebody opened it and that somebody finished it — a count, with no
+        content attached. That boundary is not a preference: step two asks what you want
+        to reduce, and one of the options is an urge you want support with. That is
+        health information, it needs your consent to collect, and the advertising
+        platforms&rsquo; own terms forbid it being sent to them. So it is not.
       </p>
 
       <h2>Children</h2>
