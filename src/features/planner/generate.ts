@@ -195,19 +195,54 @@ export function goalFocusMap(goals: Goal[]): Record<string, string> {
   return map;
 }
 
+/**
+ * Re-size routines to what they actually take this person.
+ *
+ * A routine's `durationMin` is what somebody typed when it was created —
+ * the practice's own figure, or the interview's answer. Once the person
+ * has finished the same thing enough times for a median to mean anything
+ * (`learnedDuration` in `src/lib/scheduling/adaptation.ts`), that median
+ * is the better number, and the day should hold it: a 30-minute slot for
+ * something that reliably takes 45 makes the plan wrong before the day
+ * has started.
+ *
+ * A routine absent from the map, or carrying a length that was never
+ * measured, is returned untouched — identity included, so a day with
+ * nothing learned is byte-for-byte the day it was before.
+ */
+export function applyLearnedDurations(
+  routines: Routine[],
+  learnedDurationMin: Record<string, number>,
+): Routine[] {
+  return routines.map((r) => {
+    const learned = learnedDurationMin[r.id];
+    if (typeof learned !== 'number' || !Number.isFinite(learned) || learned < 1) return r;
+    return learned === r.durationMin ? r : { ...r, durationMin: Math.round(learned) };
+  });
+}
+
 export function generateDailyPlan(
   profile: LifeProfile,
   routines: Routine[],
   date: string,
   calendarEvents: FixedCommitment[] = [],
   goals: Goal[] = [],
+  /**
+   * Routine id → the minutes that routine actually takes, where enough
+   * sessions have been measured to know. Empty is the old behaviour
+   * exactly; the store fills it from the person's own finished blocks.
+   */
+  learnedDurationMin: Record<string, number> = {},
 ): DailyPlan & { unplaced: Routine[]; moved: MovedPlacement[] } {
+  // Sized before anything is placed, so the carve-out of the work day and
+  // the free-time placement both hold the same, real length.
+  const sized = applyLearnedDurations(routines, learnedDurationMin);
   // Real calendar events are truth; modelled work hours are the fallback
   // for work days the calendar knows nothing about.
   const carved: CarvedWorkDay =
     calendarEvents.length > 0
       ? { blocks: calendarEvents, uncarved: [] }
-      : carveWorkDay(profile, date, routines);
+      : carveWorkDay(profile, date, sized);
   // Capacity governs slack: minimal keeps a third of free time untouched.
   const reservedFreeFraction =
     profile.capacity === 'minimal' ? 0.35 : profile.capacity === 'push' ? 0.2 : 0.25;
@@ -223,7 +258,7 @@ export function generateDailyPlan(
     goalFocus: goalFocusMap(goals),
     // during-work routines are already in the fixed list — don't place twice.
     // Bounds are stamped here rather than trusted from each producer.
-    routines: withProtocolBounds(routines.filter((r) => !r.duringWork)),
+    routines: withProtocolBounds(sized.filter((r) => !r.duringWork)),
   });
   // A during-work block the hours could not hold is as unplaced as
   // anything the engine turned away, and is reported the same way.

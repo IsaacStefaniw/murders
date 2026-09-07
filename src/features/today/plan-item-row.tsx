@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
@@ -5,6 +6,8 @@ import { Radius, Spacing } from '@/constants/theme';
 import { ItemActions } from '@/features/today/item-actions';
 import { ItemGuidanceView } from '@/features/today/item-guidance-view';
 import { durationMinutes, formatTime } from '@/lib/dates';
+import { learnedDuration, usuallyLabel } from '@/lib/scheduling/adaptation';
+import { useAppStore } from '@/state/store';
 import { useTheme } from '@/hooks/use-theme';
 import type { DailyPlan, LifeProfile, PlanItem } from '@/types/domain';
 
@@ -62,6 +65,21 @@ export function PlanItemRow({
    */
   const length = lengthLabel(item);
 
+  /**
+   * What this one usually takes, from the person's own finished sessions.
+   * Only on a block still ahead: on something already done or skipped the
+   * length is settled, and saying "usually 42 min" over it is commentary.
+   */
+  const plans = useAppStore((s) => s.plans);
+  const usually = useMemo(() => {
+    if (!item.routineId || done || skipped) return null;
+    const learned = learnedDuration(
+      item.routineId,
+      Object.values(plans).flatMap((p) => p.items),
+    );
+    return usuallyLabel(durationMinutes(item.start, item.end), learned);
+  }, [item.routineId, item.start, item.end, done, skipped, plans]);
+
   // Only the main line toggles — a fully-pressable row would swallow taps
   // meant for the action buttons inside it (and collapse mid-flow).
   return (
@@ -81,7 +99,7 @@ export function PlanItemRow({
         accessibilityRole="button"
         accessibilityLabel={`${item.title}, ${formatTime(item.start)}${
           length ? `, ${length}` : ''
-        }${done ? ', done' : ''}${
+        }${usually ? `, ${usually.toLowerCase()}` : ''}${done ? ', done' : ''}${
           item.fixed || done || skipped ? '' : '. Press and hold to move it.'
         }`}
       >
@@ -117,6 +135,12 @@ export function PlanItemRow({
             </AppText>
           ) : null}
         </View>
+
+        {usually ? (
+          <AppText variant="caption" color="textTertiary" style={styles.focus}>
+            {usually}
+          </AppText>
+        ) : null}
 
         {item.focus && !done && !skipped ? (
           <AppText variant="caption" color="textTertiary" style={styles.focus}>

@@ -83,6 +83,7 @@ import {
   detectMovePattern,
   detectShrinkToFit,
   detectSlotMismatch,
+  learnedDurationMinutes,
   type ManualMove,
 } from '@/lib/scheduling/adaptation';
 import { MODALITIES } from '@/features/modalities/registry';
@@ -163,6 +164,15 @@ export interface AppState {
   ensurePlan: (date: string) => DailyPlan;
   regeneratePlan: (date: string) => DailyPlan;
   approvePlan: (date: string, intention?: string, protectBehaviour?: BehaviourKey) => void;
+  /**
+   * The moment the person began. Stamped by Start on the row, and by a
+   * guided session opened from it; completing the item then measures the
+   * gap rather than assuming the planned length.
+   *
+   * Called twice, the first stamp stands — coming back to a screen is not
+   * starting again.
+   */
+  startItem: (date: string, itemId: string) => void;
   setItemStatus: (
     date: string,
     itemId: string,
@@ -615,6 +625,34 @@ export function deriveWorkInputs(
   };
 }
 
+/**
+ * A screen left open all afternoon is not a four-hour block.
+ *
+ * The guided session screen already caps its elapsed time at three times
+ * what the session was meant to take; the same cap applies here, against
+ * the block's planned length, so one forgotten tab cannot teach the
+ * planner that a 45-minute workout usually runs to four hours. The floor
+ * of one minute is the same one: something that happened took at least a
+ * minute, however fast the two taps were.
+ */
+const ELAPSED_CAP_MULTIPLE = 3;
+
+/**
+ * How long a block actually took, or undefined when nobody said it began.
+ *
+ * Never falls back to the planned length: the planned length is the number
+ * this whole measurement exists to check.
+ */
+function measuredMinutes(item: PlanItem): number | undefined {
+  if (!item.startedAt) return undefined;
+  const began = Date.parse(item.startedAt);
+  if (Number.isNaN(began)) return undefined;
+  const planned = durationMinutes(item.start, item.end);
+  const elapsed = Math.round((nowDate().getTime() - began) / 60000);
+  if (elapsed < 0) return undefined;
+  return Math.max(1, Math.min(planned * ELAPSED_CAP_MULTIPLE, elapsed));
+}
+
 /** How far back the adaptation engine looks. */
 const HISTORY_DAYS = 14;
 
@@ -757,7 +795,12 @@ export const useAppStore = create<AppState>()(
           // never planned, whatever the entitlement says.
           const applicable = applicableRoutines(routines, profile.sexAtBirth);
           const running = runningRoutines(applicable, entitlement.plus, get().paths.recovery?.goalId);
-          const { unplaced, moved, ...plan } = generateDailyPlan(profile, running, date, [], goals);
+          // What these sessions actually take this person, drawn from
+          // their own finished blocks. A routine with fewer than three
+          // measured sessions is absent from the map and keeps the length
+          // it was created with, so a new plan is unchanged by this.
+          const learned = learnedDurationMinutes(Object.values(plans).flatMap((p) => p.items));
+          const { unplaced, moved, ...plan } = generateDailyPlan(profile, running, date, [], goals, learned);
           // What did not fit is the visible half of arbitration. It used to
           // be destructured into `_unplaced` and dropped on the floor, which
           // meant the engine made the product's defining decision and then
@@ -811,6 +854,17 @@ export const useAppStore = create<AppState>()(
           });
         },
 
+        startItem: (date, itemId) => {
+          const item = get().plans[date]?.items.find((i) => i.id === itemId);
+          // Only a block that has not happened yet can be begun, and only
+          // once: reopening the session screen is not a second start.
+          if (!item || item.status !== 'planned' || item.startedAt) return;
+          const at = nowDate().toISOString();
+          updatePlanItems(date, (items) =>
+            items.map((i) => (i.id === itemId ? { ...i, startedAt: at } : i)),
+          );
+        },
+
         setItemStatus: (date, itemId, status, evidence) => {
           const item = get().plans[date]?.items.find((i) => i.id === itemId);
           if (!item) return;
@@ -818,8 +872,22 @@ export const useAppStore = create<AppState>()(
             status === 'completed'
               ? (evidence ?? { source: 'manual', confidence: 1, at: new Date().toISOString() })
               : undefined;
+          const actualMin = status === 'completed' ? measuredMinutes(item) : undefined;
           updatePlanItems(date, (items) =>
-            items.map((i) => (i.id === itemId ? { ...i, status, evidence: finalEvidence } : i)),
+            items.map((i) =>
+              i.id === itemId
+                ? {
+                    ...i,
+                    status,
+                    evidence: finalEvidence,
+                    actualMin,
+                    // Anything but a completion undoes the measurement, so a
+                    // block reopened and done again is timed afresh rather
+                    // than from whenever the screen was first opened.
+                    startedAt: status === 'completed' ? i.startedAt : undefined,
+                  }
+                : i,
+            ),
           );
           if (status === 'completed') {
             record(eventFor(item, date, 'completed', { evidence: finalEvidence }));

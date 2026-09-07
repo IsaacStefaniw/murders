@@ -316,3 +316,125 @@ export function applyProtectTime(routines: Routine[], suggestion: Suggestion): R
     r.id === payload.routineId ? { ...r, tier: 'must' as const } : r,
   );
 }
+
+/**
+ * Learned durations — how long a routine actually takes this person.
+ *
+ * Every planner in the field schedules the length somebody typed in.
+ * IntentNorth already measured one thing (a workout's elapsed time) and
+ * threw the rest away. This is that measurement for everything the app
+ * puts in a day: the person starts a block, marks it done, and the gap
+ * between the two is the only number used here. Nothing is estimated, and
+ * a block with no measured length contributes nothing.
+ *
+ * Three rules keep it honest:
+ *
+ *   - Fewer than three finished sessions says nothing at all. Two is an
+ *     anecdote, and a plan that reshapes itself around one long Tuesday
+ *     is worse than one that waits.
+ *   - The median, not the mean. One session interrupted by a phone call
+ *     should not move the number a person sees on every row.
+ *   - The last few only, so a routine that genuinely changed is not held
+ *     to what it was last winter. History hygiene keeps 120 days of
+ *     items, which is more than this window ever needs.
+ */
+
+/** Below this many measured sessions, there is no answer — only a guess. */
+export const LEARNED_MIN_OBSERVATIONS = 3;
+/** How many recent sessions the median is drawn from. */
+export const LEARNED_WINDOW = 10;
+
+export interface LearnedDuration {
+  /** The median of the recent measured lengths, in whole minutes. */
+  minutes: number;
+  /** How many finished sessions it was drawn from. Never below three. */
+  count: number;
+}
+
+/** A measured length, or null — anything else the record is not to be trusted for. */
+function measured(item: PlanItem): number | null {
+  if (item.status !== 'completed') return null;
+  const min = item.actualMin;
+  return typeof min === 'number' && Number.isFinite(min) && min >= 1 ? min : null;
+}
+
+function median(sorted: number[]): number {
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 1
+    ? sorted[mid]
+    : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
+}
+
+/**
+ * The median of the last few measured lengths for one routine, with the
+ * number of sessions behind it, or null when there are not yet enough.
+ *
+ * Pure: the history is read in date order and never touched.
+ */
+export function learnedDuration(
+  routineId: string,
+  items: PlanItem[],
+  window = LEARNED_WINDOW,
+): LearnedDuration | null {
+  const own = items
+    .filter((i) => i.routineId === routineId && measured(i) !== null)
+    .sort((a, b) => (a.date === b.date ? a.start.localeCompare(b.start) : a.date.localeCompare(b.date)))
+    .slice(-window)
+    .map((i) => measured(i)!);
+  if (own.length < LEARNED_MIN_OBSERVATIONS) return null;
+  return { minutes: median([...own].sort((a, b) => a - b)), count: own.length };
+}
+
+/** Every routine with enough measured history, keyed by routine id. */
+export function learnedDurations(
+  items: PlanItem[],
+  window = LEARNED_WINDOW,
+): Record<string, LearnedDuration> {
+  const out: Record<string, LearnedDuration> = {};
+  const ids = new Set(
+    items.filter((i) => measured(i) !== null).map((i) => i.routineId).filter((id): id is string => id != null),
+  );
+  for (const id of ids) {
+    const learned = learnedDuration(id, items, window);
+    if (learned) out[id] = learned;
+  }
+  return out;
+}
+
+/** The same thing flattened to the minutes the planner schedules. */
+export function learnedDurationMinutes(
+  items: PlanItem[],
+  window = LEARNED_WINDOW,
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [id, learned] of Object.entries(learnedDurations(items, window))) {
+    out[id] = learned.minutes;
+  }
+  return out;
+}
+
+/**
+ * How far the block on screen has to be from the person's own history
+ * before saying so. Under a fifth either way, the plan and the record
+ * broadly agree and the line would be noise on every row.
+ */
+const NOTICEABLE = 0.2;
+
+/**
+ * "Usually 42 min" — what this block really takes, said on the row when
+ * that disagrees with the length the day is holding for it.
+ *
+ * It is a disagreement, not a badge. A 30-minute slot for something that
+ * has taken 45 the last four times is worth a line; once placement
+ * catches up and the day holds 45, the line goes quiet, which is the
+ * point. Never shown from fewer than three finished sessions, and the
+ * number is always one the person's own sessions produced.
+ */
+export function usuallyLabel(
+  plannedMin: number,
+  learned: LearnedDuration | null | undefined,
+): string | null {
+  if (!learned || plannedMin <= 0) return null;
+  if (Math.abs(learned.minutes - plannedMin) / plannedMin <= NOTICEABLE) return null;
+  return `Usually ${learned.minutes} min`;
+}
