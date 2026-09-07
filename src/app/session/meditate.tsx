@@ -135,7 +135,18 @@ export default function MeditateSession() {
     if (!startedAt || !voiceOn || !cue?.text) return;
     if (spokenRef.current === cue.text) return;
     spokenRef.current = cue.text;
-    Speech.speak(cue.text, { rate: 0.82, pitch: 0.92, voice: preferredVoiceId ?? undefined });
+    const text = cue.text;
+    Speech.speak(text, {
+      rate: 0.82,
+      pitch: 0.92,
+      voice: preferredVoiceId ?? undefined,
+      // A stored voice the phone no longer has, or one the engine refuses,
+      // fails without a sound. Say the line in the default voice rather
+      // than leave a person sitting in silence wondering if it started.
+      onError: () => {
+        if (preferredVoiceId) Speech.speak(text, { rate: 0.82, pitch: 0.92 });
+      },
+    });
   }, [cue?.text, startedAt, voiceOn, preferredVoiceId]);
 
   // Leaving mid-session must not leave a voice talking to an empty room.
@@ -250,6 +261,12 @@ export default function MeditateSession() {
         {voiceOn && !voicesReady ? (
           <AppText variant="caption" color="textTertiary" style={styles.hint}>
             Finding the voices on this phone…
+          </AppText>
+        ) : null}
+        {voiceOn ? (
+          <AppText variant="caption" color="textTertiary" style={styles.hint}>
+            Hearing nothing? The switch on the side of the phone mutes spoken guidance. Flick it
+            off silent, or turn the volume up.
           </AppText>
         ) : null}
         {voiceOn && shortlist.length > 1 ? (
