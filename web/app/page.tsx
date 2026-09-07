@@ -58,7 +58,7 @@ const constraints = [
 const heroPillars = [
   { lead: "It plans your week.", note: "Sessions, meals and practices at real times, around what you already have on." },
   { lead: "It changes when your week does.", note: "A bad night shortens the session and keeps the hard part, instead of cancelling it." },
-  { lead: "It shows how good the evidence is.", note: "Every practice is rated — including the ones where the evidence is weak." },
+  { lead: "It shows its evidence.", note: "Every practice rated A to E for the research behind it. We publish the weak ones — 104 of 177." },
 ];
 
 const todayRows = [
@@ -368,16 +368,14 @@ const ratingScale = [
 
 /** The nine pillars in src/features/knowledge/protocols.ts, with real titles. */
 const covers = [
-  { name: "Training", examples: "Strength training, easy cardio, hard intervals — a four-week plan written for your goal." },
-  { name: "Food", examples: "Protein-first breakfast, a weekly meal sketch, a walk after dinner." },
-  { name: "Sleep", examples: "Morning light, a wind-down before bed, a caffeine cut-off that fits your day." },
-  { name: "Mind", examples: "Ten minutes of stillness, guided breathing, afternoon deep rest, a five-minute journal." },
-  { name: "Habits and urges", examples: "The moment before you act, a two-minute reset, and a lapse treated as information rather than failure." },
-  { name: "Focused work", examples: "A deep work block that gets protected, a weekly review that ends in one decision." },
-  { name: "Money", examples: "One transfer automated, a weekly money check-in, and the next step after that." },
+  { name: "Training", examples: "Strength, easy cardio, intervals — a four-week plan written for the goal you pick." },
+  { name: "Food", examples: "Protein at breakfast, the week's dinners decided once, a walk after eating." },
+  { name: "Habits and urges", examples: "The moment before you act, a two-minute reset, a lapse treated as information. Free forever." },
+  { name: "Focused work", examples: "A deep block that gets protected, and a weekly review that ends in one decision." },
+  { name: "Money", examples: "One transfer automated, a weekly check-in, and the next step after that." },
   { name: "Your relationship", examples: "The first five minutes at the door, one ritual that survives a bad week." },
-  { name: "Family and adventure", examples: "One outing in the diary before the week starts, sized for the smallest legs." },
-];
+  { name: "Family", examples: "One outing in the diary before the week starts, sized for the smallest legs." },
+]
 
 const howSteps = [
   {
@@ -549,10 +547,13 @@ export default function Home() {
         <div className="hero-copy">
           <p className="section-kicker">IPHONE APP</p>
           <h1>Your whole life.<br />One plan that works.</h1>
-          <p className="hero-lede">Strength and cardio. Meals and sleep. Meditation, breathing, and breaking the habits you want gone. Focused work, money, your relationship, your family. IntentNorth builds all of it into one week — every practice drawn from published research and shown with a plain rating for how strong that research is. Then it rebuilds the week whenever yours changes.</p>
-          <div className="hero-actions"><AppStoreCta /><a className="text-link" href="#how">See how it works <ArrowDown /></a></div>
+          <p className="hero-lede">You already know what you should be doing. The hard part is fitting it into a real week. IntentNorth writes that week for you — training, food, sleep, focus, habits, money, the people you love — and rewrites it when your week goes sideways. Everything it asks of you shows how strong the evidence behind it is.</p>
+          <div className="hero-actions">
+            <BuildPlanButton onClick={() => setPlanOpen(true)}>See your first week, free</BuildPlanButton>
+            <AppStoreCta />
+          </div>
           <p className="hero-price">
-            <strong>AU$89.99 a year</strong> for all seven areas &mdash; about seven fifty a month,
+            <strong>AU$89.99 a year</strong> for all seven &mdash; about seven fifty a month,
             with nothing held back for a higher tier. <span>Free to start, and the urge and
             hardest-moment support is free permanently.</span>
           </p>
@@ -570,34 +571,19 @@ export default function Home() {
           <div className="hero-image-wrap"><Image src="/images/intent-os-hero-family-transition-v2.webp" alt="A professional closing a laptop and returning attention to family life" width={1536} height={1024} priority unoptimized sizes="(max-width: 1120px) 80vw, 43vw" /></div>
           <figure className="hero-shot">
             <img
-              alt="The app's week screen, showing Monday with sixteen things planned from 7am"
+              alt="A Monday planned by the app: breakfast, morning light, two work blocks, a protected lunch and a training session"
               height={1800}
-              src="/images/app/app-protocol-3-week-after.jpg"
+              src="/images/app/app-example-day.jpg"
               width={840}
             />
             <figcaption>
-              <span>A real Monday in the app</span>
-              Every line was placed by the app, at an hour it chose, around everything else in
-              the week.
+              <span>One day, planned by the app</span>
+              Breakfast, light, two blocks of focused work, a lunch it refuses to let work run
+              over, a session that fits inside it. Built for an example person, by the same
+              planner your answers feed. Yours looks different, and every line says why.
             </figcaption>
           </figure>
         </div>
-      </section>
-
-      <section className="covers-section section-shell" id="covers">
-        <div className="covers-heading">
-          <p className="section-kicker">WHAT IT COVERS</p>
-          <h2>Nine areas. Not a calendar.</h2>
-          <p>Most apps do one of these. This does all of them, from one set of answers, and they share what they know about you — so the training knows how you slept, and the work blocks know when you train.</p>
-        </div>
-        <ul className="covers-grid">
-          {covers.map((area) => (
-            <li key={area.name}>
-              <strong>{area.name}</strong>
-              <p>{area.examples}</p>
-            </li>
-          ))}
-        </ul>
       </section>
 
       <section className="how-section section-shell" id="how">
@@ -622,6 +608,29 @@ export default function Home() {
             </li>
           ))}
         </ol>
+      </section>
+
+      <section className="covers-section section-shell" id="covers">
+        <div className="covers-heading">
+          <p className="section-kicker">WHAT IT COVERS</p>
+          <h2>Seven coaches, and they<br />talk to each other.</h2>
+          <p><strong>Each coach is one part of your life that the app plans for</strong> — not a person, and not a chatbot. Seven of them, working from the same set of answers about you.</p>
+          <p>Most apps do one of these well and know nothing about the rest of your life. Here the training knows how you slept, the work blocks know when you train, and lunch is protected from both. That is the part one app can do and seven cannot.</p>
+        </div>
+        <ul className="covers-grid">
+          {covers.map((area) => (
+            <li key={area.name}>
+              <strong>{area.name}</strong>
+              <p>{area.examples}</p>
+            </li>
+          ))}
+        </ul>
+        <p className="covers-through">
+          <strong>And running through all seven: sleep and your head.</strong> Morning light,
+          a wind-down before bed, a caffeine cut-off that fits your day, ten minutes of stillness,
+          guided breathing, an afternoon reset. These are not a separate app you also have to
+          remember &mdash; they get placed in the same week as everything else.
+        </p>
       </section>
 
       <section className="causality-section section-shell">

@@ -208,3 +208,79 @@ reject our compromises.
   write, we can build, and we can be honest about our own failures. What we
   have not managed is to make someone who has never heard of us *want* this in
   the first ten seconds.
+
+---
+
+# Response — the five Phase 1 questions, answered and built
+
+Written 5 September 2026, from the agency chair, and implemented the same day.
+
+## 1. Who should this page be for, and what do we lose by choosing?
+
+**People who already know what to do and cannot fit it into a week.**
+
+That is the one description all five reviewers fit. Sam knows she should
+sleep and move; she has no time. Jo knows what drinking costs him; he cannot
+change the evening. Priya is not short of advice; she is short of hours. Even
+Dev, the most product-literate, is really saying "I run four apps to do this".
+
+We lose two people, deliberately. The beginner who wants to be told one thing
+and held by the hand — this will feel like a lot. And the specialist who wants
+the deepest training app on the store — we are not it, and pretending
+otherwise is what put a barbell in our shop window.
+
+## 2. Is breadth an asset or a liability, and how do you stage it?
+
+An asset that must be **demonstrated before it is claimed**. Listing nine
+things reads as thin. Showing one real day that happens to contain training,
+food, light, focused work and a protected lunch reads as capable, and the
+reader counts the breadth themselves.
+
+So the hero is now a single planned Monday. The list of coaches comes after
+the demonstration, and its heading answers the objection rather than
+restating the count: they talk to each other. The training knows how you
+slept; the work blocks know when you train; lunch is protected from both.
+That is the sentence breadth earns.
+
+## 3. What is our one sentence?
+
+> You already know what you should be doing. The hard part is fitting it into
+> a real week.
+
+The product sentence follows from it, not the other way round. Every previous
+attempt opened with what we are — an operating system, seven coaches, a
+library — which asks the reader to care about us before we have shown we
+understand them.
+
+## 4. Where does the evidence rating belong?
+
+**The organising idea.** It is the only thing in this market that nobody else
+does, it is expensive to fake, and four of five cold readers named it
+unprompted as where trust began. It has been promoted into the first
+viewport as a promise — everything it asks of you shows how strong the
+evidence is — with the costly half attached: 104 of 177.
+
+## 5. What do we do with traffic before the listing is live?
+
+Stop making a badge the main event. A store button that cannot be pressed is
+the one thing every visitor tries, and both our impatient reviewers hit it and
+asked why they were there.
+
+The free thing is now the action — **See your first week, free** — and the
+store is a status line beside it. It needs no backend, contradicts no privacy
+claim, and turns the gap before approval into use rather than a dead end. On
+approval day the badge becomes the primary and one constant changes.
+
+## What this pass also corrected
+
+Writing the coaches section caught a mistake of our own making. We had begun
+saying "nine areas", which came from counting pillars in the practice library
+rather than coaches in the app. The app has seven coaches. Sleep and mind are
+not among them — they are practices scheduled across all seven, which is both
+the accurate description and the only place meditation, breathing and a
+wind-down were ever going to be named. Corrected before it shipped.
+
+The plain-language guard then failed the build because the word "coach"
+appeared without ever being defined — the exact confusion the user testing
+found. It now says, before the word is leaned on: each coach is one part of
+your life that the app plans for, not a person and not a chatbot.
