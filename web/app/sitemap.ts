@@ -15,5 +15,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // and Rise — whose product term it is — does not rank for the calculator
     // queries. Single-purpose calculators are the page shape that ranks here.
     { url: "https://intentnorth.app/sleep-debt", lastModified, changeFrequency: "monthly", priority: 0.7 },
+    // The whole practice library, searchable. A conversion asset rather than a
+    // traffic one — the research was clear that "does X work" queries are tiny
+    // in Australia and answered inline — but it is the proof behind the
+    // rating claim the rest of the site makes.
+    { url: "https://intentnorth.app/evidence", lastModified, changeFrequency: "weekly", priority: 0.8 },
   ];
 }

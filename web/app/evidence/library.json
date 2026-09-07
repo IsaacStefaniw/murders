@@ -1,0 +1,2691 @@
+{
+ "generated": "by scripts/build-evidence.mjs from the app's protocols.ts",
+ "total": 177,
+ "counts": {
+  "B": 60,
+  "A": 13,
+  "D": 33,
+  "C": 63,
+  "E": 8
+ },
+ "gradeMeaning": {
+  "A": {
+   "label": "Strong",
+   "meaning": "Repeatedly tested in people, with results that agree."
+  },
+  "B": {
+   "label": "Good",
+   "meaning": "Solid human studies, with some room left for argument."
+  },
+  "C": {
+   "label": "Mixed",
+   "meaning": "Reasonable evidence, smaller studies, or results that conflict."
+  },
+  "D": {
+   "label": "Thin",
+   "meaning": "Early or indirect evidence. Worth trying, not worth promising."
+  },
+  "E": {
+   "label": "Practice",
+   "meaning": "No trial behind it. Widely used, and openly labelled as experience rather than proof."
+  }
+ },
+ "practices": [
+  {
+   "id": "morning-light",
+   "title": "Morning light",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "sleep",
+   "summary": "Ten minutes of outdoor light within an hour of waking.",
+   "why": "Bright morning light sets the body clock that decides when you get sleepy — the single cheapest lever for falling asleep easier at night and feeling alert earlier in the day.",
+   "safety": "Never look at the sun directly; through-window light counts for less but still counts.",
+   "attribution": [
+    "Andrew Huberman",
+    "Rhonda Patrick"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "wind-down",
+   "title": "Wind-down breathing",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "sleep",
+   "summary": "A short screens-away wind-down with slow breathing before bed.",
+   "why": "Long, slow exhales shift the nervous system toward rest; a consistent pre-sleep routine is one of the most reliable sleep-quality improvements there is.",
+   "safety": "A steadying tool, not treatment for a sleep disorder.",
+   "attribution": [
+    "Andrew Huberman",
+    "Tim Ferriss"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "strength",
+   "title": "Strength training",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "training",
+   "summary": "Resistance training most days you can manage — compound lifts first.",
+   "why": "Muscle mass and strength are among the strongest known predictors of healthy later life; strength work is the closest thing to a retirement account for the body.",
+   "safety": "Conservative loading, full range you control. No pushing through joint pain.",
+   "attribution": [
+    "Peter Attia",
+    "Andrew Huberman"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "zone2",
+   "title": "Easy cardio, talking pace",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "training",
+   "summary": "Steady \"can still hold a conversation\" cardio — brisk walk, easy ride, easy jog. Coaches call it Zone 2.",
+   "why": "Easy aerobic volume builds the mitochondrial base tied to metabolic health and endurance — the biggest return per unmiserable minute for most people.",
+   "safety": "If you can only gasp out words, ease off — conversational pace is the point.",
+   "attribution": [
+    "Peter Attia",
+    "Rhonda Patrick"
+   ],
+   "durationMin": 40
+  },
+  {
+   "id": "vo2-intervals",
+   "title": "Hard intervals",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "training",
+   "summary": "Once a week: four rounds of ~4 minutes hard, ~4 minutes easy. The kind that lifts your peak aerobic fitness (VO₂ max).",
+   "why": "Peak aerobic capacity correlates with long-term health more strongly than almost any other fitness measure, and one weekly interval session moves it.",
+   "safety": "Build up over weeks; skip when unwell; hard means hard for you, not a number.",
+   "attribution": [
+    "Peter Attia"
+   ],
+   "durationMin": 35
+  },
+  {
+   "id": "daily-walk",
+   "title": "The daily walk",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "training",
+   "summary": "A brisk 30–40 minute walk, most days — the most underrated training there is.",
+   "why": "Walking is easy cardio in disguise: it builds the same steady fitness, costs no willpower, and is the physical activity people actually sustain for decades.",
+   "safety": "Brisk means you can talk but you notice the pace. Weather is not a reason; clothing is a solution.",
+   "attribution": [
+    "Peter Attia",
+    "Andrew Huberman"
+   ],
+   "durationMin": 35
+  },
+  {
+   "id": "post-meal-walk",
+   "title": "Post-meal walk",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "nutrition",
+   "summary": "A ten-to-fifteen-minute walk after the day’s biggest meal.",
+   "why": "Light movement after eating blunts the glucose spike a meal produces — a tiny habit with an outsized metabolic effect.",
+   "safety": null,
+   "attribution": [
+    "Rhonda Patrick",
+    "Peter Attia"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "mobility-10",
+   "title": "Ten-minute mobility",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "training",
+   "summary": "Ten minutes of hips, ankles and shoulders, twice a week.",
+   "why": "Stability and range are what let every other kind of training continue into later decades — the piece that decides whether you can still get off the floor at 80.",
+   "safety": "Range you control, never bounced into. Discomfort fine, pain no.",
+   "attribution": [
+    "Peter Attia"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "cold-finish",
+   "title": "Cold-shower finish",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "training",
+   "summary": "End the morning shower with 30–60 seconds cold.",
+   "why": "Brief deliberate cold reliably spikes alertness and mood chemistry for hours — and practising the first uncomfortable minute is rehearsal for every urge you’ll surf later.",
+   "safety": "Uncomfortable, never painful. Heart conditions → clinician first. Never combine cold water with open water alone.",
+   "attribution": [
+    "Andrew Huberman",
+    "Rhonda Patrick"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "protein-breakfast",
+   "title": "Protein-first breakfast",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "nutrition",
+   "summary": "Roughly 30 g of protein within a couple of hours of waking.",
+   "why": "A protein-anchored first meal steadies appetite and energy for the whole day and front-loads the daily protein target where it’s easiest to hit.",
+   "safety": null,
+   "attribution": [
+    "Rhonda Patrick",
+    "Peter Attia"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "caffeine-cutoff",
+   "title": "Caffeine cutoff",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "sleep",
+   "summary": "Last caffeine of the day, ten hours before your bedtime.",
+   "why": "Caffeine’s half-life is 5–6 hours: a quarter of that afternoon coffee is still circulating at midnight, quietly shaving deep sleep you never see. Ten hours leaves only a trace by lights-out.",
+   "safety": null,
+   "attribution": [
+    "Andrew Huberman",
+    "Peter Attia"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "meal-sketch",
+   "title": "Weekly meal sketch",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "nutrition",
+   "summary": "Fifteen Sunday minutes deciding the week’s dinners — protein first, mostly whole foods.",
+   "why": "Deciding once removes seven days of willpower decisions. Anchoring each meal on protein (~1.6–2.2 g/kg/day across the day) protects muscle and keeps you full.",
+   "safety": null,
+   "attribution": [
+    "Peter Attia",
+    "Rhonda Patrick",
+    "Tim Ferriss"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "kitchen-closed",
+   "title": "Kitchen closes",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "nutrition",
+   "summary": "A consistent last bite by three hours before bed; eat within a daylight window.",
+   "why": "A steady, earlier eating window supports sleep and metabolic rhythm; late eating works against both.",
+   "safety": "Structure, not restriction — skip this protocol entirely if eating windows are a fraught topic for you.",
+   "attribution": [
+    "David Sinclair",
+    "Rhonda Patrick"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "fasting-window",
+   "title": "Hold the eating window",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "nutrition",
+   "summary": "A consistent daily eating window — first bite and last bite at roughly the same times.",
+   "why": "Consistency beats duration: a steady window supports metabolic rhythm and quietly caps grazing, without counting anything.",
+   "safety": "Not for everyone — skip entirely if pregnant, underweight, or if restriction has ever been a fraught topic. Protein and training quality come first.",
+   "attribution": [
+    "Peter Attia",
+    "David Sinclair",
+    "Rhonda Patrick"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "meal-if-then",
+   "title": "If-then the week’s food",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "nutrition",
+   "summary": "Turn each dinner into “on Tuesday, after work, I cook X” — then write the shopping list that makes it possible.",
+   "why": "Naming the exact when, where and first move is among the best-replicated findings in behaviour-change research, and it has been tested on food specifically rather than borrowed from elsewhere: planning the meal beats intending to eat better. The written list is the same mechanism moved to the shop — you arrive keeping a decision you already made, instead of making it hungry in an aisle built to change your mind.",
+   "safety": null,
+   "attribution": [
+    "Peter Gollwitzer",
+    "Paschal Sheeran",
+    "Marieke Adriaanse"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "portion-defaults",
+   "title": "Set the default, not the willpower",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "nutrition",
+   "summary": "Serve at the stove, put the packet away before you sit down, and keep the smaller bowl the one within reach.",
+   "why": "What is put in front of people changes how much they eat: bigger portions and bigger packages reliably lead to more eaten, pooled across dozens of randomised experiments. One honest caveat we would rather state than hide — several famous plate-size demonstrations came from a lab whose work was later retracted, so this protocol claims the portion and package finding, which stands without them, and not the plate.",
+   "safety": "Structure, not restriction — nothing here is counted and there is no target. Skip it entirely if how much you eat is a fraught topic for you.",
+   "attribution": [
+    "Theresa Marteau",
+    "Gareth Hollands",
+    "Richard Thaler"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "home-cooked-nights",
+   "title": "Cook at home most nights",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "nutrition",
+   "summary": "Hold a set number of home-cooked dinners a week — three is a real change for most people.",
+   "why": "Across large national surveys in several countries, people who cook at home more often eat more vegetables and fibre and less added sugar and salt. Consistent, but observational: home cooking travels with time, money and a dozen other habits, so how much of it is the cooking itself is genuinely unknown.",
+   "safety": null,
+   "attribution": [
+    "Michael Pollan",
+    "Julia Wolfson"
+   ],
+   "durationMin": 35
+  },
+  {
+   "id": "order-before-arrival",
+   "title": "Decide before you arrive",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "nutrition",
+   "summary": "Eating out this week? Choose your order from the menu online, hours before you sit down.",
+   "why": "Choosing in advance and choosing at the table are two different decisions made by two different versions of you — the second one is hungry, in company, and already holding bread. Field experiments on ordering ahead find the earlier choice is usually the one people would stand behind later, though the studies are few and mostly ran in canteens rather than restaurants.",
+   "safety": null,
+   "attribution": [
+    "Eric VanEpps",
+    "Christina Roberto",
+    "Peter Attia"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "batch-cook",
+   "title": "Cook once, eat twice",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "nutrition",
+   "summary": "Pick one dish a week that doubles — cook the big pan on Sunday and Wednesday already has a dinner.",
+   "why": "The mechanism is friction rather than nutrition: a cooked meal in the fridge wins the night you are flattest, when the real competition is a delivery app. Widely taught by people who cook for a living, and it follows from what we know about defaults and effort — but we found no trial testing batch cooking itself, so it is graded low on purpose.",
+   "safety": "Food safety, not diet: cool leftovers fast, into the fridge inside two hours, eat within a couple of days, and reheat once until properly steaming.",
+   "attribution": [
+    "Tim Ferriss",
+    "Michael Pollan"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "sauna",
+   "title": "Sauna sessions",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "longevity",
+   "summary": "Two to four sauna sessions a week, ~15–20 minutes at a heat you tolerate well.",
+   "why": "Regular sauna use is associated in long-running Finnish cohort studies with lower cardiovascular risk, and reliably helps relaxation and sleep.",
+   "safety": "Hydrate; no alcohol around sessions; heart conditions or pregnancy → talk to a clinician first.",
+   "attribution": [
+    "Rhonda Patrick",
+    "David Sinclair"
+   ],
+   "durationMin": 30
+  },
+  {
+   "id": "meditation-10",
+   "title": "Ten minutes of stillness",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "A short daily sit — breath as the anchor, thoughts allowed to pass.",
+   "why": "The single most common daily practice among the high performers Ferriss has interviewed; short consistent sessions measurably improve attention and stress recovery.",
+   "safety": "Non-clinical; no therapeutic claims.",
+   "attribution": [
+    "Tim Ferriss",
+    "Andrew Huberman"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "nsdr",
+   "title": "Afternoon deep rest",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "mind",
+   "summary": "Ten to twenty minutes lying still and awake in the afternoon dip — not a nap, and not asleep.",
+   "why": "A guided deep-rest protocol restores alertness and lowers stress without a nap’s grogginess — a legal performance enhancer for the second half of the day.",
+   "safety": null,
+   "attribution": [
+    "Andrew Huberman"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "evening-journal",
+   "title": "Five-minute journal",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "Five written minutes: what went well, what you’re grateful for, one line for tomorrow.",
+   "why": "Brief written gratitude and reflection reliably improve mood and sleep quality, and writing forces the clarity that vague rumination never reaches.",
+   "safety": null,
+   "attribution": [
+    "Tim Ferriss",
+    "Jordan Peterson",
+    "Andrew Huberman"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "creative-block",
+   "title": "Creative block",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "mind",
+   "summary": "Two protected sessions a week for the creative thing — making, not consuming.",
+   "why": "Creative practice is the most common thread among people who describe their weeks as good ones — and it only happens when it has a defended place on the calendar.",
+   "safety": null,
+   "attribution": [
+    "Tim Ferriss",
+    "Jordan Peterson"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "money-checkin",
+   "title": "Weekly money check-in",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "wealth",
+   "summary": "Thirty Sunday minutes: automate the transfer first, then review the week’s money.",
+   "why": "Automation beats willpower budgeting — pay the goal first and the review becomes observation, not judgement. A weekly cadence catches drift while it’s still small.",
+   "safety": null,
+   "attribution": [
+    "Tim Ferriss"
+   ],
+   "durationMin": 30
+  },
+  {
+   "id": "fear-setting",
+   "title": "Fear-setting",
+   "grade": "E",
+   "gradeLabel": "Practice",
+   "pillar": "wealth",
+   "summary": "Define the decision you’re avoiding: worst case, how you’d prevent it, how you’d repair it.",
+   "why": "Stalled decisions are usually unexamined fears. Writing the worst case down shrinks it to actual size — the exercise Ferriss credits for his biggest moves. Monthly is plenty.",
+   "safety": null,
+   "attribution": [
+    "Tim Ferriss"
+   ],
+   "durationMin": 30
+  },
+  {
+   "id": "deep-work",
+   "title": "Deep work block",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "leadership",
+   "summary": "A protected 60–90 minute single-task block before the day fragments.",
+   "why": "The highest-leverage work is the kind interruptions kill. One protected morning block routinely outproduces a scattered afternoon.",
+   "safety": null,
+   "attribution": [
+    "Tim Ferriss"
+   ],
+   "durationMin": 60
+  },
+  {
+   "id": "weekly-business-review",
+   "title": "Weekly business review",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "leadership",
+   "summary": "A weekly structured review: what moved, what stalled, the one lever for next week.",
+   "why": "Aim, articulate, adjust: writing down what you’re actually aiming at — and confronting what happened — is the core discipline both Peterson and Ferriss teach for any serious goal.",
+   "safety": null,
+   "attribution": [
+    "Jordan Peterson",
+    "Tim Ferriss"
+   ],
+   "durationMin": 90
+  },
+  {
+   "id": "eighty-twenty-audit",
+   "title": "80/20 audit",
+   "grade": "E",
+   "gradeLabel": "Practice",
+   "pillar": "leadership",
+   "summary": "Roughly monthly: name the 20% producing most of the results — and the 20% producing most of the drag.",
+   "why": "A small share of activities produces most of the outcome; naming and cutting the drag is where leverage actually comes from.",
+   "safety": null,
+   "attribution": [
+    "Tim Ferriss"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "week-preview",
+   "title": "Sunday week preview",
+   "grade": "E",
+   "gradeLabel": "Practice",
+   "pillar": "leadership",
+   "summary": "Fifteen Sunday-evening minutes looking at the week ahead: the three things that matter, the one conflict to defuse now.",
+   "why": "The Sunday reset — meals decided, money checked, week previewed — is the ritual stack that makes Monday start already-won instead of already-behind.",
+   "safety": null,
+   "attribution": [
+    "Tim Ferriss",
+    "Jordan Peterson"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "friend-reach-out",
+   "title": "Reach out, make a plan",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "connection",
+   "summary": "One message a week that turns into a concrete plan with someone you like.",
+   "why": "Strong relationships are the most consistent predictor of long-term wellbeing in the research — and they run on logistics, not sentiment.",
+   "safety": null,
+   "attribution": [
+    "Jordan Peterson"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "partner-reunion",
+   "title": "The first five minutes",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "connection",
+   "summary": "The first five minutes back together get your attention before anything else does.",
+   "why": "Work stress reliably follows people home as withdrawal; daily-diary research finds the reunion sets the tone for the whole evening, which makes five deliberate minutes the cheapest place to spend attention.",
+   "safety": null,
+   "attribution": [
+    "John Gottman",
+    "Julie Gottman"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "partner-appreciation",
+   "title": "Name one thing",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "connection",
+   "summary": "Say one specific thing you noticed and valued about them — out loud, most days.",
+   "why": "Happy couples run a lopsided ratio of warm to sour moments. Diary studies and small experiments link specific, spoken appreciation to feeling valued — and to raising hard things more easily.",
+   "safety": null,
+   "attribution": [
+    "John Gottman",
+    "Robert Emmons"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "partner-checkin-weekly",
+   "title": "Weekly two-of-you check-in",
+   "grade": "E",
+   "gradeLabel": "Practice",
+   "pillar": "connection",
+   "summary": "Twenty minutes on Sunday: the week ahead, who carries what, one thing each of you needs.",
+   "why": "How fairly the load feels shared tracks closely with satisfaction in survey after survey. The meeting itself is untested — a heuristic for making the invisible load visible before it becomes an argument.",
+   "safety": "A logistics conversation, not a grievance hearing. If the same subject keeps ending badly, that is a sign to talk to a couples therapist — not to hold more meetings.",
+   "attribution": [
+    "Jordan Peterson",
+    "Tim Ferriss"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "state-of-us",
+   "title": "State of us",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "connection",
+   "summary": "Roughly monthly, forty-five unhurried minutes on the relationship itself, not the logistics.",
+   "why": "The few randomised trials here found brief structured reflection — minutes a year, not hours a week — slowed the ordinary decline in satisfaction about as well as full skills courses did.",
+   "safety": "Educational structure, not couples therapy. If this conversation reliably turns into the same fight, or either of you dreads it, a couples therapist is the right next step.",
+   "attribution": [
+    "John Gottman",
+    "Julie Gottman"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "repair-rehearsal",
+   "title": "Repair, rehearsed",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "connection",
+   "summary": "Ten written minutes on the last friction: what set it off, and the words that would have cooled it.",
+   "why": "Stable couples are not the ones who avoid conflict, they are the ones who de-escalate early. The repair itself happens in the moment; what you can practise beforehand is the phrase you reach for.",
+   "safety": "Private reflection on your own part, never a case file on your partner. Out of scope entirely where there is fear, coercion or anything you would call abuse — that needs a professional, and support lines exist for exactly this.",
+   "attribution": [
+    "John Gottman"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "family-adventure",
+   "title": "The booked-in family adventure",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "connection",
+   "summary": "One family outing a week, chosen and in the calendar before the week starts.",
+   "why": "Experiences tend to buy more lasting happiness than possessions, and the calendar entry is what turns the intention into an actual Saturday. Effect sizes are modest and debated.",
+   "safety": "Match the outing to the youngest child’s stamina — an adventure nobody enjoyed is worse than a slow morning at home.",
+   "attribution": [
+    "Thomas Gilovich",
+    "Tim Ferriss"
+   ],
+   "durationMin": 180
+  },
+  {
+   "id": "one-on-one-child",
+   "title": "One-on-one with each child",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "connection",
+   "summary": "Twenty-odd minutes a week with each child, one at a time, doing what they choose.",
+   "why": "Child-led one-to-one time is a building block of parenting programmes that have been trialled properly, though it has rarely been tested on its own.",
+   "safety": "Let the child pick and lead. If it starts feeling like an appointment they have to perform at, make it shorter or let it go.",
+   "attribution": [
+    "Jordan Peterson"
+   ],
+   "durationMin": 25
+  },
+  {
+   "id": "trip-anticipation",
+   "title": "Stretch the anticipation",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "connection",
+   "summary": "Fifteen minutes a week on the next trip: one decision made, one detail shared with everyone going.",
+   "why": "Holidaymakers report more happiness before a trip than after it, so booking early may be where much of the benefit lives — an observational finding we extend on purpose.",
+   "safety": "Keep plans loose enough to change. Building a trip up as the thing that will fix a hard year sets everyone up to be let down.",
+   "attribution": [
+    "Jeroen Nawijn",
+    "Thomas Gilovich"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "device-free-meal",
+   "title": "The device-free family meal",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "connection",
+   "summary": "A shared evening meal on set nights, with every phone out of the room.",
+   "why": "Frequent shared meals are associated with better diet and psychosocial outcomes in children across many studies — all observational, and such families differ in other ways too.",
+   "safety": "Aim only at the nights that are realistic. Conversation, not inspection — a meal that becomes a performance review stops being the good thing here.",
+   "attribution": [
+    "Barbara Fiese"
+   ],
+   "durationMin": 40
+  },
+  {
+   "id": "family-memory-review",
+   "title": "Look back at it together",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "connection",
+   "summary": "Ten Sunday minutes going through the week’s photos, out loud, together.",
+   "why": "Savouring a good moment on purpose has small experimental support for lifting mood, and it stretches an experience past the day it happened. The studies are small and short.",
+   "safety": "Follow what the child wants to talk about, and skip anything anyone found upsetting. Educational structure, never a wellbeing intervention.",
+   "attribution": [
+    "Fred Bryant",
+    "Tim Ferriss"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "family-ritual-anchor",
+   "title": "One unmoveable family ritual",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "connection",
+   "summary": "One small thing that happens at the same time every week, whoever else is busy.",
+   "why": "Predictable family routines are associated with steadier child wellbeing across decades of research — most of it correlational, so the arrow’s direction is unsettled.",
+   "safety": "Small and repeatable beats big and abandoned. If it turns into an obligation everyone dreads, change the ritual rather than defend it.",
+   "attribution": [
+    "Barbara Fiese",
+    "Jordan Peterson"
+   ],
+   "durationMin": 90
+  },
+  {
+   "id": "payday-automation",
+   "title": "Payday transfer, set once",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "wealth",
+   "summary": "Set the payday transfer so the saving leaves automatically, before any of it can be spent.",
+   "why": "Large workplace field trials found that making saving the default moves how much people keep far more than intention or budgeting does. The transfer is the intervention — you decide once.",
+   "safety": "Where the money lands — account type, product, tax treatment — is a licensed adviser or accountant question. IntentNorth helps you build the habit of the transfer, nothing more. Education, never financial advice.",
+   "attribution": [
+    "Richard Thaler",
+    "Shlomo Benartzi",
+    "Tim Ferriss"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "raise-precommit",
+   "title": "Spend the raise before it arrives",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "wealth",
+   "summary": "Once a quarter, write down what share of the next pay rise or bonus goes straight to the transfer.",
+   "why": "Committing income you do not hold yet avoids the sting of giving up money you do — the mechanism behind the best-known escalating-saving programme. A pay rise is when lifestyle quietly expands.",
+   "safety": "Choosing a share is a habit, not an allocation plan — pension, tax and investment choices belong with a licensed adviser. Education, never financial advice.",
+   "attribution": [
+    "Richard Thaler",
+    "Shlomo Benartzi"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "subscription-audit",
+   "title": "Recurring-charge audit",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "wealth",
+   "summary": "Once a quarter, list every recurring charge and cancel what you would not sign up for again today.",
+   "why": "Card and billing data show recurring payments run on for years on inattention alone — people cancel when something finally forces them to look. The audit is that forcing function.",
+   "safety": "Check what a cancellation actually ends before you cancel it — insurance, indemnity and health cover can be far harder to restart than to stop.",
+   "attribution": [
+    "Tim Ferriss"
+   ],
+   "durationMin": 25
+  },
+  {
+   "id": "debt-order-review",
+   "title": "Pick a debt order you will finish",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "wealth",
+   "summary": "Monthly: list every balance with its rate, choose one order, and automate the extra payment against the first one only.",
+   "why": "Highest rate first costs least on paper; the follow-through evidence is mixed and leans to smallest balance first, since closing an account is visible progress. Finishing matters more than the order.",
+   "safety": "If payments are already being missed, or a lender is chasing, that is a licensed debt adviser or a nonprofit debt charity — not a habit app. Education, never financial advice.",
+   "attribution": [
+    "Richard Thaler"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "purchase-delay",
+   "title": "Sleep on it, then decide",
+   "grade": "E",
+   "gradeLabel": "Practice",
+   "pillar": "wealth",
+   "summary": "Optional spending over a threshold you set waits 72 hours on a list; twice a week, buy only what still earns it.",
+   "why": "Wanting is loudest in the moment and fades on its own, so the delay hands the call to the calm version of you. Present bias is well evidenced; the rule itself is a heuristic to test on yourself.",
+   "safety": "The delay is for optional spending only — never postpone medical care, repairs that worsen, or anything with a real deadline.",
+   "attribution": [
+    "Tim Ferriss"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "net-worth-check",
+   "title": "Quarterly position check",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "wealth",
+   "summary": "Once a quarter, write everything owned minus everything owed as one number, in the same place each time.",
+   "why": "Meta-analytic work on goal pursuit finds that monitoring progress, and writing it down, makes reaching a goal more likely; the effect is general, not money-specific. Quarterly catches drift without chasing noise.",
+   "safety": "A position number is a measurement, not a verdict on what to do next — investment, pension and tax decisions belong with a licensed professional. Education, never financial advice.",
+   "attribution": [
+    "Peter Attia"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "if-then-plan",
+   "title": "If-then plan the week",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "leadership",
+   "summary": "Ten Monday minutes turning each commitment into “if X, then Y” — including the line that defends the deep block.",
+   "why": "Naming the exact when, where and first move — plus one coping line for the obstacle you can already see — is among the best-replicated findings in behaviour-change research: medium-sized effects across roughly a hundred studies, largest for intentions that keep slipping.",
+   "safety": null,
+   "attribution": [
+    "Peter Gollwitzer",
+    "Paschal Sheeran"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "decision-journal",
+   "title": "Decision journal",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "leadership",
+   "summary": "Twenty Friday minutes: log each consequential call — expectation, confidence, review date — and reread what’s due.",
+   "why": "Knowing how it turned out overwrites what you actually believed, so experience alone teaches badly. A written forecast with a confidence number and a booked reread restores the feedback loop that calibration research shows sharpens judgement.",
+   "safety": "Your own calls, not a file on other people — a journal that might be read as a performance record stops being honest.",
+   "attribution": [
+    "Philip Tetlock",
+    "Annie Duke"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "pre-mortem",
+   "title": "Pre-mortem before the one-way door",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "leadership",
+   "summary": "Before a commitment that is hard to undo: assume a year has passed and it failed, then write every reason why.",
+   "why": "Treating the failure as already certain gets people to generate more concrete reasons than asking what might go wrong — one classic experiment, consistent with wider “consider the opposite” work. Whether it improves real outcomes is untested.",
+   "safety": "A thinking tool, not a veto. Run it on the calls that are hard to undo and let reversible ones stay fast.",
+   "attribution": [
+    "Gary Klein",
+    "Daniel Kahneman"
+   ],
+   "durationMin": 30
+  },
+  {
+   "id": "one-on-one-cadence",
+   "title": "One-on-one cadence",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "leadership",
+   "summary": "A standing weekly half-hour per direct — their agenda, one blocker question, feedback about the work not the person.",
+   "why": "Manager-relationship quality tracks with engagement and retention, but that evidence is mostly observational. The firmer part is narrower: in the classic review, feedback aimed at the person made performance worse about a third of the time.",
+   "safety": "Their agenda, not a status report — and nothing here replaces a formal process when the subject is pay, conduct or someone’s job.",
+   "attribution": [
+    "Andrew Grove",
+    "Kim Scott"
+   ],
+   "durationMin": 30
+  },
+  {
+   "id": "delegation-pass",
+   "title": "Weekly delegation pass",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "leadership",
+   "summary": "Twenty minutes to take one recurring thing off your desk: kill it, automate it, or hand it over with an owner and a date.",
+   "why": "People reliably improve things by adding rather than removing — a robust experimental finding — so subtraction needs a booked slot or it never happens. That this particular weekly pass improves a company is practitioner experience.",
+   "safety": null,
+   "attribution": [
+    "Leidy Klotz",
+    "Tim Ferriss"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "think-day",
+   "title": "Quarterly think day",
+   "grade": "E",
+   "gradeLabel": "Practice",
+   "pillar": "leadership",
+   "summary": "Once a quarter, two protected hours with no inputs: the three-year question, then what this quarter has to prove.",
+   "why": "Short structured written reflection has improved performance in field experiments, but stretching a fifteen-minute result to a quarterly half-day is extrapolation. A well-liked practice worth testing on yourself, not a settled finding.",
+   "safety": "Thinking time is not a substitute for talking to customers and the people doing the work.",
+   "attribution": [
+    "Tim Ferriss"
+   ],
+   "durationMin": 120
+  },
+  {
+   "id": "cyclic-sighing",
+   "title": "Cyclic sighing",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "Five minutes of double inhale through the nose, then a long, slow exhale.",
+   "why": "In a randomised trial that pitted five daily minutes of breathwork against five minutes of mindfulness meditation, cyclic sighing came out ahead on day-to-day mood and produced the larger drop in resting breathing rate. The long exhale is the working part; the second sip of air simply makes it possible.",
+   "safety": "A steadying tool, not treatment. Stop if you feel light-headed, and skip it entirely in water or behind the wheel. If you are pregnant or have a heart or breathing condition, check with your doctor before making it a daily habit.",
+   "attribution": [
+    "Andrew Huberman"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "loving-kindness",
+   "title": "Goodwill practice",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Five minutes directing plain, specific goodwill — someone easy, then yourself, then someone difficult.",
+   "why": "Warmth toward other people behaves like a trainable skill rather than a fixed trait, and short daily practice is associated with modest lifts in positive mood and in how connected people report feeling. The trials are small, short and hard to blind, so treat this as a fortnight’s experiment on yourself rather than a settled result.",
+   "safety": "Non-clinical, and not a way to force a feeling. If bringing a difficult person to mind opens more than you expected, stay with the easy one — or leave that step out.",
+   "attribution": [
+    "Tim Ferriss",
+    "Andrew Huberman"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "body-scan-sleep",
+   "title": "Body scan before sleep",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Ten minutes lying down, moving attention slowly from the feet to the head.",
+   "why": "A body scan hands the mind a concrete, boring task at exactly the hour it most wants to plan and replay. Relaxation-based wind-downs are associated with modest improvements in how fast people fall asleep and how they rate the night — smaller than the effect of a consistent sleep and wake time, but it stacks on top of one.",
+   "safety": "Falling asleep partway through is fine — that is rather the point here. It is not a fix for insomnia; weeks of bad sleep is a conversation for a doctor or a sleep clinician.",
+   "attribution": [
+    "Andrew Huberman",
+    "Tim Ferriss"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "open-monitoring",
+   "title": "Open-monitoring sit",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Five minutes noticing whatever shows up — sound, sensation, thought — naming it and letting it go.",
+   "why": "Rather than holding one anchor, you practise watching what the mind does. Meta-analyses of mindfulness training find real but modest effects on attention and stress, and open monitoring is the thinner half of that literature — it is rarely tested on its own. Plausible and useful; less certain than the ten-minute breath sit.",
+   "safety": "Non-clinical. Sitting with whatever arrives suits most people and unsettles some — if a sit leaves you distressed, detached from yourself, or reliably worse than you started, stop the practice and take it to a doctor or a therapist rather than pushing through. Meditation is not a substitute for professional care.",
+   "attribution": [
+    "Tim Ferriss",
+    "Andrew Huberman"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "skill-technical-block",
+   "title": "Short technical block",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "skill",
+   "summary": "Fifteen minutes on one part of your sport, most days, while you are still fresh.",
+   "why": "The same total practice time is worth more spread across many short sessions than piled into one long one — spacing is among the better-replicated findings in motor learning, and the gap between sessions is where the gain settles. Four honest fifteen-minute blocks beat one weekend hour.",
+   "safety": "Skill volume is still training volume — count it against your week, not on top of it. New movement patterns practised tired is where people get hurt, and pain is a stop sign, never a technique problem to push through.",
+   "attribution": [
+    "Robert Bjork",
+    "Anders Ericsson",
+    "Tim Ferriss"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "skill-interleaved-drills",
+   "title": "Shuffle the drills",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "skill",
+   "summary": "Run the longer practice as mixed drills — a few reps of one thing, then switch, rather than a block of fifty.",
+   "why": "Blocked repetition — the bucket of a hundred identical shots — looks better inside the session and holds up worse a week later. Mixing the order feels clumsier at the time and tests better afterwards, an effect replicated across dozens of experiments. It is strongest in laboratory tasks and thinner in real sport, and a rank beginner may need some repetition first just to find the shape of the movement.",
+   "safety": "Switching drills often means switching movements cold — keep a real warm-up in front of it, and keep the hardest reps early while you are sharp.",
+   "attribution": [
+    "Robert Bjork",
+    "Richard Schmidt"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "skill-one-external-cue",
+   "title": "One cue, pointed outward",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "skill",
+   "summary": "Write one cue before you practise, and aim it at the effect you want rather than at a body part.",
+   "why": "Instructions aimed outside the body — send it low over the net, push the floor away — reliably produce better movement than the same instruction aimed inward, at the wrist or the shoulder. The external-focus effect has been replicated across hundreds of small experiments, which makes it the most usable finding here and the one most amateur coaching quietly gets backwards.",
+   "safety": "A cue is an attention tool, not a safety brief. Anything a coach gave you for injury reasons stays regardless of how it is phrased.",
+   "attribution": [
+    "Gabriele Wulf",
+    "Rebecca Lewthwaite"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "skill-filmed-rep",
+   "title": "Film three reps",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "skill",
+   "summary": "Once a week, film three reps on your phone and watch them back against this week’s one cue.",
+   "why": "What a movement feels like and what it looks like drift apart fast, and video is the cheapest way to close the gap. The evidence is moderate: video works when it arrives with a cue or a coach saying what to look at, and does little on its own — people new to a skill mostly cannot tell what they are seeing.",
+   "safety": "Check the rules where you train and keep other people, especially children, out of the frame. Video shows technique, never injury risk — soreness or a joint that keeps complaining is a physio question, not a camera angle.",
+   "attribution": [
+    "Gabriele Wulf",
+    "Tim Ferriss"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "skill-weak-link-block",
+   "title": "Practise the weak link",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "skill",
+   "summary": "Twice a week, spend the block on the one thing you are worst at instead of the parts you enjoy.",
+   "why": "Practice aimed at a named weakness, with feedback on it, is what separates improving from accumulating mileage. The size of that claim is worth stating honestly: meta-analytic work found structured practice accounts for only a minority of the difference between athletes — on the order of a fifth of the variance in sport — with coaching, starting age, physiology and plain opportunity taking the rest. The ten-thousand-hours framing is folklore rather than a finding.",
+   "safety": "Your weakest movement is often the one your body is least prepared for — build the volume up over weeks, and take a weakness that hurts rather than merely frustrates to a coach or physio first.",
+   "attribution": [
+    "Anders Ericsson",
+    "Brooke Macnamara"
+   ],
+   "durationMin": 30
+  },
+  {
+   "id": "skill-mental-rehearsal",
+   "title": "Rehearse it in your head",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "skill",
+   "summary": "Ten minutes on a non-practice day running the movement in your head, at real speed, from inside your own body.",
+   "why": "Rehearsing a movement mentally beats doing nothing in meta-analyses spanning sport and surgical training, and it is one of the few things that keeps a skill warm on travel days. It is clearly weaker than real practice and fades if it starts replacing reps rather than topping them up.",
+   "safety": "If it is an injury keeping you off the pitch, rehearsal is not a return-to-play plan — that call belongs with a physio or doctor.",
+   "attribution": [
+    "Deborah Feltz",
+    "Andrew Huberman"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "weak-tie-reachout",
+   "title": "The fortnightly weak-tie message",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "leadership",
+   "summary": "Every other week, one message to someone a step outside your close circle — a real question or a genuine offer, not a request for a favour.",
+   "why": "People hear about opportunities from contacts they rarely see rather than from close friends: a tight circle already knows what you know. That was a survey. The unusual part came later — randomised experiments on a large professional network changed which contacts tens of millions of people were shown, and moderately weak ties causally produced more job moves than either close ties or strangers. Extending that from an algorithm suggesting a contact to you writing on purpose is our own step.",
+   "safety": "A network is people, not a pipeline. Send the message you would be glad to receive, and expect nothing back from any single one — nothing here can promise a job, an introduction or a raise.",
+   "attribution": [
+    "Mark Granovetter",
+    "Sinan Aral"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "accomplishment-log",
+   "title": "The running accomplishments log",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "leadership",
+   "summary": "Ten Friday minutes writing down what you actually finished this week, in the plain words you would use outside your team.",
+   "why": "Review conversations run on what people can recall, and recall leans hard on the last few weeks. Appraisal research found a structured written record improves how faithfully work is remembered — though that work had managers recording other people, not people recording themselves, so we are borrowing it. The rest is practitioner folklore: kept all year, the review is written from evidence rather than from whatever the last fortnight left behind.",
+   "safety": "Your own work and your own part in shared work — a log that reads as a file on colleagues stops being honest, and stops being usable.",
+   "attribution": [
+    "Angelo DeNisi"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "negotiation-anchor-prep",
+   "title": "Write the number before the conversation",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "leadership",
+   "summary": "Before a pay or terms conversation, write three things down: the figure you open with, what you would gladly accept, and the point where you walk away.",
+   "why": "Whoever names a figure first tends to drag the settlement toward it — anchoring is among the better-replicated findings in judgement research. Two honest limits: almost all of that work is lab and simulation rather than real pay talks, and the first-offer advantage shrinks or reverses when the other side knows the market far better than you, because a badly founded number mostly advertises how little you know. Writing the walk-away point down is what stops your own figure sliding under pressure.",
+   "safety": "Contracts, notice periods and pay law differ by country and employer — an employment lawyer or a union representative is the right next step before anything binding. Preparation changes what you ask for; it can never promise what you are offered.",
+   "attribution": [
+    "Adam Galinsky",
+    "Roger Fisher",
+    "William Ury"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "mentor-conversation",
+   "title": "The quarterly mentor conversation",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "leadership",
+   "summary": "Once a quarter, forty-five minutes with someone a few steps ahead: one real problem, one question about how they read it, no status update.",
+   "why": "Meta-analyses find mentored people report better career satisfaction and modestly better objective outcomes — but the design cannot separate the mentoring from the selection, because mentors pick people who already look promising. Read that as weak and confounded. What survives is smaller and plainer: an outside view on your own work is cheap, and the people able to give it will never put it in your calendar for you.",
+   "safety": "A conversation about the work, not a channel for grievances — pay, conduct and anything about someone’s job belong in the formal process.",
+   "attribution": [
+    "Herminia Ibarra",
+    "Tammy Allen"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "work-made-visible",
+   "title": "Make the work visible",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "leadership",
+   "summary": "A short written weekly note to the people your work affects: what shipped, what is blocked, what is next.",
+   "why": "This is practitioner advice, and the genre is thick with survivorship stories. What is fair to say: decisions about your work get made in rooms you are not in, and what stands in for you there is whatever somebody half-remembers. A short written update makes that your own words instead. Experiments on self-promotion add a caution rather than a cheer — visible competence signals carry a social penalty, and a heavier one for women — so plain verifiable facts travel further than adjectives about yourself.",
+   "safety": "Name the people who did it with you, and claim only what you can evidence. If updates are treated as noise where you work, send narrower ones to fewer people rather than louder ones to more.",
+   "attribution": [
+    "Laszlo Bock",
+    "Tim Ferriss"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "dormant-tie-reconnect",
+   "title": "Restart two dormant contacts",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "leadership",
+   "summary": "Once a quarter, pick two people you have genuinely lost touch with and restart the conversation with something specific.",
+   "why": "A field study asked executives to reconnect with contacts they had not spoken to in years: the dormant contacts were about as useful as their current ones and offered more that was new, having spent the intervening years somewhere else entirely. It was small, self-rated and uncontrolled, so read it as a reason to try rather than a measured effect. The plausible part is the mechanism — a dormant tie keeps the trust of an old one while having lost its redundancy.",
+   "safety": "Reconnect with people you would be pleased to hear from, and let a silence be an answer. Arriving after five years with an ask is how a dormant tie becomes a dead one.",
+   "attribution": [
+    "Daniel Levin",
+    "Adam Grant"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "training-warmup",
+   "title": "The same warm-up, every time",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "training",
+   "summary": "The same ten-minute warm-up before every session: easy cardio, then control, balance and speed.",
+   "why": "Structured warm-up programmes built around control, balance and progressive speed cut injury rates by roughly a third in cluster-randomised trials of team-sport players, which makes this one of the few genuinely well-tested ideas in injury prevention. Two honest caveats: the benefit tracked closely with how consistently squads actually did it, and the trials were in footballers rather than people warming up for a gym session.",
+   "safety": "A warm-up lowers risk, it does not remove it, and no warm-up makes a session your body is not ready for a safe one. Skip a movement that hurts rather than working around it — pain in a warm-up is information about the session you were about to do.",
+   "attribution": [
+    "Roald Bahr",
+    "Mario Bizzini",
+    "Astrid Junge"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "eccentric-hamstring",
+   "title": "Eccentric hamstring work",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "training",
+   "summary": "Two short sessions a week of slow, controlled eccentric hamstring work.",
+   "why": "Lengthening a muscle under load is the best-supported single exercise idea in prevention: randomised trials in footballers found roughly half as many new hamstring injuries in the groups doing this work. The catch is follow-through — surveys of professional squads found almost none kept it up, because the first fortnight makes you genuinely sore. Sprinting athletes are who was studied; for a general lifter this is a reasonable bet rather than a proven one.",
+   "safety": "Prevention work for a healthy hamstring, never rehabilitation for a hurt one — if you already have a hamstring problem, this is not the exercise for it and a physiotherapist is who should be choosing. Expect real soreness at first, add repetitions slowly, and stop for anything sharp rather than achy.",
+   "attribution": [
+    "Jesper Petersen",
+    "Per Hölmich",
+    "Nicol van Dyk"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "load-step-up",
+   "title": "The weekly load review",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "training",
+   "summary": "Ten Sunday minutes comparing last week’s training to the week you are about to plan.",
+   "why": "Sudden jumps in training are associated with injury across a lot of observational sports data, and the general advice — go up in steps you can repeat rather than leaps — is about as close to consensus as this field gets. What is not settled is any number attached to it. The popular acute-to-chronic workload ratio has been criticised hard on methodological grounds, and the one capped-increase rule actually put to a randomised trial in runners did not lower injury rates. So this is a review, not a formula: notice the jump and choose it on purpose, including in weeks when sleep, illness or stress mean you can absorb less.",
+   "safety": "A number on a page does not know how you feel; illness, thin sleep and a hard week all lower what you can take, and the plan should lose to any of them. Educational structure for your own training, not clinical judgement.",
+   "attribution": [
+    "Tim Gabbett",
+    "Franco Impellizzeri"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "niggle-check",
+   "title": "The two-week niggle check",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "training",
+   "summary": "Five Sunday minutes naming any niggle — the same one two weeks running gets a professional.",
+   "why": "Most small training aches settle on their own within a couple of weeks, so the useful question is not what it is — IntentNorth cannot know that and will not guess — but how long it has been there and whether it is heading the right way. Weekly surveillance work in athletes turned up far more ongoing complaints than injury reports ever captured, because someone asked every week instead of waiting for people to stop. The two-week mark is a convention borrowed from ordinary clinical practice rather than a tested threshold, and it errs deliberately towards getting looked at sooner.",
+   "safety": "IntentNorth is not a clinician and this is not an assessment — nothing here names what is wrong with you or tells you how to fix it. Pain that persists past a couple of weeks, keeps worsening, wakes you at night, follows a fall or an impact, or arrives with numbness, giving way, or a joint that will not take weight is a doctor’s or physiotherapist’s job, not an app’s. Go sooner if you are worried, and go now rather than in two weeks for anything sudden and severe.",
+   "attribution": [
+    "Benjamin Clarsen",
+    "Roald Bahr"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "deload-week",
+   "title": "The planned lighter week",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "training",
+   "summary": "Every fourth week, plan a deliberately lighter one — same sessions, less weight and volume.",
+   "why": "A lighter week every three to six is standard practice in nearly every serious programme, and the reasoning holds up: performance is maintained for weeks on substantially reduced training, so a planned easy week costs very little and buys back recovery you would otherwise take unplanned. Be clear about what is not known — no trial has shown that scheduled lighter weeks lower injury rates. This is coaching practice with a plausible mechanism, and its honest case is that the alternative is usually a break you did not get to choose.",
+   "safety": "A planned easy week is not a reason to push through in the weeks around it — if something hurts, waiting for the deload is the wrong answer. Persistent pain gets a professional’s opinion wherever you are in the block.",
+   "attribution": [
+    "Iñigo Mujika"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "creative-session-daily",
+   "title": "Small session, most days",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "skill",
+   "summary": "Twenty-five minutes on the creative work at the same time each weekday — before the day gets a vote on it.",
+   "why": "The one real experiment here compared academics who wrote in short scheduled sessions against those who waited for a good long stretch: the scheduled writers produced several times the pages, and more new ideas, over the same weeks. It is a small, decades-old study whose daily arm also carried an accountability contingency, so read that gap as an argument for the shape rather than a number to expect. What the shape reliably buys is smaller and certain — a session that already has a time does not have to be decided on.",
+   "safety": "Twenty-five minutes you keep beats ninety you cancel — shrink the session before you drop the day. If the weekend binge is genuinely working for you, this protocol has nothing to offer.",
+   "attribution": [
+    "Robert Boice",
+    "Tim Ferriss"
+   ],
+   "durationMin": 25
+  },
+  {
+   "id": "incubation-walk",
+   "title": "The incubation walk",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "skill",
+   "summary": "Twenty minutes walking away from a draft you are stuck on — no phone, no podcast, the problem left deliberately open.",
+   "why": "Stepping away from an unsolved problem beats grinding on: pooled across roughly a hundred experiments, a break improved later solutions, most of all on open-ended problems and when the break was filled with something undemanding — which a walk is. Separately, walking raised how many ideas people generated compared with sitting. Both effects are modest and measured on short laboratory tasks; nobody has shown they carry all the way to finishing a novel.",
+   "safety": "This only does anything after real effort on the problem. A walk taken before you are properly stuck is just a walk — a good thing, but not this one.",
+   "attribution": [
+    "Ut Na Sio",
+    "Marily Oppezzo"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "volume-pass",
+   "title": "The volume pass",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "skill",
+   "summary": "One weekly half-hour making as many rough attempts as you can — one fixed small format, nothing judged until the timer stops.",
+   "why": "Across whole careers, the people with the most admired works also made the most works overall, and their hit rate stayed roughly constant — so more attempts is largely how the good ones appear. That pattern is archival and correlational, and a weekly volume session has never been tested as such. The often-repeated ceramics-class story, where the group graded on quantity supposedly out-produced the group graded on quality, is a parable with no study behind it and we do not count it as evidence.",
+   "safety": "Rough means rough, and the small format is the point — evidence that tight constraints help creative work is genuinely mixed. If the pass turns into polishing one piece it has become an ordinary session, which is fine, but it is no longer this.",
+   "attribution": [
+    "Dean Keith Simonton",
+    "Robert Boice"
+   ],
+   "durationMin": 30
+  },
+  {
+   "id": "ship-monthly",
+   "title": "Ship it monthly",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "skill",
+   "summary": "Once a month, a named date when something actually goes out — published, sent, played, hung, or handed to one real person.",
+   "why": "Work with no delivery date drifts, and the firmest evidence here is about the drift rather than the work: students who set their own spaced deadlines finished better than those working toward one distant one. None of that measured whether what got made was any good, and other experiments have found that working under evaluation and time pressure can flatten creativity rather than sharpen it. Hence monthly rather than weekly, and an audience of one being enough.",
+   "safety": "A date, not a verdict on you. If shipping has come to mean performing for an audience you dread, make the audience smaller before you make the deadline harder.",
+   "attribution": [
+    "Dan Ariely",
+    "Klaus Wertenbroch"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "idea-capture",
+   "title": "Empty the notebook",
+   "grade": "E",
+   "gradeLabel": "Practice",
+   "pillar": "skill",
+   "summary": "Five minutes at the end of the day moving every idea you caught into the one place you will actually look again.",
+   "why": "This is craft folklore, and we grade it that way: no trial has shown that keeping an idea book makes anybody more creative. What is better supported is narrower and indirect — handing something you mean to remember to an external store you trust measurably frees attention for the next thing. That argues for the sweep, not for the payoff. It costs five minutes, so run it for a month and keep it only if the notebook is fuller and your head is quieter.",
+   "safety": "One place, not five. A capture system that needs maintaining has quietly become the creative project.",
+   "attribution": [
+    "Benjamin Storm",
+    "David Allen"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "wake-anchor",
+   "title": "Anchored wake time",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "sleep",
+   "summary": "One wake time, seven days a week — feet on the floor within half an hour of it, weekends included.",
+   "why": "Wake time is the lever with the most leverage in sleep, and the one people give away first. Holding it steady holds the whole clock steady: light hits the eyes at the same hour, sleep pressure builds on the same schedule, and bedtime starts arriving on its own instead of being negotiated. You cannot decide to fall asleep, but you can decide to get up. A large accelerometer cohort found that how regular people’s sleep was predicted mortality more strongly than how long they slept — observational, and it cannot prove direction, but it points at the same behaviour.",
+   "safety": "Hold the wake time and let bedtime follow it — do not hold both ends by shortening sleep. If weeks of a steady wake time still leave you exhausted, that is worth taking to a doctor rather than tightening the rule.",
+   "attribution": [
+    "Andrew Huberman",
+    "Peter Attia"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "lights-down",
+   "title": "Lights down",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "sleep",
+   "summary": "Two hours before bed, drop the household lights to lamps and put the bright screens down.",
+   "why": "The evening eye is far more light-sensitive than it feels: ordinary room light in the hours before bed measurably delays the body’s night-time signalling, and controlled trials of bright screens have pushed the body clock later. What is less settled is the household version — trials that simply ask adults to dim the lamps and put the phone away show small and inconsistent effects on sleep itself. A cheap, physiologically sensible bet rather than a proven result.",
+   "safety": "A lighting habit, not a fix for a sleep disorder. If you are lying awake most nights regardless, a doctor or sleep clinician is the better next step.",
+   "attribution": [
+    "Andrew Huberman",
+    "Rhonda Patrick"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "warm-shower-cool-room",
+   "title": "Warm shower, cool room",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "sleep",
+   "summary": "A warm shower or bath about ninety minutes before bed, into a bedroom kept deliberately cool.",
+   "why": "Sleep starts with a drop in core body temperature, and you can help that along. Warming the skin sends blood to the surface, and when you step out the body sheds heat faster than it otherwise would — the warm shower works by cooling you, which is why timing matters more than temperature. A review of small randomised trials found people fell asleep roughly ten minutes faster when the bath came an hour or two before lights out. The cool-room half rests on thinner, mostly laboratory evidence.",
+   "safety": "Warm, not scalding, and stand up slowly — hot water can leave you light-headed. Check with a doctor first if you are pregnant or have a heart or circulation condition.",
+   "attribution": [
+    "Andrew Huberman",
+    "Peter Attia"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "alcohol-cutoff",
+   "title": "Alcohol cutoff",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "sleep",
+   "summary": "Last drink at least four hours before bed — nothing about whether you drink, only about when you stop.",
+   "why": "Alcohol is the most convincing sleep impostor there is: it gets you under faster, so it feels like it helped. Laboratory work is consistent about what happens next — REM sleep is suppressed, the first half of the night is unusually deep, and as the alcohol clears the second half fragments into more awakenings. You wake with the hours logged and none of the repair. The body clears roughly one standard drink an hour, so the fix is timing rather than abstinence.",
+   "safety": "A timing habit for ordinary drinking, and nothing more. If cutting down or stopping feels difficult, or you drink daily, that is a conversation for a doctor — not something to manage with a scheduling app.",
+   "attribution": [
+    "Peter Attia",
+    "Andrew Huberman"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "nap-protocol",
+   "title": "Short nap, early",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "sleep",
+   "summary": "Twenty minutes or ninety, never in between — and nothing after mid-afternoon.",
+   "why": "Short naps of ten to twenty minutes reliably lift alertness in controlled studies and leave you clear-headed, because you surface before the deepest sleep arrives. Wake out of that deep stage — roughly where a forty-five minute nap lands you — and you get the groggy half-hour that gives napping its bad name. The timing half is reasoning rather than trial evidence: a nap spends sleep pressure you were saving for tonight, so the later it runs, the more it borrows from the night.",
+   "safety": "Skip naps entirely while you are struggling to fall asleep at night — they work against the pressure you need. Regular daytime sleepiness despite full nights is worth raising with a doctor.",
+   "attribution": [
+    "Andrew Huberman",
+    "Tim Ferriss"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "stimulus-control",
+   "title": "The twenty-minute rule",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "sleep",
+   "summary": "Still awake after about twenty minutes? Get up, sit somewhere dim and dull, and go back only when sleepy.",
+   "why": "Lying in bed frustrated teaches the bed something. The longer you spend awake there, the more reliably the room starts to signal alertness rather than sleep, and the association builds night after night without your help. Getting up breaks the pairing. Do not clock-watch — twenty minutes is a feel, not a measurement. Of all the components inside cognitive behavioural therapy for insomnia, this is the one with the most standalone randomised evidence behind it.",
+   "safety": "This is one piece of a structured programme, not the programme. Cognitive behavioural therapy for insomnia is the front-line approach clinicians recommend for persistent sleeplessness, and IntentNorth does not deliver it — if bad nights have run for weeks, see a doctor or a sleep clinician.",
+   "attribution": [
+    "Andrew Huberman",
+    "Peter Attia"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "end-range-strength",
+   "title": "End-range strength block",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "training",
+   "summary": "Twice a week, finish lifting with slow, loaded work at the very end of your range.",
+   "why": "In head-to-head comparisons, strength work taken through a full range improves flexibility about as much as stretching does — and the range you own under load is the range that holds up when you are tired or off balance. Long, heavy holds at length are also how tendons appear to adapt, though that work is small and short-term.",
+   "safety": "Light loads first: add range before you add weight. End-range positions are where a joint is least protected — hold them, never bounce into them. Sharp or lingering joint pain is a reason to stop and see a clinician, not to push through.",
+   "attribution": [
+    "Peter Attia",
+    "David Behm"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "stretch-target-rom",
+   "title": "Targeted long-hold stretching",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "training",
+   "summary": "Four evenings a week, hold two or three stretches for the one range you actually want back.",
+   "why": "Static stretching reliably improves range of motion when the same positions are held for a few minutes across a week — part real tissue change, part learning to tolerate the position, and both count. It fades if you stop. The old warning that stretching ruins your lifting is overstated: short holds barely move strength, and the measurable drop-off shows up mainly after long holds tested immediately afterwards, which is why this sits in the evening.",
+   "safety": "Slow and held, never bounced. A strong stretch feeling is fine; sharp or radiating pain is not. Stretching has not been shown to lower overall injury risk, so it is no substitute for warming up properly and loading sensibly.",
+   "attribution": [
+    "Andrew Huberman",
+    "David Behm"
+   ],
+   "durationMin": 12
+  },
+  {
+   "id": "prelift-ankle-hip",
+   "title": "Ankle and hip prep before leg day",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "training",
+   "summary": "Ten minutes of active ankle and hip range before the days you squat, hinge or lunge.",
+   "why": "Ankle and hip range are the two limiters that decide what a squat can look like — when the ankle runs out of range, depth drops and the knee tends to drift inward. Controlled biomechanics work shows that link clearly. What is far less certain is whether restoring range prevents anything, so read this as making today’s session better, not as insurance.",
+   "safety": "Warm, active range — not long relaxed holds immediately before heavy lifting. If a range only appears when something forces you into it, work with what you can reach under your own power instead.",
+   "attribution": [
+    "Kelly Starrett",
+    "Peter Attia"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "thoracic-desk-reset",
+   "title": "Thoracic and shoulder reset",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "training",
+   "summary": "An eight-minute afternoon block of upper-back extension, rotation and overhead range.",
+   "why": "Getting the arms overhead asks the mid-back to extend and rotate; when it will not, the shoulder makes up the difference. Small controlled trials show thoracic mobility work improves mid-back and shoulder range in the short term. The larger claim — that it corrects posture or prevents shoulder pain — is not well supported, and posture on its own is a weak predictor of who hurts.",
+   "safety": "Stay inside ranges you can reach under your own power. Numbness, tingling or pain running down an arm is a clinician question, not a signal to mobilise harder.",
+   "attribution": [
+    "Kelly Starrett",
+    "Stuart McGill"
+   ],
+   "durationMin": 8
+  },
+  {
+   "id": "movement-snacks",
+   "title": "Movement snacks",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "training",
+   "summary": "Once an hour on working days, stand up and move through two or three full-range shapes.",
+   "why": "The firm evidence here is metabolic: breaking up long sitting with brief movement lowers post-meal glucose and insulin in controlled crossover trials. The joint argument — that frequent variety keeps you moving better than one dedicated session does — is plausible and largely untested, so this earns its place on the metabolic side, with the range work as a bonus.",
+   "safety": "Genuinely brief and easy — if a break leaves you needing to recover, it was a workout. Nothing here is loaded or forced.",
+   "attribution": [
+    "Katy Bowman",
+    "Peter Attia"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "balance-single-leg",
+   "title": "Balance and single-leg practice",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "training",
+   "summary": "Three short sessions a week: standing on one leg, plus slow single-leg strength.",
+   "why": "Balance and functional training is among the best-supported interventions in exercise science for reducing falls — but that evidence sits in adults over 65 and does not automatically transfer to someone in their forties. What holds at our age is narrower: balance is trainable, it fades quietly from midlife onward, and single-leg work exposes side-to-side differences a barbell lets you hide.",
+   "safety": "Practise beside a wall or worktop you can grab. Progress by closing your eyes or narrowing your stance before adding load. Dizziness or unexplained loss of balance belongs with a doctor, not with more practice.",
+   "attribution": [
+    "Peter Attia",
+    "Catherine Sherrington"
+   ],
+   "durationMin": 8
+  },
+  {
+   "id": "long-session",
+   "title": "The weekly long one",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "training",
+   "summary": "One longer easy session a week — run, ride, swim or row — at a pace you could talk through.",
+   "why": "Every serious endurance plan is built around one long easy session, and total weekly volume is the training variable that tracks most closely with how an event day goes. That link is largely observational, and the long session has almost never been isolated and tested on its own, so the shape is well-worn practice rather than a proven ingredient. Its real work is teaching legs and head what the hour past comfortable feels like, before the event is the first place you meet it.",
+   "safety": "Conversational the whole way — if the last third is a grind every single week, the session is too long rather than you too soft. Grow it in minutes, not chapters, and skip it outright when you are ill or badly slept.",
+   "attribution": [
+    "Arthur Lydiard",
+    "Jack Daniels"
+   ],
+   "durationMin": 75
+  },
+  {
+   "id": "easy-day-discipline",
+   "title": "Mark the hard days",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "training",
+   "summary": "Ten Sunday minutes naming next week’s one or two hard sessions; everything else runs easy.",
+   "why": "Endurance athletes who train well spend roughly four fifths of their sessions at an easy, conversational effort and keep the hard work to a small deliberate slice. Controlled comparisons exist, but nearly all are in already-trained athletes; in recreational runners the trials are smaller and results go both ways. What is not in doubt is the failure it fixes — easy days run slightly too hard and hard days not hard enough, so every session lands in the same grey middle.",
+   "safety": "Two hard sessions a week is a ceiling for most people, not a target. If a hard day is still in your legs three days later, it belongs in the easy column until it is not.",
+   "attribution": [
+    "Stephen Seiler",
+    "Matt Fitzgerald"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "run-strength",
+   "title": "Lifting for the run",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "training",
+   "summary": "Twice a week, 30 minutes of heavy lower-body lifting and a few short hops, away from the long session.",
+   "why": "The most underused finding in endurance training: controlled trials, and the reviews pooling them, find that heavy or explosive strength work improves running economy — the oxygen cost of holding a given pace — and the times that follow, without the weight gain runners fear. The trials are mostly small and short and run in people already training. Heavy and few repetitions is what was tested; circuits to exhaustion are a different thing wearing the same name.",
+   "safety": "Load you control through a full range, and keep hops low and few while tendons learn them. Leave a day between this and the long session. New to lifting, or carrying a niggle — have a coach or physio watch the first sessions.",
+   "attribution": [
+    "Leena Paavolainen",
+    "Richard Blagrove"
+   ],
+   "durationMin": 30
+  },
+  {
+   "id": "race-taper",
+   "title": "Taper into the event",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "training",
+   "summary": "For the final two weeks: cut total volume by roughly half, keep the sharp bits, keep the frequency.",
+   "why": "Pooled trials in trained endurance athletes credit a well-run taper with a small but real gain — a couple of per cent, which across a long event is minutes. The version that came out best was a progressive volume cut of roughly 40 to 60% over about two weeks, intensity kept, session frequency largely unchanged; resting completely does worse than tapering. Nearly all of that work is in trained athletes, so a first-timer can trust the direction and discount the size.",
+   "safety": "Feeling flat and restless mid-taper is ordinary, and not a reason to put a session back. Nothing new in the last fortnight — not the shoes, not the session type. Pain that changes your stride is a clinician question before the event rather than after it.",
+   "attribution": [
+    "Iñigo Mujika",
+    "Laurent Bosquet"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "cadence-cue",
+   "title": "Shorter, quicker steps",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "training",
+   "summary": "On two easy runs a week, ten minutes holding steps about 5–10% quicker and lighter than they fall on their own.",
+   "why": "Take slightly quicker, shorter steps at the same speed and the load going through the knee and hip on each step measurably drops — gait-lab studies show that repeatedly. What they do not show is that changing it prevents injuries or makes anyone faster; those outcome trials are few, small and short. A cheap adjustment with a measured mechanism and an unproven payoff.",
+   "safety": "A nudge, not an overhaul — a few per cent, on easy runs only, and never in the weeks right before an event. Changing how you run moves load around rather than removing it, so a new ache in a new place means stop.",
+   "attribution": [
+    "Bryan Heiderscheit",
+    "Christopher Napier"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "spaced-review",
+   "title": "Spaced review",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "skill",
+   "summary": "Fifteen minutes a day back over older material — the oldest and the shakiest first.",
+   "why": "Meeting the same material again after a gap, instead of in one long sitting, is among the most replicated findings in learning research: hundreds of controlled comparisons across ages, subjects and delays, and the advantage grows the longer you need to hold on to it. Same total minutes, far more of it still there in a month.",
+   "safety": "Educational structure for ordinary study, nothing more. Memory or attention trouble that genuinely worries you is a conversation for a doctor, not a study habit.",
+   "attribution": [
+    "Robert Bjork",
+    "Elizabeth Bjork",
+    "John Dunlosky"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "blank-page-recall",
+   "title": "The blank page",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "skill",
+   "summary": "End each study session by closing everything and writing what you remember — then check it.",
+   "why": "Pulling material out of your head beats putting it in again, and it is the best-supported study behaviour there is: meta-analyses covering hundreds of experiments find medium-to-large gains on later tests, in real classrooms as well as labs, and the gap widens the longer you wait. Checking afterwards is part of the practice — recall without feedback keeps your mistakes.",
+   "safety": "It feels harder and less productive than rereading — that is the mechanism working, not a sign it is going badly. If a session ends in defeat rather than effort, make it shorter.",
+   "attribution": [
+    "Henry Roediger",
+    "Jeffrey Karpicke",
+    "John Dunlosky"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "interleaved-practice",
+   "title": "Interleaved practice",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "skill",
+   "summary": "One weekly session mixing the different problem or piece types instead of drilling one.",
+   "why": "Drilling one type until it clicks feels like progress; shuffling types feels worse and tests better a week later, because mixing makes you work out which approach a problem needs rather than just running the one you were handed. Several controlled experiments and a randomised classroom trial in maths point the same way — the benefit is clearest where the types are easy to confuse.",
+   "safety": "Mix what you have already met, not what you have never seen. A genuine first pass at something new is still best taken one thing at a time.",
+   "attribution": [
+    "Doug Rohrer",
+    "Robert Bjork"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "self-explain-pass",
+   "title": "Explain it to yourself",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "skill",
+   "summary": "Twice a week, stop at each section and say why it is true and how it fits what you know.",
+   "why": "Asking why something would be so, and tying a new fact to something you already hold, turns reading into thinking, and in controlled studies it beats another pass over the same page. The effect is consistent but has been tested mostly on short material in short sessions, so how far it carries into a long, hard subject is the open part.",
+   "safety": null,
+   "attribution": [
+    "Michelene Chi",
+    "John Dunlosky"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "teach-it-back",
+   "title": "Teach it back",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "skill",
+   "summary": "Once a week, explain the week’s material to someone — out loud, from memory, no notes.",
+   "why": "Explaining without notes is recall with an audience, and the sentence you cannot finish is the gap you did not know you had. Studies on expecting to teach, and on explaining aloud, mostly find modest gains, but they are smaller and patchier than the retrieval work underneath them — and a weekly session is our packaging of the idea, not a tested protocol.",
+   "safety": "An empty room, a voice memo or a willing friend all count. Nobody has to be conscripted into being your audience.",
+   "attribution": [
+    "Logan Fiorella",
+    "Richard Mayer",
+    "Tim Ferriss"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "questions-not-highlights",
+   "title": "Questions, not highlights",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "skill",
+   "summary": "Ten minutes ending each reading session: turn the pages into three questions, no highlighter.",
+   "why": "In the best-known review of study techniques, highlighting and rereading came out near the bottom — they make material feel familiar without doing much for what you can recall later. The same ten minutes spent writing questions you will have to answer next week puts the effort where the evidence is. Writing your own questions is less studied than answering ready-made ones, so this is the softer half of a well-tested idea.",
+   "safety": null,
+   "attribution": [
+    "John Dunlosky",
+    "Henry Roediger",
+    "Barbara Oakley"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "phone-parked",
+   "title": "Phone parked before the block",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "mind",
+   "summary": "Phone in another room — not face-down, not in a pocket — before the day’s focus block starts.",
+   "why": "The well-known experiments claiming a phone on the desk quietly eats working memory are small, and at least one careful attempt to repeat the headline result found nothing, so the “brain drain” story is not settled and we do not lean on it. The harder-to-argue part is simpler: a phone within reach gets picked up, and every pickup is a switch you then pay for twice. Another room removes the decision instead of asking you to win it.",
+   "safety": "A working arrangement, nothing more — never a fix for an attention disorder. If focus has been a lifelong difficulty across school, work and home alike, that belongs with a doctor or psychologist rather than a phone drawer.",
+   "attribution": [
+    "Cal Newport",
+    "Tim Ferriss"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "notification-audit",
+   "title": "Notification audit",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "Roughly monthly: switch off every alert that is not a person, then check the rest in two or three set windows.",
+   "why": "Randomised field experiments have had people batch their email or silence notifications for a week at a time, and the batched weeks came back with less distraction and lower reported stress than the always-on ones. Samples are modest and outcomes self-reported, and nobody has shown this makes you produce more — the honest claim is a calmer day, not a more productive one.",
+   "safety": null,
+   "attribution": [
+    "Kostadin Kushlev",
+    "Cal Newport"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "task-close-out",
+   "title": "Close the loop before you switch",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "One task at a time, and sixty seconds before each switch: where you stopped, and the next concrete move.",
+   "why": "Part of your attention stays behind with the last task when you move to the next one, and it lingers longest when that task was abandoned mid-thought. The studies are small and largely laboratory work, but the mechanism is plausible and a follow-up found that writing a short note about where to pick it up reduced the carry-over. Treat the famous twenty-odd-minutes-to-refocus figure as folklore: it comes from one small observational study and was never a constant.",
+   "safety": "Ordinary difficulty switching tasks is normal, and this is a work habit for it. Attention trouble that has followed you through every setting for years is a clinician’s question, not a scheduling one.",
+   "attribution": [
+    "Sophie Leroy",
+    "Cal Newport"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "outdoor-reset",
+   "title": "Outdoors, nothing in your ears",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Fifteen minutes outside in the middle of the day — no podcast, no calls, no phone in your hand.",
+   "why": "Green, undemanding surroundings appear to let effortful attention recover in a way that swapping one screen for another does not, and there are real experiments behind that rather than survey data alone. But effect sizes swing wildly between studies, several of the most-quoted ones are tiny, and the broader green-space literature is observational. What we are confident about is the removal of input; how much you get back is genuinely uncertain.",
+   "safety": null,
+   "attribution": [
+    "Marc Berman",
+    "Stephen Kaplan"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "micro-breaks",
+   "title": "A real break every hour",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "Three to five minutes properly away from the screen each hour — stand, look far away, move.",
+   "why": "This one has been meta-analysed and the answer is smaller than the internet suggests: short breaks reliably lift how tired and how energetic people feel, and have close to no measurable effect on how much or how well they work. Worth having anyway, because fatigue is what ends good afternoons — but it is a comfort finding, not a performance one.",
+   "safety": null,
+   "attribution": [
+    "Patricia Albulescu",
+    "Andrew Huberman"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "detachment-window",
+   "title": "The off switch",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "A protected weekday evening window where work is not checked, not answered and not chewed over.",
+   "why": "Recovery research draws a line between being off work and feeling off work. The thing that keeps predicting how you arrive the next morning is psychological detachment — whether the mind actually left. Diary and longitudinal studies across many occupations find that people who detach in the evening report less fatigue and better mood the following day. The effect is consistent and modest rather than dramatic, and there is an honest catch: detachment is hardest exactly when the load is highest, which is when it would help most.",
+   "safety": "Structure for an ordinary heavy week, nothing more. If the mind will not leave work whatever you do, or the tiredness does not lift on a holiday, that is a workload conversation — and often a doctor or therapist conversation — rather than a scheduling problem.",
+   "attribution": [
+    "Sabine Sonnentag",
+    "Charlotte Fritz"
+   ],
+   "durationMin": 60
+  },
+  {
+   "id": "shutdown-ritual",
+   "title": "Closing the working day",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "mind",
+   "summary": "Ten minutes at the end of the working day: loose ends written down, tomorrow’s first move named, one deliberate line that says you are done.",
+   "why": "Unfinished work keeps interrupting attention until it has a plan, and a small experimental literature suggests writing the plan is enough to quieten it even though nothing got finished. Add the boundary-crossing idea — that moving between roles goes better with a marker — and you have a cheap, plausible ritual that hands the detachment window a clean start. Plausible is the honest word: the underlying studies are small, and the ritual as a package has been described far more often than tested.",
+   "safety": "A closing marker, not a productivity system. If the list is genuinely undoable inside contracted hours, ten minutes of tidying will not change that — the size of the list is what to raise with whoever sets it.",
+   "attribution": [
+    "Cal Newport",
+    "Blake Ashforth"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "stress-reappraisal",
+   "title": "Read the nerves as readiness",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "Before something that matters, name the arousal and relabel it as the body getting ready rather than as a warning.",
+   "why": "In laboratory experiments, people told that a fast heart and quick breathing are the body mobilising went on to perform better under pressure and showed a cardiovascular pattern closer to challenge than to threat. The instruction is a few sentences long and the difference shows up in the same session, which makes it unusually easy to try on yourself. The limits are the ordinary ones: mostly students, mostly single sessions, and very little on what a year of it does.",
+   "safety": "This is for ordinary performance nerves — a presentation, an interview, a hard conversation. It is not a method for panic attacks or for fear that is steering your choices; those belong with a doctor or a therapist. Relabelling a feeling also does nothing to change a situation that genuinely needs changing.",
+   "attribution": [
+    "Jeremy Jamieson",
+    "Alia Crum"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "stress-buffer-session",
+   "title": "Move it out on the heavy days",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "On the two heaviest days of the week, twenty to thirty minutes of easy movement placed inside the day rather than saved for later.",
+   "why": "The dependable half of this is direct: across many randomised trials, regular aerobic activity lowers how stressed and how flat people report feeling, at intensities well below anything athletic. The shakier half is the buffering claim — that being fitter blunts the body’s reaction to a stressor — where findings are mixed and effects shrink in better-controlled studies. Book it for the mood and the head-clearing, which holds up.",
+   "safety": "Easy-to-moderate means you could hold a conversation. This sits beside training rather than on top of it — in a heavy week movement should subtract load, never add it. New chest pain, dizziness or unusual breathlessness on exertion means stopping and seeing a doctor.",
+   "attribution": [
+    "Peter Attia",
+    "Andrew Huberman"
+   ],
+   "durationMin": 25
+  },
+  {
+   "id": "hrv-trend-check",
+   "title": "Read your own baseline",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Once a week, read resting heart rate and heart-rate variability as a multi-week trend against your own baseline — never as a daily verdict.",
+   "why": "Heart-rate variability really does track autonomic state, and a sustained fall alongside a rising resting heart rate is a fair hint that load, short sleep, alcohol or a coming illness is stacking up. What the numbers will not carry is the weight most products put on them. Healthy people differ several-fold in absolute values, single readings swing on posture, breathing rate and whichever algorithm your device uses, and the work showing guided decisions beat a fixed plan comes mostly from small endurance-athlete trials. Weekly direction against your own baseline is roughly as much signal as this carries.",
+   "safety": "A number can quietly become one more thing to fail at. If checking leaves you more anxious than informed, stop checking — nothing is lost. These readings say nothing reliable about illness on their own: symptoms go to a doctor, and anything that feels like a heart rhythm problem goes there promptly.",
+   "attribution": [
+    "Marco Altini",
+    "Andrew Huberman"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "load-and-control-review",
+   "title": "The six-area check",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Roughly monthly, twenty minutes naming which of six things is actually wrong — workload, control, reward, community, fairness or values — and who you will say it to out loud.",
+   "why": "Burnout research has been fairly steady for three decades about where the problem sits: a sustained mismatch between a person and their job, most often too much work with too little say over how it is done. That conclusion is awkward for wellbeing apps and worth stating plainly — reviews of workplace trials find that changing the work outperforms training the individual, and the individual programmes that do help tend to produce small effects that fade. Naming the specific mismatch turns a vague sense of being fried into something a manager, a peer or a professional can act on.",
+   "safety": "A structural review, not a resilience exercise, and the limit deserves saying plainly: no breathing practice and no evening routine will fix a job with an impossible workload or no control over how the work is done. If the honest answer is that the work itself has to change, the next steps are your manager, your union or professional body, or a different job. And if you are at dread, numbness, or thoughts of not wanting to be here, that is a doctor or therapist today — not a monthly review.",
+   "attribution": [
+    "Christina Maslach",
+    "Michael Leiter"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "friend-unprompted-message",
+   "title": "The message you nearly didn’t send",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "connection",
+   "summary": "Five minutes to message someone you have drifted from — no ask, no plan, just that you thought of them.",
+   "why": "People are poor judges of this one. Across repeated experiments, senders consistently underestimated how much a small out-of-the-blue check-in mattered to the person on the other end, and the gap was widest exactly where contact had lapsed and the message came as a surprise. \"They probably don’t want to hear from me\" is the belief the evidence argues with, which is why this aims at the belief rather than at your calendar.",
+   "safety": "Send it and let it go — a slow reply, or none, is usually a busy week rather than a verdict. Where someone has asked for space, respect that instead.",
+   "attribution": [
+    "Peggy Liu",
+    "Nicholas Epley"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "good-news-response",
+   "title": "Answer the good news properly",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "connection",
+   "summary": "Ten minutes to go back to the good news a friend shared and reply like you mean it: ask for the detail, say why it lands.",
+   "why": "How you answer someone’s good news appears to matter as much as how you answer their bad news. Diary and lab work links warm, curious replies with both people feeling closer afterwards, while a flat acknowledgement reads as indifference even when none was meant. Most of this research was done inside couples and measures how people already respond more often than it changes it, so the direction is reasonably solid and the size is not.",
+   "safety": null,
+   "attribution": [
+    "Shelly Gable",
+    "Harry Reis"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "standing-shared-activity",
+   "title": "The standing thing",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "connection",
+   "summary": "One activity with the same people at the same hour every week, decided once so nobody has to organise it again.",
+   "why": "Adult friendships mostly form as a by-product of repeated shared time rather than from deciding to be closer, and familiarity does much of the early work. A standing slot removes the weekly negotiation that quietly kills most plans. The count-the-hours research everyone quotes here is a single study on a modest sample using recalled estimates, so we keep the direction — ordinary hours side by side accumulate into closeness — and leave its specific thresholds alone.",
+   "safety": null,
+   "attribution": [
+    "Jeffrey Hall",
+    "Robert Zajonc"
+   ],
+   "durationMin": 90
+  },
+  {
+   "id": "group-belonging",
+   "title": "Belong to something that meets",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "connection",
+   "summary": "Turn up to one group that meets whether or not you do — a club, a team, a choir, a regular table.",
+   "why": "A sizeable body of research on group membership and health finds that the number of groups people genuinely feel part of tracks with steadier mood and better wellbeing through hard stretches, and that losing memberships — a move, a job change, retirement — is often when people come unstuck. Most of it is cohort and longitudinal work, so read belonging as protective company you take part in rather than something the group does to you.",
+   "safety": "Attendance is the whole practice — a group you dread is the wrong group, not a discipline problem. Swap it rather than defend it.",
+   "attribution": [
+    "Catherine Haslam",
+    "Alexander Haslam"
+   ],
+   "durationMin": 90
+  },
+  {
+   "id": "closeness-audit",
+   "title": "Who you actually miss",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "connection",
+   "summary": "Roughly monthly, fifteen written minutes: who you feel close to, who you have drifted from, and one name to move on this month.",
+   "why": "Being short of company and feeling unknown are different problems with different answers, and a full calendar hides the second one well. Large observational studies link both the countable version and the felt version to worse long-term health — a strong and consistent association, but drawn from watching populations rather than from showing that adding contacts changes the outcome. The written pass itself is our structure: a way to catch the drift while it is still cheap to reverse.",
+   "safety": "A prompt for noticing, not a scorecard on your friendships. Loneliness that sits heavily for months, or arrives alongside low mood, is worth raising with a doctor rather than writing your way through.",
+   "attribution": [
+    "Julianne Holt-Lunstad",
+    "John Cacioppo"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "capacity-benchmark",
+   "title": "Annual capacity benchmark",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "longevity",
+   "summary": "Once a year, the same three tests on the same morning: a timed hard walk or run, a hang or loaded carry for time, and a one-leg balance hold.",
+   "why": "Aerobic capacity and grip strength are two of the sharpest predictors of how long people live in very large observational studies — hundreds of thousands of adults followed for years, with the gap between fittest and least fit wider than for most risk factors anyone talks about. Both capacities respond to training, but no one has shown that moving your number moves your lifespan, so read this as a signal about your trajectory rather than a lever you pull.",
+   "safety": "A hard-effort test is genuinely hard: build to it over weeks, and stop for chest pain, unusual breathlessness or dizziness. Talk to your doctor before testing if you have a heart condition, are pregnant, or have been away from training. A field test only estimates — a real laboratory measurement is something a doctor or exercise physiologist orders and interprets.",
+   "attribution": [
+    "Peter Attia",
+    "Rhonda Patrick"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "floor-to-stand",
+   "title": "Floor-to-stand practice",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "longevity",
+   "summary": "Twice a week: lower yourself to the floor and stand back up five times with as little hand support as you can manage.",
+   "why": "In a cohort of roughly two thousand adults aged 51 to 80, those who needed more support to get down to the floor and back up were more likely to die in the years that followed. That is one population, scored by eye, and anyone who can do it unaided is probably healthier in a dozen unmeasured ways — so treat the link as a hint rather than a finding to lean on. The practice earns its place regardless: getting off the floor unaided is a large part of what decides whether later decades are lived independently.",
+   "safety": "Practise next to a wall or a sturdy chair, on a soft surface, hands available — the aim is to need them less over months, not to risk a fall today. Knee, hip or back trouble, or any history of falls, is a conversation with a doctor or physiotherapist before you start.",
+   "attribution": [
+    "Peter Attia"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "bp-check",
+   "title": "Blood pressure check",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "longevity",
+   "summary": "One morning a week, before coffee: sit still for five minutes, take two readings a minute apart, and write both down in the same place.",
+   "why": "Raised blood pressure carries no symptoms until it has already done damage, and one reading taken in a clinic is a poor guide to your real average. Randomised trials find that people who check at home and bring the numbers back to a clinician end up better controlled than people who do not — the checking helps because of the conversation it feeds, not on its own.",
+   "safety": "You are collecting numbers, not reading them: your doctor is the one who says what your readings mean, what follows from them, and how often you should be checking at all. A very high reading, or one alongside chest pain, a severe headache or changes in vision, is a same-day medical call rather than a data point.",
+   "attribution": [
+    "Peter Attia",
+    "Andrew Huberman"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "health-conversation",
+   "title": "The yearly health conversation",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "longevity",
+   "summary": "Once a year, book the appointment and arrive with a written list: family history, the numbers you have been tracking, and what is worth checking at your age.",
+   "why": "Reviews of routine annual check-ups have found that the appointment by itself does not lower the odds of dying — an uncomfortable result, and one worth knowing before you build a habit on it. What does hold up is specific, age-appropriate checking of things like blood pressure, cholesterol and blood sugar, and having a clinician who has met you before and can see a trend rather than a snapshot. The value sits in arriving prepared with the right questions.",
+   "safety": "Which tests belong in your year is a medical judgement resting on your age, history and family — your doctor orders them and your doctor interprets them with you. IntentNorth never says what to test for, what a result means, or what to do next; it only keeps the appointment in your calendar. Educational structure, not medical advice.",
+   "attribution": [
+    "Peter Attia"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "step-floor",
+   "title": "Daily step floor",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "longevity",
+   "summary": "Hold a floor of roughly 7,000–8,000 steps a day: glance at the count mid-afternoon and top it up before dinner on the days you are short.",
+   "why": "Across pooled studies that counted steps with devices rather than questionnaires, adults who walked more had lower death rates over the following years, with most of the separation already banked by about seven or eight thousand a day and little further gain above that. It is observational — people who walk a lot differ from people who do not in many ways at once — but consistent across cohorts. A floor beats a target because it counts everything: the walk to the station, the pacing during calls, the block after lunch.",
+   "safety": "A floor, not a debt — a missed day is not something to repay with a forced march. Chest pain, calf pain or unusual breathlessness while walking is a reason to see a doctor, not to train harder.",
+   "attribution": [
+    "Peter Attia",
+    "Rhonda Patrick"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "one-lever-only",
+   "title": "One lever at a time",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "nutrition",
+   "summary": "Once a week, ten minutes picking the single food change you will actually run for the next seven days — and then not going looking for a better diet.",
+   "why": "This is the best-supported finding in weight management, and almost the opposite of what the industry sells. When named diets are put head to head in large randomised trials, the differences between the diets come out small. What separates people is whether they kept doing the thing: in one four-programme trial, self-rated adherence tracked strongly with how much weight came off while the assigned diet did not, and another found a spread of outcomes inside each arm running from a large loss to a modest gain. The useful question is never which diet is best. It is which single change you can still be doing in three months.",
+   "safety": "One lever, chosen by you, and no target number attached to it — IntentNorth never sets a calorie figure, a weight to reach, or a rate to lose at, because those belong to a doctor or a registered dietitian who knows your history. Skip this and the rest of this group entirely if you have ever had an eating disorder or think you might now: structured food planning is a known trigger. If choosing a lever turns into rules that keep multiplying, stop and talk to your GP or a dietitian rather than trying harder.",
+   "attribution": [
+    "Christopher Gardner",
+    "Peter Attia"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "weekly-weight-trend",
+   "title": "The weekly trend read",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "nutrition",
+   "summary": "One morning a week, same day, same conditions: step on, write it down, and read only the line across the last month — never the reading itself.",
+   "why": "Regular self-weighing genuinely holds up, most clearly in maintenance: a randomised trial of people who had already lost a substantial amount put weighing at the centre of a self-regulation programme and saw less regain than a newsletter control. The mechanism is unglamorous — it turns a slow drift into something you can respond to early. But the number itself is mostly noise. Day-to-day movement is water, salt, glycogen and where you are in your cycle, none of which is what you are trying to see. Reading a single morning as a verdict on a week of effort is where this practice stops helping and starts hurting.",
+   "safety": "This is the protocol in the library most likely to be run compulsively, so read this before starting it. Weighing can slide into weighing several times a day, into deciding what you deserve to eat from what the scale said — and a randomised trial in young women found daily weighing produced more mood swing and lower body satisfaction than a control activity, so the harm is not hypothetical. Once a week is the whole protocol; more often is not more commitment. If you have ever had an eating disorder, do not run this at all — no scale, and a conversation with your GP or a registered dietitian instead. If the weekly reading leaves you more anxious than informed, delete it and lose nothing that matters.",
+   "attribution": [
+    "Rena Wing",
+    "Peter Attia"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "protein-anchor-meals",
+   "title": "A protein anchor at every meal",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "nutrition",
+   "summary": "Build lunch and dinner around a palm-sized piece of protein first, then fill the plate around it.",
+   "why": "Protein is the one macronutrient where the composition argument earns its keep, and satiety is why. Controlled feeding work shows people eating a higher-protein diet settle at a lower food intake without being asked to hold back, and a meta-analysis of nearly forty randomised trials found higher-protein arms ended around 1.6 kg lighter than controls — real, and also modest. Protein protects lean mass while weight is coming off, which is the part most diets quietly get wrong. Worth knowing the limit: at least one trial found the extra fullness did not translate into eating less later when highly palatable food was around.",
+   "safety": "An anchor to build around, not a rule to obey, and no food is off the plate because of it. Kidney or liver conditions, pregnancy, and any medical eating plan mean your doctor or dietitian sets your protein intake, not IntentNorth. If ordering your plate by macronutrient starts to feel like a set of rules you can fail, drop the protocol — that shift is the early shape of disordered eating.",
+   "attribution": [
+    "Rhonda Patrick",
+    "Peter Attia"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "slow-plate",
+   "title": "Slow the plate down",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "nutrition",
+   "summary": "One meal a day eaten slowly — fork down between mouthfuls, no screen, the meal given at least twenty minutes.",
+   "why": "Eating rate is one of the few things that changes how much you eat without changing what you eat: a meta-analysis of around twenty studies found slower eating led to meaningfully lower intake within the meal. The caveats are large, which is why this is moderate rather than good — almost all of it is single-meal laboratory work, slowing down did not reliably change hunger hours later, and one trial found the effect in normal-weight participants but not in participants with overweight. Nobody has shown that a slower fork changes body weight months later. It is cheap and it makes the meal better on its own terms.",
+   "safety": "Slowing down is meant to make a meal more enjoyable, not more supervised. If paying attention to how you eat turns into monitoring every mouthful, or into stopping meals early, stop running this one. Anyone with a history of an eating disorder should skip it, and take it to a registered dietitian or GP rather than an app.",
+   "attribution": [
+    "Barbara Rolls",
+    "Andrew Huberman"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "maintenance-mode",
+   "title": "Switch to maintenance on purpose",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "nutrition",
+   "summary": "Roughly monthly, fifteen minutes deciding whether you are still in a change phase or have moved into holding — and naming which handful of behaviours you are keeping either way.",
+   "why": "The part that gets no attention is the part that decides the outcome. Systematic reviews find most of what came off tends to come back, and one randomised comparison of fast versus slow loss saw both groups regain around seven-tenths of it. The reason is not weakness — maintenance is a different job from losing, and almost nobody is taught it. It has been tested directly: a structured self-regulation programme produced less regain than newsletters alone. Maintenance needs declaring rather than drifting into, and it needs its own small set of behaviours you intend to keep for years, not the whole apparatus.",
+   "safety": "Maintenance here means the behaviours you keep and a trend line that sits flat — IntentNorth does not name a weight to hold, a range to stay inside, or a shape to aim at. A flat trend that wobbles is what maintaining looks like; it is not a failed change phase. If the idea of stopping active weight loss feels intolerable, that is worth saying out loud to a GP or registered dietitian, because it is one of the more reliable early signs of disordered eating.",
+   "attribution": [
+    "Rena Wing",
+    "James Hill"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "meal-photo-log",
+   "title": "Two weeks of photographs",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "nutrition",
+   "summary": "For two weeks only, photograph what you eat — no numbers, no scoring — then look back once and pick the one pattern worth changing.",
+   "why": "Writing down what you eat is one of the most consistent behavioural correlates of weight change there is, and randomised trials of app-based self-monitoring find a couple of kilograms of difference against no monitoring. Some of that is circular — people doing well log more — but the plausible mechanism is simple: most people have an inaccurate picture of what they eat, and seeing it makes a lever obvious. This is graded moderate because we deliberately changed what was tested: the trials counted calories and this version strips the numbers out, because a running total is the most reliable route from tracking into compulsion. That substitution is our judgement call and has not been tested.",
+   "safety": "Food logging is the other practice here that runs compulsively, and it does so quietly — two weeks becomes two years, photographs acquire numbers, and a record becomes a scorecard. The two-week limit is the protocol, not a suggestion: stop on the day. No calorie figures, no scoring a day as a success or failure. If you have ever had an eating disorder, or find yourself unable to stop when the fortnight ends, do not run this and take it to your GP or a registered dietitian.",
+   "attribution": [
+    "Rena Wing",
+    "Tim Ferriss"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "fibre-30",
+   "title": "Thirty grams of fibre",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "nutrition",
+   "summary": "Build the day toward roughly 30 g of fibre — a fibre-anchored first meal, then beans, lentils, whole grains, fruit, nuts and skins across the rest.",
+   "why": "This is the strongest thing nutrition has to say that almost nobody acts on. A series of systematic reviews pooled 185 prospective studies alongside 58 controlled trials and found the people eating the most fibre had roughly 15–30% lower rates of dying from any cause, of coronary heart disease, stroke, type 2 diabetes and colorectal cancer than those eating the least, with most of the separation banked between 25 g and 29 g a day. The trials agreed on the mechanisms you can measure in weeks: blood pressure, cholesterol and body weight all moved. The hard outcomes are observational, and high-fibre eaters differ in many ways at once. What makes it worth a protocol is the gap: most adults average around 19 g, and fewer than one in ten reach 30.",
+   "safety": "Build up over a few weeks rather than in a day, and drink water alongside — a sudden jump is what causes the bloating people then blame fibre for. Gut symptoms that persist are a doctor’s job and not something to eat your way out of: any bleeding, unexplained weight loss, or a change in your bowel habit lasting more than a few weeks is an appointment. If you live with a diagnosed bowel condition, ask your clinician which fibre pattern suits you before changing anything.",
+   "attribution": [
+    "Andrew Reynolds",
+    "Jim Mann",
+    "Rhonda Patrick"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "default-drink-water",
+   "title": "Water is the default drink",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "nutrition",
+   "summary": "Make water or something unsweetened the automatic answer to thirst, so a sugary drink becomes a thing you choose rather than the thing already in your hand.",
+   "why": "Sugar-sweetened drinks are the clearest single-food association in nutrition epidemiology, and unusually there are also randomised trials. Giving children a masked sugar-free drink instead of a sugar-containing one, 250 ml a day for 18 months, produced measurably less weight and fat gain; a parallel trial in teenagers found the same over a year, though the gap closed once support stopped. The mechanism is well demonstrated: calories drunk are barely compensated for at the next meal, so they add rather than replace. The cohort evidence carries the usual confounding and the trials are in young people over months — it is still the single highest-yield swap in the pillar.",
+   "safety": "A change of default, not a ban — the birthday drink is not the problem this addresses. Educational structure, not medical advice: if you live with diabetes or kidney disease, what and how much you drink is part of a medical picture, and your clinician’s guidance comes first.",
+   "attribution": [
+    "Vasanti Malik",
+    "Frank Hu"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "fermented-food-daily",
+   "title": "A fermented food a day",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "nutrition",
+   "summary": "One serving of a live fermented food most days — plain yoghurt, kefir, kimchi, sauerkraut, miso — folded into a meal you already eat.",
+   "why": "One well-run trial sits behind this and it is worth knowing in detail. Researchers randomised 36 healthy adults to either a fermented-food arm or a high-fibre arm for ten weeks. The fermented arm’s gut microbial diversity rose and nineteen inflammatory proteins fell, with larger changes in people eating more servings. The high-fibre arm showed neither on average over that window, which the researchers said plainly had surprised them. Read it carefully: 36 people at one site for ten weeks, working up to around six servings a day, with immune markers rather than illness as the outcome, and nothing of that size has replicated it. It does not argue against fibre, whose evidence is for disease over decades — it suggests the two work on different timescales.",
+   "safety": "Ordinary foods, nothing bought off a shelf of pills, and no amount to hit. Unpasteurised ferments are not for everyone — in pregnancy, or with a suppressed immune system, ask your doctor which are fine for you. Bloating, pain or a change in bowel habit that persists is a medical question rather than a food-diary one.",
+   "attribution": [
+    "Justin Sonnenburg",
+    "Christopher Gardner"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "drink-free-days",
+   "title": "Planned drink-free days",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "nutrition",
+   "summary": "Name the drink-free days before the week starts — three is a good default — and keep alcohol to the days you chose rather than the days you fancied it.",
+   "why": "Start with what IntentNorth will not tell you. The comfortable story that a moderate amount protects the heart has been substantially undermined: much of the apparent benefit came from counting people who had stopped drinking because they were already unwell as non-drinkers, and a meta-analysis found that once studies handled those biases, low intake showed no mortality advantage over lifetime abstention. Genetic studies that sidestep lifestyle confounding find no protective signal either. So there is no healthy amount for us to name, and we will not invent one. What is well supported is direction: less is better. The reason to schedule days rather than set a weekly number is behavioural — a rule decided in advance removes a nightly decision that tends to resolve one way.",
+   "safety": "If cutting down feels hard, if you drink every day, or if stopping brings shakes, sweating, a racing heart or bad anxiety, talk to a doctor before changing anything — stopping abruptly is genuinely unsafe for some people, and effective help exists and works. This is a planning habit for ordinary drinking and nothing more; a scheduling app is the wrong tool for dependence.",
+   "attribution": [
+    "Tim Stockwell",
+    "Peter Attia"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "water-with-meals",
+   "title": "A glass with every meal",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "nutrition",
+   "summary": "A glass of water with each meal, and one within arm’s reach where you work — no daily litre target, no bottle to tick off.",
+   "why": "Almost everything popularly said about hydration is folklore, so this protocol is deliberately modest. The eight-glasses rule has no traceable evidence behind it — a physiologist went looking for its origin and could not find one — and surveys show most healthy people drink less than that and are fine. Thirst is a reasonable guide for a healthy adult: it starts once blood concentration has risen by under 2%, while dehydration proper begins around 5%, so being thirsty is an early warning rather than a late one. The confident claims that mild under-drinking wrecks concentration rest on small studies with mixed replication and a design you cannot blind. What survives is unglamorous: attach fluid to moments you already have and keep it in sight.",
+   "safety": "Thirst stops being a reliable guide in older age, in hot weather, during long or hard exercise, and with some conditions and medicines — those are cases to ask a doctor about rather than guess at. More is not better: drinking large volumes quickly can be dangerous. If a clinician has told you to limit or increase fluids, follow that and ignore this.",
+   "attribution": [
+    "Heinz Valtin",
+    "Peter Attia"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "veg-first",
+   "title": "Vegetables and protein first",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "nutrition",
+   "summary": "At the day’s biggest meal, eat the vegetables and the protein before you start on the rice, bread, pasta or potato.",
+   "why": "The finding is real but small in every sense. In crossover studies of eleven and then sixteen people with type 2 diabetes, the same meal eaten in a different order produced substantially lower glucose and insulin rises when the starch came last, and the pattern has repeated in prediabetes and in gestational diabetes. That is a reproducible effect measured over hours, in tiny groups, mostly in people already living with a glucose problem — nobody has shown it changes anything over years, and how much survives in a healthy person is unknown. It stays because it is free: it changes no shopping, costs no time, and nudges the vegetables from garnish to first course.",
+   "safety": "A way of ordering a plate, not a way of managing a condition. If you live with diabetes or take anything that affects blood sugar, your clinician’s plan is the one that counts and nothing here changes it.",
+   "attribution": [
+    "Alpana Shukla",
+    "Saeko Imai"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "trigger-if-then",
+   "title": "If-then your three riskiest moments",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "mind",
+   "summary": "Once a week, write your three riskiest moments as “when X happens, I do Y” — Y being something you actually do, not something you avoid.",
+   "why": "Naming the exact cue and the exact response in advance is the best-replicated finding in behaviour change: around ninety-four studies pooled to a medium-to-large effect, working hardest on the intentions people keep failing to act on, because the decision is already made before the moment arrives. Two details carry the weight. The plan must name a real situation — the fourth round at the same table, the phone at 11pm — not a vague day. And the “then” must be an action you perform rather than one you withhold: plans written as “I will not” leave you nothing to do with the moment. This is also why willpower is the wrong frame: the claim that self-control is a fuel tank that empties has failed large multi-lab replication, so any plan whose active ingredient is wanting it more is not a plan.",
+   "safety": "Structure for a habit you can safely change on your own, and nothing more — not treatment, and not a plan for physical dependence. If going without brings on shakes, sweating, nausea or bad anxiety, see a doctor before you change anything.",
+   "attribution": [
+    "Peter Gollwitzer",
+    "Paschal Sheeran"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "urge-log",
+   "title": "Log the urge, not the verdict",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "Each evening, one line per urge — what happened, where you were, what you did — written before any judgement about it.",
+   "why": "Self-monitoring is one of the better-supported single ingredients in behaviour change. When researchers broke interventions into component techniques and asked which tracked with results, self-monitoring paired with a stated goal came out near the top across eating, activity and drinking. Two honest limits: it is almost never tested on its own, and people under-record, most reliably on the occasions they least want to write down — so a log is a floor, not a measurement. It earns its place because it is the fastest way to find that the real trigger is six o’clock and an empty house rather than stress, which is what nearly everyone assumes.",
+   "safety": "The log is data, never a scorecard, and IntentNorth does not charge for it. If what it shows you is daily use, amounts creeping upward, or that you cannot go a day without, that is a doctor’s conversation rather than a tracking problem.",
+   "attribution": [
+    "Susan Michie",
+    "Charles Abraham"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "cue-audit",
+   "title": "Monthly cue audit",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "Once a month, walk the rooms where it happens and change the place rather than the person — what is visible, what is within reach, what is in the house at all.",
+   "why": "Habits run on cues, and the most reliable way not to act on one is not to meet it. Field and laboratory work has moved how much people eat and drink by changing what is visible, how near it sits and what size it comes in, with nobody deciding to consume less. Removing a cue beats resisting it because resisting is expensive and unreliable: the people who score highest on self-control turn out mostly to be people who arrange their lives around fewer temptations, not people who win more fights with them. B rather than A because most trials are food and drink in controlled settings, effects are modest and short-run, and almost nobody has followed real households for a year.",
+   "safety": "Clearing the house is the right move for the phone, the biscuits, the app. It is not the move for alcohol if you drink every day: stopping abruptly after heavy daily drinking can be medically dangerous rather than merely unpleasant, and it needs a doctor’s supervision, not an empty cupboard.",
+   "attribution": [
+    "Wendy Wood",
+    "Theresa Marteau",
+    "Angela Duckworth"
+   ],
+   "durationMin": 30
+  },
+  {
+   "id": "urge-surf",
+   "title": "Ride the wave",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "When the urge lands, set five minutes: name it out loud, breathe slowly, and give your hands the replacement you chose in advance — no arguing with it.",
+   "why": "The idea is that an urge behaves like a wave: it rises, crests and falls whether or not you feed it, so the job is to stay with it rather than fight it. The pieces around it hold up reasonably — putting a feeling into words lowers its intensity, long exhales settle arousal, and having one rehearsed competing action beats having nothing to do with your hands. The direct evidence for urge surfing itself is thinner than the confidence with which it is taught: standalone studies are small, often single-session and mixed, and the good trials bundle it inside a whole programme. Treat the tidy “cravings last ten minutes” number as a clinical rule of thumb rather than a measured constant.",
+   "safety": "Riding out a craving is not the same as riding out withdrawal, and neither is a stand-in for professional help. Dependence on alcohol, drugs or gambling is a clinical matter: a doctor is the right first call, and free confidential helplines exist in most countries — a doctor or pharmacist can point you to the one where you live. IntentNorth’s urge support is free forever, and nothing here is ever locked.",
+   "attribution": [
+    "G. Alan Marlatt",
+    "Sarah Bowen",
+    "Judson Brewer"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "lapse-review",
+   "title": "A lapse is one event",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Within a day of a slip, ten written minutes: what the moment actually was, what you would change about the setup, and then the next ordinary day resumes — nothing restarts from zero.",
+   "why": "One slip rarely does the damage by itself. What predicts the collapse is the account given of it — that the run is dead, that this proves something permanent, so the rest of the night may as well go the same way. Rewriting it as a single event with a fixable cause keeps the next hour available. Graded C on purpose: the effect is well described and matches what people report, but the evidence is largely observational and retrospective, and no large trial has shown that changing the interpretation alone changes what happens next. Two things follow regardless: streak counters that reset to zero hand the story its ending, so IntentNorth does not keep one, and a lapse is information about the setup, which is the part you can change.",
+   "safety": "A written review is for an ordinary slip. If lapses are landing closer together or getting bigger, or one put you or somebody else in danger — driving, a hospital, money you could not afford to lose — that is past what a journal is for and belongs with a doctor or another professional. Free confidential helplines exist for drinking, drugs and gambling, and a doctor can point you to one.",
+   "attribution": [
+    "G. Alan Marlatt",
+    "Katie Witkiewitz"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "days-off-commit",
+   "title": "Days off, decided in advance",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Every Monday, name which specific days this week are off — then take out what makes breaking them easy, and tell one person which days they are.",
+   "why": "Deciding in advance and then deliberately narrowing your own options later is a real mechanism with real trials behind it: randomised field experiments have shown people take up commitment contracts and change behaviour under them. Naming particular days rather than a weekly quantity does two useful things — it is checkable the next morning, and it ends the nightly negotiation about whether tonight counts. The evidence is thinner than the enthusiasm: uptake in those trials was low and gains faded once the contract ended. Be careful who you tell, too — there is experimental work suggesting that announcing a goal to people who approve can feel a little like having already achieved it, so tell one person who will ask you on Friday, not an audience.",
+   "safety": "Drink-free days are a structure for ordinary drinking. They are not a taper and not a medical plan. Daily drinking, symptoms on a day without one — shakes, sweating, nausea, a racing heart, bad anxiety — or an honest inability to stop once you have started, is a doctor’s job, and stopping abruptly after heavy daily use can be medically dangerous, seizures included. The same goes for gambling: it belongs with a professional, and free confidential helplines exist that cost nothing and ask for no name.",
+   "attribution": [
+    "Dean Karlan",
+    "Katherine Milkman"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "transition-anchor",
+   "title": "One thing that still happens",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "mind",
+   "summary": "Through a stretch where most of life has rearranged, keep exactly one small thing happening at the same time every day.",
+   "why": "When a lot changes at once, the case for holding one fixed point is that it costs almost nothing and gives an otherwise shapeless day an edge to start from. Be clear about how thin the support is: regular daily rhythms are associated with steadier mood in observational work, and rhythm stability is one ingredient inside therapy packages that work as packages, which tells you very little about the ingredient. Nobody has tested keeping one anchor against keeping none. This is experienced practice, and the reason to try it is that it asks so little.",
+   "safety": "Pick something small enough that a bad day cannot break it, and if this is the only thing that happens today, the day went fine. Structure for an ordinary hard stretch, not treatment and not a substitute for one. If weeks are passing and you cannot function, if hopelessness is not lifting, or if you are having thoughts of not wanting to be here, contact your doctor today.",
+   "attribution": [
+    "Jordan Peterson",
+    "Andrew Huberman"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "shrink-the-plan",
+   "title": "Make the plan smaller on purpose",
+   "grade": "E",
+   "gradeLabel": "Practice",
+   "pillar": "mind",
+   "summary": "Once a week during a hard stretch, cut the plan down to what you would still do on your worst day this week, and name the date you will look at it again.",
+   "why": "The best-replicated finding in this whole area is also the most reassuring one. When researchers follow large groups through bereavement, job loss, separation or disaster and look at individual trajectories rather than the average, much the largest group dips and then steadies without any intervention. Distress is ordinary and recovery is the norm. What that work does not support is a sequence: the familiar five-stages model has never held up when tested, and there is no evidence for a correct order, a correct length, or a point by which you should be somewhere else. So this does the one useful thing software can honestly do — it takes things off you, for a period you choose, and stops asking.",
+   "safety": "There is no schedule you are behind on and no right way to be doing this. Cutting the plan to almost nothing for a while is a reasonable answer, not a failure. This is scheduling structure and nothing else — not therapy, not counselling, and it does not assess how you are doing. If you cannot function after several weeks, if hopelessness or numbness is not shifting, or if you are having thoughts of not wanting to be here or of harming yourself, contact your doctor today; if it feels urgent, use your local emergency number or crisis line now.",
+   "attribution": [
+    "George Bonanno",
+    "Lucy Hone"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "one-small-act",
+   "title": "One small thing that matters",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Plan one small act that matters to you the day before, and do it whether or not you feel like it when the time comes.",
+   "why": "Doing a small planned thing on a schedule rather than waiting to feel ready is the active ingredient in behavioural activation, which has strong randomised support. All of that support comes from the treatment of depression, which is not where this app stands, so we take only the non-clinical core and grade it for the use rather than for the trials. Motivation usually arrives after the action rather than before it, and in a stretch where nothing feels worth starting, ten planned minutes is a fairer test of that than an hour.",
+   "safety": "Small means small — a shower, a walk to the corner, one email. If planning it makes the day worse, drop it; a skipped day carries no meaning and nothing here is a measure of how you are coping. Not a stand-in for care: if you have been unable to function for weeks, or hopelessness is not lifting, that is a conversation with your doctor.",
+   "attribution": [
+    "Neil Jacobson",
+    "David Richards"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "one-person-a-week",
+   "title": "One person, once a week",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "One contact a week with one person who already knows what is going on — a call, a walk, a sat-down coffee.",
+   "why": "Of everything measured in this literature, the strength of someone’s connections is the most consistent protective factor for how they come through a hard stretch, and it holds across large cohorts followed for years. Two honest caveats: almost all of it is observational, so support and doing well travel together without the arrow being settled; and the direction that replicates best is people needing others more than they expect while assuming, wrongly, that they would be a burden.",
+   "safety": "One person is the whole target, and sitting together saying nothing counts. Nobody has to talk it through, and there is no benefit to be had from being made to. If the honest answer is that there is no one, that is worth saying to your doctor, who can point you at bereavement or support services near you.",
+   "attribution": [
+    "Sheldon Cohen",
+    "Julianne Holt-Lunstad"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "values-writing",
+   "title": "Write from a value",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "Ten minutes writing about one value that genuinely matters to you and a specific time you acted on it — best used the evening before something hard.",
+   "why": "This is the most tested writing exercise in the area. Across a long run of randomised experiments, people who spent a few minutes writing about a value they hold went into a stressful or ego-threatening situation less defensive, with smaller stress responses and a readier ear for unwelcome information. It is B rather than A because the effect is context-dependent — timing matters, the writing has to be about the value rather than a list of them, and several widely repeated long-run results came out smaller in larger replications. Which value it is appears to matter far less than the fact that it is honestly yours.",
+   "safety": "IntentNorth has no view on where your values come from or what they should be — the exercise works on whatever you already hold, and the app never supplies the list. It is also not a way to write around a real problem. If the honest answer on the page is that nothing much matters any more, or that has been true for weeks, that belongs with a doctor or a therapist rather than a journal.",
+   "attribution": [
+    "Claude Steele",
+    "Geoffrey Cohen",
+    "David Sherman"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "purpose-review",
+   "title": "What am I actually for",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Once a quarter, forty-five minutes on three written questions: what you want to be true in five years, who your ordinary week actually serves, and the one thing you would change first.",
+   "why": "Large prospective studies following tens of thousands of adults find that people who report a strong sense of purpose die later and have fewer heart events than people who do not, and the association survives the obvious adjustments. It is a real finding and still only an association: healthier, better-connected, less depressed people find purpose easier to report, and — the part usually left out — nobody has shown that manufacturing a sense of purpose on demand changes any of those outcomes. Strong cohorts, untested practice. What a quarterly review can honestly offer is narrower: noticing early that your weeks have drifted away from what you say you care about.",
+   "safety": "A review, never a verdict — plenty of good lives do not resolve into a single sentence, and being unable to name a purpose is not a diagnosis of anything. Do not read the mortality research as a warning aimed at you: it describes groups, not your next decade. If the sitting leaves you with weeks of flatness or hopelessness, that is a doctor or therapist conversation now rather than a question to leave for the next quarter.",
+   "attribution": [
+    "Patrick Hill",
+    "Andrew Steptoe"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "contribution-monthly",
+   "title": "One deliberate contribution",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "Once a month, one concrete act for someone outside your own household — money given on purpose to a named cause or person, or a few hours of real help arranged in advance.",
+   "why": "The controlled part is spending: hand people a small amount of money, randomly assign some to spend it on someone else, and the ones who did report better mood by the end of the day. That has repeated in several countries, in rich and poor settings and with young children, which is unusual for a wellbeing finding — though effects are modest and some later replications came out smaller. The volunteering half is weaker and worth saying plainly: volunteers report better health and mood, but almost all of that is observational and volunteers are healthier and better connected to begin with. What the experiments suggest is that vagueness kills it — a specific recipient beats an anonymous transfer.",
+   "safety": "Give from what you can spare. If a regular gift would put your own bills or repayments under strain, size it with a licensed financial adviser before you commit, and never as a way to feel better about money that is already tight. Hours given to people who are unwell, elderly or under eighteen should go through an organisation that does proper checks and training.",
+   "attribution": [
+    "Elizabeth Dunn",
+    "Lara Aknin",
+    "Michael Norton"
+   ],
+   "durationMin": 60
+  },
+  {
+   "id": "best-possible-self",
+   "title": "Best possible self",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Roughly fortnightly, fifteen minutes writing in detail about a year from now in which things have gone about as well as they realistically could — then one concrete step you would take this month.",
+   "why": "Small randomised experiments have compared this with neutral writing and found short-term lifts in mood and optimism, fairly consistently across a few labs. The caveats are the usual ones: small samples, brief follow-ups, self-reported outcomes and very little evidence that anything holds beyond a few weeks. It is included because it does something the rest of this group does not — makes a wanted future specific enough to act on. The step at the end is not decoration: separate work on imagined futures suggests that dwelling on a pleasant fantasy without confronting what stands in the way can quietly drain the effort to pursue it.",
+   "safety": "Realistically as well as it could go, not a fantasy — the exercise loses its point when the page describes a life that was never available. If imagining a good year mostly produces a list of what you have already lost, or leaves you reliably worse than you started, stop and take that to a doctor or therapist rather than writing through it.",
+   "attribution": [
+    "Laura King",
+    "Gabriele Oettingen"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "gratitude-letter",
+   "title": "The thank-you letter",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "Once a month, a letter to one person about something specific they actually did for you — and, where you can face it, read it to them.",
+   "why": "The much-quoted result is a randomised trial in which writing and then delivering a letter of thanks produced the largest short-term happiness bump of the exercises tested — and in the same paper it had faded within a few months, against a control doing very little. Later meta-analyses of gratitude exercises land on small effects, mostly self-reported. What has held up more robustly is a smaller, stranger finding: senders consistently underestimate how much a message like this lands, and overestimate how awkward it will be, which is exactly the miscalculation that stops people sending them.",
+   "safety": "Written and not sent still counts — delivery is the stronger version, not an obligation, and nobody is owed a letter. If the person who comes to mind is someone who hurt you, this exercise is not the place to work that out; a therapist is.",
+   "attribution": [
+    "Martin Seligman",
+    "Amit Kumar"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "trouble-window-plan",
+   "title": "An if-then plan for the window that goes wrong",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "nutrition",
+   "summary": "Ten Sunday minutes writing one line for the window food goes sideways — “if it’s 9pm and I’m on the sofa, then I make tea”.",
+   "why": "Naming the situation, the time and the first physical move is among the best-replicated findings in behaviour-change research. Pooled across roughly two dozen eating trials the technique shifts behaviour meaningfully — and it is notably stronger for adding something than for subtracting something. So the line has to end in a move you make, not a thing you resist: “then I make tea”, never “then I don’t snack”.",
+   "safety": null,
+   "attribution": [
+    "Peter Gollwitzer",
+    "Marieke Adriaanse"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "plate-up-in-the-kitchen",
+   "title": "Plate up in the kitchen",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "nutrition",
+   "summary": "Serve onto plates in the kitchen and leave the pans there; anything from a packet goes into a bowl first.",
+   "why": "What is put in front of you is what gets eaten. A Cochrane review of 61 randomised comparisons in about 6,700 people found people reliably eat more when handed a larger portion or package, and the effect did not vary much by sex, body size or hunger. Serving at the hob and decanting from the packet make the first helping the default; a second helping is still there, it just costs a decision. Note what this is not: the separate claim that smaller plates make you eat less is much weaker, and a pre-registered trial found nothing.",
+   "safety": "This is about where the serving dish sits, not about eating less than you need. Training hard, pregnant, unwell, or losing weight you did not mean to lose — then the bigger first plate is the right one.",
+   "attribution": [
+    "Gareth Hollands",
+    "Theresa Marteau"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "what-is-in-reach",
+   "title": "Change what is in reach",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "nutrition",
+   "summary": "Once a week, move whatever you graze on out of eye-line, and put cut fruit at the front of the fridge instead.",
+   "why": "Distance is friction, and friction is most of the decision. A Cochrane review found food placed further away was eaten less — a moderate pooled effect across twelve studies — but graded its own evidence low certainty, because it rests on short laboratory sittings with small samples. Hence C, not B. The swap matters as much as the removal: the if-then literature is clearly better at getting a food in than at keeping a food out, and a visible fruit bowl is the “in” half. What we deliberately do not lean on is the claim that you can read someone’s weight off their kitchen counter — that traces to a retracted body of work.",
+   "safety": "Rearranging a kitchen is a small thing and should stay one. If what may or may not be in the house starts to feel like a rule you are not allowed to break, if it makes eating with other people hard, or if food is already something you fight with, stop this protocol and speak to a GP, a registered dietitian or an eating-disorder service. A food environment held rigidly can become part of the problem rather than a way out of it.",
+   "attribution": [
+    "Gareth Hollands",
+    "Theresa Marteau"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "eat-off-the-screen",
+   "title": "Eat away from the screen",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "nutrition",
+   "summary": "Food gets eaten sitting down, away from the TV and the phone — the evening snack in front of a box set included.",
+   "why": "The honest version is narrower than the popular one. Two independent meta-analyses, of 23 and 50 experiments, agree that distraction barely moves how much you eat during the meal itself — the pooled effect is small and not clearly different from zero. What it does move is the NEXT eating occasion, modestly but consistently, and television is the distraction that shows it most clearly. The likely mechanism is memory: a meal you never attended to is a meal your appetite does not fully count a few hours later.",
+   "safety": null,
+   "attribution": [
+    "Eric Robinson",
+    "Suzanne Higgs"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "kitchen-shutdown",
+   "title": "The kitchen shutdown",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "nutrition",
+   "summary": "A short closing routine each evening — wash up, wipe down, light off — so the kitchen has visibly finished for the day.",
+   "why": "Sister to “Kitchen closes”, which sets the TIME; this sets the CUE. Evening eating is usually triggered rather than hungry, and a meta-analysis covering some 3,300 people found food cue reactivity and craving track how much people go on to eat — track, not proven to cause. Taking the cue away is long-standing practice inside multi-component behavioural programmes, but it has almost never been tested on its own, which is exactly what a D means here.",
+   "safety": "A closed kitchen is a signal, not a lock. If you are genuinely hungry after it, eat. A rule that overrides hunger has stopped being a habit, and that is worth raising with a GP or a registered dietitian.",
+   "attribution": [
+    "Kelly Brownell",
+    "Rena Wing"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "cycle-symptom-log",
+   "title": "The cycle and symptom log",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "training",
+   "summary": "A short daily line: where you are in your cycle if you track it, plus energy, sleep, soreness and any symptoms as they actually were.",
+   "why": "Cycle-related symptoms are common, vary enormously between people, and almost none of your own pattern is visible from memory — asked a month later, people reconstruct rather than recall, which is why menstrual-symptom research collects daily diaries instead of questionnaires. A dated log turns that into something you can read: which days reliably cost you, whether something is drifting across months, what to take to a doctor. What no study shows is that logging by itself makes anyone train better or feel better — the log is raw material for your own decisions.",
+   "safety": "A private record, never a forecast and never an assessment: IntentNorth cannot tell you what a pattern means, cannot predict a cycle, and has nothing to say about contraception, conception or any medication — those belong with a doctor. Periods that are very heavy or very painful, bleeding that has newly changed, or symptoms that flatten you every month are a doctor’s question rather than something to log around.",
+   "attribution": [
+    "Kirsty Elliott-Sale",
+    "Georgie Bruinvels"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "train-to-symptoms",
+   "title": "Train to symptoms, not to a phase template",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "training",
+   "summary": "Before each session, read your own log and set today’s effort from how you actually feel — not from which week of the cycle it is.",
+   "why": "This is where the popular version and the evidence part company. Systematic reviews pooling the cycle-phase performance studies find group-level effects on strength and endurance too small and too inconsistent to plan around, and rate most of the underlying work low quality. A template that says lift heavy this week and back off next week is applying an average that may not describe you at all. What is not in doubt is that some people get symptoms that genuinely change what a session should be that day, and that those patterns are individual — an argument for your own record, not for a calendar rule. Regular exercise also has modest randomised support for easing period pain, so the honest move on a bad day is usually a smaller session rather than none.",
+   "safety": "Information, not a limitation and not an excuse — most sessions on most days are ordinary sessions, and this protocol has no opinion about what you are capable of. Adjusting effort is different from training through something wrong: pain that stops you, bleeding that soaks through hourly, or any symptom that is new or worsening is a doctor’s question rather than a programming one.",
+   "attribution": [
+    "Kelly McNulty",
+    "Kirsty Elliott-Sale"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "menopause-loading",
+   "title": "Load through the transition",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "longevity",
+   "summary": "Two properly heavy resistance sessions a week through the years around menopause — compound lifts, progressed on purpose, plus impact work if it suits you.",
+   "why": "Bone and muscle both come under pressure in the years either side of the last period, and the usual instinct is to train more gently — which is the wrong direction. Supervised trials of progressive high-load resistance and impact training in postmenopausal women improved bone density at the hip and spine along with strength and everyday function, where light and moderate programmes largely did not. Two limits stated honestly: those trials measured density and strength, not broken bones; and they were supervised, with technique coached before the weight went up. What survives both caveats is the direction of travel — the case for loading gets stronger through this period, not weaker.",
+   "safety": "Progressive means across months, technique before weight, and coaching is worth more here than almost anywhere else. Known osteoporosis or low bone density, a previous fragility fracture, or back, hip or joint trouble changes what loading is appropriate — that is a doctor or physiotherapist call before you start. IntentNorth says nothing at all about hormone therapy, medication or supplements. Broken sleep through this period is common and real: the wind-down, anchored wake time and twenty-minute-rule protocols are the behavioural tools for it, and months of bad nights belong with a doctor.",
+   "attribution": [
+    "Belinda Beck",
+    "Peter Attia"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "pelvic-floor-training",
+   "title": "Pelvic floor practice",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "training",
+   "summary": "A daily set of pelvic floor contractions — a few short hard squeezes and a few long holds, done properly rather than done often.",
+   "why": "One of the strongest behavioural findings in this library, and one of the least likely to appear in a general fitness app. Pooled randomised trials find women doing pelvic floor muscle training are far more likely to report leaking gone or improved than women given no such training, with the clearest effect in stress incontinence — it is the first-line recommendation in clinical guidelines internationally, ahead of anything surgical. The caveat is about delivery rather than the finding: those trials taught the contraction in person and checked that people had found it, and a substantial share of women practising unsupervised are doing something else entirely. An app can hold the habit and the cadence. It cannot see whether you are contracting the right muscles, which is the part that makes the evidence apply to you.",
+   "safety": "Learn the contraction from a pelvic health physiotherapist first — that is what makes the evidence transfer, and it is the necessary step if leaking, heaviness, pain, or anything that changed after a birth is part of the picture. Those things are assessed by a clinician; IntentNorth assesses nothing. Stop if the practice itself hurts. After a birth, begin what your midwife or doctor clears at your postnatal check and follow their timing over ours.",
+   "attribution": [
+    "Kari Bø",
+    "Chantale Dumoulin"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "pregnancy-keep-moving",
+   "title": "Keep moving — on your clinician’s terms",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "training",
+   "summary": "Ask your midwife, obstetrician or doctor what activity suits your pregnancy or your recovery, then hold the smallest version of it — usually a daily walk you can talk through.",
+   "why": "Guidelines across several countries converge: in an uncomplicated pregnancy, regular moderate activity is beneficial rather than risky, and the pooled trials behind them point to lower odds of gestational diabetes and of excessive weight gain, with no signal of harm. That is a statement about populations. Whether it describes you depends on things only your maternity team knows, and the guidelines are built around individual clearance for exactly that reason. So we ship the two parts we can honestly hold: the prompt to have the conversation, and a habit small enough to survive a trimester or a newborn. What IntentNorth will never do is write you a programme.",
+   "safety": "Your midwife, obstetrician or doctor decides what is safe for your pregnancy and for your recovery afterwards. IntentNorth does not know your history and cannot know it, and this protocol has no view on intensity, load, position, or how far along you are — their instructions replace anything here, including this note. Stop and contact your maternity team for bleeding, fluid leaking, regular painful contractions, chest pain, calf pain or swelling, dizziness or headache. After a birth, nothing restarts before your postnatal check clears it.",
+   "attribution": [
+    "Michelle Mottola",
+    "Kari Bø"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "child-bedtime-routine",
+   "title": "The same bedtime, the same order",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "connection",
+   "summary": "Run the same short sequence at the same time every night — bath or wash, pyjamas, story, lights out.",
+   "why": "Randomised trials of consistent bedtime routines in young children report faster sleep onset, fewer night wakings and calmer evenings within a couple of weeks. What seems to carry the effect is the sameness — same steps, same order, same clock — rather than which steps you pick.",
+   "safety": "Educational structure, never medical advice. Hold it warmly: a sequence enforced against a frightened or distressed child has stopped being a routine, and an off night is an off night, not a verdict on you. If sleep is a lasting worry — loud snoring or pauses in breathing, tiredness that never lifts, or a child repeatedly terrified at night — that belongs with your GP or health visitor rather than with a better schedule.",
+   "attribution": [
+    "Jodi Mindell",
+    "Matthew Walker"
+   ],
+   "durationMin": 30
+  },
+  {
+   "id": "child-led-play",
+   "title": "Ten minutes they lead",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "connection",
+   "summary": "Ten minutes of play the child controls completely, where you describe what they are doing instead of directing, questioning or correcting.",
+   "why": "Child-directed play is the first skill taught in the parenting programmes with the strongest trial record, and dropping instructions and questions for a few minutes is the part parents find hardest. It is almost always tested inside a full programme rather than alone, so the component has thinner support than the programme does. Where the weekly one-to-one is about finding the time, this is about what you do with the minutes.",
+   "safety": "Ordinary play, not therapy, and not a way of managing behaviour in the moment. Follow rather than steer, and stop when they are finished — play a child has to complete has lost the point of itself. If something about your child’s behaviour or development worries you over time, a GP or health visitor can point you to a properly delivered programme; ten minutes at home is no substitute for one.",
+   "attribution": [
+    "Sheila Eyberg",
+    "Carolyn Webster-Stratton"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "labelled-praise",
+   "title": "Say exactly what they did",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "connection",
+   "summary": "For the first ten minutes you are back together, name the specific thing the child did rather than saying “well done”.",
+   "why": "Describing the behaviour you want more of gives the child information that a generic “good boy” does not, and it is a component of every well-trialled parenting programme. Head-to-head comparisons of specific against generic praise are small and short. Note that the popular claim about praising effort rather than ability has had a mixed replication record, so take the specific version as a sane default, not a technique with a big effect behind it.",
+   "safety": "Warmth, not a reward economy. The line is approval that has to be earned: praise handed out to steer a child, or pointedly withheld while you are annoyed, does something different from praise given because you noticed. Some children dislike being singled out in front of others — quiet and specific works just as well.",
+   "attribution": [
+    "Sheila Eyberg",
+    "Carol Dweck"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "parent-regulation-pause",
+   "title": "You go first",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "connection",
+   "summary": "Five minutes before the hardest hour of the day, rehearse the pause: one long breath out, then the sentence you actually want to reach for.",
+   "why": "Every trialled parenting programme assumes the adult settles first, and slowing the out-breath measurably takes the edge off arousal in adult studies. Whether rehearsing it beforehand changes how the evening goes has not been tested directly in parents, so this is a mechanism borrowed and applied rather than a trial result — plausible, and honestly thin.",
+   "safety": "A pause means a breath before you speak. It is not silence aimed at a child, not walking out on one who needs you, and not affection switched off until they behave — when a young child is distressed, staying with them comes first. Every parent loses their temper sometimes and it does not undo a relationship. If your own anger frightens you, or you dread being alone with your child, that is worth raising with your GP, and support lines exist for exactly this.",
+   "attribution": [
+    "James Gross",
+    "Andrew Huberman"
+   ],
+   "durationMin": 5
+  },
+  {
+   "id": "family-screen-agreement",
+   "title": "Settle the screen rules once",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "connection",
+   "summary": "Roughly monthly, twenty-five minutes writing down where, when and how screens happen — then stop renegotiating it daily.",
+   "why": "Households with settled media rules report less use and slightly better child sleep, though that is observational. Be careful here: the harm evidence is far weaker and more contested than the public conversation suggests, and the largest re-analyses put the association between screen time and adolescent wellbeing at close to nothing. The defensible reason for a rule is displacement — screens eat sleep, meals and going outside — so write it to protect those, and worry less about the total hours.",
+   "safety": "An agreement written with the children old enough to be part of it, not a sanction handed down. Confiscation used as a punishment tends to make the device the most valuable thing in the house. What a child sees and who they talk to online matters more than minutes on a clock: if you are worried about either, that is a safeguarding conversation with your school, GP or a children’s charity, not a scheduling problem.",
+   "attribution": [
+    "Amy Orben",
+    "Andrew Przybylski"
+   ],
+   "durationMin": 25
+  },
+  {
+   "id": "talk-rehearsal-spaced",
+   "title": "Rehearse out loud, across days",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "skill",
+   "summary": "With a talk coming, run it aloud from memory for twenty minutes on three separate days rather than once the night before.",
+   "why": "Two things underneath this are as well tested as anything in the library: pulling material out of your head beats reading it again, and the same minutes spread across days beat the same minutes in one sitting. Saying it aloud adds a smaller, well-replicated effect of its own. What nobody has tested is the package — no trial shows that three spaced out-loud run-throughs produce a better-rated talk than one long night before it. Strong mechanisms, untested application, so the claim stays narrow: you will need the notes less, which is most of what makes a talk sound like a person talking.",
+   "safety": "Preparation for ordinary nerves. If the fear of speaking is shaping what you take on — work turned down, rooms avoided, weeks lost to dread — that is worth taking to a doctor or a therapist rather than rehearsing through, and it is a common thing they help people with.",
+   "attribution": [
+    "Henry Roediger",
+    "Robert Bjork",
+    "Colin MacLeod"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "speaking-low-stakes-rep",
+   "title": "One small speaking rep a week",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "skill",
+   "summary": "Every week, one voluntary speaking turn small enough to be survivable: a question asked aloud, a two-minute update, the first comment in the room.",
+   "why": "Every intervention that reliably reduces speaking fear has the same thing inside it — doing the feared thing repeatedly, in sizes you can stay in, without leaving early. Controlled trials find graded repeated practice reduces speaking fear, and it beats the reassurance-and-tips format most workplace training is built from. Two honest limits: that work is mostly guided by a therapist, in people whose fear was strong enough to enrol them in a trial, and a rep you spend hiding at the back is avoidance in the practice’s clothing. Frequency does the work — a small rep every week beats a big one every quarter.",
+   "safety": "Ordinary nerves fade as the reps stack up. Fear that is limiting your life rather than just spoiling your morning — turning down work, avoiding people, weeks of dread before a routine meeting — is not a volume problem, and a doctor or therapist is the right next step rather than a harder rep. Pushing through panic is not the practice.",
+   "attribution": [
+    "Michelle Craske",
+    "Paul Emmelkamp"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "talk-filmed-runthrough",
+   "title": "One filmed run-through, one cue",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "skill",
+   "summary": "Film two minutes of the talk on your phone, write down beforehand what you expect to see, then watch it once against a single cue.",
+   "why": "What a talk feels like and what it looks like drift apart quickly, and video is the cheapest way to close that gap. On its own it mostly hands a nervous speaker more material for the case they were already making against themselves. The narrower finding is the useful one: with anxious speakers, watching yourself back helped when it followed forming a concrete picture of what you expected to see, and did much less without that step. Past that it is rumination with a play button.",
+   "safety": "Watch it once, against the one cue you wrote, then stop — repeat viewings reliably make people feel worse without making the talk better. If you cannot watch it without spiralling, that is worth saying to a professional rather than solving with more footage.",
+   "attribution": [
+    "Ronald Rapee",
+    "Allison Harvey"
+   ],
+   "durationMin": 20
+  },
+  {
+   "id": "hard-conversation-opening",
+   "title": "Write the opening line",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "skill",
+   "summary": "Before a conversation you are dreading, write the first two sentences you will actually say, word for word, and the outcome you want from it.",
+   "why": "Deciding in advance exactly what you will do and when is among the better-supported behaviour findings there is, and it is already in this library as if-then planning. Writing the first two sentences applies that mechanism where these conversations usually go wrong: an unplanned opening either softens into nothing or arrives as an accusation, and everything after it is spent recovering. Nothing tests this specific practice, so the grade is for a strong mechanism carried somewhere it has not been measured. The rest is craft — name the thing, say plainly why it matters to you, ask how they see it, then stop talking.",
+   "safety": "Preparation changes how you open, never how it lands. Anything involving conduct, safety, pay or someone’s job belongs in your employer’s formal process, and a rehearsed sentence is not the place to raise it first. If you are dreading it because the other person has been threatening or abusive, that is a conversation to have with support, not alone.",
+   "attribution": [
+    "Peter Gollwitzer",
+    "Douglas Stone",
+    "Sheila Heen"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "reflective-listening-rep",
+   "title": "Say it back before you answer",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "skill",
+   "summary": "Once a week, in one real conversation, say the other person’s point back in your own words until they agree you have it — then reply.",
+   "why": "This is the most widely taught communication behaviour there is and one of the most thinly evidenced outside the clinic. What holds up: across many trials of counselling for behaviour change, reflective and empathic responding by the practitioner tracks with better outcomes. What does not: the same technique packaged as a couples drill fared badly when couples were followed for years. In workplaces the studies are small, single-conversation and self-rated, mostly showing people feel more understood. A real mechanism — you cannot answer an argument you have not understood — and no strong outcome evidence at work.",
+   "safety": "Said back as a technique it reads as one, and people notice. Use it to check you have understood, not to win — and if the other person asks you to stop narrating them, stop.",
+   "attribution": [
+    "Carl Rogers",
+    "William Miller"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "admin-if-then",
+   "title": "If-then the three that always slip",
+   "grade": "A",
+   "gradeLabel": "Strong",
+   "pillar": "leadership",
+   "summary": "Ten Sunday minutes turning the three admin jobs that keep sliding into “when I am at X doing Y, I will do Z”.",
+   "why": "A to-do list records what you intend; an if-then plan records where and when the doing starts. Specifying the exact opportunity — the cue, the place, the first physical move — is among the best-replicated findings in behaviour-change research, and largest for precisely the intentions that keep failing. Two honest limits: it does little for a task you do not genuinely mean to do, and it fades when the goal was someone else’s. Name the opportunity, not the hour: “when the kettle goes on Tuesday” beats “Tuesday morning”, because a kettle happens and a morning is negotiable.",
+   "safety": null,
+   "attribution": [
+    "Peter Gollwitzer",
+    "Gabriele Oettingen"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "renewal-sweep",
+   "title": "Every renewal date, out of your head",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "leadership",
+   "summary": "Once a quarter, forty minutes putting every renewal, expiry and deadline you own into one dated store, each with a reminder set weeks before it bites.",
+   "why": "Remembering to do something months from now is what human memory is worst at, and the fix is not effort — it is writing it somewhere you will be told. Experiments on cognitive offloading are unusually clean: people who hand a to-be-remembered item to an external store perform better on whatever they do next, and the freed attention is measurable rather than merely reported. One result matters most for how you build this — the benefit collapses when the store turns out to be unreliable, because a system you do not trust gets silently duplicated in your head. Hence one place, not five. Nobody has trialled a quarterly sweep, so read that part as reasonable rather than shown.",
+   "safety": "One store, and keep the sensitive documents themselves out of it — a list of dates does not need passport numbers or account details sitting beside it. Anything with legal or immigration consequences deserves a real reminder and a professional, not a calendar entry alone.",
+   "attribution": [
+    "Evan Risko",
+    "Sam Gilbert"
+   ],
+   "durationMin": 40
+  },
+  {
+   "id": "household-load-board",
+   "title": "The visible household list",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "leadership",
+   "summary": "One list everyone in the house can see of the recurring jobs, a single name beside each, reviewed together for five minutes at the start of the week.",
+   "why": "Decades of time-use research describe the same asymmetry: the visible half of running a household gets shared far more evenly than the invisible half, which is noticing that a thing is due, deciding what to do about it, and carrying it until it is done. That half leaves no trace, so it is hard to see and easy to under-count in whoever is not doing it. The evidence is consistent and entirely observational, and no study has shown that writing a list changes how the work lands. What is sound is the reasoning: labour nobody can see cannot be negotiated. Put the noticing in the name, not just the doing.",
+   "safety": "A list of who owns what, never a scoreboard of who does more — the second version reliably starts the argument the first one was meant to prevent. If the same imbalance keeps coming back however it is written down, that is a conversation about the arrangement, and sometimes one for a couples therapist, rather than a better board.",
+   "attribution": [
+    "Arlie Hochschild",
+    "Allison Daminger"
+   ],
+   "durationMin": 15
+  },
+  {
+   "id": "admin-block",
+   "title": "The weekly admin block",
+   "grade": "D",
+   "gradeLabel": "Thin",
+   "pillar": "leadership",
+   "summary": "Forty-five minutes at the same hour every week for the paperwork — one list, worst first, and you stop when the timer stops.",
+   "why": "Batching similar jobs into one sitting is sensible-sounding and thinly tested. The switching-cost literature it leans on is real but modest and mostly small laboratory studies, and nobody has run the obvious comparison. So the claim is deliberately small. What the block reliably buys is a place to put things down, and one decision made once instead of forty times a week. Two design notes from practice rather than data: worst first, because the dreaded item would otherwise consume the whole hour in advance, and a hard stop, because an admin block with no end quietly becomes the evening.",
+   "safety": "Anything needing an office to be open cannot live in an evening block — give those their own daytime line instead of watching them roll over for a month. And forty-five minutes is forty-five minutes: a backlog built of debt letters, benefits, immigration or probate paperwork is structural, and free advice services and licensed professionals exist for exactly that.",
+   "attribution": [
+    "Sophie Leroy",
+    "Cal Newport"
+   ],
+   "durationMin": 45
+  },
+  {
+   "id": "launch-pad",
+   "title": "Set the launch pad",
+   "grade": "B",
+   "gradeLabel": "Good",
+   "pillar": "mind",
+   "summary": "Ten minutes before bed setting up tomorrow’s first hour: what you leave with by the door, one surface cleared to start on.",
+   "why": "The dependable half of a calm house is not resolve, it is what is visible, reachable and already arranged. Field experiments on defaults and placement shift behaviour more reliably than reminders or willpower do, and that is the same lever behind parking the phone in another room. Setting the first hour of tomorrow tonight points it at your own morning. The support is for the mechanism, not for this particular ritual: nobody has trialled a launch pad.",
+   "safety": null,
+   "attribution": [
+    "Richard Thaler",
+    "Cass Sunstein"
+   ],
+   "durationMin": 10
+  },
+  {
+   "id": "surface-reset",
+   "title": "Fifteen minutes, one surface",
+   "grade": "C",
+   "gradeLabel": "Mixed",
+   "pillar": "mind",
+   "summary": "A timer set for fifteen minutes on one named surface — the kitchen table, the desk, the chair by the door — and you stop when it goes.",
+   "why": "What holds up here is general rather than domestic: a specific bounded target, and watching progress accumulate, make people more likely to finish a large job than an open-ended intention to sort it all out eventually. That comes from meta-analytic work on goal setting and progress monitoring, none of it run on garages, so we are borrowing it on purpose. Naming one surface is what stops the session quietly becoming the whole house and therefore never happening. We are not telling you a tidy home makes a tidy mind — that claim is folklore with unusually good marketing.",
+   "safety": "For some people, parting with things is genuinely distressing rather than merely tedious — enough that rooms stop being usable. Difficulty discarding possessions is a recognised clinical condition with real help available, and it belongs with your doctor rather than with a tidying schedule. IntentNorth cannot tell which situation you are in and this is not an assessment. Never run a pass on someone else’s belongings without their agreement.",
+   "attribution": [
+    "Edwin Locke",
+    "Gary Latham"
+   ],
+   "durationMin": 15
+  }
+ ]
+}
