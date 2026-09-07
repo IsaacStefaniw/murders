@@ -86,6 +86,7 @@ import {
   learnedDurationMinutes,
   type ManualMove,
 } from '@/lib/scheduling/adaptation';
+import { energyLine } from '@/lib/scheduling/energy';
 import { MODALITIES } from '@/features/modalities/registry';
 import { buildSeededHistory } from '@/features/dev/seedHistory';
 import { addDays, durationMinutes, newId, nowDate, setClockOffsetMs, toHHMM, toMinutes, todayKey } from '@/lib/dates';
@@ -800,7 +801,7 @@ export const useAppStore = create<AppState>()(
           // measured sessions is absent from the map and keeps the length
           // it was created with, so a new plan is unchanged by this.
           const learned = learnedDurationMinutes(Object.values(plans).flatMap((p) => p.items));
-          const { unplaced, moved, ...plan } = generateDailyPlan(profile, running, date, [], goals, learned);
+          const { unplaced, moved, energy, ...plan } = generateDailyPlan(profile, running, date, [], goals, learned);
           // What did not fit is the visible half of arbitration. It used to
           // be destructured into `_unplaced` and dropped on the floor, which
           // meant the engine made the product's defining decision and then
@@ -811,6 +812,9 @@ export const useAppStore = create<AppState>()(
             ...describeMoved(moved, plan.items, profile.priorities),
             ...describeDisplaced(unplaced, plan.items, profile.priorities),
           ];
+          // Where the person's own peak and dip put things. One line, and
+          // only when the shape actually decided something.
+          const energyNote = energyLine(energy) ?? undefined;
           const previous = plans[date];
           // A day already lived in is a record, not a draft. Rebuilding it
           // wholesale undid the workout ticked off at seven, forgot the
@@ -828,6 +832,7 @@ export const useAppStore = create<AppState>()(
             ...plan,
             items,
             displaced: displaced.length > 0 ? displaced : undefined,
+            energyNote,
             intention: previous?.intention,
             protectBehaviour: previous?.protectBehaviour,
             lookForward: previous?.lookForward,

@@ -461,6 +461,11 @@ export interface DailyPlan {
    * built before the app said this out loud, not that nothing was dropped.
    */
   displaced?: { title: string; area: LifeArea; lostTo?: LifeArea }[];
+  /**
+   * One sentence about where the person's own energy put things today.
+   * Absent means the shape decided nothing, not that it is switched off.
+   */
+  energyNote?: string;
   approvedAt?: string;
 }
 

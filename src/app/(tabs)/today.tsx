@@ -252,6 +252,14 @@ export default function Today() {
         </Card>
       ) : null}
 
+      {/* Where the person's own peak and dip put things today. Said only
+          when the shape actually decided something, never as a boast. */}
+      {plan.energyNote ? (
+        <Card style={styles.arbitration}>
+          <AppText variant="body">{plan.energyNote}</AppText>
+        </Card>
+      ) : null}
+
       {neverCompletedAnything && hasTappableRow ? (
         <Card style={styles.firstRun}>
           <AppText variant="secondary">
