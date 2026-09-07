@@ -106,6 +106,9 @@ export function allowedDishTitles(prefs: FoodPreferences | null): string[] {
   return ranked.map((r) => r.dish.title);
 }
 
+/** Shown for a night when no dish on the list is known to be safe. */
+export const NO_SAFE_DISH = 'Your own dinner \u2014 nothing on our list fits yet';
+
 export const hasAnyPreference = (p: FoodPreferences): boolean =>
   p.patterns.length > 0 ||
   p.allergies.length > 0 ||
@@ -134,7 +137,15 @@ export function suggestAllowedWeek(
   prefs: FoodPreferences | null,
 ): Record<number, string> {
   const pool = allowedDishTitles(prefs);
-  if (pool.length === 0) return suggestWeek(weekStart, prefs?.effort);
+  // Nothing in the list is known to be safe for this person. The old
+  // fallback here was the unchecked pool, which handed someone allergic
+  // to fish a tuna salad. A week of their own dinners is the honest answer.
+  if (pool.length === 0) {
+    const week: Record<number, string> = {};
+    for (let d = 0; d <= 6; d++) week[d] = NO_SAFE_DISH;
+    week[4] = 'Leftovers night';
+    return week;
+  }
   const seed = Array.from(weekStart).reduce((a, c) => a + c.charCodeAt(0), 0);
   const week: Record<number, string> = {};
   for (let d = 0; d <= 6; d++) {

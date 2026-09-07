@@ -54,6 +54,27 @@ const JOINT_SAFE: Record<string, string> = {
   'Inverted rows / doorframe rows': 'Chest-supported row',
 };
 
+/**
+ * The barbell lifts that punish a rushed pattern hardest. Withheld at
+ * foundation and under the constraints in `rulesOutComplexLifts`, in the
+ * block and in the swap menu alike.
+ */
+export const COMPLEX_LIFTS = ['Deadlift', 'Trap-bar deadlift', 'Overhead press'];
+
+/**
+ * Whether a movement is one the joint and injury swaps take out. Used by
+ * the swap menu so the loaded squat a sore knee swapped away is not
+ * offered straight back as an alternative to its replacement.
+ */
+export function ruledOutByConstraints(
+  name: string,
+  constraints: PhysicalConstraint[] | undefined,
+): boolean {
+  if (!constraints || constraints.length === 0) return false;
+  if (!constraints.includes('joints') && !constraints.includes('recovering')) return false;
+  return name in JOINT_SAFE;
+}
+
 /** Balance work belongs early in the session, not tacked on at the end. */
 const BALANCE_SLOT: MovementSlot = {
   name: 'Balance: stand on one leg, 30 seconds each side',

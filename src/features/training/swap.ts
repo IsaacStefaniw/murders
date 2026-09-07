@@ -1,7 +1,12 @@
+import {
+  COMPLEX_LIFTS,
+  ruledOutByConstraints,
+} from "@/features/training/constraints";
 import type {
   PrescribedExercise,
   TrainingEquipment,
 } from "@/features/training/programme";
+import type { PhysicalConstraint } from "@/types/domain";
 
 /**
  * Swapping what the programme picked, without losing what it meant.
@@ -32,6 +37,11 @@ export const PATTERNS: Pattern[] = [
       { name: "Dips", equipment: ["gym", "bodyweight"] },
       { name: "Push-ups (loaded)", equipment: ["home", "bodyweight"] },
       { name: "Push-ups", equipment: ALL },
+      // The joint and injury swaps from constraints.ts. Without them a
+      // constrained block had nothing to swap, because the movements it
+      // programmed were unknown to this table.
+      { name: "Dumbbell floor press", equipment: ["gym", "dumbbells"] },
+      { name: "Incline push-ups — hands raised", equipment: ALL },
     ],
   },
   {
@@ -40,6 +50,7 @@ export const PATTERNS: Pattern[] = [
       { name: "Overhead press", equipment: ["gym"] },
       { name: "Dumbbell shoulder press", equipment: ["gym", "dumbbells"] },
       { name: "Landmine press", equipment: ["gym"] },
+      { name: "Landmine press — shoulder-friendly angle", equipment: ["gym"] },
       { name: "Pike push-ups", equipment: ["home", "bodyweight"] },
     ],
   },
@@ -56,6 +67,7 @@ export const PATTERNS: Pattern[] = [
         name: "Inverted rows / doorframe rows",
         equipment: ["home", "bodyweight"],
       },
+      { name: "Chest-supported row", equipment: ALL },
     ],
   },
   {
@@ -68,6 +80,12 @@ export const PATTERNS: Pattern[] = [
       { name: "Split squats", equipment: ALL },
       { name: "Dumbbell lunges", equipment: ["gym", "dumbbells"] },
       { name: "Tempo air squats", equipment: ["home", "bodyweight"] },
+      {
+        name: "Goblet squat — to a box, comfortable depth",
+        equipment: ["gym", "home", "dumbbells"],
+      },
+      { name: "Box squat — sit and stand, comfortable depth", equipment: ALL },
+      { name: "Sit-to-stand from a chair", equipment: ALL },
     ],
   },
   {
@@ -81,6 +99,7 @@ export const PATTERNS: Pattern[] = [
       { name: "Hip thrusts", equipment: ["gym"] },
       { name: "Hip hinges (loaded)", equipment: ["home"] },
       { name: "Single-leg hip hinges", equipment: ["home", "bodyweight"] },
+      { name: "Hip hinge to a box", equipment: ALL },
     ],
   },
   {
@@ -111,13 +130,30 @@ export function patternOf(name: string): string | null {
 }
 
 /**
+ * What the block itself would and would not programme, so the swap menu
+ * cannot open a door the block closed. `complexLifts` is
+ * `complexLiftsAllowed(programme.inputs)`; the constraints are the
+ * programme's own.
+ */
+export interface SwapRules {
+  complexLifts?: boolean;
+  constraints?: PhysicalConstraint[];
+}
+
+/**
  * The movements that could stand in for this one on this equipment. Same
  * pattern, never itself, in the table's order so the most direct swap is
  * first. Empty for a movement with no pattern.
+ *
+ * With rules, the deadlift and overhead press stay out for a block that
+ * withheld them, and the loaded lifts a joint or injury constraint swapped
+ * away are not offered back. Before this the menu beside a foundation
+ * lifter's hinge practice listed the deadlift first.
  */
 export function alternativesFor(
   name: string,
   equipment: TrainingEquipment,
+  rules: SwapRules = {},
 ): string[] {
   const pattern = PATTERNS.find((p) =>
     p.movements.some((m) => m.name === name),
@@ -125,6 +161,8 @@ export function alternativesFor(
   if (!pattern) return [];
   return pattern.movements
     .filter((m) => m.name !== name && m.equipment.includes(equipment))
+    .filter((m) => rules.complexLifts !== false || !COMPLEX_LIFTS.includes(m.name))
+    .filter((m) => !ruledOutByConstraints(m.name, rules.constraints))
     .map((m) => m.name);
 }
 

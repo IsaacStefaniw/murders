@@ -13,59 +13,131 @@ import { buildDailyPlan, computeFreeWindows } from '@/lib/scheduling/engine';
 import type { FixedCommitment, MovedPlacement } from '@/lib/scheduling/engine';
 import { withProtocolBounds } from '@/features/knowledge/protocols';
 import { durationMinutes, toHHMM, toMinutes, weekdayOf } from '@/lib/dates';
-import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine } from '@/types/domain';
+import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine, Weekday } from '@/types/domain';
 
 const LUNCH_START = 12 * 60;
 const LUNCH_END = 13 * 60 + 30;
 /** Shorter than this, a piece of the work day is a sliver, not a block. */
 const MIN_WORK_FRAGMENT_MIN = 30;
+const DAY_MIN = 24 * 60;
+
+/** A block in minutes past midnight, before it becomes a commitment. */
+type MinuteBlock = Omit<FixedCommitment, 'start' | 'end'> & { start: number; end: number };
+
+const toCommitment = (b: MinuteBlock): FixedCommitment => ({
+  ...b,
+  start: toHHMM(b.start),
+  end: toHHMM(b.end),
+});
+
+export interface CarvedWorkDay {
+  blocks: FixedCommitment[];
+  /**
+   * During-work routines due today that no block could hold: longer than
+   * the hours, or pushed past their end by an earlier carve-out. They are
+   * reported so the day can say so; until they were, a block that did not
+   * fit simply vanished, and nothing on any screen said it had.
+   */
+  uncarved: Routine[];
+}
 
 export function workBlocks(
   profile: LifeProfile,
   date: string,
   routines: Routine[] = [],
 ): FixedCommitment[] {
-  const weekday = weekdayOf(date);
-  if (!profile.workDays.includes(weekday)) return [];
+  return carveWorkDay(profile, date, routines).blocks;
+}
 
+export function carveWorkDay(
+  profile: LifeProfile,
+  date: string,
+  routines: Routine[] = [],
+): CarvedWorkDay {
+  const weekday = weekdayOf(date);
   const workStart = toMinutes(profile.workStart);
   const workEnd = toMinutes(profile.workEnd);
-  if (workEnd <= workStart) return [];
+  if (workEnd === workStart) return { blocks: [], uncarved: [] };
 
+  if (workEnd > workStart) {
+    if (!profile.workDays.includes(weekday)) return { blocks: [], uncarved: [] };
+    const span = carveSpan(workStart, workEnd, weekday, routines);
+    return { blocks: span.blocks.map(toCommitment), uncarved: span.uncarved };
+  }
+
+  // Hours that cross midnight. A night shift is one span, from its start
+  // this evening to its end tomorrow morning, and each date shows the
+  // pieces that fall on it: the evening of the shift that starts tonight,
+  // and the morning of the one that started last night. Until this, an
+  // end before the start meant no work at all, and a night worker's whole
+  // shift was planned over as free time.
+  const blocks: MinuteBlock[] = [];
+  const uncarved: Routine[] = [];
+  if (profile.workDays.includes(weekday)) {
+    const span = carveSpan(workStart, workEnd + DAY_MIN, weekday, routines);
+    for (const b of span.blocks) {
+      if (b.start >= DAY_MIN) continue;
+      // Plain work stops at midnight; a carved routine stays whole on the
+      // day it starts.
+      blocks.push(b.routineId ? b : { ...b, end: Math.min(b.end, DAY_MIN) });
+    }
+    uncarved.push(...span.uncarved);
+  }
+  const yesterday = ((weekday + 6) % 7) as Weekday;
+  if (profile.workDays.includes(yesterday)) {
+    const span = carveSpan(workStart, workEnd + DAY_MIN, yesterday, routines);
+    for (const b of span.blocks) {
+      if (b.end <= DAY_MIN) continue;
+      // A carved routine that began before midnight is already whole on
+      // yesterday; only what starts after midnight belongs to today.
+      if (b.routineId && b.start < DAY_MIN) continue;
+      blocks.push({ ...b, start: Math.max(b.start, DAY_MIN) - DAY_MIN, end: b.end - DAY_MIN });
+    }
+  }
+  blocks.sort((a, b) => a.start - b.start);
+  return { blocks: blocks.map(toCommitment), uncarved };
+}
+
+/**
+ * Split one span of work hours around lunch and around the routines that
+ * happen during it. Minutes may run past 1440 for a span that crosses
+ * midnight; the caller decides which date each piece belongs to.
+ */
+function carveSpan(
+  workStart: number,
+  workEnd: number,
+  weekday: Weekday,
+  routines: Routine[],
+): { blocks: MinuteBlock[]; uncarved: Routine[] } {
   // Carve-outs from the work day: lunch (left free) and during-work routines
   // (emitted as their own named fixed commitments).
-  const carves: { start: number; end: number; commitment?: FixedCommitment }[] = [];
+  const carves: { start: number; end: number; routine?: Routine }[] = [];
+  const uncarved: Routine[] = [];
   if (workStart < LUNCH_START && workEnd > LUNCH_END) {
     carves.push({ start: LUNCH_START, end: LUNCH_END });
   }
   for (const r of routines) {
     if (!r.duringWork || !r.active || !r.days.includes(weekday)) continue;
     const duration = r.durationMin;
-    if (duration > workEnd - workStart) continue;
+    if (duration > workEnd - workStart) {
+      uncarved.push(r);
+      continue;
+    }
+    // A preferred time earlier than the start of a shift that crosses
+    // midnight means the small hours of it, not the morning before.
+    const preferred = toMinutes(r.preferredStart);
+    const wanted = preferred < workStart && workEnd > DAY_MIN ? preferred + DAY_MIN : preferred;
     // Clamped into the day rather than dropped: a block that prefers 17:00
     // in a day that ends at 17:00 still belongs to that day. A ritual that
     // closes the day sits against its end, whatever the hours are.
     const start = r.anchorToWorkEnd
       ? workEnd - duration
-      : Math.min(Math.max(workStart, toMinutes(r.preferredStart)), workEnd - duration);
-    const end = start + duration;
-    carves.push({
-      start,
-      end,
-      commitment: {
-        title: r.title,
-        start: toHHMM(start),
-        end: toHHMM(end),
-        area: r.area,
-        sessionType: r.sessionType,
-        routineId: r.id,
-        goalId: r.goalId,
-      },
-    });
+      : Math.min(Math.max(workStart, wanted), workEnd - duration);
+    carves.push({ start, end: start + duration, routine: r });
   }
   carves.sort((a, b) => a.start - b.start);
 
-  const blocks: FixedCommitment[] = [];
+  const blocks: MinuteBlock[] = [];
   let cursor = workStart;
   for (const carve of carves) {
     // Two carve-outs can prefer the same start (deep work + a growth
@@ -77,12 +149,24 @@ export function workBlocks(
     // data. The carve-out starts at the cursor instead.
     if (start > cursor && start - cursor < MIN_WORK_FRAGMENT_MIN) start = cursor;
     const end = start + duration;
-    if (end > workEnd) continue;
-    if (start > cursor) {
-      blocks.push({ title: 'Work', start: toHHMM(cursor), end: toHHMM(start), area: 'work' });
+    if (end > workEnd) {
+      if (carve.routine) uncarved.push(carve.routine);
+      continue;
     }
-    if (carve.commitment) {
-      blocks.push({ ...carve.commitment, start: toHHMM(start), end: toHHMM(end) });
+    if (start > cursor) {
+      blocks.push({ title: 'Work', start: cursor, end: start, area: 'work' });
+    }
+    if (carve.routine) {
+      const r = carve.routine;
+      blocks.push({
+        title: r.title,
+        start,
+        end,
+        area: r.area,
+        sessionType: r.sessionType,
+        routineId: r.id,
+        goalId: r.goalId,
+      });
     }
     cursor = end;
   }
@@ -91,13 +175,13 @@ export function workBlocks(
     const tail = workEnd - cursor;
     // The same rule at the end of the day: a short tail folds into the
     // plain work block it follows, when there is one right behind it.
-    if (tail < MIN_WORK_FRAGMENT_MIN && last && !last.routineId && last.title === 'Work' && toMinutes(last.end) === cursor) {
-      last.end = toHHMM(workEnd);
+    if (tail < MIN_WORK_FRAGMENT_MIN && last && !last.routineId && last.title === 'Work' && last.end === cursor) {
+      last.end = workEnd;
     } else {
-      blocks.push({ title: 'Work', start: toHHMM(cursor), end: toHHMM(workEnd), area: 'work' });
+      blocks.push({ title: 'Work', start: cursor, end: workEnd, area: 'work' });
     }
   }
-  return blocks;
+  return { blocks, uncarved };
 }
 
 /** goalId → the goal's next step: the review-set lever, else the next milestone. */
@@ -120,16 +204,18 @@ export function generateDailyPlan(
 ): DailyPlan & { unplaced: Routine[]; moved: MovedPlacement[] } {
   // Real calendar events are truth; modelled work hours are the fallback
   // for work days the calendar knows nothing about.
-  const fixed =
-    calendarEvents.length > 0 ? calendarEvents : workBlocks(profile, date, routines);
+  const carved: CarvedWorkDay =
+    calendarEvents.length > 0
+      ? { blocks: calendarEvents, uncarved: [] }
+      : carveWorkDay(profile, date, routines);
   // Capacity governs slack: minimal keeps a third of free time untouched.
   const reservedFreeFraction =
     profile.capacity === 'minimal' ? 0.35 : profile.capacity === 'push' ? 0.2 : 0.25;
-  return buildDailyPlan({
+  const plan = buildDailyPlan({
     date,
     wakeTime: profile.wakeTime,
     sleepTime: profile.sleepTime,
-    fixed,
+    fixed: carved.blocks,
     reservedFreeFraction,
     // The answer to "which parts of life matter most" finally reaches the
     // code that decides which of two things gets the hour.
@@ -139,6 +225,9 @@ export function generateDailyPlan(
     // Bounds are stamped here rather than trusted from each producer.
     routines: withProtocolBounds(routines.filter((r) => !r.duringWork)),
   });
+  // A during-work block the hours could not hold is as unplaced as
+  // anything the engine turned away, and is reported the same way.
+  return { ...plan, unplaced: [...plan.unplaced, ...carved.uncarved] };
 }
 
 /**

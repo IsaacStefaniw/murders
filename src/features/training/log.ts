@@ -161,8 +161,8 @@ export interface NextSuggestion {
 }
 
 /** Reps written as a range or a note; the first number is the useful default. */
-export function defaultRepsFrom(prescribed: string): number | undefined {
-  const match = prescribed.match(/\d+/);
+export function defaultRepsFrom(written: string): number | undefined {
+  const match = written.match(/\d+/);
   return match ? Number(match[0]) : undefined;
 }
 
@@ -177,8 +177,8 @@ export function defaultRepsFrom(prescribed: string): number | undefined {
  * 6–10 range was told "you hit every rep, up 5 kg" while visibly failing
  * to progress, which is how a stall becomes an injury.
  */
-export function topRepsFrom(prescribed: string): number | undefined {
-  const nums = prescribed.match(/\d+/g);
+export function topRepsFrom(written: string): number | undefined {
+  const nums = written.match(/\d+/g);
   if (!nums || nums.length === 0) return undefined;
   return Math.max(...nums.map(Number));
 }

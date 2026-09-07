@@ -32,6 +32,7 @@ export default function Welcome() {
       </View>
       <Button title="Continue" onPress={() => router.push('/interview')} />
       <Button title="See an example day first" variant="ghost" onPress={() => router.push('/example-day' as never)} />
+      <Button title="Restore a backup" variant="ghost" onPress={() => router.push('/settings' as never)} />
       <AppText variant="caption" style={styles.footnote}>
         No account. Nothing you enter leaves your phone.
       </AppText>

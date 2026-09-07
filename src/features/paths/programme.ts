@@ -123,7 +123,7 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
         },
       ],
       milestones: ['Twelve sessions logged with weights', 'One full four-week block finished'],
-      note: 'Barbell work comes in and the aerobic base starts. This is the piece most lifters skip, and it pays the longest.',
+      note: 'Barbell work comes in and easy, steady cardio starts. This is the piece most lifters skip, and it pays the longest.',
     },
     established: {
       routines: [

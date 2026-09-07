@@ -11,13 +11,14 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
 import { syncAppleHealth } from '@/features/health/healthkit';
-import { buildWorkout } from '@/features/modalities/gym/program';
+import { buildWorkout, type WorkoutSession as StockSession } from '@/features/modalities/gym/program';
+import { applyConstraints } from '@/features/training/constraints';
 import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/training/log';
 import { defaultRepsFrom, SetLogger, topRepsFrom } from '@/features/training/SetLogger';
 import { readinessFrom } from '@/features/health/readiness';
-import { autoRegulate, weekOf } from '@/features/training/programme';
+import { autoRegulate, complexLiftsAllowed, weekOf } from '@/features/training/programme';
 import { alternativesFor, applyExerciseSwaps } from '@/features/training/swap';
-import { dateKeyToDate, durationMinutes, todayKey } from '@/lib/dates';
+import { dateKeyOfIso, dateKeyToDate, durationMinutes, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 import type { LoggedSet } from '@/types/domain';
@@ -65,7 +66,7 @@ export default function WorkoutSession() {
     void syncAppleHealth();
   }, []);
   const today = todayKey();
-  const loggedSleep = metrics.find((m) => m.key === 'sleep.hours' && m.at.slice(0, 10) === today);
+  const loggedSleep = metrics.find((m) => m.key === 'sleep.hours' && dateKeyOfIso(m.at) === today);
   const [startedAt] = useState(() => Date.now());
   const [manualSleep, setManualSleep] = useState<number | null>(null);
   // A tap wins; otherwise today's logged value (incl. an Apple Health sync
@@ -80,6 +81,8 @@ export default function WorkoutSession() {
   // Null for most people most weeks — nothing is invented from no data.
   const readiness = useMemo(() => readinessFrom(metrics), [metrics]);
 
+  const trainingPreference = profile?.trainingPreference ?? 'mixed';
+  const constraints = profile?.constraints;
   const session = useMemo(() => {
     // Training v2: when a block is active, today runs the PROGRAMME —
     // your lifts, your loads — auto-regulated to the time that exists
@@ -93,6 +96,8 @@ export default function WorkoutSession() {
         age: programme.inputs.age,
         readiness: readiness?.band,
       });
+      // Under fifteen minutes there is no session, on either path.
+      if (!adjusted) return null;
       const exercises = applyExerciseSwaps(adjusted.exercises, exerciseSwaps, programme.id, programmed.title);
       return {
         title: `Week ${week} · ${adjusted.title}`,
@@ -111,8 +116,24 @@ export default function WorkoutSession() {
         })),
       };
     }
-    return buildWorkout(availableMin, profile?.trainingPreference ?? 'mixed', weekday);
-  }, [availableMin, profile?.trainingPreference, weekday, programme, week, sessionIdx, exerciseSwaps, sleptHours, readiness?.band]);
+    // No block yet: the stock session, under the same constraints the
+    // interview promised. Without this, someone who said "sore joints or
+    // back" and tapped Train was handed a deadlift on day one — the plan
+    // review's "swapped for kinder versions" was true only once a
+    // programme existed.
+    const stock = buildWorkout(availableMin, trainingPreference, weekday);
+    if (!stock || !constraints?.length) return stock;
+    const slots = applyConstraints(
+      stock.exercises.map((e) => ({ name: e.name, lift: null, primary: !e.accessory })),
+      constraints,
+    );
+    // A balance slot, when added, is the only extra and always comes first.
+    const added = slots.length - stock.exercises.length;
+    const balance = slots.slice(0, added).map((b) => ({ name: b.name, sets: 2, reps: '30 sec each side', restSec: 30 }));
+    const swapped = stock.exercises.map((e, i) => ({ ...e, name: slots[i + added].name }));
+    const constrained: StockSession = { ...stock, exercises: [...balance, ...swapped] };
+    return constrained;
+  }, [availableMin, trainingPreference, constraints, weekday, programme, week, sessionIdx, exerciseSwaps, sleptHours, readiness?.band]);
 
   const workoutLogs = useAppStore((s) => s.workoutLogs);
   const saveWorkoutLog = useAppStore((s) => s.saveWorkoutLog);
@@ -294,15 +315,26 @@ export default function WorkoutSession() {
                 ? `last time: ${last.set.weightKg ? `${last.set.weightKg} kg × ` : ''}${last.set.reps}`
                 : undefined;
           // The movements that keep this one's pattern on this person's
-          // equipment. Only while nothing is logged under the current name.
+          // equipment, under the same rules the block was built with.
+          // Only while nothing is logged under the current name.
           const programmedName = swappedFrom ?? e.name;
           const alternatives =
             programme && 'programmedTitle' in session && setsFor(e.name).length === 0
-              ? alternativesFor(programmedName, programme.inputs.equipment).filter((a) => a !== e.name).slice(0, 3)
+              ? alternativesFor(programmedName, programme.inputs.equipment, {
+                  complexLifts: complexLiftsAllowed(programme.inputs),
+                  constraints: programme.inputs.constraints,
+                })
+                  .filter((a) => a !== e.name)
+                  .slice(0, 3)
               : [];
           return (
             <View key={programmedName} style={styles.stack}>
+              {/* Keyed by the lift on screen, not the programmed one: the
+                  logger seeds its draft weight once, on mount, so a swap
+                  that kept the instance carried the squat's 160 kg into
+                  the front squat's first set. A wrong load, silently. */}
               <SetLogger
+                key={e.name}
                 exercise={e.name}
                 prescribedSets={e.sets}
                 prescribedReps={`${e.reps}${e.restSec > 0 ? ` · rest ${e.restSec}s` : ''}`}

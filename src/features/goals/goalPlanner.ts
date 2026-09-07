@@ -52,11 +52,17 @@ const DOMAIN_AREA: Record<GoalDomain, LifeArea> = {
 const DOMAIN_MATCHERS: [GoalDomain, RegExp][] = [
   ['behaviour', /\b(quit|stop|cut down|reduce|less|drink less|vape|vaping|smoking|scroll)\b/i],
   ['business', /\b(business|revenue|clients?|sales|launch|startup|company|customers?)\b/i],
-  ['career', /\b(promotion|career|new job|role|salary)\b/i],
-  ['finance', /\b(save|savings|debt|invest|mortgage|deposit|budget)\b/i],
+  // "Get promoted" and "a pay rise" are how people say it; "promotion"
+  // and "salary" are how a form says it.
+  ['career', /\b(promot\w*|career|new job|role|salary|pay rise)\b/i],
+  // "Pay off the credit card" and "an emergency fund" were falling through
+  // to a generic plan with no money milestones at all.
+  ['finance', /\b(save|savings|debt|invest|mortgage|deposit|budget|pay off|credit card|loan|emergency fund|money)\b/i],
   // \d+kg has no word boundary between digit and unit — matched explicitly.
-  ['fitness', /\b(train|gym|run|marathon|5k|10k|strength|muscle|weight|fitness|kg|kilos?|lbs|bench|squat|deadlift|press)\b|\d+\s*kg\b/i],
-  ['health', /\b(sleep|meditat|stress|energy|health|blood pressure)\b/i],
+  ['fitness', /\b(train|gym|run|marathon|5k|10k|strength|strong\w*|fit|fitter|muscle|weight|fitness|kg|kilos?|lbs|bench|squat|deadlift|press)\b|\d+\s*kg\b/i],
+  // "meditat" with a word boundary after it never matched "meditate" or
+  // "meditation", so every meditation goal was a personal project.
+  ['health', /\b(sleep|meditat\w*|stress|energy|health|blood pressure)\b/i],
   ['relationship', /\b(wife|husband|partner|marriage|date night|relationship|couple)\b/i],
   ['family', /\b(kids?|family|son|daughter|children|dad|mum|parent)\b/i],
   ['friends', /\b(friends?|mates?|catch up)\b/i],
@@ -158,6 +164,15 @@ export function buildGoalPlan(
     case 'health': {
       // Health goals route by the user's own leverage answer: the plan for
       // "better sleep" is light and wind-down, not a workout.
+      // A meditation goal is a sit, not a workout. Before the matcher heard
+      // "meditate" this fell through to a generic project; once it did, the
+      // health default would have handed it a strength session.
+      if (parsed.domain === 'health' && /\bmeditat\w*/i.test(parsed.title)) {
+        milestones = [milestone('Seven sits in a row'), milestone('Four weeks of most mornings')];
+        const sit = protocolById('meditation-10');
+        if (sit) routines.push(toRoutine(sit, profile, goalId));
+        break;
+      }
       if (parsed.domain === 'health' && answers.anchor === 'sleep') {
         milestones = [
           milestone('A week of morning light'),

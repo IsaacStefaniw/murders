@@ -9,6 +9,7 @@ import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { BMI_CONTEXT, VO2MAX_CONTEXT, conditioningFrom } from '@/features/health/conditioning';
 import { bmiFrom, waistToHeight } from '@/features/health/summarise';
+import { BODY_ENTRIES } from '@/features/health/bodyEntries';
 import { latest } from '@/features/model/metrics';
 import { useAppStore } from '@/state/store';
 
@@ -29,67 +30,6 @@ import { useAppStore } from '@/state/store';
  * invisible error in half of all cases.
  */
 
-interface Entry {
-  key: string;
-  label: string;
-  unit: string;
-  hint: string;
-  /** Rejected outside this range — a typo is not a reading. */
-  min: number;
-  max: number;
-}
-
-const ENTRIES: Entry[] = [
-  {
-    key: 'body.height',
-    label: 'Height',
-    unit: 'cm',
-    hint: 'Used for the two ratios below. Asked once.',
-    min: 100,
-    max: 250,
-  },
-  {
-    key: 'body.weight',
-    label: 'Body weight',
-    unit: 'kg',
-    hint: 'The nutrition plan adapts to the trend in this, not to any single morning.',
-    min: 25,
-    max: 400,
-  },
-  {
-    key: 'body.waist',
-    label: 'Waist',
-    unit: 'cm',
-    hint: 'Measured at the navel, relaxed. Separates the two things weight alone runs together.',
-    min: 40,
-    max: 250,
-  },
-  {
-    key: 'body.restingHr',
-    label: 'Resting heart rate',
-    unit: 'bpm',
-    hint: 'Best taken before getting out of bed. A rise above your own normal changes today’s session.',
-    min: 25,
-    max: 140,
-  },
-  {
-    key: 'body.hrv',
-    label: 'Heart-rate variability',
-    unit: 'ms',
-    hint: 'SDNN, if your watch reports it. Only ever compared against your own two-week normal.',
-    min: 5,
-    max: 300,
-  },
-  {
-    key: 'body.vo2max',
-    label: 'Cardio fitness (VO₂max)',
-    unit: 'ml/kg/min',
-    hint: 'From a watch or a test. Decides whether the plan carries intervals.',
-    min: 10,
-    max: 90,
-  },
-];
-
 export function BodyNumbers() {
   const metrics = useAppStore((s) => s.metrics);
   const addMetric = useAppStore((s) => s.addMetric);
@@ -107,7 +47,7 @@ export function BodyNumbers() {
   const conditioning = useMemo(() => conditioningFrom(metrics), [metrics]);
 
   const save = () => {
-    for (const entry of ENTRIES) {
+    for (const entry of BODY_ENTRIES) {
       const raw = drafts[entry.key];
       if (raw == null || raw.trim() === '') continue;
       const value = Number(raw);
@@ -168,7 +108,7 @@ export function BodyNumbers() {
       {open ? (
         <Card style={styles.gap}>
           <View style={styles.fields}>
-            {ENTRIES.map((entry) => (
+            {BODY_ENTRIES.map((entry) => (
               <Field
                 key={entry.key}
                 label={entry.label}
@@ -189,7 +129,7 @@ export function BodyNumbers() {
       ) : (
         <Card style={styles.gap}>
           <AppText variant="secondary">
-            {ENTRIES.filter((e) => known(e.key) != null).length === 0
+            {BODY_ENTRIES.filter((e) => known(e.key) != null).length === 0
               ? 'Nothing here yet. Apple Health fills these in automatically — or enter them yourself, which works exactly the same way.'
               : 'Kept current by Apple Health where it can be. Anything it does not have, you can enter.'}
           </AppText>
@@ -197,7 +137,7 @@ export function BodyNumbers() {
             title="Enter my numbers"
             variant="secondary"
             style={styles.gap}
-            hint="Height, weight, waist, resting heart rate, HRV and cardio fitness."
+            hint="Height, weight, waist, resting heart rate, heart-rate variability and cardio fitness."
             onPress={() => setOpen(true)}
           />
         </Card>

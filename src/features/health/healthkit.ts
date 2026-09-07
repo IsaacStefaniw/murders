@@ -40,7 +40,7 @@ const READ_TYPES = [
  * would either throw away a perfectly good VO2max or treat a three-week-old
  * HRV as this morning's recovery.
  */
-const WINDOW_HOURS = {
+export const WINDOW_HOURS = {
   sleep: 18,
   restingHr: 48,
   weight: 48,

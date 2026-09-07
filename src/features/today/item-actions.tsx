@@ -117,14 +117,18 @@ export function ItemActions({
       ? pastStartsFor(plan, item.id, { wakeTime: profile.wakeTime, sleepTime: profile.sleepTime }, nowMinutes())
       : [];
   const recordHappened = (start: string) => {
-    moveItem(date, item.id, start);
+    // The move can bump something that was planned for that time; the
+    // person is told, the same as any other move.
+    const displaced = moveItem(date, item.id, start);
     setItemStatus(date, item.id, 'completed', {
       source: 'manual',
       confidence: 1,
       at: new Date().toISOString(),
       note: `happened at ${formatTime(start)}, logged after`,
     });
+    setKnockOn(displaced);
     if (goal && nextMilestone) setMode('milestone');
+    else if (displaced.length > 0) setMode('idle');
     else finish();
   };
 

@@ -152,6 +152,19 @@ export function baselinesFrom(
 }
 
 const round2p5 = (kg: number) => Math.round(kg / 2.5) * 2.5;
+const floor2p5 = (kg: number) => Math.floor(kg / 2.5) * 2.5;
+
+/**
+ * A load in plate-sized steps that never rounds up past the ceiling.
+ *
+ * Rounding to the nearest 2.5 kg used to be applied after the ceiling, so
+ * 80% of 140 became 112.5 for someone whose balance constraint set the
+ * limit at 112. Half a kilogram is not a danger; a limit the app says it
+ * keeps and then quietly rounds through is. The ceiling is applied last.
+ */
+function cappedLoad(base: number, pct: number, ceiling: number): number {
+  return Math.min(round2p5(base * pct), floor2p5(base * ceiling));
+}
 
 
 /**
@@ -330,7 +343,7 @@ function prescribe(
     // constraint lowers the top of that range rather than shifting it, so
     // several constraints together cannot drive the load below useful.
     const safePct = Math.min(ceiling, Math.max(0.5, pct));
-    return { name, sets, reps: scheme.reps, loadKg: round2p5(base * safePct), restSec };
+    return { name, sets, reps: scheme.reps, loadKg: cappedLoad(base, safePct, ceiling), restSec };
   }
 
   // No baseline: effort-anchored, and the level caps how hard that effort
@@ -439,11 +452,22 @@ function mains(
   };
 }
 
-function estimateMin(exercises: PrescribedExercise[], age?: number): number {
+/**
+ * What a list of exercises takes, warm-up included. Exported so the number
+ * a screen shows can be checked against the exercises it shows it beside.
+ */
+export function estimateSessionMin(exercises: PrescribedExercise[], age?: number): number {
   const warmup = (age ?? 0) >= 45 ? 12 : 8;
   const workSec = exercises.reduce((sum, e) => sum + e.sets * (45 + e.restSec), 0);
   return Math.round(workSec / 60) + warmup;
 }
+
+/**
+ * Below this the non-programme path (modalities/gym/program) declines to
+ * build a session at all, and the workout screen says a walk is the better
+ * use of the time. The programme path answers the same way.
+ */
+const MIN_SESSION_MIN = 15;
 
 function fitToTime(
   exercises: PrescribedExercise[],
@@ -451,7 +475,7 @@ function fitToTime(
   age?: number,
 ): PrescribedExercise[] {
   let out = exercises.map((e) => ({ ...e }));
-  while (estimateMin(out, age) > targetMin) {
+  while (estimateSessionMin(out, age) > targetMin) {
     const lastAccessory = [...out].reverse().find((e) => e.accessory);
     if (lastAccessory) {
       out = out.filter((e) => e !== lastAccessory);
@@ -476,7 +500,7 @@ const LEVEL_NOTE: Record<PathLevel, string> = {
   developing:
     'Developing block — deadlift and overhead press are in, sets and loads step up. Enough to drive progress without costing you the rest of the week.',
   established:
-    'Established block — full prescribed volume, a peak week, and a heavy top set on your focus lift.',
+    'Established block — full volume, a peak week, and a heavy top set on your focus lift.',
   advanced:
     'Advanced block — higher intensity, an extra set on the main work, and week 3 deliberately overreaches. The deload after it is not optional.',
 };
@@ -502,6 +526,21 @@ function sessionNote(
 
 const PHASES: TrainingPhase[] = ['build', 'build', 'progress', 'deload'];
 
+/**
+ * Whether this block programmes the barbell deadlift and overhead press.
+ *
+ * A constraint rules the technical lifts out for the same reason
+ * foundation level does, and either alone is enough. One function, so the
+ * swap menu on the workout screen answers exactly as the block did — a
+ * swap must not be the back door to a lift the block withheld.
+ */
+export function complexLiftsAllowed(inputs: TrainingInputs): boolean {
+  return (
+    tuningFor(levelOf(inputs), inputs.pushHarder).complexLifts &&
+    !rulesOutComplexLifts(inputs.constraints)
+  );
+}
+
 /** Build the four-week block from who this person actually is. */
 export function buildProgramme(
   inputs: TrainingInputs,
@@ -510,9 +549,7 @@ export function buildProgramme(
   const days = Math.min(Math.max(inputs.daysAvailable, 2), 5);
   const level = levelOf(inputs);
   const tuning = tuningFor(level, inputs.pushHarder);
-  // A constraint rules the technical lifts out for the same reason
-  // foundation level does, and either alone is enough.
-  const allowComplex = tuning.complexLifts && !rulesOutComplexLifts(inputs.constraints);
+  const allowComplex = complexLiftsAllowed(inputs);
   const ceiling = intensityCeiling(inputs.constraints);
   // Any stated constraint rules out near-maximal singles. Not a scaled-down
   // version of one — none at all.
@@ -544,9 +581,21 @@ export function buildProgramme(
       ? `${days} full-body sessions — frequency beats fancy splits at this availability.`
       : 'Upper/lower split — each lift trained twice weekly, recovery respected.',
   );
-  if (inputs.focusLift && baselines[inputs.focusLift]) {
+  // The focus line describes this block, not the block an unconstrained
+  // established lifter would get. It used to promise a heavy top set to
+  // everyone with a baseline — including the levels that never get one and
+  // the constrained person whose next line withdrew it — and named a lift
+  // that a joint constraint had already swapped out of every session.
+  const focusProgrammed =
+    inputs.focusLift != null &&
+    Object.values(menu).some((slots) =>
+      applyConstraints(slots, inputs.constraints).some((s) => s.lift === inputs.focusLift),
+    );
+  if (inputs.focusLift && baselines[inputs.focusLift] && focusProgrammed) {
     notes.push(
-      `Focus: ${inputs.focusLift} — it opens every upper session, and week 3 adds a heavy top set.`,
+      tuning.topSingle && maximalAllowed
+        ? `Focus: ${inputs.focusLift} — it opens every session it is in, and week 3 adds a heavy top set.`
+        : `Focus: ${inputs.focusLift} — it opens every session it is in.`,
     );
   }
   if ((inputs.age ?? 0) >= 45) notes.push('45+: longer warm-ups are built into every estimate.');
@@ -556,7 +605,11 @@ export function buildProgramme(
     const week = i + 1;
     const sessions: ProgrammeSession[] = split.map((kind, dayIdx) => {
       const slots = applyConstraints([...menu[kind]], inputs.constraints);
-      // Focus lift leads its sessions.
+      // Focus lift leads its sessions, and leading means the lead slot's
+      // volume. The deadlift and overhead press are the second lift of
+      // their sessions by default, and moving one to the front used to
+      // leave it prescribed as the second lift — so asking for more
+      // deadlift bought three sets of it and cost a squat set.
       if (inputs.focusLift) {
         const fi = slots.findIndex((s) => s.lift === inputs.focusLift);
         if (fi > 0) slots.unshift(...slots.splice(fi, 1));
@@ -568,7 +621,7 @@ export function buildProgramme(
           baselines,
           inputs.goal,
           week,
-          s.primary && si === 0,
+          (s.primary || s.lift === inputs.focusLift) && si === 0,
           si === 0 ? 120 : 90,
           tuning,
           ceiling,
@@ -604,7 +657,7 @@ export function buildProgramme(
             // Clamped as well as gated. If a future change ever offers
             // this under a constraint, it comes back capped rather than
             // uncapped.
-            loadKg: round2p5(baselines[inputs.focusLift]! * Math.min(0.9, ceiling)),
+            loadKg: cappedLoad(baselines[inputs.focusLift]!, 0.9, ceiling),
             restSec: 180,
           });
         }
@@ -624,7 +677,10 @@ export function buildProgramme(
         title:
           kind === 'full' ? `Full body ${String.fromCharCode(65 + dayIdx)}` : kind === 'upper' ? `Upper ${dayIdx < 2 ? 'A' : 'B'}` : `Lower ${dayIdx < 2 ? 'A' : 'B'}`,
         exercises,
-        estimatedMin: Math.min(estimateMin(exercises, inputs.age), inputs.sessionMin),
+        // The honest number. It was clamped to the session length, which
+        // hid the one case that matters: a session that could not be
+        // trimmed to fit, shown as if it had been.
+        estimatedMin: estimateSessionMin(exercises, inputs.age),
         note: sessionNote(phase, week, dayIdx, tuning),
       };
     });
@@ -665,7 +721,11 @@ export function autoRegulate(
      */
     readiness?: 'ready' | 'caution' | 'back-off';
   },
-): ProgrammeSession {
+): ProgrammeSession | null {
+  // Under fifteen minutes there is no session to condense, only a warm-up
+  // and a rush. The non-programme path already says so; this one used to
+  // hand back three lifts at two sets labelled "~14 minutes".
+  if (ctx.availableMin != null && ctx.availableMin < MIN_SESSION_MIN) return null;
   const tight = ctx.availableMin != null && ctx.availableMin < session.estimatedMin;
   const shortNight = ctx.sleptHours != null && ctx.sleptHours < 6;
   const unrecovered = ctx.readiness === 'back-off';
@@ -688,7 +748,10 @@ export function autoRegulate(
   return {
     ...session,
     exercises,
-    estimatedMin: Math.min(estimateMin(exercises, ctx.age), ctx.availableMin ?? session.estimatedMin),
+    // What is left actually takes this long. Clamping it to the window
+    // told a person with twenty minutes that a twenty-three-minute session
+    // was twenty.
+    estimatedMin: estimateSessionMin(exercises, ctx.age),
     note: reason,
   };
 }

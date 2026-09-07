@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Platform, StyleSheet, View } from 'react-native';
@@ -38,12 +37,11 @@ import {
   type CheckResult,
   type UpdateInfo,
 } from '@/lib/updates';
+import { exportBackup, restoreBackup as restoreFromBackup } from '@/state/backup';
 import { useAppStore } from '@/state/store';
 import { shareText } from '@/lib/share';
 import { NO_ENTITLEMENT, grantedEntitlement } from '@/features/plus/entitlement';
 import { manageSubscription, restore } from '@/lib/purchases';
-
-const STORE_KEY = 'intent-os-store';
 
 /**
  * Which of the two things you are holding. The build stamp cannot answer
@@ -117,7 +115,7 @@ export default function Settings() {
     // Was navigator.clipboard — a web API that is undefined on iOS, so the
     // TypeError was swallowed and the button did nothing on every phone
     // the app ships to. The share sheet reaches Notes, Files, Mail.
-    const raw = await AsyncStorage.getItem(STORE_KEY);
+    const raw = await exportBackup();
     if (!raw) return;
     const { shared } = await shareText(raw, 'IntentNorth backup');
     if (!shared) return;
@@ -126,21 +124,54 @@ export default function Settings() {
   };
 
   const restoreBackup = async () => {
-    try {
-      const parsed = JSON.parse(restoreText.trim());
-      if (!parsed?.state) return; // not a backup payload
-      await AsyncStorage.setItem(STORE_KEY, restoreText.trim());
-      // A page reload only exists on the web. On the phone the store has to
-      // be told to read storage again, or the restore is invisible until
-      // the next cold start.
-      await useAppStore.persist.rehydrate();
-      if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.reload();
-    } catch {
-      // Invalid JSON — leave the field for the user to fix.
+    // Either everything is replaced with a backup the app can open, or
+    // nothing is touched and the reason is said. The check lives in
+    // state/backup so it is tested; this only reports what it decided.
+    const result = await restoreFromBackup(restoreText);
+    if (!result.ok) {
+      Alert.alert('Not restored', result.reason);
+      return;
     }
+    // A page reload only exists on the web. On the phone the store has
+    // already been told to read storage again.
+    if (Platform.OS === 'web' && typeof window !== 'undefined') window.location.reload();
   };
 
-  if (!profile) return <Screen />;
+  // Before the interview there is no profile to show, but there may be a
+  // backup to bring across from an old phone. A blank screen here made
+  // restoring on a fresh install impossible: the only way in was to answer
+  // twelve questions first and then replace those answers.
+  if (!profile) {
+    return (
+      <Screen>
+        <View style={styles.topRow}>
+          <AppText variant="title" style={styles.grow}>
+            Restore a backup
+          </AppText>
+          <Button
+            title="Done"
+            variant="ghost"
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+          />
+        </View>
+        <AppText variant="secondary" style={styles.note}>
+          Moving from another phone? Paste the backup you saved there and everything comes across
+          — your answers, your plan and your history. Nothing leaves this phone.
+        </AppText>
+        <View style={styles.restoreArea}>
+          <Field
+            label="Backup to restore"
+            hint="Paste the whole backup, exactly as it was saved."
+            value={restoreText}
+            onChangeText={setRestoreText}
+            placeholder="Paste a backup here"
+            multiline
+          />
+          <Button title="Restore backup" onPress={restoreBackup} disabled={!restoreText.trim()} />
+        </View>
+      </Screen>
+    );
+  }
 
   const trackedKeys = new Set(
     behaviourIntentions.filter((b) => b.active).map((b) => b.behaviour),
@@ -243,7 +274,7 @@ export default function Settings() {
       <Card onPress={() => router.push('/library' as never)}>
         <AppText variant="heading">Evidence-based practices</AppText>
         <AppText variant="caption" color="textTertiary">
-          Protocols from the public work of Ferriss, Huberman, Attia, Patrick, Peterson and
+          Practices from the public work of Ferriss, Huberman, Attia, Patrick, Peterson and
           Sinclair — one tap adds them to your plan.
         </AppText>
       </Card>

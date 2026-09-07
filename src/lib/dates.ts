@@ -74,6 +74,20 @@ export function todayKey(): string {
   return toDateKey(nowDate());
 }
 
+/**
+ * The local calendar day an ISO timestamp falls on.
+ *
+ * An observation is stamped as an instant, and the day it belongs to is a
+ * local question. Slicing the first ten characters answers it in UTC,
+ * which east of Greenwich is the previous day until ten or eleven in the
+ * morning — so a reading taken at seven was filed under yesterday, and
+ * then judged stale by eleven. Every date-keyed read of a timestamp goes
+ * through here instead.
+ */
+export function dateKeyOfIso(iso: string): string {
+  return toDateKey(new Date(iso));
+}
+
 export function dateKeyToDate(key: string): Date {
   const [y, m, d] = key.split('-').map(Number);
   return new Date(y, m - 1, d);
