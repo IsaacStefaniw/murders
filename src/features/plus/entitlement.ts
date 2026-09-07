@@ -136,6 +136,11 @@ export function splitLibrary(
  */
 export function isAlwaysFreeRoutine(r: Routine, recoveryGoalId?: string): boolean {
   if (recoveryGoalId && r.goalId === recoveryGoalId) return true;
+  // A habit the person told the interview they already have is theirs, not
+  // the coaches': it is placed on the free day so the day has rows and the
+  // walk they already take is never behind a lock. Isaac's call, after the
+  // usability review found the free day empty.
+  if (r.established === true) return true;
   return typeof r.protocolId === 'string' && isAlwaysFreeProtocol(r.protocolId);
 }
 
@@ -185,6 +190,7 @@ export const FREE_ALWAYS: readonly string[] = [
   'Your profile and your first insight',
   'The day’s shape — sleep, work, meals and what you fixed',
   'Every urge, reset and lapse-recovery tool',
+  'The habits you already have — those stay yours, placed into your days',
   'Breathing and the two-minute practices',
   'Backup and restore — your data is yours',
 ];

@@ -42,8 +42,8 @@ export function PlusNudge({ firstDay = false }: { firstDay?: boolean }) {
         {firstName ? `${firstName}, your coaches are built.` : 'Your coaches are built.'} Plus runs them.
       </AppText>
       <AppText variant="secondary">
-        Free, for as long as you like: the shape of your day, every urge and reset tool, breathing,
-        the two-minute practices, and a full view of every program. Plus places the sessions into
+        Free, for as long as you like: the shape of your day, the habits you already have, every urge
+        and reset tool, breathing, the two-minute practices, and a full view of every program. Plus places the sessions into
         your days and moves them when the day changes.
       </AppText>
       <View style={styles.row}>
