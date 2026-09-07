@@ -95,13 +95,55 @@ interface Anchor {
  */
 export type EvidenceLevel = 'A' | 'B' | 'C' | 'D' | 'E';
 
-export const EVIDENCE_LABELS: Record<EvidenceLevel, string> = {
-  A: 'Strong — meta-analyses / broad consensus',
-  B: 'Good — tested in controlled trials, or seen in large groups followed for years',
-  C: 'Moderate — smaller, narrower or mixed observational evidence',
-  D: 'Emerging — expert practice',
-  E: 'Experimental — a heuristic worth testing on yourself',
+export const EVIDENCE_ORDER: readonly EvidenceLevel[] = ['A', 'B', 'C', 'D', 'E'];
+
+/**
+ * The grade in plain words, first.
+ *
+ * The grade sentence was the most-flagged jargon in the third persona
+ * round after "Zone 2", and reviewers asked for the letters explained the
+ * first time they appear. So every label now leads with what the letter
+ * means to a person and keeps the precise research wording as the second
+ * half, after the dash — the plain half is what someone reads at a glance
+ * and the precise half is what makes it checkable.
+ */
+export const EVIDENCE_PLAIN: Record<EvidenceLevel, string> = {
+  A: 'Many studies agree',
+  B: 'Tested and it held up',
+  C: 'Some evidence, not settled',
+  D: 'Early days',
+  E: 'Unproven',
 };
+
+/** The research wording, unchanged — the second half of every label. */
+export const EVIDENCE_PRECISE: Record<EvidenceLevel, string> = {
+  A: 'meta-analyses and broad agreement',
+  B: 'controlled trials, or large groups followed for years',
+  C: 'smaller, narrower or mixed studies that watched rather than tested',
+  D: 'what experienced people do, ahead of the research',
+  E: 'worth testing on yourself, and nothing more than that',
+};
+
+export const EVIDENCE_LABELS: Record<EvidenceLevel, string> = {
+  A: `${EVIDENCE_PLAIN.A} — ${EVIDENCE_PRECISE.A}`,
+  B: `${EVIDENCE_PLAIN.B} — ${EVIDENCE_PRECISE.B}`,
+  C: `${EVIDENCE_PLAIN.C} — ${EVIDENCE_PRECISE.C}`,
+  D: `${EVIDENCE_PLAIN.D} — ${EVIDENCE_PRECISE.D}`,
+  E: `${EVIDENCE_PLAIN.E} — ${EVIDENCE_PRECISE.E}`,
+};
+
+/** One line per letter, for the explainer where the grades first appear. */
+export function evidenceLine(level: EvidenceLevel): string {
+  return `${level} · ${EVIDENCE_LABELS[level]}`;
+}
+
+/**
+ * The honest close of the explainer, and the line no competitor can copy
+ * without downgrading their own copy. Only a small minority of this
+ * library is graded A, and saying so is the entire point of grading it.
+ */
+export const EVIDENCE_NOTE =
+  'Most of what is here is not an A. Little of what anyone can teach you about your own life is. You get to see which is which, and decide.';
 
 export interface Protocol {
   id: string;

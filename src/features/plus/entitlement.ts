@@ -186,11 +186,70 @@ export const PLUS_RUNS: readonly (readonly [string, string])[] = [
   ['Guided sits beyond the reset', 'Spoken practices from five to twenty minutes.'],
 ];
 
-export const FREE_ALWAYS: readonly string[] = [
-  'Your profile and your first insight',
-  'The day’s shape — sleep, work, meals and what you fixed',
-  'Every urge, reset and lapse-recovery tool',
-  'The habits you already have — those stay yours, placed into your days',
-  'Breathing and the two-minute practices',
-  'Backup and restore — your data is yours',
+/**
+ * What stays free, for as long as you like — the one place it is written.
+ *
+ * Round three still tagged "free tier unclear" on 18% of reviews, and the
+ * personas asked for it in the plainest possible terms: say up front that
+ * the urge tool is free forever. So the list is here, beside the code that
+ * enforces it (`isAlwaysFreeRoutine`, `isAlwaysFreeProtocol`,
+ * `splitLibrary`, `FREE_MEDITATION_MAX_MIN`), and every screen that makes
+ * the promise reads it from here. Two shapes of the same list: `short` for
+ * a sentence, `line` for a list. A screen that types its own version can
+ * drift from the rule; one that reads this cannot.
+ */
+export type FreeAlwaysItem = {
+  /** Mid-sentence, lower case — the offer card runs these into one line. */
+  short: string;
+  /** On its own bullet, where there is room for the whole thought. */
+  line: string;
+};
+
+export const FREE_ALWAYS_ITEMS: readonly FreeAlwaysItem[] = [
+  { short: 'your profile and your first insight', line: 'Your profile and your first insight' },
+  {
+    short: 'the shape of your day',
+    line: 'The day’s shape — sleep, work, meals and what you fixed',
+  },
+  {
+    short: 'every urge and reset tool',
+    line: 'Every urge, reset and lapse-recovery tool',
+  },
+  {
+    short: 'the habits you already have',
+    line: 'The habits you already have — those stay yours, placed into your days',
+  },
+  {
+    short: 'breathing and the two-minute practices',
+    line: 'Breathing and the two-minute practices',
+  },
+  {
+    short: 'a full view of every program',
+    line: 'A full view of every program — every coach, every step, named',
+  },
+  { short: 'backup', line: 'Backup and restore — your data is yours' },
 ];
+
+/** The bullets, as the paywall lists them. */
+export const FREE_ALWAYS: readonly string[] = FREE_ALWAYS_ITEMS.map((i) => i.line);
+
+/** The heading both screens use, in the person’s own timeframe. */
+export const FREE_ALWAYS_HEADING = 'Free, for as long as you like';
+
+/**
+ * The hardest moment, said first and said plainly. This is the ask from
+ * the persona rounds, close to word for word.
+ */
+export const FREE_FOREVER_PROMISE =
+  'Every urge and reset tool is free forever. We never charge for someone’s hardest moment.';
+
+/** The same list as one sentence, for a card with no room for bullets. */
+export function freeAlwaysSentence(items: readonly FreeAlwaysItem[] = FREE_ALWAYS_ITEMS): string {
+  const shorts = items.map((i) => i.short);
+  const last = shorts[shorts.length - 1];
+  if (shorts.length === 1) return `${FREE_ALWAYS_HEADING}: ${last}.`;
+  // The final comma stays: three of these carry an "and" of their own, and
+  // without it the last two items read as one.
+  const head = shorts.slice(0, -1).join(', ');
+  return `${FREE_ALWAYS_HEADING}: ${head}, and ${last}.`;
+}

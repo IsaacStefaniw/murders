@@ -8,7 +8,12 @@ import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
-import { FREE_ALWAYS, PLUS_RUNS } from '@/features/plus/entitlement';
+import {
+  FREE_ALWAYS,
+  FREE_ALWAYS_HEADING,
+  FREE_FOREVER_PROMISE,
+  PLUS_RUNS,
+} from '@/features/plus/entitlement';
 import { useTheme } from '@/hooks/use-theme';
 import {
   PRIVACY_URL,
@@ -32,6 +37,10 @@ import { useAppStore } from '@/state/store';
  * subscription is — its period, that it renews, where to cancel — is said
  * in words next to the price, with the terms and the privacy policy a tap
  * away, which is what guideline 3.1.2 asks for. Restore is always here.
+ *
+ * What stays free is stated above the prices rather than under them, and
+ * every line of it is read from FREE_ALWAYS, so this screen cannot promise
+ * something the entitlement code does not give.
  */
 export default function Upgrade() {
   const router = useRouter();
@@ -129,6 +138,27 @@ export default function Upgrade() {
         </>
       )}
 
+      {/* What stays free comes before the prices, because that is where the
+          question is asked. Round three of the persona review still tagged
+          "free tier unclear" on 18% of reviews with this list sitting under
+          the price cards, and the most direct ask was to say up front that
+          the urge tool is free forever. Every line is read from
+          FREE_ALWAYS, beside the code that enforces it. */}
+      <SectionHeader title={FREE_ALWAYS_HEADING} />
+      <Card>
+        <AppText variant="body">{FREE_FOREVER_PROMISE}</AppText>
+        <View style={styles.freeList}>
+          {FREE_ALWAYS.map((line) => (
+            <AppText key={line} variant="body" style={styles.freeLine}>
+              · {line}
+            </AppText>
+          ))}
+        </View>
+        <AppText variant="caption" color="textTertiary">
+          No account. Nothing you enter leaves your phone. Paid or not, that does not change.
+        </AppText>
+      </Card>
+
       {!entitlement.plus ? (
         <>
           <SectionHeader title="Choose how to pay" />
@@ -215,18 +245,6 @@ export default function Upgrade() {
         ))}
       </View>
 
-      <SectionHeader title="Free, always" />
-      <Card>
-        {FREE_ALWAYS.map((line) => (
-          <AppText key={line} variant="body" style={styles.freeLine}>
-            · {line}
-          </AppText>
-        ))}
-        <AppText variant="caption" color="textTertiary" style={styles.freeNote}>
-          We never charge for someone&apos;s hardest moment.
-        </AppText>
-      </Card>
-
       <View style={styles.legal}>
         <Button
           title={busy === 'restore' ? 'Restoring…' : 'Restore purchases'}
@@ -260,8 +278,8 @@ const styles = StyleSheet.create({
   busy: { marginTop: Spacing.xs },
   retry: { marginTop: Spacing.sm },
   note: { marginTop: Spacing.md },
+  freeList: { marginVertical: Spacing.sm },
   freeLine: { marginBottom: Spacing.xs },
-  freeNote: { marginTop: Spacing.sm },
   legal: { marginTop: Spacing.lg, gap: Spacing.xs },
   legalRow: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm },
   legalNote: { textAlign: 'center', marginTop: Spacing.sm },

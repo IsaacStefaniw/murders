@@ -8,9 +8,13 @@ import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
+import { Disclosure } from '@/components/disclosure';
 import {
   EVIDENCE_LABELS,
+  EVIDENCE_NOTE,
+  EVIDENCE_ORDER,
   PILLAR_LABELS,
+  evidenceLine,
   AUDIENCE_LABEL,
   listedProtocols,
   optInAudiencesFor,
@@ -39,7 +43,18 @@ const PILLAR_ORDER: Pillar[] = [
 const DAY_LABEL = (p: Protocol) =>
   p.days.length >= 6 ? 'daily' : `${p.days.length}× a week · ${p.durationMin} min`;
 
+/**
+ * One practice, and the three lines nobody else prints.
+ *
+ * Verified across 44 App Store listings and every vendor site that could
+ * be read: no competitor shows an evidence grade on the screen that hands
+ * you the practice. Four of them list studies on a marketing page. So the
+ * grade, the source and where it stops are kept together in one block
+ * here, under one heading, rather than scattered among the captions —
+ * three lines that are one claim.
+ */
 function ProtocolCard({ protocol }: { protocol: Protocol }) {
+  const theme = useTheme();
   const routines = useAppStore((s) => s.routines);
   const toggleProtocol = useAppStore((s) => s.toggleProtocol);
   const plus = useAppStore((s) => s.entitlement.plus);
@@ -59,17 +74,19 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
       <AppText variant="caption" style={styles.why}>
         {protocol.why}
       </AppText>
-      <AppText variant="caption" color="textTertiary">
-        From the public work of {protocol.attribution.join(' · ')}
-      </AppText>
-      <AppText variant="caption" color="textTertiary">
-        Evidence {protocol.evidenceLevel} · {EVIDENCE_LABELS[protocol.evidenceLevel]}
-      </AppText>
-      {protocol.safety ? (
-        <AppText variant="caption" color="textTertiary" style={styles.safety}>
-          ⚠︎ {protocol.safety}
+      <View style={[styles.evidence, { borderColor: theme.border }]}>
+        <AppText variant="caption" color="text">
+          Evidence {protocol.evidenceLevel} · {EVIDENCE_LABELS[protocol.evidenceLevel]}
         </AppText>
-      ) : null}
+        <AppText variant="caption" color="textTertiary">
+          Source · from the public work of {protocol.attribution.join(' · ')}
+        </AppText>
+        <AppText variant="caption" color="textTertiary">
+          {protocol.safety
+            ? `Where it stops · ⚠︎ ${protocol.safety}`
+            : 'Where it stops · no particular caution on this one, and it is still educational structure rather than advice.'}
+        </AppText>
+      </View>
       <Button
         title={active ? 'On your plan — pause it' : 'Add to my plan'}
         variant={active ? 'ghost' : 'primary'}
@@ -118,6 +135,22 @@ export default function Library() {
         Each one names its sources, shows how good the evidence is and says where it stops. Add one
         and it is planned into your real week.
       </AppText>
+      {/* The grades, explained where they first appear rather than in a
+          help screen nobody opens. The grade sentence was the most-flagged
+          jargon in the third persona round after "Zone 2", and the ask was
+          for the letters in plain words the first time they are seen. It
+          ends on the honest line, which is the one no competitor can copy:
+          most of this library is not an A. */}
+      <Disclosure title="What these letters mean" hint="Opens a short explanation of the A to E grades">
+        {EVIDENCE_ORDER.map((level) => (
+          <AppText key={level} variant="caption" color="textSecondary">
+            {evidenceLine(level)}
+          </AppText>
+        ))}
+        <AppText variant="caption" color="text" style={styles.evidenceNote}>
+          {EVIDENCE_NOTE}
+        </AppText>
+      </Disclosure>
       {!plus ? (
         <LockedCard
           title={`${openCount} of ${total} open`}
@@ -232,6 +265,11 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
   grow: { flexShrink: 1 },
   why: { fontStyle: 'italic' },
-  safety: {},
+  evidence: {
+    borderLeftWidth: 2,
+    paddingLeft: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  evidenceNote: { marginTop: Spacing.sm },
   button: { marginTop: Spacing.xs },
 });

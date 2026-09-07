@@ -7,6 +7,7 @@ import { Card } from '@/components/card';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import { FREE_FOREVER_PROMISE, freeAlwaysSentence } from '@/features/plus/entitlement';
 
 /**
  * The offer, where it used to be a gate.
@@ -41,10 +42,15 @@ export function PlusNudge({ firstDay = false }: { firstDay?: boolean }) {
       <AppText variant="heading">
         {firstName ? `${firstName}, your coaches are built.` : 'Your coaches are built.'} Plus runs them.
       </AppText>
+      {/* Typed out by hand until now, which is exactly how a promise drifts
+          from the rule that keeps it. The sentence is built from
+          FREE_ALWAYS_ITEMS — the same list the paywall shows and the same
+          file that enforces it — and the hardest-moment line leads, because
+          that is the one reviewers asked to see before the offer. */}
+      <AppText variant="secondary">{FREE_FOREVER_PROMISE}</AppText>
       <AppText variant="secondary">
-        Free, for as long as you like: the shape of your day, the habits you already have, every urge
-        and reset tool, breathing, the two-minute practices, and a full view of every program. Plus places the sessions into
-        your days and moves them when the day changes.
+        {freeAlwaysSentence()} Plus places the sessions into your days and moves them when the day
+        changes.
       </AppText>
       <View style={styles.row}>
         <Button title="See what Plus includes" onPress={() => router.push('/upgrade' as never)} />
