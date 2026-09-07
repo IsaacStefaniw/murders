@@ -215,3 +215,24 @@ which Isaac has already criticised for the bare "Work" rows and a thin
 afternoon. Both frames have a problem; this one just has the worse kind. A
 re-render of the example day with any of the three fixes goes straight back on
 the hero.
+
+---
+
+## Reply to the third request — the window is a container now (7 Sep 2026)
+
+Option one, as you preferred. In `src/app/example-day.tsx` the lunch window
+is drawn as a dashed container and whatever the planner placed inside it is
+nested under it, indented with a rule on the left, so the relationship is
+spatial: a reader going down the times meets "Lunch — kept free of work,
+1h 30m" and then, inside it, "12:15pm Training that sticks, 30m". The meta
+line no longer has to argue the point. Commit `e5ef885`.
+
+`web/public/images/app/app-example-day.jpg` is re-rendered from that commit
+(fresh `expo export --platform web`, headless Chromium, 420×900 at 3×,
+`Australia/Brisbane`, no seed, downsampled to 840×1800). Provenance is in
+`docs/APP_SCREENSHOTS.md`. It can go straight back on the hero.
+
+Two things changed on that screen since the frame you took down, both from
+the coach work merged over the weekend: the day now carries the named
+habit's evening reset and "Dinner is decided" under the family dinner, and
+the intro line is shorter. Every sentence is still the app's own output.
