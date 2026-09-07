@@ -13,6 +13,7 @@
  * someone said no to notifications deserves the review it gets.
  */
 
+import type { RestAlert } from '@/features/notifications/rest';
 import type { PlannedNotification } from '@/features/notifications/schedule';
 import { toMinutes } from '@/lib/dates';
 
@@ -31,6 +32,7 @@ interface NotificationsModule {
     trigger: unknown;
   }) => Promise<string>;
   cancelAllScheduledNotificationsAsync: () => Promise<void>;
+  cancelScheduledNotificationAsync?: (identifier: string) => Promise<void>;
   getAllScheduledNotificationsAsync: () => Promise<unknown[]>;
   setNotificationHandler: (handler: unknown) => void;
   setNotificationChannelAsync?: (id: string, channel: Record<string, unknown>) => Promise<unknown>;
@@ -81,11 +83,31 @@ function installHandler(mod: NotificationsModule): void {
 
 let cached: NotificationsModule | null | undefined;
 
+/**
+ * The module itself, however this runtime is willing to hand it over.
+ *
+ * A dynamic import is not available everywhere the code runs — a plain
+ * CommonJS test runner throws "a dynamic import callback was invoked
+ * without --experimental-vm-modules" — and this file treated that throw as
+ * "the module is absent". Which meant every rule in it, including the one
+ * about the queue, was untestable and therefore untested. The synchronous
+ * form is the fallback, not the first choice: the import is what keeps a
+ * native module out of the web bundle.
+ */
+async function loadModule(): Promise<NotificationsModule> {
+  try {
+    return (await import('expo-notifications')) as unknown as NotificationsModule;
+  } catch {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('expo-notifications') as NotificationsModule;
+  }
+}
+
 /** Null when the native module is absent — a web build, or one without it. */
 async function load(): Promise<NotificationsModule | null> {
   if (cached !== undefined) return cached;
   try {
-    cached = (await import('expo-notifications')) as unknown as NotificationsModule;
+    cached = await loadModule();
     installHandler(cached);
     // Android drops any notification without a channel from API 26 on.
     // iPhone-first does not mean iPhone-only, and a silent drop is a bug
@@ -158,7 +180,12 @@ export async function syncScheduledNotifications(
   } catch {
     return { scheduled: 0, state: 'unavailable' };
   }
-  if (state !== 'granted') return { scheduled: 0, state };
+  if (state !== 'granted') {
+    // The queue is empty and permission is gone, so the rest alert is too.
+    // Forgetting it here is what stops a later sync resurrecting it.
+    pendingRest = null;
+    return { scheduled: 0, state };
+  }
 
   let scheduled = 0;
   for (const item of planned) {
@@ -180,7 +207,99 @@ export async function syncScheduledNotifications(
       // One failure should not cost the rest of the day's notifications.
     }
   }
+  // Cancel-and-replace above wiped the OS queue, and a rest running right
+  // now was in it. Without this, logging a set while the day's plan happens
+  // to re-sync silently swallows the one buzz someone is standing there
+  // waiting for. It is put back, not counted: see `armRest`.
+  await rearmRest(mod);
   return { scheduled, state };
+}
+
+/**
+ * THE REST TIMER'S ONE NOTIFICATION.
+ *
+ * Everything else this module schedules comes from the day's plan and is
+ * replaced wholesale on every sync. The rest alert does not: it is a single
+ * pending thing, started by hand thirty seconds ago, and it belongs to the
+ * screen that started it rather than to the plan.
+ *
+ * That makes three rules, all of them about restraint. Only ever one is
+ * pending — scheduling a second cancels the first, so a session of forty
+ * sets leaves one notification in the queue, never forty. It is never
+ * counted against the daily cap, because the cap exists to stop the app
+ * saying things nobody asked for and this is the opposite of that. And it
+ * is cancelled the moment the next set is logged or the person leaves, so
+ * a set already finished never buzzes.
+ */
+let pendingRest: { osId: string; alert: RestAlert } | null = null;
+
+/** Hands one alert to the OS and remembers what to cancel. */
+async function armRest(mod: NotificationsModule, alert: RestAlert): Promise<boolean> {
+  if (alert.at <= Date.now()) return false;
+  try {
+    const osId = await mod.scheduleNotificationAsync({
+      content: {
+        title: alert.title,
+        body: alert.body,
+        data: { id: 'rest', kind: 'rest' },
+      },
+      trigger: { type: 'date', date: new Date(alert.at) },
+    });
+    pendingRest = { osId, alert };
+    return true;
+  } catch {
+    pendingRest = null;
+    return false;
+  }
+}
+
+/** After a cancel-and-replace sync, put the still-running rest back. */
+async function rearmRest(mod: NotificationsModule): Promise<void> {
+  const current = pendingRest;
+  pendingRest = null;
+  if (!current) return;
+  await armRest(mod, current.alert);
+}
+
+/**
+ * Schedule the one-shot for a rest that is still running.
+ *
+ * Never asks for permission — the caller has already decided, in
+ * `features/notifications/rest.ts`, that there is something to say and
+ * that it is allowed to be said. This only says it. Returns whether the OS
+ * took it, so a caller can tell "nothing to schedule" from "could not".
+ */
+export async function scheduleRestNotification(alert: RestAlert): Promise<boolean> {
+  const mod = await load();
+  if (!mod) return false;
+  // Belt and braces against a permission revoked since the screen mounted:
+  // a scheduled notification nobody agreed to is worse than a missing one.
+  if ((await notificationPermission()) !== 'granted') {
+    pendingRest = null;
+    return false;
+  }
+  await cancelRestNotification();
+  return armRest(mod, alert);
+}
+
+/**
+ * Drop the pending rest alert and nothing else.
+ *
+ * Deliberately not `cancelAllNotifications`: the person logging a set
+ * quickly must not lose this evening's wind-down reminder as a side effect
+ * of being quick.
+ */
+export async function cancelRestNotification(): Promise<void> {
+  const current = pendingRest;
+  pendingRest = null;
+  if (!current) return;
+  const mod = await load();
+  if (!mod) return;
+  try {
+    await mod.cancelScheduledNotificationAsync?.(current.osId);
+  } catch {
+    // Already fired, already gone, or a build without the module.
+  }
 }
 
 /**
@@ -218,6 +337,9 @@ export function onNotificationTap(handler: (data: Record<string, unknown>) => vo
 }
 
 export async function cancelAllNotifications(): Promise<void> {
+  // "All" includes the rest alert. This is the path someone takes when they
+  // turn notifications off, and off means off.
+  pendingRest = null;
   const mod = await load();
   if (!mod) return;
   try {

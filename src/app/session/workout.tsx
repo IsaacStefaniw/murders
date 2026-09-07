@@ -1,9 +1,12 @@
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AppState, Platform, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
+import { restAlert } from '@/features/notifications/rest';
 import { effortWords } from '@/features/training/effort';
+import { formatRest, restEndsAt, restIsOver, restRemaining } from '@/features/training/rest';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
@@ -19,6 +22,11 @@ import { readinessFrom } from '@/features/health/readiness';
 import { autoRegulate, complexLiftsAllowed, weekOf } from '@/features/training/programme';
 import { alternativesFor, applyExerciseSwaps, sessionIndexFor } from '@/features/training/swap';
 import { dateKeyOfIso, dateKeyToDate, durationMinutes, formatDateLong, todayKey } from '@/lib/dates';
+import {
+  cancelRestNotification,
+  notificationPermission,
+  scheduleRestNotification,
+} from '@/lib/notifications';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 import type { LoggedSet } from '@/types/domain';
@@ -142,6 +150,8 @@ export default function WorkoutSession() {
 
   const workoutLogs = useAppStore((s) => s.workoutLogs);
   const saveWorkoutLog = useAppStore((s) => s.saveWorkoutLog);
+  // The master switch. Off means off, for the rest timer as for everything.
+  const notifications = useAppStore((s) => s.notifications);
 
   /**
    * One log per training day, derived rather than held in state: created on
@@ -154,13 +164,104 @@ export default function WorkoutSession() {
     [workoutLogs, sessionDate],
   );
 
-  const [restLeft, setRestLeft] = useState(0);
+  /**
+   * THE REST TIMER.
+   *
+   * Held as the MOMENT THE REST ENDS, not as a number counting down. A
+   * countdown in state is paused by the lock button: the interval stops,
+   * and the screen you come back to says "68s" four minutes later. An end
+   * timestamp cannot be wrong about a rest it did not watch — coming back
+   * is a subtraction. `features/training/rest.ts` does the arithmetic.
+   */
+  const [restEnds, setRestEnds] = useState<number | null>(null);
+  const [restExercise, setRestExercise] = useState<string | undefined>(undefined);
+  const [now, setNow] = useState(() => Date.now());
+  const restLeft = restRemaining(restEnds, now);
 
+  /**
+   * True when the rest ran out while the app was away. The lock screen
+   * already said so; buzzing again on the way back would be the app saying
+   * the same thing twice, thirty seconds late.
+   */
+  const endedWhileAway = useRef(false);
+
+  /**
+   * Latest values for the app-state listener, which is installed once. Put
+   * here rather than in the dependency list: re-subscribing twice a second
+   * to catch a tick is listener churn for nothing.
+   */
+  const restRef = useRef<{ endsAt: number | null; exercise?: string; enabled: boolean }>({
+    endsAt: null,
+    enabled: false,
+  });
   useEffect(() => {
-    if (restLeft <= 0) return;
-    const t = setInterval(() => setRestLeft((r) => r - 1), 1000);
+    restRef.current = { endsAt: restEnds, exercise: restExercise, enabled: notifications.enabled };
+  });
+
+  // Half-second ticks, so the number on screen is never a whole second
+  // stale. The interval only moves `now`; it never owns the answer.
+  useEffect(() => {
+    if (restEnds == null) return;
+    setNow(Date.now());
+    const t = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(t);
-  }, [restLeft > 0]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [restEnds]);
+
+  // Zero. A haptic if the screen is being watched, and the card goes.
+  useEffect(() => {
+    if (restEnds == null || !restIsOver(restEnds, now)) return;
+    setRestEnds(null);
+    setRestExercise(undefined);
+    // Whatever was queued for this rest has either fired or is moot.
+    void cancelRestNotification();
+    if (endedWhileAway.current) {
+      endedWhileAway.current = false;
+      return;
+    }
+    // Not on the web, where it is a no-op with a console warning behind it.
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    }
+  }, [restEnds, now]);
+
+  /**
+   * The half that reaches a locked phone. Going away mid-rest schedules ONE
+   * local notification for the moment the rest ends; coming back cancels
+   * it, because the screen is now saying it instead.
+   *
+   * Never asks for permission — that prompt belongs in Settings, and iOS
+   * offers it once. Without it the timer is simply a foreground timer, and
+   * nothing on this screen mentions notifications at all.
+   */
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      const { endsAt, exercise, enabled } = restRef.current;
+      if (next === 'active') {
+        endedWhileAway.current = endsAt != null && restIsOver(endsAt, Date.now());
+        // Timers do not run while the app is away, so the clock is caught
+        // up by hand; the effect above then does the rest.
+        setNow(Date.now());
+        void cancelRestNotification();
+        return;
+      }
+      if (endsAt == null) return;
+      void (async () => {
+        const alert = restAlert({
+          endsAt,
+          now: Date.now(),
+          exercise,
+          settings: { enabled },
+          permission: await notificationPermission(),
+        });
+        if (alert) await scheduleRestNotification(alert);
+      })();
+    });
+    return () => sub.remove();
+  }, []);
+
+  // Leaving the session — finished, cancelled or swiped away — takes the
+  // pending rest with it. A set you finished ten minutes ago never buzzes.
+  useEffect(() => () => void cancelRestNotification(), []);
 
   if (!session) {
     return (
@@ -184,7 +285,14 @@ export default function WorkoutSession() {
     const current = log ?? newLog(sessionDate, session.title);
     const index = current.sets.filter((s) => s.exercise === name).length + 1;
     saveWorkoutLog({ ...current, sets: [...current.sets, makeSet(name, index, reps, weightKg)] });
-    if (restSec > 0) setRestLeft(restSec);
+    // A set logged is the previous rest over. Cancel first, unconditionally:
+    // the buzz for the set before this one must never arrive after it.
+    void cancelRestNotification();
+    endedWhileAway.current = false;
+    const ends = restEndsAt(Date.now(), restSec);
+    setRestEnds(ends);
+    setRestExercise(ends == null ? undefined : name);
+    setNow(Date.now());
   };
 
   const editSet = (setId: string, patch: Partial<LoggedSet>) => {
@@ -304,8 +412,13 @@ export default function WorkoutSession() {
       {restLeft > 0 ? (
         <Card style={{ backgroundColor: theme.accentSoft, borderColor: theme.accent, marginTop: Spacing.lg }}>
           <AppText variant="heading" color="accent">
-            Rest · {restLeft}s
+            Rest · {formatRest(restLeft)}
           </AppText>
+          {restExercise ? (
+            <AppText variant="caption" color="textTertiary">
+              Next set: {restExercise}
+            </AppText>
+          ) : null}
         </Card>
       ) : null}
 
