@@ -954,3 +954,34 @@ footer { border-top: 1px solid var(--fog); }
 .compare-cta { margin-top: 30px; }
 .legal-fineprint { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--fog); color: var(--muted); font-size: 12px; line-height: 1.6; }
 @media (max-width: 620px) { .compare-table tbody th { width: 110px; } }
+
+/* ---- The sleep-debt tool -------------------------------------------- */
+.sd { margin: 26px 0 8px; border: 1px solid var(--ink); background: #fff; }
+.sd-inputs { padding: 22px; border-bottom: 1px solid var(--fog); }
+.sd-label { margin: 0 0 16px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.sd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 10px; }
+.sd-night { display: flex; flex-direction: column; gap: 6px; }
+.sd-night span { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.sd-night input { width: 100%; padding: 10px 12px; border: 1px solid var(--fog); background: var(--paper); font: inherit; font-size: 16px; font-weight: 650; }
+.sd-night input:focus-visible { outline: 2px solid var(--green-dark); outline-offset: 2px; }
+.sd-more { margin-top: 16px; padding: 9px 15px; border: 1px solid var(--fog); border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.sd-more:hover { border-color: var(--ink); color: var(--ink); }
+.sd-result { padding: 22px; }
+.sd-figure { display: flex; align-items: baseline; gap: 12px; margin: 0 0 18px; flex-wrap: wrap; }
+.sd-figure strong { font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif; font-size: 46px; font-weight: 600; line-height: 1; letter-spacing: -.03em; }
+.sd-figure span { color: var(--muted); font-size: 13px; }
+.sd-result.is-even .sd-figure strong { color: var(--green-dark); }
+.sd-result.is-well-behind .sd-figure strong { color: #a9603b; }
+.sd-detail { margin: 0; padding-top: 16px; border-top: 1px solid var(--fog); }
+.sd-detail > div { display: grid; grid-template-columns: 168px 1fr; gap: 14px; padding: 9px 0; }
+.sd-detail dt { color: var(--muted); font-size: 12px; font-weight: 750; }
+.sd-detail dd { margin: 0; font-size: 13.5px; line-height: 1.55; }
+.sd-method { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--fog); color: var(--muted); font-size: 12.5px; line-height: 1.55; }
+.sd-empty { padding: 22px; margin: 0; color: var(--muted); font-size: 13px; }
+.sd-steps { margin: 16px 0 0; padding-left: 20px; }
+.sd-steps li { margin-bottom: 14px; color: var(--muted); line-height: 1.6; }
+.sd-steps strong { color: var(--ink); }
+@media (max-width: 620px) {
+  .sd-detail > div { grid-template-columns: 1fr; gap: 3px; }
+  .sd-figure strong { font-size: 38px; }
+}

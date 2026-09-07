@@ -11,5 +11,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // the only commercial keyword in this category with both. See
     // docs/SEO_RESEARCH.md section 8.
     { url: "https://intentnorth.app/whoop-alternative", lastModified, changeFrequency: "monthly", priority: 0.7 },
+    // "sleep debt" is 1,600 AU searches a month, rising 46%, low competition,
+    // and Rise — whose product term it is — does not rank for the calculator
+    // queries. Single-purpose calculators are the page shape that ranks here.
+    { url: "https://intentnorth.app/sleep-debt", lastModified, changeFrequency: "monthly", priority: 0.7 },
   ];
 }
