@@ -106,8 +106,9 @@ describe('work pathway — the styles', () => {
     expect(PATHS.work.insights({ style: 'varies' }, profile).join(' ')).toMatch(/does not repeat/);
   });
 
-  it('physical still gets the focus block: a product decision left as it was (PW-O3)', () => {
-    expect(has({ style: 'physical', team: 'solo' }, 'deep-work')).toBe(true);
+  it('hands-on work gets the shutdown and the weekly shape, not a focus block (PW-O3, decided)', () => {
+    expect(has({ style: 'physical', team: 'solo' }, 'deep-work')).toBe(false);
+    expect(has({ style: 'maker', team: 'solo' }, 'deep-work')).toBe(true);
   });
 
   it('the new practices carry sources, a safety line and modest grades', () => {
