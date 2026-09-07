@@ -293,6 +293,9 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       routines: [
         {
           title: 'Shutdown: name tomorrow’s first thing',
+          // The same practice as the library's closing ritual; a person who
+          // added that from the library must not get two closes a day.
+          covers: ['shutdown-ritual'],
           durationMin: 10,
           days: WEEKDAYS,
           preferredStart: '17:00',
@@ -314,6 +317,7 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       routines: [
         {
           title: 'Weekly shape — plan the week before it plans you',
+          covers: ['week-preview'],
           durationMin: 25,
           days: SUNDAY,
           preferredStart: '17:00',
@@ -330,6 +334,9 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       routines: [
         {
           title: 'Delegation pass — what should not be yours',
+          // The work build adds the library's delegation pass when too
+          // much sits with the person; the rung must not add it again.
+          covers: ['delegation-pass'],
           durationMin: 20,
           days: [5],
           preferredStart: '15:00',
