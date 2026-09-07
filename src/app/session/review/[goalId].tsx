@@ -12,14 +12,20 @@ import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import { askCheckin, assessGoal, describeCheckin, describeStep, paceLanding } from '@/features/goals/composer';
+import { latest } from '@/features/model/metrics';
 import { reviewAsText, reviewPeriod, reviewQuestions } from '@/features/review/period';
 import { shareText } from '@/lib/share';
 import { todayKey } from '@/lib/dates';
 
 /**
- * The weekly operating review — five minutes, structured, and its output
- * is next week's focus, not a diary entry. The diary is the sensor; the
- * calendar is the actuator.
+ * The weekly review — five minutes, structured, and its output is next
+ * week's focus, not a diary entry. The diary is the sensor; the calendar
+ * is the actuator.
+ *
+ * It opens with the one number the goal moves on. Recording progress is
+ * most of what makes a goal happen, and a review that asks three
+ * open questions and never the number is a diary.
  */
 export default function WeeklyReview() {
   const router = useRouter();
@@ -27,14 +33,19 @@ export default function WeeklyReview() {
   const { goalId } = useLocalSearchParams<{ goalId: string }>();
 
   const goal = useAppStore((s) => s.goals.find((g) => g.id === goalId));
+  const metrics = useAppStore((s) => s.metrics);
+  const planEvents = useAppStore((s) => s.planEvents);
   const setMilestoneDone = useAppStore((s) => s.setMilestoneDone);
   const setGoalNextFocus = useAppStore((s) => s.setGoalNextFocus);
+  const answerCheckin = useAppStore((s) => s.answerCheckin);
 
   // Named for the week it is actually about. A growth block that lands on
   // a Monday was asking what moved "this week" before the week had started.
   const period = reviewPeriod(todayKey());
   const questions = reviewQuestions(period);
 
+  const [number, setNumber] = useState('');
+  const [numberSaved, setNumberSaved] = useState(false);
   const [moved, setMoved] = useState('');
   const [lever, setLever] = useState('');
   const [blocking, setBlocking] = useState('');
@@ -49,11 +60,25 @@ export default function WeeklyReview() {
     );
   }
 
+  const ask = askCheckin(goal);
+  const lastReading = ask ? latest(metrics, ask.metricKey) : null;
+  const otherCheckin = ask ? null : goal.checkins?.[0];
+  const assessment = assessGoal(goal, { metrics, planEvents });
+  const landing = paceLanding(goal, metrics);
+
+  const saveNumber = () => {
+    if (!ask) return;
+    const n = Number(number);
+    if (!Number.isFinite(n) || n <= 0) return;
+    answerCheckin(ask.id, ask.metricKey, n);
+    setNumber('');
+    setNumberSaved(true);
+  };
+
   const save = () => {
     setGoalNextFocus(goal.id, lever.trim() || undefined);
     router.back();
   };
-
 
   return (
     <Screen>
@@ -65,6 +90,72 @@ export default function WeeklyReview() {
         <AppText variant="secondary" style={styles.why}>
           Because: {goal.why}
         </AppText>
+      ) : null}
+
+      {ask ? (
+        <View>
+          <SectionHeader title="The one number" />
+          <Card>
+            <AppText variant="heading">{ask.prompt ?? ask.label}</AppText>
+            <AppText variant="caption" color="textTertiary">
+              {lastReading
+                ? `Last time: ${ask.unit === '$' ? '$' : ''}${lastReading.value.toLocaleString('en-AU')}${ask.unit && ask.unit !== '$' ? ` ${ask.unit}` : ''}.`
+                : 'First reading — everything else is measured from here.'}
+            </AppText>
+            <View style={styles.numberRow}>
+              <Field
+                label={`${ask.prompt ?? ask.label}${ask.unit ? ` in ${ask.unit}` : ''}`}
+                showLabel={false}
+                value={number}
+                onChangeText={setNumber}
+                keyboardType="decimal-pad"
+                placeholder={lastReading ? String(lastReading.value) : ask.unit || '0'}
+                unit={ask.unit}
+                returnKeyType="done"
+                onSubmitEditing={saveNumber}
+                width={140}
+              />
+              <Chip label={numberSaved && !number ? 'Saved' : 'Save'} selected onPress={saveNumber} />
+            </View>
+            {landing ? (
+              <AppText variant="caption" color="textSecondary" style={styles.why}>
+                {landing.headline}
+              </AppText>
+            ) : null}
+          </Card>
+        </View>
+      ) : otherCheckin ? (
+        <View>
+          <SectionHeader title="The one number" />
+          <Card>
+            <AppText variant="body">{describeCheckin(otherCheckin)}</AppText>
+            <AppText variant="caption" color="textTertiary" style={styles.why}>
+              {assessment.reason}
+            </AppText>
+          </Card>
+        </View>
+      ) : null}
+
+      {assessment.next ? (
+        <View>
+          <SectionHeader title="Next step" />
+          <Card>
+            <AppText variant="heading">{assessment.next.title}</AppText>
+            <AppText variant="caption" color="textTertiary">
+              {describeStep(assessment.next)}
+            </AppText>
+            {assessment.next.how ? (
+              <AppText variant="caption" color="textSecondary" style={styles.why}>
+                How: {assessment.next.how}
+              </AppText>
+            ) : null}
+            {assessment.next.intention ? (
+              <AppText variant="caption" color="textSecondary">
+                {assessment.next.intention}
+              </AppText>
+            ) : null}
+          </Card>
+        </View>
       ) : null}
 
       {goal.milestones?.length ? (
@@ -158,5 +249,6 @@ const styles = StyleSheet.create({
   sendButton: { marginTop: Spacing.xl },
   why: { marginTop: Spacing.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  numberRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.md },
   footer: { marginTop: Spacing.xxl, gap: Spacing.sm },
 });

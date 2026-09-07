@@ -35,13 +35,14 @@ describe('a target, a ladder, a reading, a tick, the report', () => {
     const g = addGoalFromText('Save $40k for the house deposit');
     const rungs = g.milestones!;
     expect(rungs.map((m) => m.title)).toEqual([
-      'First tenth: $4,000 set aside',
-      'A quarter there: $10,000 set aside',
+      'First $1,000 more: $1,000 set aside',
+      'A quarter of the way: $10,000 set aside',
       'Halfway: $20,000 set aside',
+      'Three quarters: $30,000 set aside',
       'Done: $40,000 set aside',
     ]);
     expect(rungs.every((m) => m.doneWhen?.kind === 'metric' && m.doneWhen.op === 'gte')).toBe(true);
-    expect(describeDoneWhen(rungs[0].doneWhen)).toMatch(/4,000/);
+    expect(describeDoneWhen(rungs[0].doneWhen)).toMatch(/1,000/);
     const ask = g.checkins!.find((c) => c.source === 'ask')!;
     expect(ask.metricKey).toBe((rungs[0].doneWhen as { metricKey: string }).metricKey);
 
@@ -55,7 +56,7 @@ describe('a target, a ladder, a reading, a tick, the report', () => {
     expect(after[0].done).toBe(true);
     expect(after[0].doneAt).toBeDefined();
     expect(after.slice(1).every((m) => !m.done)).toBe(true);
-    expect(report().milestonesMoved).toEqual([{ goalTitle: g.title, milestone: 'First tenth: $4,000 set aside' }]);
+    expect(report().milestonesMoved).toEqual([{ goalTitle: g.title, milestone: 'First $1,000 more: $1,000 set aside' }]);
 
     // Assessing again changes nothing, including the stamp.
     const stamp = after[0].doneAt;
@@ -65,8 +66,8 @@ describe('a target, a ladder, a reading, a tick, the report', () => {
     // The next reading climbs two rungs at once.
     s().answerCheckin(ask.id, ask.metricKey, 21000);
     expect(goal(g.id).milestones!.filter((m) => m.done).map((m) => m.title)).toEqual([
-      'First tenth: $4,000 set aside',
-      'A quarter there: $10,000 set aside',
+      'First $1,000 more: $1,000 set aside',
+      'A quarter of the way: $10,000 set aside',
       'Halfway: $20,000 set aside',
     ]);
     expect(report().milestonesMoved).toHaveLength(3);
@@ -98,20 +99,23 @@ describe('a target, a ladder, a reading, a tick, the report', () => {
 
   it('a weight goal ticked by an Apple Health reading', () => {
     const g = addGoalFromText('Down to 86 kg');
-    const rung = g.milestones!.find((m) => m.doneWhen?.kind === 'metric')!;
+    // From 90 kg: two steps on the way down, then the number itself.
+    const rung = g.milestones!.filter((m) => m.doneWhen?.kind === 'metric').pop()!;
     expect(rung.doneWhen).toEqual({ kind: 'metric', metricKey: 'body.weight', op: 'lte', value: 86, unit: 'kg' });
 
     s().appendHealthObservations([observe('body.weight', 87.2, 'healthkit')]);
     expect(goal(g.id).milestones!.find((m) => m.id === rung.id)!.done).toBe(false);
+    expect(report().milestonesMoved.map((m) => m.milestone)).not.toContain(rung.title);
     s().appendHealthObservations([observe('body.weight', 85.9, 'healthkit')]);
     expect(goal(g.id).milestones!.find((m) => m.id === rung.id)!.done).toBe(true);
-    expect(report().milestonesMoved).toEqual([{ goalTitle: g.title, milestone: rung.title }]);
+    expect(report().milestonesMoved.map((m) => m.milestone)).toContain(rung.title);
+    expect(report().milestonesMoved.every((m) => m.goalTitle === g.title)).toBe(true);
 
     // The confirm rung is the person's and is never ticked by a number.
     const confirm = goal(g.id).milestones!.find((m) => m.doneWhen?.kind === 'confirm')!;
     expect(confirm.done).toBe(false);
     s().setMilestoneDone(g.id, confirm.id, true);
-    expect(report().milestonesMoved.map((m) => m.milestone).sort()).toEqual([confirm.title, rung.title].sort());
+    expect(report().milestonesMoved.map((m) => m.milestone)).toContain(confirm.title);
   });
 
   it('a paused goal stops ticking; a reading for a different goal never reaches it', () => {
@@ -126,8 +130,8 @@ describe('a target, a ladder, a reading, a tick, the report', () => {
     expect(goal(a.id).milestones!.some((m) => m.done)).toBe(false);
     s().answerCheckin(askB.id, askB.metricKey, 5000);
     expect(goal(b.id).milestones!.filter((m) => m.done).map((m) => m.title)).toEqual([
-      'First tenth: $1,000 set aside',
-      'A quarter there: $2,500 set aside',
+      'First $1,000 more: $1,000 set aside',
+      'A quarter of the way: $2,500 set aside',
       'Halfway: $5,000 set aside',
     ]);
     expect(report().milestonesMoved.every((m) => m.goalTitle === b.title)).toBe(true);

@@ -145,7 +145,7 @@ describe('backup on one state, restore on a clean one', () => {
     expect(before.intervention).toBe('20:30');
     expect(before.due).toEqual(['20:30']);
     expect(before.rungs[0][1]).toBe(true);
-    expect(before.report.milestonesMoved).toEqual([{ goalTitle: 'Save $40k for the house deposit', milestone: 'First tenth: $4,000 set aside' }]);
+    expect(before.report.milestonesMoved).toEqual([{ goalTitle: 'Save $40k for the house deposit', milestone: 'First $1,000 more: $1,000 set aside' }]);
     expect(Object.values(before.plans).flatMap((p) => p.items).some((i) => i.status === 'completed')).toBe(true);
 
     const backup = await exportBackup();

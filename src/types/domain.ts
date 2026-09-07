@@ -191,6 +191,32 @@ export interface GoalMilestone {
   doneAt?: string;
   /** Measurable completion condition; absent means user-confirmed. */
   doneWhen?: DoneWhen;
+  /**
+   * "YYYY-MM-DD" — when this step is meant to be reached, from the pace
+   * the goal's date implies or the routine's own cadence. The near markers
+   * are what keep a far goal moving, and a marker needs a date.
+   */
+  dueDate?: string;
+  /** How it gets reached, in the routine's own words — the process under the outcome. */
+  how?: string;
+  /** One "When X, I will Y" line for the moment the plan meets the day. */
+  intention?: string;
+}
+
+/**
+ * The pace a goal's date implies, from where the person started. Plain
+ * division: the gap over the months. The goal screen says where that
+ * lands, and later where the actual rate lands.
+ */
+export interface GoalPace {
+  perMonth: number;
+  unit: string;
+  startValue: number;
+  /** "YYYY-MM-DD" */
+  startDate: string;
+  targetValue: number;
+  /** A plain-words caution where the pace is faster than most people hold. */
+  note?: string;
 }
 
 export interface Goal {
@@ -214,6 +240,8 @@ export interface Goal {
    * the trajectory engine can say whether the current rate arrives in time.
    */
   targetDate?: string;
+  /** The pace the date implies, where the goal has a number and a date. */
+  pace?: GoalPace;
   status: GoalStatus;
   createdAt: string;
   /** Routines generated from this goal. */
