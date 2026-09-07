@@ -13,6 +13,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { listedProtocols, PROTOCOLS } from '@/features/knowledge/protocols';
+import { HABIT_PROTOCOLS } from '@/features/knowledge/protocols.habits';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { mergeRoutines } from '@/features/planner/mergeRoutines';
@@ -176,9 +177,11 @@ describe('the library split', () => {
     },
   );
 
-  it('only the urge tools are always free, and both of them are', () => {
+  it('only the urge tools are always free, and all of them are', () => {
     const urges = PROTOCOLS.filter((p) => isAlwaysFreeProtocol(p.id)).map((p) => p.id);
-    expect(urges).toEqual(['urge-log', 'urge-surf']);
+    // The two originals plus the habits coach's own set (protocols.habits.ts),
+    // which is appended last and is free by the same rule.
+    expect(urges).toEqual(['urge-log', 'urge-surf', ...HABIT_PROTOCOLS.map((p) => p.id)]);
     // No protocol id accidentally starts with the prefix for another reason.
     for (const id of urges) expect(id.startsWith('urge-')).toBe(true);
   });

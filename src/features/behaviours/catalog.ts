@@ -82,6 +82,12 @@ export interface BehaviourInfo {
    */
   detailHint: string;
   /**
+   * The button that counts tonight as a win — "No drinks tonight". A win
+   * is the person's own word for it, counted and never reset. Written as
+   * the thing that happened, not the thing avoided, wherever that reads.
+   */
+  winLabel: string;
+  /**
    * Safety note shown on selection and in the behaviour detail view.
    * Required for behaviours where abrupt cessation can be medically risky,
    * or where the right next step is a professional rather than an app.
@@ -103,6 +109,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Less time lost to scrolling',
     logPrompt: 'What were you reaching for?',
     detailHint: 'e.g. forty minutes on the news',
+    winLabel: 'No scrolling tonight',
     effects: [
       {
         withinHoursOfSleep: 2,
@@ -121,6 +128,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Drink less, more deliberately',
     logPrompt: 'What was the context?',
     detailHint: 'e.g. two beers after work',
+    winLabel: 'No drinks tonight',
     safetyNote:
       'If cutting down feels hard, or stopping suddenly causes shakes, sweating or anxiety, ' +
       'talk to a doctor before making big changes — stopping abruptly can be unsafe for some ' +
@@ -148,6 +156,13 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Keep the vape down',
     logPrompt: 'What triggered it?',
     detailHint: 'e.g. stepped outside with the team',
+    winLabel: 'None tonight',
+    // Smoking had this line and vaping did not, though the support is the
+    // same and the odds it adds are the same.
+    safetyNote:
+      'Quitting is far easier with support than alone. Your GP or a national quitline can ' +
+      'offer nicotine replacement and a plan — both roughly double the odds of it sticking. ' +
+      'IntentNorth is here for the pattern, not instead of that.',
     effects: [
       {
         withinHoursOfSleep: 3,
@@ -171,6 +186,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Fewer, then none',
     logPrompt: 'What triggered it?',
     detailHint: 'e.g. one after dinner',
+    winLabel: 'None tonight',
     safetyNote:
       'Quitting is far easier with support than alone. Your GP or a national quitline can ' +
       'offer nicotine replacement and a plan — both roughly double the odds of it sticking. ' +
@@ -198,6 +214,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Less feed, more life',
     logPrompt: 'Which app pulled you in?',
     detailHint: 'e.g. half an hour on Instagram',
+    winLabel: 'Feed closed tonight',
   },
   {
     key: 'gaming',
@@ -206,6 +223,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Play on purpose, stop on time',
     logPrompt: 'What were you playing?',
     detailHint: 'e.g. two hours, meant to be one',
+    winLabel: 'Stopped on time tonight',
     effects: [
       {
         withinHoursOfSleep: 2,
@@ -224,6 +242,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Take back the hour',
     logPrompt: 'What was going on beforehand?',
     detailHint: 'e.g. late, alone, restless',
+    winLabel: 'Clear tonight',
     safetyNote:
       'This one carries a lot of shame for a lot of people, and shame is the part that makes ' +
       'it harder to change. IntentNorth logs it flatly and says nothing about what it means about ' +
@@ -237,6 +256,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Buy on purpose, not on impulse',
     logPrompt: 'What almost (or actually) got bought?',
     detailHint: 'e.g. $80 of things I had not thought about that morning',
+    winLabel: 'Nothing on impulse today',
   },
   {
     key: 'gambling',
@@ -245,6 +265,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Step back from the bet',
     logPrompt: 'What was going on?',
     detailHint: 'e.g. a bet on the game with mates',
+    winLabel: 'No bets today',
     safetyNote:
       'Gambling is the one habit in this list where the right next step is usually a person, ' +
       'not an app. Free, confidential help exists in most countries — in Australia, Gambling ' +
@@ -271,6 +292,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Eat like it matters',
     logPrompt: 'What was going on?',
     detailHint: 'e.g. takeaway instead of the plan',
+    winLabel: 'Ate to the plan today',
     safetyNote:
       'A count is information, not a verdict. If tracking meals starts to feel compulsive rather ' +
       'than useful, switch it off — and if food is already a hard subject, a GP or dietitian is ' +
@@ -301,6 +323,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Snack when it is worth it',
     logPrompt: 'What was going on?',
     detailHint: 'e.g. one piece of Kit Kat',
+    winLabel: 'Clear tonight',
     safetyNote:
       'Counting anything you eat can tip from useful into preoccupying, and it does that fastest ' +
       'for people who have been there before. If logging this starts to feel compulsive, or if ' +
@@ -338,6 +361,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Last coffee earlier',
     logPrompt: 'What was it, and what was it for?',
     detailHint: 'e.g. a flat white at 4pm to get through',
+    winLabel: 'Last coffee on time today',
     effects: [
       {
         withinHoursOfSleep: 8,
@@ -361,6 +385,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Protect the bedtime',
     logPrompt: 'What kept you up?',
     detailHint: 'e.g. up past one for no particular reason',
+    winLabel: 'Bed on time tonight',
   },
   {
     key: 'phone_in_bed',
@@ -369,6 +394,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Keep the bed for sleep',
     logPrompt: 'What did you pick it up for?',
     detailHint: 'e.g. checked one thing, stayed forty minutes',
+    winLabel: 'Phone out of the bedroom tonight',
     effects: [
       {
         withinHoursOfSleep: 1,
@@ -387,6 +413,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Close the laptop earlier',
     logPrompt: 'What made tonight the night?',
     detailHint: 'e.g. back on email until eleven',
+    winLabel: 'Laptop closed on time tonight',
     effects: [
       {
         withinHoursOfSleep: 2,
@@ -405,6 +432,7 @@ export const BEHAVIOUR_CATALOG: BehaviourInfo[] = [
     intentionTemplate: 'Start the thing sooner',
     logPrompt: 'What got pushed?',
     detailHint: 'e.g. the board pack, again',
+    winLabel: 'Started the thing today',
   },
 ];
 

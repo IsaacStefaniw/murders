@@ -22,6 +22,9 @@ import { newId, toHHMM, toMinutes } from '@/lib/dates';
 
 import { MONEY_PROTOCOLS } from './protocols.money';
 import { PEOPLE_PROTOCOLS } from './protocols.people';
+// The urge and habit practices, all free forever. Appended last so the
+// library's own order — foundation first in each area — is untouched.
+import { HABIT_PROTOCOLS } from './protocols.habits';
 import type {
   GoalDomain,
   LifeArea,
@@ -3455,6 +3458,7 @@ export const PROTOCOLS: Protocol[] = [
   ...SUPPLEMENT_PROTOCOLS,
   ...WORK_PROTOCOLS,
   ...PEOPLE_PROTOCOLS,
+  ...HABIT_PROTOCOLS,
 ];
 
 export const protocolById = (id: string): Protocol | undefined =>

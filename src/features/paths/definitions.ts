@@ -8,11 +8,24 @@
  * real routines — adapted, learned-on, and reviewed like everything else.
  */
 
-import { BEHAVIOUR_CATALOG, behaviourInfo } from '@/features/behaviours/catalog';
+import { behaviourInfo } from '@/features/behaviours/catalog';
+import {
+  ifThenPlan,
+  primaryTrigger,
+  replacementOf,
+  triggersOf,
+  type ReplacementKey,
+  type TriggerKey,
+} from '@/features/behaviours/tonight';
 import { KIDS_ONLY, OUTINGS, composition, familyVariant, withoutMatching } from '@/features/family/composition';
 import { buildGoalPlan, type GoalPlan, type ParsedGoal } from '@/features/goals/goalPlanner';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
-import { DOMAIN_QUESTIONS, answered, type DomainQuestion } from '@/features/knowledge/questionBank';
+import {
+  DOMAIN_QUESTIONS,
+  RECOVERY_QUESTIONS,
+  answered,
+  type DomainQuestion,
+} from '@/features/knowledge/questionBank';
 import { moneySteps } from '@/features/money/plan';
 import { sessionsPerWeekFloor } from '@/features/training/programme';
 import { newId, toHHMM, toMinutes } from '@/lib/dates';
@@ -601,60 +614,33 @@ export const PATHS: Record<PathId, PathDefinition> = {
     title: 'Habits & urges',
     promise:
       'Not willpower — engineering. Name the moment the urge usually wins, put a rehearsed answer in that exact window, and let IntentNorth learn your real triggers from what you log.',
-    questions: [
-      {
-        key: 'behaviour',
-        question: 'Which habit are we working on first?',
-        // Mirrors BEHAVIOUR_CATALOG rather than restating a subset of it —
-        // a habit missing from this list was a habit the path could not
-        // start on, which is how `shopping` ended up trackable in Settings
-        // and unreachable here.
-        options: BEHAVIOUR_CATALOG.map((b) => ({ value: b.key, label: b.label })),
-      },
-      {
-        key: 'trigger',
-        question: 'When does it usually win?',
-        options: [
-          { value: 'stress', label: 'When the pressure is on' },
-          { value: 'boredom', label: 'When there is nothing to do' },
-          { value: 'social', label: 'When other people are doing it' },
-          { value: 'evening', label: 'Evenings at home, once things go quiet' },
-          { value: 'tired', label: 'When I am running on empty' },
-          { value: 'lowmood', label: 'When the day has gone badly' },
-          { value: 'unsure', label: 'Honestly not sure — help me find it' },
-        ],
-      },
-      {
-        key: 'replacement',
-        question: 'What could stand in its place?',
-        options: [
-          { value: 'breathe', label: 'A two-minute breath reset' },
-          { value: 'walk', label: 'A short walk, outside if I can' },
-          { value: 'read', label: 'Reading something on paper' },
-          { value: 'message', label: 'Messaging someone who knows' },
-          { value: 'tidy', label: 'Doing one small physical task' },
-          { value: 'water', label: 'Making tea, or a cold glass of water' },
-          { value: 'unsure', label: 'Help me pick' },
-        ],
-      },
-    ],
+    // The questions live in the question bank beside the other intakes;
+    // the trigger is multi-answer there because an urge answered at 9pm is
+    // stress AND boredom.
+    questions: RECOVERY_QUESTIONS,
     build: (answers, profile): PathBuild => {
       const behaviour = (answers.behaviour ?? 'doomscrolling') as BehaviourKey;
       const info = behaviourInfo(behaviour);
       const now = new Date().toISOString();
       const goalId = newId('g');
 
-      // The rehearsed answer lives in the actual risk window.
+      // The rehearsed answer lives in the actual risk window. More than
+      // one trigger can be true; the first named leads the hour until the
+      // log finds the real one.
+      const trigger = primaryTrigger(answers);
       const start =
-        answers.trigger === 'stress'
+        trigger === 'stress'
           ? '12:45'
-          : answers.trigger === 'social'
+          : trigger === 'social'
             ? '17:30'
-            : answers.trigger === 'boredom'
+            : trigger === 'boredom'
               ? '19:45'
               : '20:30';
-      const replacement = answers.replacement === 'unsure' ? 'breathe' : (answers.replacement ?? 'breathe');
-      const routineByReplacement: Record<string, Partial<Routine> & { title: string }> = {
+      // "Help me pick" is matched to the trigger: a boredom urge gets
+      // something for the hands, a social one a message, a tired one the
+      // smallest thing. It used to hand everyone the breath reset.
+      const replacement = replacementOf(answers);
+      const routineByReplacement: Record<ReplacementKey, Partial<Routine> & { title: string }> = {
         breathe: { title: 'The urge answer: two-minute reset', durationMin: 5, sessionType: 'breathe' },
         walk: { title: 'The urge answer: walk it off', durationMin: 20 },
         read: { title: 'The urge answer: read instead', durationMin: 20 },
@@ -664,7 +650,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
         tidy: { title: 'The urge answer: one small job with your hands', durationMin: 10 },
         water: { title: 'The urge answer: make a drink, slowly', durationMin: 5 },
       };
-      const base = routineByReplacement[replacement] ?? routineByReplacement.breathe;
+      const base = routineByReplacement[replacement];
       const routine: Routine = {
         id: newId('r'),
         title: base.title,
@@ -689,8 +675,16 @@ export const PATHS: Record<PathId, PathDefinition> = {
           area: 'health',
           domain: 'behaviour',
           milestones: [
-            { id: newId('ms'), title: 'Name the moment it usually starts', done: answers.trigger !== 'unsure' },
-            { id: newId('ms'), title: 'Choose the replacement and make it easy', done: answers.replacement !== 'unsure' },
+            {
+              id: newId('ms'),
+              title: 'Name the moment it usually starts',
+              done: triggersOf(answers).some((t) => t !== 'unsure'),
+            },
+            {
+              id: newId('ms'),
+              title: 'Choose the replacement and make it easy',
+              done: !!answers.replacement && answers.replacement !== 'unsure',
+            },
             { id: newId('ms'), title: 'Seven days with the urge answered', done: false },
             { id: newId('ms'), title: 'Four steady weeks', done: false },
           ],
@@ -705,7 +699,17 @@ export const PATHS: Record<PathId, PathDefinition> = {
     },
     insights: (answers) => {
       const lines: string[] = [];
-      const triggerLine: Record<string, string> = {
+      // The plan leads. An if-then sentence is the best-replicated single
+      // technique in this whole area, and a plan in the person's own words
+      // is the one that gets kept; the hub says so and Today lets them
+      // write it.
+      const plan = ifThenPlan(answers);
+      lines.push(
+        plan.ownWords
+          ? `Your plan: ${plan.text}`
+          : `Your plan, from your answers: ${plan.text} Put it in your own words on Today — plans in your words are the ones that get kept.`,
+      );
+      const triggerLine: Record<TriggerKey, string> = {
         stress: 'Stress is the trigger, so the answer sits mid-workday — a rehearsed reset before the evening arrives already depleted.',
         boredom: 'Boredom urges want stimulation, not sedation — the replacement gives your hands and mind something real.',
         social: 'Social triggers are decided in advance: know your drink, your line, and your exit before you arrive.',
@@ -716,15 +720,30 @@ export const PATHS: Record<PathId, PathDefinition> = {
         lowmood: 'A bad day makes the habit feel like relief. The replacement is something kind that is not the habit, and logging the day is what shows the pattern.',
         unsure: 'Not sure of the trigger? Log each urge with one tap and IntentNorth will find the pattern within two weeks.',
       };
-      lines.push(triggerLine[answers.trigger ?? 'unsure'] ?? triggerLine.unsure);
+      // One line per trigger named, so the second thing they told us is
+      // answered too.
+      const triggers = triggersOf(answers);
+      for (const t of triggers.length > 0 ? triggers : (['unsure'] as TriggerKey[])) {
+        lines.push(triggerLine[t]);
+      }
       lines.push('One miss is noise. Two in a row is the fork — that’s when IntentNorth steps in, not with shame, with a plan.');
       if (answers.wave === 'evening') {
         lines.push('Your urges run long, so the answer isn’t outlasting one wave — it’s changing the evening’s shape before it starts.');
       } else {
         lines.push('Urges crest and fall in about 10 minutes. The replacement doesn’t have to beat the habit — it has to outlast the wave.');
       }
+      lines.push('Wins are counted on Today and never reset. A slip is one event, and the next hour is the plan.');
+      // The clinical line, per behaviour. Dependence is a doctor's call;
+      // helplines are named generically because the app does not know
+      // which country the phone is in.
       if (answers.behaviour === 'alcohol') {
-        lines.push('Honest scope: this is structure for cutting down. If drinking feels out of control, talk to someone qualified — that’s strength, not failure.');
+        lines.push('Honest scope: this is structure for cutting down. If drinking feels out of control, or a day without brings shakes, sweats or a racing heart, talk to someone qualified — that’s strength, not failure.');
+      }
+      if (answers.behaviour === 'vaping' || answers.behaviour === 'smoking') {
+        lines.push('A GP or a quitline can add nicotine replacement to this plan, which roughly doubles the odds. IntentNorth is here for the pattern, not instead of that.');
+      }
+      if (answers.behaviour === 'gambling') {
+        lines.push('A gambling block on the bank card and self-exclusion do more than any plan on this screen. A free, confidential helpline is the right first call, and it asks for no name.');
       }
       return lines;
     },
