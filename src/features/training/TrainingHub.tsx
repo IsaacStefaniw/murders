@@ -18,6 +18,14 @@ import { useAppStore } from '@/state/store';
 import { strengthBaseline } from '@/features/training/baseline';
 import { latestMaxes } from '@/features/training/level';
 import { assessStrength, BAND_LABEL, type StrengthLift } from '@/features/training/standards';
+import {
+  answersForWant,
+  describeChange,
+  focusOptionsFor,
+  WANT_OPTIONS,
+  wantOf,
+  type Want,
+} from '@/features/training/want';
 
 const LIFTS = [
   { label: 'Bench', key: 'strength.bench.e1rm' },
@@ -61,6 +69,33 @@ export function TrainingHub() {
   const [logLift, setLogLift] = useState<string | null>(null);
   const [weight, setWeight] = useState('');
   const [reps, setReps] = useState('');
+
+  // "Change what I'm training for": the two intake questions again, then
+  // the block rebuilt from the current numbers. The goal, the logged
+  // sessions and the lift history all stay; only the block changes, and
+  // one sentence says what did.
+  const trainingPath = useAppStore((s) => s.paths.training);
+  const updatePathAnswers = useAppStore((s) => s.updatePathAnswers);
+  const [changing, setChanging] = useState(false);
+  const [want, setWant] = useState<Want | null>(null);
+  const [focus, setFocus] = useState<string | null>(null);
+  const [changed, setChanged] = useState<string | null>(null);
+  const focusOptions = want ? focusOptionsFor(want) : [];
+  const openChange = () => {
+    setWant(programme ? wantOf(programme.inputs.goal) : null);
+    setFocus(trainingPath?.answers.focus ?? null);
+    setChanged(null);
+    setChanging(true);
+  };
+  const applyChange = () => {
+    if (!want) return;
+    const before = programme;
+    updatePathAnswers('training', answersForWant(want, focus ?? undefined));
+    buildTrainingBlock();
+    const after = useAppStore.getState().trainingProgramme;
+    if (after) setChanged(describeChange(before, after));
+    setChanging(false);
+  };
 
   const week = programme ? weekOf(programme) : null;
   const knownLifts = LIFTS.filter((l) => latest(metrics, l.key));
@@ -224,6 +259,66 @@ export function TrainingHub() {
         </View>
       )}
 
+      {/* What the block is for, and the way to change it. Only once the
+          path has been started, because that is where the answers live. */}
+      {trainingPath ? (
+        <View style={styles.changeBlock}>
+          {changing ? (
+            <Card style={styles.stack}>
+              <AppText variant="heading">What do you want from training?</AppText>
+              <View style={styles.chips}>
+                {WANT_OPTIONS.map((o) => (
+                  <Chip
+                    key={o.value}
+                    label={o.label}
+                    selected={want === o.value}
+                    onPress={() => {
+                      setWant(o.value);
+                      setFocus(null);
+                    }}
+                  />
+                ))}
+              </View>
+              {want && focusOptions.length > 0 ? (
+                <>
+                  <AppText variant="body">Where first?</AppText>
+                  <View style={styles.chips}>
+                    {focusOptions.map((o) => (
+                      <Chip
+                        key={o.value}
+                        label={o.label}
+                        selected={focus === o.value}
+                        onPress={() => setFocus(o.value)}
+                      />
+                    ))}
+                  </View>
+                </>
+              ) : null}
+              <View style={styles.inputRow}>
+                <Button
+                  title="Rebuild the block"
+                  hint="Rebuilds the four-week block from your current numbers. Your logged sessions stay."
+                  disabled={!want || (focusOptions.length > 0 && !focus)}
+                  onPress={applyChange}
+                />
+                <Button title="Keep it as it is" variant="ghost" onPress={() => setChanging(false)} />
+              </View>
+              <AppText variant="caption" color="textTertiary">
+                Your logged sessions and your numbers stay. Only the block is rebuilt, from where your
+                lifts are now.
+              </AppText>
+            </Card>
+          ) : (
+            <Button title="Change what I'm training for" variant="ghost" onPress={openChange} />
+          )}
+          {changed ? (
+            <AppText variant="caption" color="accent">
+              {changed}
+            </AppText>
+          ) : null}
+        </View>
+      ) : null}
+
       {/* Log a lift — PRs feed everything. */}
       <SectionHeader title="Log a lift" />
       <View style={styles.chips}>
@@ -285,5 +380,6 @@ const styles = StyleSheet.create({
   grow: { flexGrow: 1 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.md },
+  changeBlock: { gap: Spacing.sm, marginTop: Spacing.md },
   hint: { marginTop: Spacing.sm },
 });

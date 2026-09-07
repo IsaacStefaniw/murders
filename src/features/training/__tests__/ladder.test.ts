@@ -83,6 +83,17 @@ describe('measuredTrainingLevel', () => {
   it('puts a beginner at foundation rather than below it', () => {
     expect(measuredTrainingLevel([session('strength.bench.e1rm', 70, 0)], man)).toBe('foundation');
   });
+
+  it('reads the lifts against the clock it is given, so a reading on a band bar does not drift', () => {
+    // 85 kg at 85 kg bodyweight is exactly the intermediate bar. Read on
+    // the day it was lifted it is developing; a week later the baseline
+    // has aged under the bar. Before `now` was threaded through, which of
+    // the two a test saw depended on the day the test ran.
+    const onTheBar = [session('strength.bench.e1rm', 85, 0)];
+    expect(measuredTrainingLevel(onTheBar, man, NOW)).toBe('developing');
+    expect(measuredTrainingLevel(onTheBar, man, NOW)).toBe(measuredTrainingLevel(onTheBar, man, NOW));
+    expect(measuredTrainingLevel(onTheBar, man, new Date(NOW.getTime() + 7 * 86400e3))).toBe('foundation');
+  });
 });
 
 describe('trainingEvidence', () => {

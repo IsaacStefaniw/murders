@@ -24,7 +24,7 @@ import type { PathLevel } from '@/features/paths/level';
 import type { PhysicalConstraint } from '@/types/domain';
 
 const EQUIPMENT: TrainingEquipment[] = ['gym', 'home', 'dumbbells', 'bodyweight'];
-const GOALS: TrainingGoal[] = ['strength', 'hypertrophy', 'fatloss', 'general'];
+const GOALS: TrainingGoal[] = ['strength', 'hypertrophy', 'fatloss', 'general', 'fitter', 'maintain'];
 const LEVELS: PathLevel[] = ['foundation', 'developing', 'established', 'advanced'];
 // Typed as a record so a constraint added to the domain type without a row
 // here fails to compile rather than silently escaping the matrix.
@@ -102,7 +102,7 @@ const built = CASES.map((c) => ({ ...c, programme: buildProgramme(c.inputs, c.ba
 
 describe('the programme matrix', () => {
   it('covers every combination the intake can produce', () => {
-    expect(CASES.length).toBe(4 * 4 * 4 * CONSTRAINT_SETS.length * 3 * 2 * 2);
+    expect(CASES.length).toBe(4 * GOALS.length * 4 * CONSTRAINT_SETS.length * 3 * 2 * 2);
   });
 
   it('never loads above the ceiling the constraints set, rounding included', () => {
@@ -156,7 +156,7 @@ describe('the programme matrix', () => {
     // The interval finisher and the balance opener are not movements a
     // person swaps: one is conditioning, the other is a constraint's
     // opening ritual.
-    const unswappable = /^(Finisher|Balance):/;
+    const unswappable = /^(Finisher|Balance|Cardio):/;
     const missing = new Set<string>();
     for (const { programme } of built) {
       for (const e of exercisesOf(programme)) {

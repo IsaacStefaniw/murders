@@ -508,20 +508,47 @@ export function deriveTrainingInputs(
 ): TrainingInputs {
   const fitnessGoal = goals.find((g) => g.status === 'active' && g.domain === 'fitness');
   const title = fitnessGoal?.title.toLowerCase() ?? '';
-  const goal: TrainingInputs['goal'] = /bench|squat|deadlift|strength|stronger|press/.test(title)
-    ? 'strength'
-    : /muscle|size|build/.test(title)
-      ? 'hypertrophy'
-      : /lose|fat|lean|kg|weight/.test(title)
-        ? 'fatloss'
-        : 'general';
-  // The question engine's focus-lift answer beats the title heuristic.
+  // The intake's own answer — "what do you want from training?" and
+  // "where first?" — comes before any guess from the goal title. The
+  // title regex stays for a block built from a typed goal with no path.
+  const want = pathAnswers?.want;
+  const focus = pathAnswers?.focus;
+  const asked: TrainingInputs['goal'] | undefined =
+    want === 'stronger'
+      ? 'strength'
+      : want === 'muscle'
+        ? 'hypertrophy'
+        : want === 'leaner'
+          ? 'fatloss'
+          : want === 'fitter'
+            ? 'fitter'
+            : want === 'keep'
+              ? 'maintain'
+              : undefined;
+  const goal: TrainingInputs['goal'] =
+    asked ??
+    (/bench|squat|deadlift|strength|stronger|press/.test(title)
+      ? 'strength'
+      : /muscle|size|build/.test(title)
+        ? 'hypertrophy'
+        : /lose|fat|lean|kg|weight/.test(title)
+          ? 'fatloss'
+          : 'general');
+  const focusArea: TrainingInputs['focusArea'] =
+    focus === 'upper' || focus === 'lower' || focus === 'whole' ? focus : undefined;
+  const distance: TrainingInputs['distance'] =
+    focus === '5k' || focus === '10k' || focus === 'sport' ? focus : undefined;
+  // The question engine's focus-lift answer beats the title heuristic,
+  // and the intake's "where first?" beats both when it names a lift.
   //
   // Overhead press was missing from both branches, so "Overhead press 60kg"
   // was read as a strength goal with no lift to focus — the programme knew
   // what kind of goal it was and not what it was about, which is most of
   // the way to being no goal at all.
-  const chosen = pathAnswers?.focusLift;
+  const chosen =
+    focus === 'bench' || focus === 'squat' || focus === 'deadlift' || focus === 'ohp'
+      ? focus
+      : pathAnswers?.focusLift;
   const fromTitle = TITLE_TO_LIFT.find(([pattern]) => pattern.test(title))?.[1];
   const focusLift =
     chosen === 'bench' || chosen === 'squat' || chosen === 'deadlift' || chosen === 'ohp'
@@ -547,6 +574,8 @@ export function deriveTrainingInputs(
     sessionMin: profile.trainingDurationMin >= 45 ? 60 : 30,
     equipment,
     focusLift,
+    focusArea,
+    distance,
     age: profile.age,
     // Carried from the profile, not re-asked. Something answered once in
     // onboarding must reach the place that acts on it, or the question was

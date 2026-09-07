@@ -211,10 +211,75 @@ export const PATHS: Record<PathId, PathDefinition> = {
         why: 'Past 45 the program protects you with longer warm-ups and conservative loading.',
       },
     ],
-    build: (answers, profile) =>
-      withLadder('training', buildGoalPlan(parsed('Training that sticks', 'fitness', 'health'), profile, undefined, answers), answers, profile),
+    build: (answers, profile) => {
+      const plan = buildGoalPlan(parsed('Training that sticks', 'fitness', 'health'), profile, undefined, answers);
+      // What the person wants shapes the week, not only the block. The
+      // block (features/training/programme) decides what happens inside a
+      // session; this decides which practices sit around it.
+      const minimal = profile?.capacity === 'minimal';
+      const has = (protocolId: string) => plan.routines.some((r) => r.protocolId === protocolId);
+      const workout = plan.routines.find((r) => r.sessionType === 'workout');
+      if (answers.want === 'leaner' && !has('daily-walk')) {
+        // The walk does more for getting leaner than any finisher does,
+        // and it is the practice people keep. Three days on a minimal week.
+        const walk = protocolById('daily-walk');
+        if (walk) {
+          const routine = toRoutine(walk, profile, plan.goal.id);
+          if (minimal) routine.days = routine.days.filter((d) => [1, 3, 5].includes(d));
+          plan.routines.push(routine);
+        }
+        plan.goal.milestones = [...(plan.goal.milestones ?? []), { id: newId('ms'), title: 'The walk on four days in one week', done: false }];
+      }
+      if (answers.want === 'fitter' && !has('zone2')) {
+        // The block turns one lifting day into conditioning with intervals
+        // in it; the easy session on another day is the other half of
+        // getting fitter, so it is in even for a first-timer.
+        const easy = protocolById('zone2');
+        if (easy) {
+          const routine = toRoutine(easy, profile, plan.goal.id);
+          if (minimal) routine.days = routine.days.slice(0, 1);
+          plan.routines.push(routine);
+        }
+        plan.goal.milestones = [...(plan.goal.milestones ?? []), { id: newId('ms'), title: 'A conditioning session finished as written', done: false }];
+      }
+      if (answers.want === 'keep' && workout && workout.days.length > 3) {
+        // Keeping what you have takes two or three sessions, and the block
+        // builds three at most; a fourth day on the calendar would be a
+        // repeat of one of them.
+        const spread = [1, 3, 5, 6, 2, 4, 0] as Routine['days'];
+        workout.days = spread.filter((d) => workout.days.includes(d)).slice(0, 3).sort((a, b) => a - b);
+        plan.goal.milestones = [...(plan.goal.milestones ?? []), { id: newId('ms'), title: 'Four weeks and the numbers held', done: false }];
+      }
+      if (answers.want === 'stronger') {
+        const lift = { bench: 'bench', squat: 'squat', deadlift: 'deadlift', ohp: 'overhead press' }[answers.focus ?? ''] ?? 'main lift';
+        plan.goal.milestones = [...(plan.goal.milestones ?? []), { id: newId('ms'), title: `A heavier ${lift} than you started with`, done: false }];
+      }
+      if (answers.want === 'muscle') {
+        plan.goal.milestones = [...(plan.goal.milestones ?? []), { id: newId('ms'), title: 'Every accessory set logged for a whole block', done: false }];
+      }
+      return withLadder('training', plan, answers, profile);
+    },
     insights: (answers, profile) => {
       const lines: string[] = [];
+      const area = answers.focus === 'upper' ? 'upper body' : answers.focus === 'lower' ? 'lower body' : 'whole body';
+      if (answers.want === 'stronger') {
+        const lift = { bench: 'the bench', squat: 'the squat', deadlift: 'the deadlift', ohp: 'the overhead press' }[answers.focus ?? ''];
+        lines.push(
+          lift
+            ? `Stronger, built around ${lift}: it opens every session it is in, and the loads step up each week from your own numbers.`
+            : 'Stronger: the main lifts first, loads stepping up each week from your own numbers.',
+        );
+      } else if (answers.want === 'muscle') {
+        lines.push(`Muscle, ${area} first: an extra set on those lifts and an extra accessory for them. The protein number from the food coach does the other half.`);
+      } else if (answers.want === 'leaner') {
+        lines.push('Leaner: a short finisher ends every session, and the daily walk is in your week — it does more than the finisher, and it is the one people keep.');
+      } else if (answers.want === 'fitter') {
+        lines.push(
+          `Fitter${answers.focus === '10k' ? ', for 10 km and beyond' : answers.focus === 'sport' ? ', for your sport' : ', for a 5 km'}: one lifting day becomes a conditioning session with hard intervals in the middle, and the easy session stays in the week.`,
+        );
+      } else if (answers.want === 'keep') {
+        lines.push('Keeping what you have: two or three sessions at the same dose, no peak week. It holds on less than you think, and the retest at the end shows it.');
+      }
       if (answers.experience === 'new') {
         lines.push('Two 30-minute sessions you keep beat three you skip. Volume comes later — consistency first.');
       } else if (answers.experience === 'consistent') {

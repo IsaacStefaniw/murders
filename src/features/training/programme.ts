@@ -21,10 +21,22 @@ import {
   applyConstraints,
   constraintNote,
   intensityCeiling,
+  ruledOutByConstraints,
   rulesOutComplexLifts,
+  rulesOutHardIntervals,
 } from './constraints';
 
-export type TrainingGoal = 'strength' | 'hypertrophy' | 'fatloss' | 'general';
+/**
+ * What the person wants from the block, in the intake's own words:
+ * stronger, muscle, leaner, fitter for running or a sport, or keeping
+ * what they have. `general` is the block built for someone who has not
+ * said, and it stays the same block it always was.
+ */
+export type TrainingGoal = 'strength' | 'hypertrophy' | 'fatloss' | 'general' | 'fitter' | 'maintain';
+/** The body area the extra work goes to when the goal is muscle. */
+export type FocusArea = 'upper' | 'lower' | 'whole';
+/** What the conditioning session is for when the goal is fitter. */
+export type Distance = '5k' | '10k' | 'sport';
 export type TrainingExperience = 'new' | 'returning' | 'consistent';
 export type TrainingEquipment = 'gym' | 'home' | 'dumbbells' | 'bodyweight';
 
@@ -71,6 +83,10 @@ export interface TrainingInputs {
   equipment: TrainingEquipment;
   /** The lift the goal centres on, when the goal names one. */
   focusLift?: 'bench' | 'squat' | 'deadlift' | 'ohp';
+  /** Where the extra volume goes for a muscle block; ignored otherwise. */
+  focusArea?: FocusArea;
+  /** What the conditioning session is built for in a fitter block. */
+  distance?: Distance;
   age?: number;
   /** What the body will not do right now. Swaps movements, never removes. */
   constraints?: PhysicalConstraint[];
@@ -101,6 +117,13 @@ export interface PrescribedExercise {
   rpe?: number;
   restSec: number;
   accessory?: boolean;
+  /**
+   * Timed work — a run, an interval block — where a set is minutes rather
+   * than reps and rest. The estimate reads this instead of sets × rest, so
+   * cutting a set of intervals shortens the session by what it actually
+   * took.
+   */
+  minutesPerSet?: number;
   /** Set when the person swapped this in for the programmed movement. */
   swappedFrom?: string;
 }
@@ -301,6 +324,27 @@ function mainScheme(goal: TrainingGoal, week: number): { sets: number; reps: str
       { sets: 2, reps: '10', pct: 0.6 },
     ][week - 1];
   }
+  if (goal === 'fitter') {
+    // Lifting for a runner keeps the legs and back robust; the running is
+    // where the fitness comes from. Three sets, no chasing a peak.
+    return [
+      { sets: 3, reps: '6–8', pct: 0.7 },
+      { sets: 3, reps: '6–8', pct: 0.7 },
+      { sets: 3, reps: '5–6', pct: 0.75 },
+      { sets: 2, reps: '8', pct: 0.62 },
+    ][week - 1];
+  }
+  if (goal === 'maintain') {
+    // The dose that holds what someone has: the same three sets every
+    // week, at a load that is work without being a project. No peak,
+    // because there is nothing to peak for.
+    return [
+      { sets: 3, reps: '5–8', pct: 0.72 },
+      { sets: 3, reps: '5–8', pct: 0.72 },
+      { sets: 3, reps: '5–8', pct: 0.72 },
+      { sets: 2, reps: '8', pct: 0.62 },
+    ][week - 1];
+  }
   return [
     { sets: 3, reps: '6–10', pct: 0.7 },
     { sets: 3, reps: '6–10', pct: 0.725 },
@@ -380,7 +424,58 @@ interface Slot {
   name: string;
   lift: keyof TrainingProgramme['baselines'] | null;
   primary: boolean;
+  /** Which half of the body the movement trains, for a muscle block's extra work. */
+  area?: 'upper' | 'lower';
 }
+
+/**
+ * The accessories a muscle block adds where the person asked for it.
+ * Listed first for the area, ahead of the general accessories, so the
+ * extra slot goes to the area and not to the plank. Every name is in the
+ * swap table, and a joint or injury constraint filters the loaded ones
+ * out through the same rule the swap menu uses.
+ */
+const AREA_ACCESSORIES: Record<'upper' | 'lower', Record<TrainingEquipment, PrescribedExercise[]>> = {
+  upper: {
+    gym: [
+      { name: 'Incline dumbbell press', sets: 3, reps: '10–12', rpe: 7, restSec: 75, accessory: true },
+      { name: 'Seated cable row', sets: 3, reps: '10–12', rpe: 7, restSec: 75, accessory: true },
+      { name: 'Triceps pushdowns', sets: 2, reps: '12–15', rpe: 7, restSec: 60, accessory: true },
+    ],
+    home: [
+      { name: 'Push-ups', sets: 3, reps: '10–15', rpe: 7, restSec: 60, accessory: true },
+      { name: 'Inverted rows / doorframe rows', sets: 3, reps: '8–12', rpe: 7, restSec: 75, accessory: true },
+    ],
+    dumbbells: [
+      { name: 'Incline dumbbell press', sets: 3, reps: '10–12', rpe: 7, restSec: 75, accessory: true },
+      { name: 'Dumbbell rows', sets: 3, reps: '10–12', rpe: 7, restSec: 75, accessory: true },
+      { name: 'Hammer curls', sets: 2, reps: '10–15', rpe: 7, restSec: 60, accessory: true },
+    ],
+    bodyweight: [
+      { name: 'Push-ups', sets: 3, reps: '10–15', rpe: 7, restSec: 60, accessory: true },
+      { name: 'Inverted rows / doorframe rows', sets: 3, reps: '8–12', rpe: 7, restSec: 75, accessory: true },
+    ],
+  },
+  lower: {
+    gym: [
+      { name: 'Leg press', sets: 3, reps: '10–12', rpe: 7, restSec: 90, accessory: true },
+      { name: 'Hip thrusts', sets: 3, reps: '10–12', rpe: 7, restSec: 75, accessory: true },
+      { name: 'Dumbbell lunges', sets: 3, reps: '10–12', rpe: 7, restSec: 75, accessory: true },
+    ],
+    home: [
+      { name: 'Split squats', sets: 3, reps: '10–12', rpe: 7, restSec: 75, accessory: true },
+      { name: 'Single-leg hip hinges', sets: 3, reps: '10–12', rpe: 7, restSec: 60, accessory: true },
+    ],
+    dumbbells: [
+      { name: 'Dumbbell lunges', sets: 3, reps: '10–12', rpe: 7, restSec: 75, accessory: true },
+      { name: 'Dumbbell Romanian deadlift', sets: 3, reps: '10–12', rpe: 7, restSec: 75, accessory: true },
+    ],
+    bodyweight: [
+      { name: 'Split squats', sets: 3, reps: '12–15', rpe: 7, restSec: 60, accessory: true },
+      { name: 'Single-leg hip hinges', sets: 3, reps: '10–12', rpe: 7, restSec: 60, accessory: true },
+    ],
+  },
+};
 
 /**
  * Main-work menu per equipment; barbell numbers only where a barbell
@@ -402,53 +497,57 @@ function mains(
   equipment: TrainingEquipment,
   complexLifts: boolean,
 ): { upper: Slot[]; lower: Slot[]; full: Slot[] } {
+  const up = 'upper' as const;
+  const low = 'lower' as const;
   if (equipment === 'gym' || equipment === 'home') {
     const barbell = equipment === 'gym';
     const overhead: Slot = barbell
       ? complexLifts
-        ? { name: 'Overhead press', lift: 'ohp', primary: false }
-        : { name: 'Dumbbell shoulder press', lift: null, primary: false }
-      : { name: 'Pike push-ups', lift: null, primary: false };
+        ? { name: 'Overhead press', lift: 'ohp', primary: false, area: up }
+        : { name: 'Dumbbell shoulder press', lift: null, primary: false, area: up }
+      : { name: 'Pike push-ups', lift: null, primary: false, area: up };
     const hinge: Slot = barbell
       ? complexLifts
-        ? { name: 'Deadlift', lift: 'deadlift', primary: false }
-        : { name: 'Romanian deadlift — hinge practice', lift: null, primary: false }
-      : { name: 'Hip hinges (loaded)', lift: null, primary: false };
+        ? { name: 'Deadlift', lift: 'deadlift', primary: false, area: low }
+        : { name: 'Romanian deadlift — hinge practice', lift: null, primary: false, area: low }
+      : { name: 'Hip hinges (loaded)', lift: null, primary: false, area: low };
+    const press: Slot = { name: barbell ? 'Bench press' : 'Push-ups (loaded)', lift: barbell ? 'bench' : null, primary: true, area: up };
+    const row: Slot = { name: barbell ? 'Barbell row' : 'Backpack rows', lift: null, primary: false, area: up };
+    const squat: Slot = { name: barbell ? 'Squat' : 'Goblet squats', lift: barbell ? 'squat' : null, primary: true, area: low };
     return {
-      upper: [
-        { name: barbell ? 'Bench press' : 'Push-ups (loaded)', lift: barbell ? 'bench' : null, primary: true },
-        overhead,
-        { name: barbell ? 'Barbell row' : 'Backpack rows', lift: null, primary: false },
-      ],
-      lower: [
-        { name: barbell ? 'Squat' : 'Goblet squats', lift: barbell ? 'squat' : null, primary: true },
-        hinge,
-      ],
-      full: [
-        { name: barbell ? 'Squat' : 'Goblet squats', lift: barbell ? 'squat' : null, primary: true },
-        { name: barbell ? 'Bench press' : 'Push-ups (loaded)', lift: barbell ? 'bench' : null, primary: true },
-        { name: barbell ? 'Barbell row' : 'Backpack rows', lift: null, primary: false },
-      ],
+      upper: [press, overhead, row],
+      lower: [squat, hinge],
+      full: [{ ...squat }, { ...press }, { ...row }],
     };
   }
-  const press = equipment === 'dumbbells' ? 'Dumbbell bench press' : 'Push-ups';
-  const row = equipment === 'dumbbells' ? 'Dumbbell rows' : 'Inverted rows / doorframe rows';
-  const squat = equipment === 'dumbbells' ? 'Goblet squats' : 'Tempo air squats';
-  const hinge = equipment === 'dumbbells' ? 'Dumbbell Romanian deadlift' : 'Single-leg hip hinges';
+  const press: Slot = {
+    name: equipment === 'dumbbells' ? 'Dumbbell bench press' : 'Push-ups',
+    lift: null,
+    primary: true,
+    area: up,
+  };
+  const row: Slot = {
+    name: equipment === 'dumbbells' ? 'Dumbbell rows' : 'Inverted rows / doorframe rows',
+    lift: null,
+    primary: false,
+    area: up,
+  };
+  const squat: Slot = {
+    name: equipment === 'dumbbells' ? 'Goblet squats' : 'Tempo air squats',
+    lift: null,
+    primary: true,
+    area: low,
+  };
+  const hinge: Slot = {
+    name: equipment === 'dumbbells' ? 'Dumbbell Romanian deadlift' : 'Single-leg hip hinges',
+    lift: null,
+    primary: false,
+    area: low,
+  };
   return {
-    upper: [
-      { name: press, lift: null, primary: true },
-      { name: row, lift: null, primary: false },
-    ],
-    lower: [
-      { name: squat, lift: null, primary: true },
-      { name: hinge, lift: null, primary: false },
-    ],
-    full: [
-      { name: squat, lift: null, primary: true },
-      { name: press, lift: null, primary: true },
-      { name: row, lift: null, primary: false },
-    ],
+    upper: [press, row],
+    lower: [squat, hinge],
+    full: [{ ...squat }, { ...press }, { ...row }],
   };
 }
 
@@ -457,8 +556,14 @@ function mains(
  * a screen shows can be checked against the exercises it shows it beside.
  */
 export function estimateSessionMin(exercises: PrescribedExercise[], age?: number): number {
-  const warmup = (age ?? 0) >= 45 ? 12 : 8;
-  const workSec = exercises.reduce((sum, e) => sum + e.sets * (45 + e.restSec), 0);
+  // A session that is all timed work — the conditioning day — carries its
+  // own easy-pace warm-up as its first exercise, so none is added here.
+  const allTimed = exercises.length > 0 && exercises.every((e) => e.minutesPerSet != null);
+  const warmup = allTimed ? 0 : (age ?? 0) >= 45 ? 12 : 8;
+  const workSec = exercises.reduce(
+    (sum, e) => sum + e.sets * (e.minutesPerSet != null ? e.minutesPerSet * 60 : 45 + e.restSec),
+    0,
+  );
   return Math.round(workSec / 60) + warmup;
 }
 
@@ -505,6 +610,23 @@ const LEVEL_NOTE: Record<PathLevel, string> = {
     'Advanced block — higher intensity, an extra set on the main work, and week 3 deliberately overreaches. The deload after it is not optional.',
 };
 
+/**
+ * The same four rungs when the person wants to keep what they have: the
+ * level's movements and dose, none of its pushing. The established and
+ * advanced notes would otherwise promise a peak week and a top set the
+ * block does not build.
+ */
+const MAINTAIN_NOTE: Record<PathLevel, string> = {
+  foundation:
+    'Foundation block, held rather than pushed — squat and bench at conservative loads, the hinge learned before it is loaded, the same dose every week.',
+  developing:
+    'Developing block, held rather than pushed — deadlift and overhead press are in, at the same sets and loads every week rather than stepping up.',
+  established:
+    'Established block, held rather than pushed — full volume at the same dose every week, no peak week and no heavy top set.',
+  advanced:
+    'Advanced block, held rather than pushed — the extra set on the main work stays; the overreach week and the top singles do not. Holding is the goal.',
+};
+
 /** The line at the top of a session, when there is one worth saying. */
 function sessionNote(
   phase: TrainingPhase,
@@ -541,23 +663,93 @@ export function complexLiftsAllowed(inputs: TrainingInputs): boolean {
   );
 }
 
+
+/**
+ * The conditioning session a fitter block runs in place of one lifting
+ * day. Built from two practices in the library — easy cardio at talking
+ * pace and hard intervals — with the easy work either side of the hard
+ * work. The "Cardio:" prefix marks it, like the finisher, as not a
+ * movement to swap.
+ *
+ * Hard intervals are the one thing here a constraint vetoes outright
+ * rather than scales: beside a heart condition, a pregnancy or an injury
+ * the session is easy pace the whole way, and says so. The deload week is
+ * easy pace for everybody.
+ */
+const INTERVALS: Record<Distance, { sets: number; reps: string; minutesPerSet: number }> = {
+  '5k': { sets: 4, reps: '3 min hard / 3 min easy', minutesPerSet: 6 },
+  '10k': { sets: 4, reps: '4 min hard / 3 min easy', minutesPerSet: 7 },
+  sport: { sets: 6, reps: '1 min hard / 2 min easy', minutesPerSet: 3 },
+};
+
+function conditioningSession(
+  distance: Distance,
+  phase: TrainingPhase,
+  week: number,
+  constraints: PhysicalConstraint[] | undefined,
+  sessionMin: number,
+  age?: number,
+): ProgrammeSession {
+  const vetoed = rulesOutHardIntervals(constraints);
+  const easyOnly = phase === 'deload' || vetoed;
+  let exercises: PrescribedExercise[];
+  if (easyOnly) {
+    const minutes = Math.max(10, Math.min(distance === '10k' ? 30 : 20, sessionMin));
+    exercises = [
+      { name: 'Cardio: easy pace, talking the whole way', sets: 1, reps: `${minutes} min`, restSec: 0, minutesPerSet: minutes },
+    ];
+  } else {
+    const block = INTERVALS[distance];
+    exercises = [
+      { name: 'Cardio: easy pace to warm up', sets: 1, reps: '8 min, talking pace', restSec: 0, minutesPerSet: 8 },
+      // The peak week adds one round; the lifting days peak the same week.
+      { name: 'Cardio: hard intervals', sets: block.sets + (week === 3 ? 1 : 0), reps: block.reps, restSec: 0, minutesPerSet: block.minutesPerSet },
+      { name: 'Cardio: easy pace to cool down', sets: 1, reps: '6 min', restSec: 0, minutesPerSet: 6, accessory: true },
+    ];
+  }
+  exercises = fitToTime(exercises, sessionMin, age);
+  return {
+    title: 'Conditioning',
+    exercises,
+    estimatedMin: estimateSessionMin(exercises, age),
+    note: vetoed
+      ? 'Easy pace only — hard intervals do not belong beside what you told us you are managing. Talking pace the whole way.'
+      : phase === 'deload'
+        ? 'Deload — easy pace only. Light means light; the fitness lands here.'
+        : 'Built from two practices in your library: easy cardio at talking pace, and hard intervals in the middle. Hard means hard for you, not a number; skip it when unwell.',
+  };
+}
+
+/** The distance a fitter block is for when the person did not say. */
+const DEFAULT_DISTANCE: Distance = '5k';
+
 /** Build the four-week block from who this person actually is. */
 export function buildProgramme(
   inputs: TrainingInputs,
   baselines: TrainingProgramme['baselines'] = {},
 ): TrainingProgramme {
   const days = Math.min(Math.max(inputs.daysAvailable, 2), 5);
+  // How many of those days lift. A fitter block gives one to conditioning;
+  // a maintenance block needs no more than three, whatever is free.
+  const liftDays =
+    inputs.goal === 'fitter' ? Math.max(1, days - 1) : inputs.goal === 'maintain' ? Math.min(days, 3) : days;
   const level = levelOf(inputs);
-  const tuning = tuningFor(level, inputs.pushHarder);
+  const rung = tuningFor(level, inputs.pushHarder);
+  // A maintenance block has nothing to test and nothing to overshoot, so
+  // the top single and the overreach week stay out even at a level that
+  // has earned them. The dose fields keep the level's numbers.
+  const tuning = inputs.goal === 'maintain' ? { ...rung, topSingle: false, overreach: false } : rung;
   const allowComplex = complexLiftsAllowed(inputs);
   const ceiling = intensityCeiling(inputs.constraints);
   // Any stated constraint rules out near-maximal singles. Not a scaled-down
   // version of one — none at all.
   const maximalAllowed = (inputs.constraints?.length ?? 0) === 0;
+  const topSingle = tuning.topSingle;
   const menu = mains(inputs.equipment, allowComplex);
   const notes: string[] = [];
+  const muscleArea = inputs.goal === 'hypertrophy' ? inputs.focusArea : undefined;
 
-  notes.push(LEVEL_NOTE[level]);
+  notes.push(inputs.goal === 'maintain' ? MAINTAIN_NOTE[level] : LEVEL_NOTE[level]);
   // Say the bump out loud. A block that silently got harder is a block the
   // person blames themselves for struggling with.
   if (inputs.pushHarder) {
@@ -567,7 +759,7 @@ export function buildProgramme(
   }
   const constraintLine = constraintNote(inputs.constraints);
   if (constraintLine) notes.push(constraintLine);
-  if (!maximalAllowed && LEVEL_TUNING[level].topSingle && inputs.focusLift) {
+  if (!maximalAllowed && LEVEL_TUNING[level].topSingle && inputs.goal !== 'maintain' && inputs.focusLift) {
     notes.push(
       'No heavy single this block. Near-maximal work does not belong beside what you told us you are managing, and a lighter version of it would not be the same movement.',
     );
@@ -575,11 +767,13 @@ export function buildProgramme(
 
   // Split from real availability, not aspiration.
   const split: ('upper' | 'lower' | 'full')[] =
-    days <= 3 ? Array(days).fill('full') : ['upper', 'lower', 'upper', 'lower', 'full'].slice(0, days);
+    liftDays <= 3 ? Array(liftDays).fill('full') : ['upper', 'lower', 'upper', 'lower', 'full'].slice(0, liftDays);
   notes.push(
-    days <= 3
-      ? `${days} full-body sessions — frequency beats fancy splits at this availability.`
-      : 'Upper/lower split — each lift trained twice weekly, recovery respected.',
+    liftDays === 1
+      ? 'One full-body lifting session — enough to keep the strength that makes the running hold up.'
+      : liftDays <= 3
+        ? `${liftDays} full-body sessions — frequency beats fancy splits at this availability.`
+        : 'Upper/lower split — each lift trained twice weekly, recovery respected.',
   );
   // The focus line describes this block, not the block an unconstrained
   // established lifter would get. It used to promise a heavy top set to
@@ -593,13 +787,40 @@ export function buildProgramme(
     );
   if (inputs.focusLift && baselines[inputs.focusLift] && focusProgrammed) {
     notes.push(
-      tuning.topSingle && maximalAllowed
+      topSingle && maximalAllowed
         ? `Focus: ${inputs.focusLift} — it opens every session it is in, and week 3 adds a heavy top set.`
         : `Focus: ${inputs.focusLift} — it opens every session it is in.`,
     );
   }
   if ((inputs.age ?? 0) >= 45) notes.push('45+: longer warm-ups are built into every estimate.');
-  if (inputs.goal === 'fatloss') notes.push('Fat loss: a short conditioning finisher ends each session; the diet does the rest.');
+  // What the block is for, said once at the top in the person's own words.
+  if (inputs.goal === 'fatloss') {
+    notes.push(
+      'Leaner: a short finisher ends every session but the deload. The walk in your week does more than the finisher does — keep it — and the food does the rest.',
+    );
+  }
+  if (inputs.goal === 'hypertrophy') {
+    notes.push(
+      muscleArea === 'whole'
+        ? 'Muscle: an extra set on the main work and an extra accessory in every session. The protein number from the food coach does the other half.'
+        : muscleArea
+          ? `Muscle: an extra set on the ${muscleArea}-body lifts and an extra ${muscleArea}-body accessory wherever they are trained. The protein number from the food coach does the other half.`
+          : 'Muscle: higher reps on the main work and three accessories a session. The protein number from the food coach does the other half.',
+    );
+  }
+  if (inputs.goal === 'fitter') {
+    const distance = inputs.distance ?? DEFAULT_DISTANCE;
+    notes.push(
+      `Fitter: one day a week is a conditioning session${
+        distance === '10k' ? ' built for 10 km and beyond' : distance === 'sport' ? ' built for a sport — short, sharp efforts' : ' built for a 5 km'
+      }, and the lifting keeps you robust enough to keep running.`,
+    );
+  }
+  if (inputs.goal === 'maintain') {
+    notes.push(
+      `Keeping what you have: ${liftDays} sessions at the same dose every week and no peak week. It holds on less than you think; the retest at the end shows it held.`,
+    );
+  }
 
   const weeks: ProgrammeWeek[] = PHASES.map((phase, i) => {
     const week = i + 1;
@@ -627,6 +848,13 @@ export function buildProgramme(
           ceiling,
         ),
       );
+      // A muscle block puts its extra set where the person asked for it:
+      // the upper-body lifts, the lower-body lifts, or all of them. Never
+      // in the deload, whose job is to be easy.
+      const inArea = (slot: Slot) => muscleArea === 'whole' || slot.area === muscleArea;
+      if (muscleArea && phase !== 'deload') {
+        exercises = exercises.map((e, i) => (inArea(slots[i]) ? { ...e, sets: e.sets + 1 } : e));
+      }
       // Week 3 heavy top set for a baselined focus lift — and only for a
       // level where a near-maximal single is a training tool rather than a
       // test of nerve.
@@ -643,7 +871,7 @@ export function buildProgramme(
       // movement is the near-maximal effort. So it is dropped, and the
       // programme says why rather than leaving a hole.
       if (
-        tuning.topSingle &&
+        topSingle &&
         week === 3 &&
         inputs.focusLift &&
         baselines[inputs.focusLift] &&
@@ -662,13 +890,40 @@ export function buildProgramme(
           });
         }
       }
+      // The area's own accessories come first, and buy one more slot, so
+      // the extra work lands on the area rather than on the plank. A
+      // full-body day in a whole-body block alternates the two halves.
+      const accessoryArea: 'upper' | 'lower' | null =
+        muscleArea == null
+          ? null
+          : muscleArea === 'whole'
+            ? kind === 'full'
+              ? dayIdx % 2 === 0
+                ? 'upper'
+                : 'lower'
+              : kind
+            : kind === 'full' || kind === muscleArea
+              ? muscleArea
+              : null;
+      const areaPool = accessoryArea
+        ? AREA_ACCESSORIES[accessoryArea][inputs.equipment].filter(
+            (e) => !ruledOutByConstraints(e.name, inputs.constraints),
+          )
+        : [];
       const accessoryBudget = Math.max(
         1,
-        (inputs.goal === 'hypertrophy' ? 3 : 2) + tuning.accessoryDelta,
+        (inputs.goal === 'hypertrophy' ? 3 : 2) + tuning.accessoryDelta + (areaPool.length > 0 ? 1 : 0),
       );
-      exercises = exercises.concat(
-        ACCESSORIES[inputs.equipment].slice(0, phase === 'deload' ? 1 : accessoryBudget).map((e) => ({ ...e })),
-      );
+      // Nothing programmed twice: an area accessory that is already a main
+      // lift on this equipment, or already in the general list, is skipped.
+      const programmed = new Set(exercises.map((e) => e.name));
+      const pool: PrescribedExercise[] = [];
+      for (const e of [...areaPool, ...ACCESSORIES[inputs.equipment]]) {
+        if (programmed.has(e.name)) continue;
+        programmed.add(e.name);
+        pool.push({ ...e });
+      }
+      exercises = exercises.concat(pool.slice(0, phase === 'deload' ? 1 : accessoryBudget));
       if (inputs.goal === 'fatloss' && phase !== 'deload') {
         exercises.push({ name: 'Finisher: intervals', sets: 5, reps: '30s hard / 60s easy', restSec: 0, accessory: true });
       }
@@ -684,17 +939,33 @@ export function buildProgramme(
         note: sessionNote(phase, week, dayIdx, tuning),
       };
     });
+    if (inputs.goal === 'fitter') {
+      sessions.push(
+        conditioningSession(
+          inputs.distance ?? DEFAULT_DISTANCE,
+          phase,
+          week,
+          inputs.constraints,
+          inputs.sessionMin,
+          inputs.age,
+        ),
+      );
+    }
     return {
       week,
       phase,
       focus:
         phase === 'deload'
           ? 'Recover, then retest the main lifts'
-          : week === 3
-            ? tuning.overreach
-              ? 'Overreach week — deliberately more than you can sustain, and next week pays it back'
-              : 'Peak week — heaviest work of the block'
-            : 'Accumulate quality volume',
+          : inputs.goal === 'maintain'
+            ? 'Hold the numbers — the same dose, done well'
+            : week === 3
+              ? tuning.overreach
+                ? 'Overreach week — deliberately more than you can sustain, and next week pays it back'
+                : inputs.goal === 'fitter'
+                  ? 'Peak week — one more round of intervals, heaviest lifting of the block'
+                  : 'Peak week — heaviest work of the block'
+              : 'Accumulate quality volume',
       sessions,
     };
   });
