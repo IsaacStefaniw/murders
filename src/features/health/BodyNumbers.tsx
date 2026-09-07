@@ -8,6 +8,7 @@ import { SectionHeader } from '@/components/section-header';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { BMI_CONTEXT, VO2MAX_CONTEXT, conditioningFrom } from '@/features/health/conditioning';
+import { readinessCoverage } from '@/features/health/readiness';
 import { bmiFrom, waistToHeight } from '@/features/health/summarise';
 import { BODY_ENTRIES } from '@/features/health/bodyEntries';
 import { latest } from '@/features/model/metrics';
@@ -45,6 +46,9 @@ export function BodyNumbers() {
   const bmi = bmiFrom(weight, height);
   const wth = waistToHeight(waist, height);
   const conditioning = useMemo(() => conditioningFrom(metrics), [metrics]);
+  // Said only when a signal is not coming at all, so a blank row is not
+  // read as one more day of waiting for it.
+  const coverage = useMemo(() => readinessCoverage(metrics), [metrics]);
 
   const save = () => {
     for (const entry of BODY_ENTRIES) {
@@ -133,6 +137,11 @@ export function BodyNumbers() {
               ? 'Nothing here yet. Apple Health fills these in automatically — or enter them yourself, which works exactly the same way.'
               : 'Kept current by Apple Health where it can be. Anything it does not have, you can enter.'}
           </AppText>
+          {coverage.note ? (
+            <AppText variant="caption" color="textTertiary" style={styles.gap}>
+              {coverage.note}
+            </AppText>
+          ) : null}
           <Button
             title="Enter my numbers"
             variant="secondary"

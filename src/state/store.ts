@@ -324,8 +324,17 @@ export interface AppState {
   /** Apple Health — read-only vitals feeding the same metric stream. */
   healthConnectedAt: string | null;
   healthLastSyncAt: string | null;
+  /**
+   * When the one-time read-back of Health history ran. Null until it has.
+   * A phone that already holds two years of nights should not be read from
+   * scratch on every launch, and a person should not wait a fortnight for
+   * a baseline it can hand over on the first morning — so it runs once.
+   */
+  healthHistoryReadAt: string | null;
   setHealthConnected: () => void;
   appendHealthObservations: (observations: MetricObservation[]) => void;
+  /** The read-back's observations, and the flag that stops it running again. */
+  appendHealthHistory: (observations: MetricObservation[]) => void;
   /** questionId → ISO last asked/answered (the engine's memory). */
   questionLog: Record<string, string>;
   markQuestionAsked: (id: string) => void;
@@ -499,6 +508,7 @@ const initialData = {
   notifications: DEFAULT_NOTIFICATION_SETTINGS as NotificationSettings,
   healthConnectedAt: null as string | null,
   healthLastSyncAt: null as string | null,
+  healthHistoryReadAt: null as string | null,
   questionLog: {} as Record<string, string>,
   dismissedCheckins: {} as Record<string, string>,
   trainingProgramme: null as TrainingProgramme | null,
@@ -656,6 +666,13 @@ function measuredMinutes(item: PlanItem): number | undefined {
 
 /** How far back the adaptation engine looks. */
 const HISTORY_DAYS = 14;
+
+/**
+ * How many readings the metric stream keeps. It is a cap on what a phone
+ * has to serialise on every tap, and it drops the oldest first — so
+ * anything appending in bulk has to say whose readings it would evict.
+ */
+const METRIC_CAP = 2000;
 
 /** Shortest meaningful duration for a routine — its modality's floor. */
 const routineFloorMin = (r: Routine): number =>
@@ -1187,7 +1204,7 @@ export const useAppStore = create<AppState>()(
         },
 
         addMetric: (key, value, note) => {
-          set({ metrics: [...get().metrics, observe(key, value, 'user', note)].slice(-2000) });
+          set({ metrics: [...get().metrics, observe(key, value, 'user', note)].slice(-METRIC_CAP) });
           // A new reading can satisfy a milestone rung — check immediately,
           // so the check-in's effect is visible the moment it lands.
           get().assessGoals();
@@ -1233,7 +1250,7 @@ export const useAppStore = create<AppState>()(
           }));
           set({
             workoutLogs: [...others, stamped].sort((a, b) => a.date.localeCompare(b.date)),
-            metrics: [...keptMetrics, ...fresh].slice(-2000),
+            metrics: [...keptMetrics, ...fresh].slice(-METRIC_CAP),
           });
           get().assessGoals();
         },
@@ -1340,11 +1357,31 @@ export const useAppStore = create<AppState>()(
 
         appendHealthObservations: (observations) => {
           set({
-            metrics: [...get().metrics, ...observations].slice(-2000),
+            metrics: [...get().metrics, ...observations].slice(-METRIC_CAP),
             healthLastSyncAt: new Date().toISOString(),
           });
           // A weight or sleep reading from Health can satisfy a rung too.
           if (observations.length > 0) get().assessGoals();
+        },
+
+        appendHealthHistory: (observations) => {
+          const own = get().metrics;
+          // The cap drops the OLDEST readings first, and a read-back is
+          // sixty days across four signals. On a nearly full stream an
+          // ordinary append would push out the person's own logged
+          // history to make room for readings the phone can hand over
+          // again tomorrow. Theirs cannot be recovered by anyone, so the
+          // read-back takes only the room that is left, keeping its most
+          // recent days — the ones the baseline is drawn from.
+          const room = Math.max(0, METRIC_CAP - own.length);
+          // `slice(-0)` is the whole array, not none of it, so no room is
+          // its own branch rather than an arithmetic accident.
+          const kept = room === 0 ? [] : observations.slice(-room);
+          set({
+            metrics: [...own, ...kept],
+            healthHistoryReadAt: new Date().toISOString(),
+          });
+          if (kept.length > 0) get().assessGoals();
         },
 
         buildTrainingBlock: () => {

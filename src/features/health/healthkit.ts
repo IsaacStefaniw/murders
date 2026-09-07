@@ -18,7 +18,15 @@ import { Platform } from 'react-native';
 
 import { useAppStore } from '@/state/store';
 
-import { sleepHoursLastNight, snapshotObservations, type HealthSnapshot } from './summarise';
+import { readinessCoverage } from './readiness';
+import {
+  historyObservations,
+  sleepHoursLastNight,
+  snapshotObservations,
+  type DatedValue,
+  type HealthHistory,
+  type HealthSnapshot,
+} from './summarise';
 
 const READ_TYPES = [
   'HKCategoryTypeIdentifierSleepAnalysis',
@@ -49,6 +57,19 @@ export const WINDOW_HOURS = {
   height: 24 * 365 * 5,
   waist: 24 * 90,
 } as const;
+
+/**
+ * How far back the ONE-TIME read-back of history looks, in days.
+ *
+ * Someone who has worn a ring or a watch for two years already has every
+ * night of it in Health. The windows above are about "what is today's
+ * reading", and reading only those means a person waits a fortnight for a
+ * baseline their phone could hand over on the first morning. Sixty days is
+ * four times the fourteen the baseline is drawn from, so a person who
+ * wears it most nights clears the bar even with gaps, and it is still a
+ * small enough read to finish while they are looking at the screen.
+ */
+export const HISTORY_DAYS = 60;
 
 const ASLEEP_VALUES = new Set<number>([
   CategoryValueSleepAnalysis.asleepUnspecified,
@@ -148,6 +169,93 @@ async function readSnapshot(now: Date): Promise<HealthSnapshot> {
 }
 
 /**
+ * Every sample in the window, turned into instants and numbers.
+ *
+ * A sample whose date or value did not come through is dropped rather than
+ * guessed at: a reading that cannot be placed on a day is not a reading.
+ */
+function dated(
+  rows: readonly { readonly quantity: number; readonly startDate: Date; readonly endDate: Date }[],
+): DatedValue[] {
+  return rows.flatMap((s) => {
+    const at = new Date(s.endDate ?? s.startDate).getTime();
+    if (!Number.isFinite(at) || !Number.isFinite(s.quantity)) return [];
+    return [{ at: new Date(at).toISOString(), value: s.quantity }];
+  });
+}
+
+/**
+ * The history query: the same identifiers as the snapshot, one window of
+ * sixty days, and no `limit` — every sample, not the latest one.
+ *
+ * Separate from `readSnapshot` on purpose. The per-signal windows above
+ * answer "is this today's reading", which is a different question, and
+ * folding the two together would either widen the daily read or narrow
+ * this one.
+ */
+async function readHistory(now: Date): Promise<HealthHistory> {
+  const startDate = new Date(now.getTime() - HISTORY_DAYS * 24 * 3600e3);
+  const filter = { date: { startDate, endDate: now } };
+  const all = { limit: 0 } as const;
+
+  const [sleep, rhr, weight, hrv] = await Promise.all([
+    queryCategorySamples('HKCategoryTypeIdentifierSleepAnalysis', { ...all, filter }).catch(() => []),
+    queryQuantitySamples('HKQuantityTypeIdentifierRestingHeartRate', {
+      ...all,
+      unit: 'count/min',
+      filter,
+    }).catch(() => []),
+    queryQuantitySamples('HKQuantityTypeIdentifierBodyMass', { ...all, unit: 'kg', filter }).catch(() => []),
+    queryQuantitySamples('HKQuantityTypeIdentifierHeartRateVariabilitySDNN', {
+      ...all,
+      unit: 'ms',
+      filter,
+    }).catch(() => []),
+  ]);
+
+  return {
+    // The same asleep-category handling the nightly path uses; in-bed and
+    // awake stages are not sleep and never counted as it.
+    sleep: sleep.flatMap((s) => {
+      const start = new Date(s.startDate).getTime();
+      const end = new Date(s.endDate).getTime();
+      if (!Number.isFinite(start) || !Number.isFinite(end)) return [];
+      return [
+        {
+          start: new Date(start).toISOString(),
+          end: new Date(end).toISOString(),
+          asleep: ASLEEP_VALUES.has(s.value as number),
+        },
+      ];
+    }),
+    restingHr: dated(rhr),
+    weightKg: dated(weight),
+    hrvMs: dated(hrv),
+  };
+}
+
+/**
+ * The one-time read-back, on the first sync after Health is connected.
+ *
+ * It runs once and is remembered, so a launch never pays for it twice.
+ * When every baseline the read-back is for already exists — they have been
+ * logging by hand, or they restored a backup — there is nothing left for
+ * it to add, so the read is skipped and only the flag is written.
+ */
+async function backfillHistory(now: Date): Promise<void> {
+  const store = useAppStore.getState();
+  if (store.healthHistoryReadAt) return;
+  if (readinessCoverage(store.metrics, now).missing.length === 0) {
+    store.appendHealthHistory([]);
+    return;
+  }
+  const history = await readHistory(now);
+  // If Health holds nothing, this is an empty list and nothing is written.
+  // The app says nothing rather than inventing a first fortnight.
+  store.appendHealthHistory(historyObservations(history, store.metrics, now.toISOString()));
+}
+
+/**
  * Pull the latest readings into the metric stream. Throttled unless
  * forced; silent on failure — health data is a quiet input, never an error
  * the user has to manage.
@@ -161,7 +269,15 @@ export async function syncAppleHealth(force = false): Promise<void> {
   }
   try {
     const now = new Date();
-    const observations = snapshotObservations(await readSnapshot(now), store.metrics, now.toISOString());
+    // History first, then today: the read-back fills the days before this
+    // one, and the snapshot below reads the stream again so today is never
+    // written twice.
+    await backfillHistory(now);
+    const observations = snapshotObservations(
+      await readSnapshot(now),
+      useAppStore.getState().metrics,
+      now.toISOString(),
+    );
     store.appendHealthObservations(observations);
   } catch {
     // Next sync will try again; the engine works fine without it.

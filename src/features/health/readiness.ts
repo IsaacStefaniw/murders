@@ -140,16 +140,92 @@ export function readinessFrom(metrics: MetricObservation[], now = new Date()): R
 }
 
 /**
+ * Days inside the baseline window that carry a reading for a key. Days,
+ * not readings: a watch that files six numbers on Monday has still only
+ * told us about Monday.
+ */
+function daysWithReadings(metrics: MetricObservation[], key: string, now: Date): number {
+  const cutoff = new Date(now.getTime() - BASELINE_DAYS * 86400e3).toISOString();
+  const days = new Set<string>();
+  for (const o of metrics) {
+    if (o.key === key && o.at >= cutoff) days.add(dateKeyOfIso(o.at));
+  }
+  return days.size;
+}
+
+/**
+ * After this many days of other readings arriving, a signal that has never
+ * appeared once is not late — it is a signal this phone does not get.
+ *
+ * Ten of the fourteen the baseline is drawn from. A watch or ring that
+ * records a signal at all records it most nights, so ten nights of sleep
+ * and heart rate with not one variability reading among them is not a gap
+ * in wearing it.
+ */
+const ABSENT_AFTER_DAYS = 10;
+
+export interface ReadinessCoverage {
+  /** True once at least one baseline is worth comparing against. */
+  ready: boolean;
+  /** Signals still short of a baseline and worth waiting for, in plain words. */
+  missing: string[];
+  /** Signals the read is actually working from, in plain words. */
+  workingFrom: string[];
+  /**
+   * A sentence for the screen when a signal is not coming at all, so it is
+   * never listed as one more day of waiting. Null when there is no such
+   * thing to say.
+   */
+  note: string | null;
+}
+
+/**
  * Whether there is enough history for the readiness read to mean anything,
- * and what is still missing. Used by the hub so a blank panel explains
- * itself instead of looking broken.
+ * what is still missing, and what it is working from instead.
+ *
+ * The distinction the list has to keep: a person who has not worn their
+ * watch yet is waiting for a reading, and a reading will come. A person
+ * whose watch or ring measures variability a different way, and so never
+ * writes it to Health at all, is waiting for something that cannot
+ * arrive — and telling them it is on its way is a small lie repeated every
+ * morning. We cannot see which device someone owns, only that a type has
+ * never once appeared beside the ones that have; after ten days that is
+ * answer enough, and the honest thing is to name what the read IS using.
  */
 export function readinessCoverage(
   metrics: MetricObservation[],
   now = new Date(),
-): { ready: boolean; missing: string[] } {
+): ReadinessCoverage {
   const missing: string[] = [];
-  if (baselineFor(metrics, 'body.hrv', now) == null) missing.push('heart-rate variability');
-  if (baselineFor(metrics, 'body.restingHr', now) == null) missing.push('resting heart rate');
-  return { ready: missing.length < 2, missing };
+  const workingFrom: string[] = [];
+
+  const hrvBase = baselineFor(metrics, 'body.hrv', now);
+  const rhrBase = baselineFor(metrics, 'body.restingHr', now);
+  const sleepDays = daysWithReadings(metrics, 'sleep.hours', now);
+  const otherDays = Math.min(daysWithReadings(metrics, 'body.restingHr', now), sleepDays);
+  const neverAnyHrv = !metrics.some((o) => o.key === 'body.hrv');
+  const hrvNotComing = neverAnyHrv && otherDays >= ABSENT_AFTER_DAYS;
+
+  if (hrvBase != null) workingFrom.push('heart-rate variability');
+  else if (!hrvNotComing) missing.push('heart-rate variability');
+
+  if (rhrBase != null) workingFrom.push('resting heart rate');
+  else missing.push('resting heart rate');
+
+  if (sleepDays > 0) workingFrom.push('sleep');
+
+  return {
+    ready: hrvBase != null || rhrBase != null,
+    missing,
+    workingFrom,
+    note: hrvNotComing
+      ? `Working from ${listed(workingFrom)}. Heart-rate variability has never come through from Health — some watches and rings measure it a different way and never write it — so it is not one to wait for.`
+      : null,
+  };
+}
+
+/** "a, b and c" — a list a person would read aloud. */
+function listed(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? 'nothing yet';
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
 }
