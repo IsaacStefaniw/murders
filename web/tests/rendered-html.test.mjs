@@ -138,8 +138,13 @@ test("reps in reserve never returns, from anywhere", async () => {
   // stranger reads. It is a photograph of a real week now, and the claim it
   // used to act out is asserted here in the words the page actually uses.
   assert.match(html, /app-protocol-3-week-after\.jpg/, "the hero lost its real screen");
-  assert.match(html, /turned into a plan you can follow/, "the hero lost the plain statement of what this is");
-  assert.match(html, /changes the plan when your week changes/i, "the hero lost the differentiator");
+  // This used to match the old headline, which survived in the Open Graph
+  // title after the visible one changed — so the guard was passing on
+  // metadata rather than on the hero. It now asserts the sentence a reader
+  // actually sees, which is the problem stated before the product is.
+  assert.match(html, /You already know what you should be doing/, "the hero lost the problem it names");
+  assert.match(html, /fitting it into a real week/, "the hero lost the plain statement of what this is");
+  assert.match(html, /rewrites it when your week goes sideways/i, "the hero lost the differentiator");
   // Three steps, in order, replacing three abstractions nobody could parse.
   assert.match(html, /Tell it what you want/, "step one");
   assert.match(html, /It writes your week/, "step two");
