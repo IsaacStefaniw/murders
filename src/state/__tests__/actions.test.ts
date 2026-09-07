@@ -182,7 +182,8 @@ describe('the metric stream', () => {
     const live = () => useAppStore.getState().goals.find((g) => g.id === goal.id)!;
     expect(live().milestones!.every((m) => m.done)).toBe(true);
     const obs = useAppStore.getState().metrics.find((o) => o.key === key)!;
-    useAppStore.getState().updateMetric(obs.id, 1000);
+    // Below the first step ($1,000 more), so nothing stays ticked.
+    useAppStore.getState().updateMetric(obs.id, 500);
     expect(live().milestones!.some((m) => m.done)).toBe(false);
     useAppStore.getState().updateMetric(obs.id, 40000);
     expect(live().milestones!.every((m) => m.done)).toBe(true);
@@ -268,8 +269,15 @@ describe('adding to a day', () => {
 
   it('moveItem returns what it displaced and keeps every item', () => {
     onboard();
-    const date = addDays(todayKey(), 1);
-    const plan = useAppStore.getState().ensurePlan(date);
+    // The first coming day with two flexible things on it: a training day
+    // for this profile. Which weekday that is depends on today.
+    let date = addDays(todayKey(), 1);
+    let plan = useAppStore.getState().ensurePlan(date);
+    for (let d = 2; d <= 6; d += 1) {
+      if (plan.items.filter((i) => !i.fixed && i.status === 'planned').length > 1) break;
+      date = addDays(todayKey(), d);
+      plan = useAppStore.getState().ensurePlan(date);
+    }
     const flexible = plan.items.filter((i) => !i.fixed && i.status === 'planned');
     expect(flexible.length).toBeGreaterThan(1);
     const [mover, target] = flexible;

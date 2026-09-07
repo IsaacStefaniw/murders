@@ -40,6 +40,7 @@ import { useAppStore } from '@/state/store';
 import type { PlanItem } from '@/types/domain';
 import { LockedSessions } from '@/features/plus/LockedSessions';
 import { PlusNudge } from '@/features/plus/PlusNudge';
+import { TonightCard } from '@/features/behaviours/TonightCard';
 import { applicableRoutines } from '@/features/knowledge/protocols';
 import { DragToMove } from '@/features/today/DragToMove';
 import { knockOnLine } from '@/features/today/dragMath';
@@ -435,6 +436,10 @@ export default function Today() {
       ) : null}
 
       <SectionHeader title="Tonight" />
+      {/* The named habit's own card, from day one: the if-then plan, the
+          wins so far, and the next hour if tonight goes wrong. Renders
+          nothing when there is no active intention. */}
+      <TonightCard date={date} />
       {interventions.map((iv) => (
         <Card key={iv.intention.id}>
           <AppText variant="heading">
@@ -452,7 +457,7 @@ export default function Today() {
           <Button
             title="Line up something else"
             variant="secondary"
-            onPress={() => router.push('/session/breathe')}
+            onPress={() => router.push('/session/breathe?urge=1' as never)}
             style={styles.tonightLine}
           />
         </Card>

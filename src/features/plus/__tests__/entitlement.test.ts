@@ -65,6 +65,20 @@ describe('entitlementFromPurchases', () => {
   });
 });
 
+describe('the free day keeps the habits the person already has', () => {
+  const walk: Routine = {
+    id: 'w', title: 'The daily walk', area: 'health', days: [1, 2, 3], durationMin: 30,
+    preferredStart: '17:45', preferredEnd: '18:30', energy: 'any', flexible: true, protected: false,
+    protocolId: 'daily-walk', tier: 'should', active: true, established: true,
+  };
+  const session: Routine = { ...walk, id: 's', title: 'Training that sticks', protocolId: 'strength', established: false };
+
+  it('runs an established habit without Plus and never lists it as something Plus would run', () => {
+    expect(runningRoutines([walk, session], false).map((r) => r.id)).toEqual(['w']);
+    expect(sessionsPlusWouldRun([walk, session], '2026-09-07').map((r) => r.id)).toEqual(['s']);
+  });
+});
+
 describe('splitLibrary', () => {
   const listed = listedProtocols('female');
 

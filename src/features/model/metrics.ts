@@ -72,6 +72,7 @@ export const METRICS: MetricDefinition[] = [
   { key: 'work.deepHours', label: 'Deep-work hours', unit: 'h/wk', domain: 'work', direction: 'higher' },
   { key: 'mind.minutes', label: 'Stillness minutes', unit: 'min/wk', domain: 'mind', direction: 'higher' },
   { key: 'finance.savingsRate', label: 'Savings rate', unit: '%', domain: 'finance', direction: 'higher' },
+  { key: 'finance.weeklyIn', label: 'Put away this week', unit: '$', domain: 'finance', direction: 'higher' },
   /**
    * Heat and cold exposure.
    *

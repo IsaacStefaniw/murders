@@ -95,12 +95,46 @@ interface Row {
   meta: string;
   note?: string;
   quiet?: boolean;
+  /** Rows that sit inside this one's window, drawn nested. */
+  children?: Row[];
 }
 
 function metaFor(item: PlanItem): string {
   if (item.fixed && item.title === 'Work') return 'Your hours · fixed';
   if (item.fixed) return 'Carved out of your hours · fixed';
   return AREA_WORD[item.area] ?? item.area;
+}
+
+function DayRow({ row }: { row: Row }) {
+  const theme = useTheme();
+  const length = row.end ? lengthLabel({ start: row.start, end: row.end }) : null;
+  return (
+    <Card style={[styles.row, row.quiet ? { borderStyle: 'dashed' } : null]}>
+      <View style={styles.time}>
+        <AppText variant="caption" color="textTertiary">
+          {formatTime(row.start)}
+        </AppText>
+        {length ? (
+          <AppText variant="caption" color="textTertiary">
+            {length}
+          </AppText>
+        ) : null}
+      </View>
+      <View style={styles.grow}>
+        <AppText variant="body" style={row.quiet ? { color: theme.textSecondary } : null}>
+          {row.title}
+        </AppText>
+        <AppText variant="caption" color="textTertiary">
+          {row.meta}
+        </AppText>
+        {row.note ? (
+          <AppText variant="caption" color="accent">
+            {row.note}
+          </AppText>
+        ) : null}
+      </View>
+    </Card>
+  );
 }
 
 export default function ExampleDay() {
@@ -126,21 +160,29 @@ export default function ExampleDay() {
     }));
     // The work day is split around a free lunch window. Today does not list
     // it, because there is nothing to do; here it is worth seeing that the
-    // gap is on purpose and the session sits inside it.
+    // gap is on purpose. The window is drawn as a container and whatever
+    // sits inside it is nested, so a reader going down the times never sees
+    // "lunch at 12, session at 12:15" and reads it as a double-booking.
     const work = daily.items.filter((i) => i.fixed && i.title === 'Work');
     const beforeLunch = work.find((i) => i.end <= '12:00');
     const afterLunch = work.find((i) => i.start >= '13:00');
     if (beforeLunch && afterLunch) {
-      rows.push({
+      const inside = rows.filter((r) => r.start >= beforeLunch.end && r.start < afterLunch.start);
+      const lunch: Row = {
         key: 'lunch',
         start: beforeLunch.end,
         end: afterLunch.start,
-        title: 'Lunch — kept free',
-        meta: 'Work never runs over it · the session fits inside',
+        title: 'Lunch — kept free of work',
+        meta: inside.length
+          ? `Nothing from work lands here. What does is your own, and it fits inside.`
+          : 'Nothing is ever scheduled over it.',
         quiet: true,
-      });
+        children: inside,
+      };
+      for (const r of inside) rows.splice(rows.indexOf(r), 1);
+      rows.push(lunch);
     }
-    rows.sort((a, b) => a.start.localeCompare(b.start) || (a.quiet ? -1 : 1));
+    rows.sort((a, b) => a.start.localeCompare(b.start));
     return { rows, name: plan.profile.firstName };
   }, []);
 
@@ -158,36 +200,18 @@ export default function ExampleDay() {
 
       <SectionHeader title={`${day.name}’s Monday`} />
       <View style={styles.stack}>
-        {day.rows.map((row) => {
-          const length = row.end ? lengthLabel({ start: row.start, end: row.end }) : null;
-          return (
-            <Card key={row.key} style={[styles.row, row.quiet ? { borderStyle: 'dashed' } : null]}>
-              <View style={styles.time}>
-                <AppText variant="caption" color="textTertiary">
-                  {formatTime(row.start)}
-                </AppText>
-                {length ? (
-                  <AppText variant="caption" color="textTertiary">
-                    {length}
-                  </AppText>
-                ) : null}
+        {day.rows.map((row) => (
+          <View key={row.key}>
+            <DayRow row={row} />
+            {row.children?.length ? (
+              <View style={[styles.nest, { borderColor: theme.border }]}>
+                {row.children.map((child) => (
+                  <DayRow key={child.key} row={child} />
+                ))}
               </View>
-              <View style={styles.grow}>
-                <AppText variant="body" style={row.quiet ? { color: theme.textSecondary } : null}>
-                  {row.title}
-                </AppText>
-                <AppText variant="caption" color="textTertiary">
-                  {row.meta}
-                </AppText>
-                {row.note ? (
-                  <AppText variant="caption" color="accent">
-                    {row.note}
-                  </AppText>
-                ) : null}
-              </View>
-            </Card>
-          );
-        })}
+            ) : null}
+          </View>
+        ))}
       </View>
 
       <AppText variant="caption" color="textTertiary" style={styles.note}>
@@ -206,6 +230,9 @@ export default function ExampleDay() {
 
 const styles = StyleSheet.create({
   stack: { gap: Spacing.sm },
+  // The band that holds what sits inside a window: indented, with a rule on
+  // the left, so the nesting is spatial rather than a caption.
+  nest: { marginLeft: Spacing.lg, marginTop: Spacing.xs, paddingLeft: Spacing.sm, borderLeftWidth: 2, gap: Spacing.sm },
   row: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start' },
   time: { minWidth: 64, paddingTop: 2, gap: 2 },
   grow: { flex: 1, gap: 2 },

@@ -11,11 +11,14 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import {
+  askCheckin,
   composeGoalDraft,
   describeCheckin,
-  describeDoneWhen,
+  describeStep,
+  formatDay,
+  paceLanding,
 } from '@/features/goals/composer';
-import { DOMAIN_LABELS, parseGoal } from '@/features/goals/goalPlanner';
+import { DOMAIN_LABELS, parseGoal, timeframeToDate } from '@/features/goals/goalPlanner';
 import { PRESET_GROUPS } from '@/features/goals/presets';
 import { DOMAIN_QUESTIONS } from '@/features/knowledge/questionBank';
 import { addDays, formatTime, todayKey } from '@/lib/dates';
@@ -23,54 +26,82 @@ import { useAppStore } from '@/state/store';
 
 const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
+const HORIZONS = [
+  { label: '3 months', months: 3 },
+  { label: '6 months', months: 6 },
+  { label: '12 months', months: 12 },
+];
+
 /**
  * Conversational goal creation: the user writes one sentence, IntentNorth does
- * the structuring — domain, milestones, the recurring behaviour — and asks
- * only what it genuinely needs (the why). The user edits and approves.
+ * the structuring — domain, steps, the recurring behaviour — and asks
+ * only what it genuinely needs (the why, and for a savings goal the two
+ * numbers the steps are worked out from). The user edits and approves.
  */
 export default function NewGoal() {
   const router = useRouter();
   const addGoal = useAppStore((s) => s.addGoal);
+  const addMetric = useAppStore((s) => s.addMetric);
   const profile = useAppStore((s) => s.profile);
+  const metrics = useAppStore((s) => s.metrics);
 
   const [step, setStep] = useState<'describe' | 'why' | 'tailor' | 'review'>('describe');
   const [text, setText] = useState('');
   const [why, setWhy] = useState('');
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [droppedMilestones, setDroppedMilestones] = useState<Set<string>>(new Set());
+  // Dropped steps are remembered by title: the draft is rebuilt when the
+  // date changes and every step gets a fresh id.
+  const [dropped, setDropped] = useState<Set<string>>(new Set());
   /**
    * Optional, and offered as a horizon rather than a date field. Plenty of
    * goals are directions rather than deadlines, and a required date would
-   * manufacture a failure nobody signed up for — but where one exists, the
-   * app can say whether the current rate arrives in time, which is the most
-   * useful sentence it knows how to produce.
+   * manufacture a failure nobody signed up for — but where one exists,
+   * every step gets its own date and the app can say where the current
+   * rate lands, which is the most useful sentence it knows how to produce.
+   * `undefined` means not chosen yet, so a date in the sentence is used.
    */
-  const [horizonMonths, setHorizonMonths] = useState<number | null>(null);
+  const [targetDate, setTargetDate] = useState<string | null | undefined>(undefined);
 
+  const today = todayKey();
   const parsed = useMemo(() => (text.trim() ? parseGoal(text) : null), [text]);
-  const questions = parsed ? (DOMAIN_QUESTIONS[parsed.domain] ?? []) : [];
-  const plan = useMemo(
-    () => (parsed && step === 'review' ? composeGoalDraft(parsed, profile, why, answers) : null),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [parsed, step],
+  const sentenceDate = useMemo(
+    () => (parsed ? timeframeToDate(parsed.timeframe, today) : undefined),
+    [parsed, today],
   );
-  const afterWhy = () => setStep(questions.length > 0 ? 'tailor' : 'review');
+  const effectiveDate = targetDate === undefined ? (sentenceDate ?? null) : targetDate;
+  const questions = parsed ? (DOMAIN_QUESTIONS[parsed.domain] ?? []) : [];
+  const moneyNumbers = parsed?.domain === 'finance' && answers.mode !== 'debt';
+  const plan = useMemo(
+    () =>
+      parsed && step === 'review'
+        ? composeGoalDraft(parsed, profile, why, answers, {
+            today,
+            targetDate: effectiveDate ?? undefined,
+            metrics,
+          })
+        : null,
+    [parsed, step, profile, why, answers, today, effectiveDate, metrics],
+  );
+  const afterWhy = () => setStep(questions.length > 0 || moneyNumbers ? 'tailor' : 'review');
+
+  const landing = plan ? paceLanding(plan.goal, metrics, today) : null;
 
   const save = () => {
     if (!plan) return;
-    const milestones = plan.goal.milestones?.filter((m) => !droppedMilestones.has(m.id));
-    const targetDate = horizonMonths
-      ? addDays(todayKey(), Math.round(horizonMonths * 30.44))
-      : undefined;
+    const milestones = plan.goal.milestones?.filter((m) => !dropped.has(m.title));
     addGoal(
       {
         ...plan.goal,
         why: why.trim() || undefined,
         milestones: milestones?.length ? milestones : undefined,
-        targetDate,
       },
       plan.routines,
     );
+    // Where they are today is the first reading, so the check-in has a
+    // starting point and the landing line has something to measure from.
+    const ask = askCheckin(plan.goal);
+    const saved = Number(answers.saved);
+    if (ask && saved > 0) addMetric(ask.metricKey, saved, 'starting point');
     router.back();
   };
 
@@ -84,10 +115,10 @@ export default function NewGoal() {
         <Field
           label="What do you want to be true?"
           showLabel={false}
-          hint="Describe the goal in your own words. IntentNorth reads it and drafts the steps to get there."
+          hint="Describe the goal in your own words, with a date if you have one. IntentNorth reads it and drafts the steps to get there."
           value={text}
           onChangeText={setText}
-          placeholder="e.g. Grow the business to $2m revenue"
+          placeholder="e.g. Save $100,000 by June 2028"
           autoFocus
           multiline
           size="large"
@@ -96,7 +127,7 @@ export default function NewGoal() {
           <AppText variant="caption" color="textTertiary" style={styles.sub}>
             Reading this as: {DOMAIN_LABELS[parsed.domain]}
             {parsed.target ? ` · target ${parsed.target}` : ''}
-            {parsed.timeframe ? ` · ${parsed.timeframe}` : ''}
+            {sentenceDate ? ` · by ${formatDay(sentenceDate)}` : parsed.timeframe ? ` · ${parsed.timeframe}` : ''}
           </AppText>
         ) : null}
         {/*
@@ -194,6 +225,34 @@ export default function NewGoal() {
             </View>
           </View>
         ))}
+        {moneyNumbers ? (
+          <View>
+            {/* The two numbers the steps are worked out from. Both optional:
+                without them the steps are quarter marks from zero. */}
+            <SectionHeader title="Where are you starting from?" />
+            <Field
+              label="Already set aside"
+              hint="Optional. The first steps start from here, and this becomes your first reading."
+              value={answers.saved ?? ''}
+              onChangeText={(v) => setAnswers((prev) => ({ ...prev, saved: v.replace(/[^\d.]/g, '') }))}
+              keyboardType="decimal-pad"
+              unit="$"
+              placeholder="0"
+              width={140}
+            />
+            <Field
+              label="A month of expenses, roughly"
+              hint="Optional. Gives you a step at one month banked — the first buffer that turns an emergency back into an inconvenience."
+              value={answers.expenses ?? ''}
+              onChangeText={(v) => setAnswers((prev) => ({ ...prev, expenses: v.replace(/[^\d.]/g, '') }))}
+              keyboardType="decimal-pad"
+              unit="$"
+              placeholder="0"
+              width={140}
+              style={styles.sub}
+            />
+          </View>
+        ) : null}
         <View style={styles.footer}>
           <Button
             title={questions.every((q) => answers[q.key]) ? 'Build my plan' : 'Skip — use defaults'}
@@ -219,41 +278,96 @@ export default function NewGoal() {
         </AppText>
       ) : null}
 
+      <SectionHeader title="By when?" />
+      <AppText variant="caption" color="textTertiary">
+        With a date, every step gets one and IntentNorth can say where your rate lands. Without
+        one it still tracks everything, it just has no date to measure against.
+      </AppText>
+      <View style={styles.horizons}>
+        {sentenceDate ? (
+          <Chip
+            label={`From what you wrote: ${formatDay(sentenceDate)}`}
+            selected={effectiveDate === sentenceDate}
+            onPress={() => setTargetDate(sentenceDate)}
+          />
+        ) : null}
+        {HORIZONS.map((h) => {
+          const date = addDays(today, Math.round(h.months * 30.44));
+          return (
+            <Chip
+              key={h.months}
+              label={h.label}
+              selected={effectiveDate === date}
+              onPress={() => setTargetDate(date)}
+            />
+          );
+        })}
+        <Chip label="No date" selected={effectiveDate === null} onPress={() => setTargetDate(null)} />
+      </View>
+      {landing || plan.goal.pace?.note ? (
+        <Card style={styles.sub}>
+          {landing ? <AppText variant="secondary">{landing.headline}</AppText> : null}
+          {plan.goal.pace?.note ? (
+            <AppText variant="caption" color="textTertiary" style={styles.sub}>
+              {plan.goal.pace.note}
+            </AppText>
+          ) : null}
+        </Card>
+      ) : null}
+
       {plan.goal.milestones?.length ? (
         <View>
           <SectionHeader title="Steps to get there" />
           <View style={styles.stack}>
-            {plan.goal.milestones.map((m) => (
-              <Chip
-                key={m.id}
-                label={m.title}
-                selected={!droppedMilestones.has(m.id)}
-                onPress={() =>
-                  setDroppedMilestones((prev) => {
-                    const next = new Set(prev);
-                    if (next.has(m.id)) {
-                      next.delete(m.id);
-                    } else {
-                      next.add(m.id);
-                    }
-                    return next;
-                  })
-                }
-              />
-            ))}
+            {plan.goal.milestones.map((m) => {
+              const out = dropped.has(m.title);
+              return (
+                <Card key={m.id}>
+                  <View style={styles.stepHead}>
+                    <AppText variant="heading" color={out ? 'textTertiary' : undefined} style={styles.grow}>
+                      {m.title}
+                    </AppText>
+                    <Chip
+                      label={out ? 'Put back' : 'Drop'}
+                      selected={out}
+                      hint={out ? 'Keeps this step in the plan' : 'Leaves this step out of the plan'}
+                      onPress={() =>
+                        setDropped((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(m.title)) {
+                            next.delete(m.title);
+                          } else {
+                            next.add(m.title);
+                          }
+                          return next;
+                        })
+                      }
+                    />
+                  </View>
+                  {out ? null : (
+                    <View style={styles.stepLines}>
+                      <AppText variant="caption" color="textTertiary">
+                        {describeStep(m)}
+                      </AppText>
+                      {m.how ? (
+                        <AppText variant="caption" color="textSecondary">
+                          How: {m.how}
+                        </AppText>
+                      ) : null}
+                      {m.intention ? (
+                        <AppText variant="caption" color="textSecondary">
+                          {m.intention}
+                        </AppText>
+                      ) : null}
+                    </View>
+                  )}
+                </Card>
+              );
+            })}
           </View>
           <AppText variant="caption" color="textTertiary" style={styles.sub}>
-            Tap to drop any that don&apos;t fit.
+            Steps backed by a number tick themselves — you only confirm what a number can&apos;t see.
           </AppText>
-          <View style={styles.doneWhenList}>
-            {plan.goal.milestones
-              .filter((m) => !droppedMilestones.has(m.id))
-              .map((m) => (
-                <AppText key={m.id} variant="caption" color="textTertiary">
-                  {m.title} — done when {describeDoneWhen(m.doneWhen)}
-                </AppText>
-              ))}
-          </View>
         </View>
       ) : null}
 
@@ -266,10 +380,6 @@ export default function NewGoal() {
                 {describeCheckin(c)}
               </AppText>
             ))}
-            <AppText variant="caption" color="textTertiary" style={styles.sub}>
-              Rungs backed by a number get checked off automatically — you only confirm what a
-              number can&apos;t see.
-            </AppText>
           </Card>
         </View>
       ) : null}
@@ -278,7 +388,7 @@ export default function NewGoal() {
       {plan.routines.length === 0 ? (
         <Card>
           <AppText variant="body">
-            This one runs through behaviour tracking rather than the calendar — add it under
+            This one runs through the urge tool rather than the calendar — add it under
             Settings → behaviours, and IntentNorth will help you protect against it daily.
           </AppText>
         </Card>
@@ -298,38 +408,12 @@ export default function NewGoal() {
         </View>
       )}
 
-      <SectionHeader title="By when?" />
-      <AppText variant="caption" color="textTertiary">
-        Optional. With a date, IntentNorth can tell you whether your current rate actually arrives in
-        time — without one it still tracks everything, it just has no date to measure
-        against.
-      </AppText>
-      <View style={styles.horizons}>
-        {[
-          { label: '3 months', months: 3 },
-          { label: '6 months', months: 6 },
-          { label: '12 months', months: 12 },
-        ].map((h) => (
-          <Chip
-            key={h.months}
-            label={h.label}
-            selected={horizonMonths === h.months}
-            onPress={() => setHorizonMonths(horizonMonths === h.months ? null : h.months)}
-          />
-        ))}
-        <Chip
-          label="No date"
-          selected={horizonMonths === null}
-          onPress={() => setHorizonMonths(null)}
-        />
-      </View>
-
       <View style={styles.footer}>
         <Button title="Make it real" onPress={save} />
         <Button
           title="Back"
           variant="ghost"
-          onPress={() => setStep(questions.length > 0 ? 'tailor' : 'why')}
+          onPress={() => setStep(questions.length > 0 || moneyNumbers ? 'tailor' : 'why')}
         />
       </View>
     </Screen>
@@ -341,7 +425,9 @@ const styles = StyleSheet.create({
   presets: { marginTop: Spacing.xl, gap: Spacing.lg },
   presetGroup: { gap: Spacing.sm },
   stack: { flexDirection: 'column', gap: Spacing.sm },
-  doneWhenList: { marginTop: Spacing.md, gap: Spacing.xs },
+  stepHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: Spacing.sm },
+  stepLines: { marginTop: Spacing.xs, gap: Spacing.xs },
+  grow: { flexShrink: 1, flexGrow: 1 },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   horizons: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm },
   footer: { marginTop: Spacing.xxl, gap: Spacing.sm },

@@ -7,6 +7,7 @@
  * (docs/KNOWLEDGE.md).
  */
 
+import { BEHAVIOUR_CATALOG } from '@/features/behaviours/catalog';
 import type { GoalDomain } from '@/types/domain';
 
 export interface DomainQuestion {
@@ -44,8 +45,96 @@ export function answeredValues(answers: Record<string, string>, key: string): st
   return raw ? raw.split(',').filter(Boolean) : [];
 }
 
+/**
+ * The Habits & urges intake.
+ *
+ * Kept out of DOMAIN_QUESTIONS on purpose: the goal wizard asks every
+ * question under a goal's domain, and a typed "drink less" goal builds no
+ * routine from a trigger, so asking there would break the rule at the top
+ * of this file. The recovery pathway reads these directly.
+ *
+ * The trigger is multi-answer. A person who drinks when stressed AND when
+ * everyone else is having one told us two things; the first named leads
+ * the plan and the hour, and the hub speaks to each.
+ */
+export const RECOVERY_QUESTIONS: DomainQuestion[] = [
+  {
+    key: 'behaviour',
+    question: 'Which habit are we working on first?',
+    // Mirrors BEHAVIOUR_CATALOG rather than restating a subset of it — a
+    // habit missing from this list was a habit the path could not start
+    // on, which is how `shopping` ended up trackable in Settings and
+    // unreachable here.
+    options: BEHAVIOUR_CATALOG.map((b) => ({ value: b.key, label: b.label })),
+  },
+  {
+    key: 'trigger',
+    question: 'When does it usually win? Pick any that ring true.',
+    multi: true,
+    options: [
+      { value: 'stress', label: 'When the pressure is on' },
+      { value: 'boredom', label: 'When there is nothing to do' },
+      { value: 'social', label: 'When other people are doing it' },
+      { value: 'evening', label: 'Evenings at home, once things go quiet' },
+      { value: 'tired', label: 'When I am running on empty' },
+      { value: 'lowmood', label: 'When the day has gone badly' },
+      { value: 'unsure', label: 'Honestly not sure — help me find it' },
+    ],
+  },
+  {
+    key: 'replacement',
+    question: 'What could stand in its place?',
+    options: [
+      { value: 'breathe', label: 'A two-minute breath reset' },
+      { value: 'walk', label: 'A short walk, outside if I can' },
+      { value: 'read', label: 'Reading something on paper' },
+      { value: 'message', label: 'Messaging someone who knows' },
+      { value: 'tidy', label: 'Doing one small physical task' },
+      { value: 'water', label: 'Making tea, or a cold glass of water' },
+      { value: 'unsure', label: 'Help me pick — match it to my trigger' },
+    ],
+  },
+];
+
 export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
   fitness: [
+    {
+      // The block used to guess what someone wanted from the words in
+      // their goal title — "build" meant muscle, "kg" meant fat loss — and
+      // there was no way to say it plainly, or to change it. This is the
+      // first thing a coach asks, so it is the first thing asked here.
+      key: 'want',
+      question: 'What do you want from training?',
+      options: [
+        { value: 'stronger', label: 'Get stronger' },
+        { value: 'muscle', label: 'Build muscle' },
+        { value: 'leaner', label: 'Get leaner' },
+        { value: 'fitter', label: 'Get fitter for running or a sport' },
+        { value: 'keep', label: 'Keep what I have' },
+        { value: 'unsure', label: 'Not sure — help me pick' },
+      ],
+    },
+    {
+      // One flat list, because the intake shows every question at once:
+      // a lift for the strength answer, a body area for muscle or leaner,
+      // a distance for fitter. The hub's "change what I'm training for"
+      // shows only the ones that fit the answer above (training/want.ts).
+      key: 'focus',
+      question: 'Where first? The lift, the body area or the distance that fits.',
+      options: [
+        { value: 'bench', label: 'The bench press' },
+        { value: 'squat', label: 'The back squat' },
+        { value: 'deadlift', label: 'The deadlift' },
+        { value: 'ohp', label: 'Overhead press' },
+        { value: 'upper', label: 'Upper body' },
+        { value: 'lower', label: 'Lower body' },
+        { value: 'whole', label: 'Whole body' },
+        { value: '5k', label: '5 km' },
+        { value: '10k', label: '10 km or more' },
+        { value: 'sport', label: 'A sport, not a distance' },
+        { value: 'unsure', label: 'Wherever you say' },
+      ],
+    },
     {
       key: 'experience',
       question: 'Where are you at with training right now?',
@@ -204,6 +293,20 @@ export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
   // generic plan. Each answer below changes which protocol leads.
   relationship: [
     {
+      // Every relationship question presumed a partner. Someone with nobody
+      // on the profile got "how are things with them, honestly?" and a
+      // build of partner practices. Asked first, so the rest can be read
+      // in the right light.
+      key: 'with',
+      question: 'Who is this about?',
+      options: [
+        { value: 'partner', label: 'My partner' },
+        { value: 'early', label: 'Someone new — early days' },
+        { value: 'solo', label: 'Nobody right now — the people I am close to' },
+        { value: 'unsure', label: 'Not sure what to call it yet' },
+      ],
+    },
+    {
       key: 'temperature',
       question: 'How are things right now, honestly?',
       options: [
@@ -236,14 +339,31 @@ export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
   ],
   family: [
     {
+      // "A spread of ages" did nothing a multi-answer could not, and there
+      // was no honest answer for a grandparent, a carer or a couple with
+      // no children — the intake presumed kids (QA open item PW-O6).
       key: 'ages',
       multi: true,
-      question: 'How old are the kids?',
+      question: 'How old are the kids, if there are kids?',
       options: [
         { value: 'under5', label: 'Under 5' },
         { value: 'primary', label: 'Primary school' },
         { value: 'teens', label: 'Teenagers' },
-        { value: 'mixed', label: 'A spread of ages' },
+        { value: 'adult', label: 'Grown up and moved out' },
+        { value: 'none', label: 'No kids' },
+      ],
+    },
+    {
+      // A carer looking after a parent had nothing in this coach at all;
+      // a grandparent asked for grandchildren-specific ideas. Both change
+      // the build completely.
+      key: 'others',
+      multi: true,
+      question: 'Anyone else this time is for?',
+      options: [
+        { value: 'grandkids', label: 'The grandchildren' },
+        { value: 'parent', label: 'A parent I care for' },
+        { value: 'nobody', label: 'No one else' },
       ],
     },
     {
@@ -254,6 +374,7 @@ export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
         { value: 'logistics', label: 'Logistics and admin' },
         { value: 'scattered', label: 'Everyone’s on a screen' },
         { value: 'energy', label: 'Nothing left in the tank' },
+        { value: 'stretched', label: 'I am stretched thin and short with them' },
       ],
     },
     {

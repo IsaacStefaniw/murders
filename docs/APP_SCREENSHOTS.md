@@ -36,6 +36,15 @@ show it yet; the update ships the day the approval lands. If the site goes
 live before that, the caption should not promise sleep debt as shipped, or
 the Today screen should wait for the update.
 
+## `app-example-day.jpg` — re-rendered 7 September 2026 from `e5ef885`
+
+The example day (`/example-day`, no seed: it is the screen before the
+interview) with the lunch window drawn as a container and the session that
+sits inside it nested under it, after the website session's third request.
+Same capture settings as the current set, `Australia/Brisbane`, downsampled
+to 840×1800. Every line is the planner's own output for the made-up person
+in `src/app/example-day.tsx`.
+
 ## Held back right now
 
 `app-today.jpg` is captured, accurate to `7b7f690`, and **not on the site** —

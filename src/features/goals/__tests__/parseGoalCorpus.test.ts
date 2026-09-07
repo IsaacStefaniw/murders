@@ -77,7 +77,8 @@ describe('parseGoal hears the domain a person meant', () => {
   it('reads the number and the deadline where there is one', () => {
     expect(parseGoal('Save $20k for a house deposit').target).toBe('$20k');
     expect(parseGoal('Bench 100kg').target).toBe('100kg');
-    expect(parseGoal('Run a half marathon in October').timeframe).toBeUndefined();
+    expect(parseGoal('Run a half marathon in October').timeframe?.toLowerCase()).toBe('in october');
+    expect(parseGoal('Save $100,000 by June 2028').timeframe?.toLowerCase()).toBe('by june 2028');
     expect(parseGoal('Launch the new product by March').timeframe?.toLowerCase()).toBe('by march');
     expect(parseGoal('Read twelve books this year').timeframe?.toLowerCase()).toBe('this year');
     expect(parseGoal('Get fit in 12 weeks').timeframe?.toLowerCase()).toBe('in 12 weeks');
@@ -152,7 +153,7 @@ describe('assessGoal ticks from a reading and unticks from a correction', () => 
     expect(corrected.autoDone).toEqual([]);
   });
 
-  it('a savings rung (at or over) ticks at 12,000 and unticks when the amount is corrected to 3,000', () => {
+  it('a savings step (at or over) ticks at 12,000 and unticks when the amount is corrected to 500', () => {
     const goal = composeFromText('Save $40k for the house deposit', PROFILE).goal;
     const key = `goal.${goal.id}.saved`;
     const first = assessGoal(goal, { metrics: [reading(key, 12000, 2)], planEvents: [] });
@@ -161,7 +162,7 @@ describe('assessGoal ticks from a reading and unticks from a correction', () => 
       ...goal,
       milestones: goal.milestones!.map((m) => (first.autoDone.includes(m.id) ? { ...m, done: true, doneAt: at(2) } : m)),
     };
-    const corrected = assessGoal(ticked, { metrics: [reading(key, 12000, 2), reading(key, 3000, 1)], planEvents: [] });
+    const corrected = assessGoal(ticked, { metrics: [reading(key, 12000, 2), reading(key, 500, 1)], planEvents: [] });
     expect(corrected.autoUndone.sort()).toEqual(first.autoDone.sort());
     expect(corrected.state).toBe('on-track');
   });

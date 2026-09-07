@@ -1,6 +1,8 @@
 import {
   assessNutrition,
   buildNutritionPlan,
+  FIBRE_TARGET_G,
+  normaliseAim,
   proteinTarget,
 } from '@/features/nutrition/plan';
 import type { MetricObservation } from '@/features/model/metrics';
@@ -56,9 +58,63 @@ describe('buildNutritionPlan', () => {
 
   it('runs exactly one live→next frontier from leverLevel', () => {
     const plan = buildNutritionPlan({ aim: 'weight', leverLevel: 2 });
-    expect(plan.levers.map((l) => l.state)).toEqual(['live', 'live', 'next', 'later']);
+    expect(plan.levers.map((l) => l.state)).toEqual([
+      'live',
+      'live',
+      'next',
+      'later',
+      'later',
+      'later',
+    ]);
     const fresh = buildNutritionPlan({ aim: 'weight' });
     expect(fresh.levers[0].state).toBe('next');
+  });
+
+  /**
+   * "Not sure — just eat better than I do now" is an intake option. It
+   * used to reach `LADDER['unsure']` and throw, so the most honest answer
+   * on the intake crashed the coach the moment the hub opened.
+   */
+  it('treats "not sure" as the gentle default and says so, instead of crashing', () => {
+    expect(normaliseAim('unsure')).toBe('energy');
+    expect(normaliseAim(undefined)).toBe('energy');
+    expect(normaliseAim('weight')).toBe('weight');
+    const plan = buildNutritionPlan({ aim: 'unsure', weightKg: 80 });
+    expect(plan.aim).toBe('energy');
+    expect(plan.aimNote).toMatch(/not sure is a fine answer/i);
+    expect(plan.proteinTarget).not.toBeNull();
+    expect(buildNutritionPlan({ aim: 'energy', weightKg: 80 }).aimNote).toBeUndefined();
+    expect(() => assessNutrition({ aim: 'unsure' }, [])).not.toThrow();
+    expect(assessNutrition({ aim: 'unsure' }, []).verdict).toBe('steady');
+  });
+
+  it('puts fibre on every ladder, linked to its library entry, and shows the number', () => {
+    for (const aim of ['energy', 'weight', 'muscle'] as const) {
+      const plan = buildNutritionPlan({ aim });
+      const fibre = plan.levers.find((l) => l.id === 'fibre-30');
+      expect(fibre?.protocolId).toBe('fibre-30');
+      expect(plan.fibreTargetG).toBe(FIBRE_TARGET_G);
+    }
+    expect(FIBRE_TARGET_G).toBe(30);
+  });
+
+  it('"drinks carry it" brings water first and the drink-free days second, once each', () => {
+    const plan = buildNutritionPlan({ aim: 'weight', trouble: 'drinks' });
+    expect(plan.levers.slice(0, 2).map((l) => l.id)).toEqual(['liquid-calories', 'drink-free-days']);
+    expect(plan.levers.filter((l) => l.id === 'drink-free-days')).toHaveLength(1);
+    // The water lever now points at the library entry that carries its evidence.
+    expect(plan.levers[0].protocolId).toBe('default-drink-water');
+    // On the energy ladder, where drink-free days was not already present, it is still added once.
+    const energy = buildNutritionPlan({ aim: 'energy', trouble: 'drinks' });
+    expect(energy.levers.filter((l) => l.id === 'drink-free-days')).toHaveLength(1);
+    expect(energy.levers[1].detail).toMatch(/ten standard drinks a week/);
+  });
+
+  it('the eating-window lever no longer claims the window does the work', () => {
+    const plan = buildNutritionPlan({ aim: 'weight' });
+    const kitchen = plan.levers.find((l) => l.id === 'kitchen-closed')!;
+    expect(kitchen.detail).not.toMatch(/does the work/);
+    expect(kitchen.detail).toMatch(/not magic/);
   });
 });
 

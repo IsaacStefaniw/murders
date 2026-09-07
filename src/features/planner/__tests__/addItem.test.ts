@@ -43,7 +43,8 @@ const setup = () => {
   // The next Monday, not today: the test is about displacing a flexible
   // block, and a weekend for this profile has none to displace.
   const today = todayKey();
-  const date = addDays(today, (8 - weekdayOf(today)) % 7 || 7);
+  const wd = weekdayOf(today);
+  const date = wd >= 1 && wd <= 5 ? today : addDays(today, (8 - wd) % 7);
   useAppStore.getState().ensurePlan(date);
   return date;
 };

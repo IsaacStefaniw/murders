@@ -17,7 +17,14 @@
  * All of it is educational structure — never medical advice.
  */
 
+import { SUPPLEMENT_PROTOCOLS } from '@/features/knowledge/protocols.supplements';
 import { newId, toHHMM, toMinutes } from '@/lib/dates';
+
+import { MONEY_PROTOCOLS } from './protocols.money';
+import { PEOPLE_PROTOCOLS } from './protocols.people';
+// The urge and habit practices, all free forever. Appended last so the
+// library's own order — foundation first in each area — is untouched.
+import { HABIT_PROTOCOLS } from './protocols.habits';
 import type {
   GoalDomain,
   LifeArea,
@@ -27,6 +34,8 @@ import type {
   SessionType,
   Weekday,
 } from '@/types/domain';
+
+import { WORK_PROTOCOLS } from './protocols.work';
 
 export type Pillar =
   | 'sleep'
@@ -2324,10 +2333,18 @@ export const PROTOCOLS: Protocol[] = [
 
   // ── Longevity: measure, then talk to a doctor ─────────────────────────
   // Excluded outright by the sourcing policy, however central to longevity
-  // discourse: rapamycin, metformin, NAD precursors, resveratrol, omega-3,
-  // vitamin D, creatine, hormone therapy. Also excluded as clinical
-  // judgement rather than behaviour: naming target values for any blood
-  // marker, or specific advanced tests. Nothing here states a target number.
+  // discourse: rapamycin, metformin, NAD precursors, resveratrol, hormone
+  // therapy. Also excluded as clinical judgement rather than behaviour:
+  // naming target values for any blood marker, or specific advanced tests.
+  // Nothing here states a target number.
+  //
+  // What the policy now lets in lives in protocols.supplements.ts, spread
+  // in at the end of this array: creatine, protein powder as food, caffeine
+  // timing, omega-3 from fish first, and vitamin D, iron and magnesium
+  // written as "test before you take" or "the evidence as it is". Every
+  // entry there is never-nag, states no amount beyond its named public
+  // source, and carries the same safety line. Nothing in that file names a
+  // compound from the excluded list above.
   {
     id: 'capacity-benchmark',
     evidenceLevel: 'B',
@@ -3437,6 +3454,11 @@ export const PROTOCOLS: Protocol[] = [
     tier: 'could',
     safety: 'For some people, parting with things is genuinely distressing rather than merely tedious — enough that rooms stop being usable. Difficulty discarding possessions is a recognised clinical condition with real help available, and it belongs with your doctor rather than with a tidying schedule. IntentNorth cannot tell which situation you are in and this is not an assessment. Never run a pass on someone else’s belongings without their agreement.',
   },
+  ...MONEY_PROTOCOLS,
+  ...SUPPLEMENT_PROTOCOLS,
+  ...WORK_PROTOCOLS,
+  ...PEOPLE_PROTOCOLS,
+  ...HABIT_PROTOCOLS,
 ];
 
 export const protocolById = (id: string): Protocol | undefined =>
