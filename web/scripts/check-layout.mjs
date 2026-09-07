@@ -156,6 +156,42 @@ if (stale.length) {
 const browser = await chromium.launch({ executablePath: browserPath() });
 const failures = [];
 
+/**
+ * The analytics tag actually loads.
+ *
+ * app/analytics.tsx injects through next/script with strategy
+ * "afterInteractive", so the tag is absent from the server-rendered HTML by
+ * design and no text-reading guardrail can see it. That makes it the classic
+ * silent failure: a framework upgrade stops injecting, measurement goes to
+ * zero, and nobody notices for a quarter because nothing is broken on screen.
+ *
+ * This is the only check in the project with a browser, so it is the only
+ * place the question can be asked. It runs once, on the home page.
+ */
+async function checkAnalytics() {
+  const configured = (await readFile(path.join(projectRoot, "app", "analytics.tsx"), "utf8"))
+    .match(/ga4: "([^"]*)"/)?.[1];
+  if (!configured) return;
+
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const hits = [];
+  page.on("request", (r) => { if (r.url().includes("googletagmanager.com/gtag/js")) hits.push(r.url()); });
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  await page.waitForTimeout(2000);
+
+  const events = await page.evaluate(() => (window.dataLayer ?? []).filter((a) => a[0] === "event").map((a) => a[1]));
+  await page.close();
+
+  if (!hits.some((u) => u.includes(configured))) {
+    failures.push(`analytics  the ${configured} tag never loaded — measurement is silently off`);
+  }
+  if (!events.includes("page_view")) {
+    failures.push("analytics  the tag loaded but sent no page_view");
+  }
+  console.log(`  analytics  ${configured} ${hits.length && events.includes("page_view") ? "loading, page_view sent" : "PROBLEMS"}`);
+}
+await checkAnalytics();
+
 for (const { route, widths } of await routes()) {
   console.log(`  ${route}`);
   for (const width of widths) {

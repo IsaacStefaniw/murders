@@ -48,10 +48,17 @@ import { useEffect } from "react";
  *
  * Isaac: paste the IDs here. Nothing else needs to change, and /privacy
  * already describes all three.
+ *
+ * The GA4 property has a **web stream and no iOS stream**, on purpose. GA4 for
+ * iOS is Firebase: collecting app data means embedding the Firebase Analytics
+ * SDK in the binary, which would falsify "there is no analytics SDK in the
+ * app" on /privacy, change the App Store privacy label away from "Device ID,
+ * not linked to you", and undo the row /whoop-alternative wins on. Do not add
+ * an iOS stream to this property without changing all three of those first.
  */
 export const ANALYTICS = {
-  /** GA4, from Admin → Data streams. Looks like G-XXXXXXXXXX. */
-  ga4: "",
+  /** GA4, from Admin → Data streams. Web stream only — see below. */
+  ga4: "G-DZL9DH7HH9",
   /** Meta pixel, from Events Manager. A long number. */
   metaPixel: "",
   /** Reddit Ads pixel, from Events Manager. Looks like a2_xxxxxxxx. */

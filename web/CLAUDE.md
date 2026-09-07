@@ -166,7 +166,20 @@ retarget.** That line is real and every privacy-forward company draws it.
 pixel; paste the IDs into `ANALYTICS` there and they switch on. They are public
 IDs, visible in any page's source, so they are committed rather than hidden in
 an env var that would silently disable measurement in a build nobody checked.
-With the IDs empty, no third-party script ships at all.
+With the IDs empty, no third-party script ships at all. GA4 is live
+(`G-DZL9DH7HH9`, web stream); Meta and Reddit are wired and waiting on IDs.
+
+The property has **no iOS stream, deliberately**. GA4 for iOS is Firebase, so
+collecting app data means the Firebase SDK in the binary — which would falsify
+"there is no analytics SDK in the app" on `/privacy`, move the App Store
+privacy label off "Device ID, not linked to you", and lose the row
+`/whoop-alternative` wins on. Do not add one without changing all three first.
+
+The tag injects client-side through `next/script`, so it is absent from the
+server-rendered HTML by design and no text-reading guardrail can see it — the
+classic way measurement silently goes to zero after a framework upgrade.
+`npm run test:layout` therefore also loads the home page and fails if the tag
+does not fetch or sends no `page_view`.
 
 **The questionnaire's answers never leave the browser, and no event carries
 them.** This one is not a preference. Step 02 of the profile builder asks what
