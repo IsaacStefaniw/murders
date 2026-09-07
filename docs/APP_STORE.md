@@ -35,7 +35,7 @@ Found by auditing the TestFlight build against the App Review Guidelines:
 | Field | Value |
 |---|---|
 | Name | IntentNorth |
-| Subtitle (30) | Seven coaches. One profile. |
+| Subtitle (30) | Sleep, training, routine coach |
 | Primary category | Health & Fitness |
 | Secondary category | Productivity |
 | Price | Free to download; IntentNorth Plus by in-app purchase (see below) |
@@ -122,7 +122,25 @@ through `buildProgramme` and hashing the output — all distinct.
 
 ## Keywords (100, comma-separated, no spaces)
 
-`habits,strength,training,sleep,recovery,coach,planner,routine,nutrition,money,meditation` — 82 characters. Do not add competitor names.
+`weekly,daily,tracker,workout,gym,strength,meditation,breathing,money,budget,family,evidence,life` — 96 characters. Do not add competitor names.
+
+**Changed 7 Sep 2026 on the search research** (`docs/SEO_RESEARCH.md` §5). The
+old subtitle, "Seven coaches. One profile.", contained no word anyone searches
+in the App Store — the iTunes search for "coach" in Australia returns The
+Coach, Louis Vuitton, H&M and Nike Run Club, so the word carries no shelf at
+all. The words that do are *habit*, *routine*, *planner*, *sleep*, *training*
+and *fitness*.
+
+Apple indexes title, subtitle and keyword field together, so a word repeated
+across them wastes characters. The old keyword list repeated five words that
+now sit in the title and subtitle; this one drops them and adds the modifiers
+people prepend, the training synonyms, and the two areas no competitor covers
+(money, family). "evidence" is in there because nobody searches it and nobody
+else can claim it.
+
+Fallback if the title must stay bare "IntentNorth": subtitle
+`Habit, sleep & routine planner` (30) with keyword field
+`training,coach,weekly,daily,tracker,workout,gym,strength,meditation,breathing,money,family,evidence` (98).
 
 ## What's New (1.0.0)
 

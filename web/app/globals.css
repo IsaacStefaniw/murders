@@ -937,3 +937,20 @@ footer { border-top: 1px solid var(--fog); }
 .covers-through { max-width: 720px; margin: 26px 0 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
 .covers-through strong { color: var(--ink); }
 @media (max-width: 900px) { .covers-grid { grid-template-columns: 1fr; } }
+
+/* The comparison page. Table-shaped content on a phone is the classic
+   sideways-scroll failure, so the table scrolls inside its own box rather
+   than taking the page with it. */
+.compare-table { overflow-x: auto; margin: 22px 0 10px; -webkit-overflow-scrolling: touch; }
+.compare-table table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; }
+.compare-table th, .compare-table td { padding: 14px 16px; border-top: 1px solid var(--fog); text-align: left; vertical-align: top; line-height: 1.55; }
+.compare-table thead th { border-top: 0; border-bottom: 1px solid var(--ink); color: var(--green-dark); font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.compare-table tbody th { width: 150px; font-weight: 750; }
+.compare-table td { color: var(--muted); }
+.compare-note { margin-top: 6px; color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+.compare-list { margin: 18px 0 0; padding-left: 20px; }
+.compare-list li { margin-bottom: 10px; color: var(--muted); line-height: 1.6; }
+.compare-list strong { color: var(--ink); }
+.compare-cta { margin-top: 30px; }
+.legal-fineprint { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--fog); color: var(--muted); font-size: 12px; line-height: 1.6; }
+@media (max-width: 620px) { .compare-table tbody th { width: 110px; } }
