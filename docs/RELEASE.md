@@ -53,3 +53,33 @@ Never commit `AuthKey.p8`, tokens, or anything credential-shaped —
 `eas.json` uses `appVersionSource: remote` with `autoIncrement` on the
 production profile — build numbers bump automatically; bump the
 human-visible `version` in `app.json` when it matters.
+
+## The fingerprint trap: never touch the root `.gitignore`
+
+`runtimeVersion.policy` is `fingerprint`, and an over-the-air update reaches
+a build only when the two fingerprints match. The root `.gitignore` is one of
+the hashed sources (`@expo/fingerprint` reason: `bareGitIgnore`), so **adding
+a single line to it strands every installed build** — the update is refused
+rather than delivered, and no error reaches the phone.
+
+This has now cost the project four times: the `.gitignore` lines, the
+`package.json` `scripts` object, `app.json`'s `name`, and a `.sites-runtime/`
+entry added by the website tooling that would have cut build 16 off from all
+148 commits behind it.
+
+Rules:
+
+- Never edit the root `.gitignore` between a build and its updates. Put
+  local scratch in `.git/info/exclude` (per-clone, never hashed) or inside a
+  subdirectory's own `.gitignore`.
+- Anything describing the app to the platform is native, and native means a
+  new build.
+- Before shipping an update, verify the fingerprint matches the target build:
+
+  ```bash
+  npx @expo/fingerprint@latest . | node -e \
+    "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).hash))"
+  ```
+
+  Compare against the runtime version the build reports in Settings, which
+  `src/lib/updates.ts` surfaces for exactly this reason.
