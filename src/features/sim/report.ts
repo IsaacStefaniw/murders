@@ -60,6 +60,8 @@ export interface CohortReport {
   valueCoverage: { relationshipWeekPct: number; familyWeekPct: number };
   pruning: { totalDeactivations: number; usersOverPruned: number };
   avgUnplacedPerWeek: number;
+  /** Placements the person's own energy shape decided, per user-week. */
+  avgEnergyDecidedPerWeek: number;
   avgMovesPerUserPerWeek: number;
   /** Modality sessions executed through the real generators. */
   modalities: Record<string, { sessions: number; shortened: number }>;
@@ -206,6 +208,7 @@ export function aggregate(results: UserResult[]): CohortReport {
     },
     pruning: { totalDeactivations: totalDeact, usersOverPruned },
     avgUnplacedPerWeek: mean(results.flatMap((r) => r.weeks.map((w) => w.unplaced))),
+    avgEnergyDecidedPerWeek: mean(results.flatMap((r) => r.weeks.map((w) => w.energyDecided))),
     avgMovesPerUserPerWeek: mean(results.flatMap((r) => r.weeks.map((w) => w.userMoves))),
     modalities,
     contractViolations,
@@ -234,7 +237,7 @@ export function renderMarkdown(rep: CohortReport): string {
     `Personas: ${Object.entries(rep.personas)
       .map(([k, v]) => `${k} ${v}`)
       .join(' · ')}`,
-    `Engine health: ${rep.errors} errors · ${rep.overlapViolations} overlap violations · ${rep.avgUnplacedPerWeek.toFixed(2)} unplaced/user-week`,
+    `Engine health: ${rep.errors} errors · ${rep.overlapViolations} overlap violations · ${rep.avgUnplacedPerWeek.toFixed(2)} unplaced/user-week · ${rep.avgEnergyDecidedPerWeek.toFixed(2)} placed by energy/user-week`,
     '',
     '## Does IntentNorth learn?',
     `- Weekly completion: ${pct(rep.completion.early)} (wk 1–2) → ${pct(rep.completion.mid)} (mid) → ${pct(rep.completion.late)} (final month) — **${rep.completion.liftPts >= 0 ? '+' : ''}${rep.completion.liftPts.toFixed(1)} pts**`,

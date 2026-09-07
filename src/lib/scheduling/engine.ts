@@ -9,8 +9,11 @@
  * placements, but can never invent an invalid schedule.
  */
 
+import { bandFor, demandOf, overlapWith, type DayEnergy, type EnergyPlacement } from '@/lib/scheduling/energy';
 import { dateKeyToDate, toHHMM, toMinutes, newId, weekdayOf } from '@/lib/dates';
 import type { DailyPlan, LifeArea, PlanItem, PlanTier, Routine } from '@/types/domain';
+
+export type { DayEnergy, EnergyPlacement } from '@/lib/scheduling/energy';
 
 export interface FixedCommitment {
   title: string;
@@ -52,6 +55,15 @@ export interface DayContext {
    * window. The promise was not merely unimplemented, it was contradicted.
    */
   priorities?: LifeArea[];
+  /**
+   * Where this person's energy sits today — peak, dip and second wind, as
+   * `energyShape` computes them from the wake time and the chronotype
+   * answer. Optional: a day built without it places exactly as before.
+   *
+   * It is a tie-break and only ever a tie-break. See
+   * `src/lib/scheduling/energy.ts` for what that means and why.
+   */
+  energy?: DayEnergy;
 }
 
 export interface Window {
@@ -63,6 +75,18 @@ const DEFAULT_BUFFER_MIN = 15;
 const DEFAULT_RESERVED_FRACTION = 0.25;
 /** Don't schedule flexible items into slivers shorter than this. */
 const MIN_USEFUL_WINDOW = 20;
+/**
+ * The floor for the second placement pass.
+ *
+ * Twenty minutes is the right size for a gap the first pass will consider:
+ * below it a window is a sliver, and filling slivers is how a plan becomes
+ * a wall. But a five-minute practice that has already failed to get a real
+ * window is not competing for one any more — the choice is an eighteen-minute
+ * gap or nothing at all, and nothing at all is the worse plan. Nothing in
+ * the library is shorter than five minutes, so this is the smallest gap
+ * that can ever hold anything.
+ */
+const MIN_SECOND_PASS_WINDOW = 5;
 
 const TIER_ORDER: Record<PlanTier, number> = { must: 0, should: 1, could: 2 };
 
@@ -72,6 +96,8 @@ export function computeFreeWindows(
   wakeTime: string,
   sleepTime: string,
   bufferMin: number = DEFAULT_BUFFER_MIN,
+  /** Shortest gap worth returning. Lower it to see the slivers. */
+  minWindowMin: number = MIN_USEFUL_WINDOW,
 ): Window[] {
   const dayStart = toMinutes(wakeTime);
   let dayEnd = toMinutes(sleepTime);
@@ -98,10 +124,10 @@ export function computeFreeWindows(
   }
   if (cursor < dayEnd) windows.push({ start: cursor, end: dayEnd });
 
-  return windows.filter((w) => w.end - w.start >= MIN_USEFUL_WINDOW);
+  return windows.filter((w) => w.end - w.start >= minWindowMin);
 }
 
-interface Placement {
+export interface Placement {
   routine: Routine;
   start: number;
   end: number;
@@ -129,6 +155,25 @@ export function areaRank(area: LifeArea | undefined, priorities: LifeArea[] = []
   if (!area) return priorities.length + 1;
   const i = priorities.indexOf(area);
   return i === -1 ? priorities.length : i;
+}
+
+export interface PlacementResult {
+  placements: Placement[];
+  unplaced: Routine[];
+  /** Routines the energy shape actually moved, and the band it moved them to. */
+  energy: EnergyPlacement[];
+}
+
+export interface PlacementOptions {
+  /**
+   * The same day's free windows, computed without the twenty-minute floor.
+   * Only the second pass looks at them, and only for routines the first
+   * pass could not seat at all. Omitted, the second pass runs over the
+   * ordinary windows and simply finds less.
+   */
+  fineWindows?: Window[];
+  /** The person's peak, dip and second wind. A tie-break; see energy.ts. */
+  energy?: DayEnergy;
 }
 
 /**
@@ -162,11 +207,8 @@ export function placeRoutines(
   priorities: LifeArea[] = [],
   /** Bedtime, in minutes past the day's start, for routines bounded by it. */
   dayEnd?: number,
-): { placements: Placement[]; unplaced: Routine[] } {
-  const free = windows.map((w) => ({ ...w }));
-  const placements: Placement[] = [];
-  const unplaced: Routine[] = [];
-
+  opts: PlacementOptions = {},
+): PlacementResult {
   const ordered = [...routines].sort((a, b) => {
     if (a.protected !== b.protected) return a.protected ? -1 : 1;
     const tier = TIER_ORDER[a.tier] - TIER_ORDER[b.tier];
@@ -180,12 +222,39 @@ export function placeRoutines(
     return slackA - slackB;
   });
 
-  for (const routine of ordered) {
-    const spot = findSpot(free, routine, dayEnd);
-    if (!spot) {
-      unplaced.push(routine);
-      continue;
-    }
+  const plain = runPass(windows, ordered, bufferMin, dayEnd, opts.fineWindows);
+  if (!opts.energy) return plain;
+
+  // ── The tie-break has to be free ──────────────────────────────────────
+  //
+  // Sliding a session towards the peak changes which minutes the next
+  // routine finds, and on a tight day that is enough to cost the day
+  // something. A chronotype curve is not entitled to that: tier, goal and
+  // the person's stated life-area order decide what is on the day, and
+  // energy only decides where among equals. So the day is placed both ways
+  // and the energy-aware one is taken only when it costs nothing — when
+  // every routine the ordinary pass seated is still seated. Otherwise the
+  // shape is simply not used today, and nothing is said about it.
+  const shaped = runPass(windows, ordered, bufferMin, dayEnd, opts.fineWindows, opts.energy);
+  const seated = new Set(shaped.placements.map((p) => p.routine.id));
+  const costsSomething = plain.placements.some((p) => !seated.has(p.routine.id));
+  return costsSomething ? plain : shaped;
+}
+
+function runPass(
+  windows: Window[],
+  ordered: Routine[],
+  bufferMin: number,
+  dayEnd: number | undefined,
+  fineWindows: Window[] | undefined,
+  energy?: DayEnergy,
+): PlacementResult {
+  const free = windows.map((w) => ({ ...w }));
+  const placements: Placement[] = [];
+  const unplaced: Routine[] = [];
+  const energyPlacements: EnergyPlacement[] = [];
+
+  const seat = (routine: Routine, spot: number) => {
     const wanted = toMinutes(routine.preferredStart);
     placements.push({
       routine,
@@ -195,11 +264,67 @@ export function placeRoutines(
       // move large enough for a person to notice is worth explaining.
       movedFrom: Math.abs(spot - wanted) >= NOTICEABLE_MOVE_MIN ? wanted : undefined,
     });
-    carveOut(free, spot - bufferMin, spot + routine.durationMin + bufferMin);
+  };
+
+  for (const routine of ordered) {
+    const spot = findSpot(free, routine, dayEnd, energy);
+    if (spot === null) {
+      unplaced.push(routine);
+      continue;
+    }
+    seat(routine, spot.start);
+    if (spot.byEnergy && energy) {
+      const demand = demandOf(routine);
+      const band = bandFor(demand, energy);
+      if (band && demand !== 'steady') {
+        energyPlacements.push({
+          routineId: routine.id,
+          title: routine.title,
+          demand,
+          start: spot.start,
+          band,
+        });
+      }
+    }
+    carveOut(free, spot.start - bufferMin, spot.start + routine.durationMin + bufferMin);
+  }
+
+  // ── Second pass: move it, do not drop it ──────────────────────────────
+  //
+  // Reclaim's rule is "the next best time within the window", and until
+  // this the engine had no equivalent: a routine the first pass could not
+  // seat was reported and forgotten, even when the day still had a gap it
+  // fitted. The first pass refuses gaps under twenty minutes on purpose,
+  // and it tests one candidate start per window rather than the window's
+  // whole legal range — so a five-minute practice could be dropped from a
+  // day holding an eighteen-minute gap, and a routine with a
+  // finish-before-sleep bound could be dropped from a window whose early
+  // half was inside that bound.
+  //
+  // What the second pass may NOT do is loosen anything. It keeps the
+  // routine's own drift bound, its finish-before-sleep bound, and the
+  // buffers around everything already placed, and it never reopens a
+  // placement — it only uses what is genuinely still free. Anything that
+  // still does not fit stays unplaced, and the day says so.
+  const stillUnplaced: Routine[] = [];
+  if (unplaced.length > 0) {
+    const remaining = (fineWindows ?? windows).map((w) => ({ ...w }));
+    for (const p of placements) {
+      carveOut(remaining, p.start - bufferMin, p.end + bufferMin, MIN_SECOND_PASS_WINDOW);
+    }
+    for (const routine of unplaced) {
+      const spot = findRemainingSpot(remaining, routine, dayEnd);
+      if (spot === null) {
+        stillUnplaced.push(routine);
+        continue;
+      }
+      seat(routine, spot);
+      carveOut(remaining, spot - bufferMin, spot + routine.durationMin + bufferMin, MIN_SECOND_PASS_WINDOW);
+    }
   }
 
   placements.sort((a, b) => a.start - b.start);
-  return { placements, unplaced };
+  return { placements, unplaced: stillUnplaced, energy: energyPlacements };
 }
 
 /**
@@ -234,6 +359,17 @@ const MIN_DRIFT_MIN = 60;
 const MAX_DRIFT_MIN = 180;
 
 /**
+ * How far the energy shape may move something, when it is allowed to move
+ * it at all.
+ *
+ * The same three hours the drift pass already treats as the limit of "the
+ * same day, a bit later". Beyond that a walk placed for the dip is not the
+ * walk moved, it is a different plan, and the person would read it as the
+ * app ignoring them. Time-anchored practices and deadlines get none of it.
+ */
+const ENERGY_ROAM_MIN = MAX_DRIFT_MIN;
+
+/**
  * Length of a preferred window, corrected for one that runs past midnight.
  *
  * `toRoutine` computes the end as `(start + windowMin) % 1440`, so a
@@ -244,8 +380,20 @@ function windowLength(prefStart: number, prefEnd: number): number {
   return prefEnd >= prefStart ? prefEnd - prefStart : prefEnd + 1440 - prefStart;
 }
 
+/** A start, and whether the energy shape is what chose it over another. */
+interface Spot {
+  start: number;
+  /** True only when energy moved the routine off the start it would have had. */
+  byEnergy?: boolean;
+}
+
 /** Earliest valid start within the preferred window; a bounded drift if flexible. */
-function findSpot(free: Window[], routine: Routine, dayEnd?: number): number | null {
+function findSpot(
+  free: Window[],
+  routine: Routine,
+  dayEnd?: number,
+  energy?: DayEnergy,
+): Spot | null {
   const prefStart = toMinutes(routine.preferredStart);
   const prefEnd = toMinutes(routine.preferredEnd);
   const dur = routine.durationMin;
@@ -262,10 +410,62 @@ function findSpot(free: Window[], routine: Routine, dayEnd?: number): number | n
   const latestStart = prefStart + windowLength(prefStart, prefEnd);
 
   // Pass 1: start inside the preferred window.
+  //
+  // `firstFit` is that pass exactly as it always was — the earliest legal
+  // start in the earliest window that holds the routine — and it is the
+  // answer unless the energy shape can do strictly better for something
+  // that actually cares about the hour.
+  //
+  // The shape may look a little wider than the preferred window, because a
+  // preferred window is a preference and not a bound. What it may never
+  // cross is a bound: the finish-before-sleep ceiling, a fixed block (the
+  // free windows are what is left after those), a deadline, or a practice
+  // whose hour is part of what it is. So a deadline or a time-anchored
+  // practice gets no roam at all — the shape may still choose where inside
+  // that practice's own declared window it sits, and nothing beyond it.
+  const band = energy ? bandFor(demandOf(routine), energy) : null;
+  const roam = band && routine.flexible && !routine.timeAnchored ? ENERGY_ROAM_MIN : 0;
+  const roamFrom = prefStart - roam;
+  const roamTo = Math.min(latestStart + roam, hardLatestStart);
+
+  let firstFit: number | null = null;
+  let bestForBand: { start: number; overlap: number } | null = null;
   for (const w of free) {
-    const start = Math.max(w.start, prefStart);
-    if (start <= latestStart && start + dur <= w.end && withinBound(start)) return start;
+    const earliestHere = Math.max(w.start, prefStart);
+    const latestHere = Math.min(latestStart, w.end - dur, hardLatestStart);
+    if (firstFit === null && latestHere >= earliestHere) firstFit = earliestHere;
+    if (!band) {
+      if (firstFit !== null) break;
+      continue;
+    }
+    // The range of this window energy is allowed to consider, and the three
+    // starts in it worth scoring: its two ends and the band's own start.
+    const lo = Math.max(w.start, roamFrom);
+    const hi = Math.min(w.end - dur, roamTo);
+    if (hi < lo) continue;
+    const aimed = Math.min(Math.max(toMinutes(band.start), lo), hi);
+    for (const start of [lo, aimed, hi]) {
+      const overlap = overlapWith(start, dur, band);
+      const closer = Math.abs(start - prefStart);
+      if (
+        !bestForBand ||
+        overlap > bestForBand.overlap ||
+        (overlap === bestForBand.overlap && closer < Math.abs(bestForBand.start - prefStart))
+      ) {
+        bestForBand = { start, overlap };
+      }
+    }
   }
+
+  // Strictly better, or it does not count. A session that was going to land
+  // in the peak anyway did not land there BECAUSE of the shape, and only a
+  // start the shape actually changed is attributed to it — the same rule
+  // the displaced line follows about a day that simply ran out of room.
+  if (band && bestForBand && bestForBand.overlap > 0) {
+    const asIs = firstFit === null ? -1 : overlapWith(firstFit, dur, band);
+    if (bestForBand.overlap > asIs) return { start: bestForBand.start, byEnergy: true };
+  }
+  if (firstFit !== null) return { start: firstFit };
   if (!routine.flexible) return null;
 
   // Pass 2: the closest window that fits. For a time-anchored routine that
@@ -291,16 +491,66 @@ function findSpot(free: Window[], routine: Routine, dayEnd?: number): number | n
     const distance = Math.abs(start - prefStart);
     if (!best || distance < best.distance) best = { start, distance };
   }
+  return best ? { start: best.start } : null;
+}
+
+/**
+ * The next best time still going, for a routine the first pass turned away.
+ *
+ * Where `findSpot` tests one candidate start per window, this walks each
+ * window's whole legal range — the intersection of the window, the
+ * routine's own drift, and its finish-before-sleep bound — and takes the
+ * minute in it closest to the hour the routine asked for. It loosens
+ * nothing: a deadline is not moved at all, a time-anchored practice keeps
+ * the same drift the first pass gave it, and a bounded one still finishes
+ * before the bound. It simply stops giving up on a window because the one
+ * minute it happened to test was no good.
+ */
+function findRemainingSpot(free: Window[], routine: Routine, dayEnd?: number): number | null {
+  // A deadline is not an activity to slot in — "last coffee by", "kitchen
+  // closed". Moving it has made it false, so it stays where it is and is
+  // reported instead.
+  if (!routine.flexible) return null;
+
+  const prefStart = toMinutes(routine.preferredStart);
+  const prefEnd = toMinutes(routine.preferredEnd);
+  const dur = routine.durationMin;
+  const latestStart = prefStart + windowLength(prefStart, prefEnd);
+  const hardLatestStart =
+    routine.finishBeforeSleepMin !== undefined && dayEnd !== undefined
+      ? dayEnd - routine.finishBeforeSleepMin - dur
+      : Infinity;
+  const drift = routine.timeAnchored
+    ? Math.min(MAX_DRIFT_MIN, Math.max(MIN_DRIFT_MIN, latestStart - prefStart))
+    : Infinity;
+  const earliest =
+    hardLatestStart === Infinity ? prefStart - drift : prefStart - Math.max(drift, 180);
+  const latest = Math.min(latestStart + drift, hardLatestStart);
+
+  let best: { start: number; distance: number } | null = null;
+  for (const w of free) {
+    const lo = Math.max(w.start, earliest);
+    const hi = Math.min(w.end - dur, latest);
+    if (hi < lo) continue;
+    const start = Math.min(Math.max(prefStart, lo), hi);
+    const distance = Math.abs(start - prefStart);
+    if (!best || distance < best.distance) best = { start, distance };
+  }
   return best?.start ?? null;
 }
 
-function carveOut(free: Window[], from: number, to: number): void {
+function carveOut(
+  free: Window[],
+  from: number,
+  to: number,
+  minFragment: number = MIN_USEFUL_WINDOW,
+): void {
   for (let i = free.length - 1; i >= 0; i--) {
     const w = free[i];
     if (to <= w.start || from >= w.end) continue;
     const pieces: Window[] = [];
-    if (from - w.start >= MIN_USEFUL_WINDOW) pieces.push({ start: w.start, end: from });
-    if (w.end - to >= MIN_USEFUL_WINDOW) pieces.push({ start: to, end: w.end });
+    if (from - w.start >= minFragment) pieces.push({ start: w.start, end: from });
+    if (w.end - to >= minFragment) pieces.push({ start: to, end: w.end });
     free.splice(i, 1, ...pieces);
   }
 }
@@ -321,7 +571,7 @@ export interface MovedPlacement {
 
 export function buildDailyPlan(
   ctx: DayContext,
-): DailyPlan & { unplaced: Routine[]; moved: MovedPlacement[] } {
+): DailyPlan & { unplaced: Routine[]; moved: MovedPlacement[]; energy: EnergyPlacement[] } {
   const buffer = ctx.bufferMin ?? DEFAULT_BUFFER_MIN;
   const reserved = ctx.reservedFreeFraction ?? DEFAULT_RESERVED_FRACTION;
   const weekday = weekdayOf(ctx.date);
@@ -337,12 +587,24 @@ export function buildDailyPlan(
   const sleepMin = toMinutes(ctx.sleepTime);
   const wakeMin = toMinutes(ctx.wakeTime);
   const dayEnd = sleepMin <= wakeMin ? sleepMin + 1440 : sleepMin;
-  const { placements, unplaced } = placeRoutines(
+  const { placements, unplaced, energy } = placeRoutines(
     windows,
     todaysRoutines,
     buffer,
     priorities,
     dayEnd,
+    {
+      // The same day seen without the twenty-minute floor. Only the second
+      // pass reads it, and only for routines nothing else could hold.
+      fineWindows: computeFreeWindows(
+        ctx.fixed,
+        ctx.wakeTime,
+        ctx.sleepTime,
+        buffer,
+        MIN_SECOND_PASS_WINDOW,
+      ),
+      energy: ctx.energy,
+    },
   );
 
   // Enforce slack: drop lowest-tier, non-protected placements until within budget.
@@ -417,6 +679,9 @@ export function buildDailyPlan(
     summary: summarise(items, totalFree, ctx.date),
     unplaced,
     moved,
+    // Only what survived the day's slack budget: a sentence about the hour
+    // something got is a lie if the thing is not on the day.
+    energy: energy.filter((e) => kept.some((p) => p.routine.id === e.routineId)),
   };
 }
 

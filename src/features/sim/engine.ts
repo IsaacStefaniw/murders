@@ -10,6 +10,7 @@ import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { detectGoalUnderserved } from '@/features/goals/underserved';
 import { generateDailyPlan } from '@/features/planner/generate';
+import type { EnergyPlacement } from '@/lib/scheduling/engine';
 import { buildWeeklyChanges } from '@/features/review/weeklyChanges';
 import { runSessionForItem } from '@/features/sim/modalities';
 import { MODALITIES } from '@/features/modalities/registry';
@@ -54,6 +55,8 @@ export interface WeekMetrics {
   alignedMinutes: number;
   flexMinutes: number;
   unplaced: number;
+  /** Placements the person's energy shape decided, rather than coincided with. */
+  energyDecided: number;
   hasRelationshipMoment: boolean;
   hasFamilyMoment: boolean;
   weeklyChangesApplied: number;
@@ -104,6 +107,7 @@ function emptyWeek(): WeekMetrics {
     alignedMinutes: 0,
     flexMinutes: 0,
     unplaced: 0,
+    energyDecided: 0,
     hasRelationshipMoment: false,
     hasFamilyMoment: false,
     weeklyChangesApplied: 0,
@@ -182,7 +186,7 @@ export function runUser(
       );
     }
 
-    let plan: (DailyPlan & { unplaced: Routine[] }) | null = null;
+    let plan: (DailyPlan & { unplaced: Routine[]; energy: EnergyPlacement[] }) | null = null;
     try {
       plan = generateDailyPlan(profile, routines, date, [], goals);
     } catch {
@@ -190,6 +194,7 @@ export function runUser(
       continue;
     }
     week.unplaced += plan.unplaced.length;
+    week.energyDecided += plan.energy.length;
 
     // Engine invariant: non-skipped flexible items never overlap.
     const sorted = [...plan.items].sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
