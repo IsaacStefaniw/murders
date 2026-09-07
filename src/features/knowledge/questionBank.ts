@@ -111,6 +111,7 @@ export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
         { value: 'leaner', label: 'Get leaner' },
         { value: 'fitter', label: 'Get fitter for running or a sport' },
         { value: 'keep', label: 'Keep what I have' },
+        { value: 'unsure', label: 'Not sure — help me pick' },
       ],
     },
     {
@@ -121,9 +122,9 @@ export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
       key: 'focus',
       question: 'Where first? The lift, the body area or the distance that fits.',
       options: [
-        { value: 'bench', label: 'Bench' },
-        { value: 'squat', label: 'Squat' },
-        { value: 'deadlift', label: 'Deadlift' },
+        { value: 'bench', label: 'The bench press' },
+        { value: 'squat', label: 'The back squat' },
+        { value: 'deadlift', label: 'The deadlift' },
         { value: 'ohp', label: 'Overhead press' },
         { value: 'upper', label: 'Upper body' },
         { value: 'lower', label: 'Lower body' },
@@ -131,6 +132,7 @@ export const DOMAIN_QUESTIONS: Partial<Record<GoalDomain, DomainQuestion[]>> = {
         { value: '5k', label: '5 km' },
         { value: '10k', label: '10 km or more' },
         { value: 'sport', label: 'A sport, not a distance' },
+        { value: 'unsure', label: 'Wherever you say' },
       ],
     },
     {

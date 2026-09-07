@@ -19,7 +19,12 @@ export type Want = 'stronger' | 'muscle' | 'leaner' | 'fitter' | 'keep';
 const FITNESS = DOMAIN_QUESTIONS.fitness ?? [];
 const optionsOf = (key: string) => FITNESS.find((q) => q.key === key)?.options ?? [];
 
-export const WANT_OPTIONS = optionsOf('want') as { value: Want; label: string }[];
+// The intake's "not sure" is an honest way out of the question, not a
+// want: a person changing what they train for on the hub has one in mind.
+export const WANT_OPTIONS = optionsOf('want').filter((o) => o.value !== 'unsure') as {
+  value: Want;
+  label: string;
+}[];
 
 /** The follow-up values that make sense for each answer, in the order to show them. */
 export const FOCUS_FOR_WANT: Record<Want, string[]> = {
@@ -33,7 +38,7 @@ export const FOCUS_FOR_WANT: Record<Want, string[]> = {
 
 export function focusOptionsFor(want: Want): { value: string; label: string }[] {
   const all = optionsOf('focus');
-  return FOCUS_FOR_WANT[want]
+  return (FOCUS_FOR_WANT[want] ?? [])
     .map((value) => all.find((o) => o.value === value))
     .filter((o): o is { value: string; label: string } => o != null);
 }
