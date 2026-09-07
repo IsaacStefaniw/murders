@@ -1035,3 +1035,50 @@ footer { border-top: 1px solid var(--fog); }
   .ev-body { padding-left: 40px; }
   .ev-legend > div { grid-template-columns: 1fr; gap: 4px; }
 }
+
+/* ── Topic pages ───────────────────────────────────────────────────────────
+   /magnesium-for-sleep and its five siblings. They reuse the .legal column
+   because a page of prose wants exactly that measure; everything below is the
+   grade verdict, the safety box and the footer that only these pages have. */
+.topic .section-kicker { margin: 0 0 10px; }
+.topic h1 { margin-bottom: 0; }
+
+.topic-verdict { display: grid; grid-template-columns: 22px 1fr; gap: 16px; align-items: start;
+  margin: 0 0 36px; padding: 22px 24px; border-radius: var(--radius); background: var(--paper-deep); }
+.topic-verdict .rating-dot { margin-top: 3px; }
+.topic-verdict strong { display: block; font-size: 16px; color: var(--ink); }
+.topic-verdict p { margin: 6px 0 0; font-size: 15px; line-height: 1.6; color: var(--ink-soft); }
+.topic-verdict-meaning { color: var(--muted) !important; font-size: 14px !important; }
+
+/* The safety note is the one block on the page that must not read as an
+   aside. It is the app's own words, and several of them are the line telling
+   a reader with a kidney condition or a history of restriction to stop. */
+.topic-safety { margin: 40px 0 0; padding: 20px 24px; border-radius: var(--radius);
+  background: var(--white); border: 1px solid var(--fog); border-left: 3px solid var(--ember); }
+.topic-safety h2 { margin: 0 0 8px; font-size: 15px; letter-spacing: .01em; }
+.topic-safety p { margin: 0; font-size: 15px; line-height: 1.65; }
+
+.topic-foot { border-top: 1px solid var(--fog); margin-top: 48px; padding-top: 24px; }
+.topic-foot p { font-size: 14px; line-height: 1.65; color: var(--muted); }
+.topic-foot strong { color: var(--ink-soft); }
+
+.topic-related { margin-top: 40px; }
+.topic-related h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+.topic-related ul { list-style: none; margin: 0; padding: 0; }
+.topic-related li { margin-bottom: 8px; font-size: 15px; }
+
+.topic ol { margin: 0 0 18px; padding-left: 22px; }
+.topic ol li { font-size: 16px; line-height: 1.65; color: var(--ink-soft); margin-bottom: 8px; }
+
+@media (max-width: 620px) {
+  .topic-verdict { padding: 18px 18px; gap: 12px; }
+  .topic-safety { padding: 16px 18px; }
+}
+
+/* The six topic pages, listed from the library they came out of. */
+.ev-topics { list-style: none; margin: 0 0 24px; padding: 0; }
+.ev-topics li { margin-bottom: 9px; font-size: 16px; color: var(--muted); }
+.ev-topics a { font-weight: 600; }
+
+.topic-product { margin: 40px 0 0; padding: 18px 22px; border-radius: var(--radius);
+  background: var(--white); border: 1px solid var(--fog); font-size: 15px !important; }

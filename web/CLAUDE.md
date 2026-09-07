@@ -37,7 +37,10 @@ npm run lint
 npm test
 ```
 
-`npm test` performs the production build and runs the product-truth/rendering guardrails.
+`npm test` performs the production build and runs the product-truth/rendering
+guardrails. It discovers `tests/*.test.mjs` rather than naming them — the list
+used to be hand-maintained in `package.json`, and a test file written, passing
+and never run is not a guardrail.
 
 Those guardrails read text. They cannot see a page that renders badly while
 saying the right words — a sentence stacked one word per line down a 48px
@@ -59,6 +62,8 @@ reporting the change as checked.
 - `app/layout.tsx` — metadata
 - `components/intent-motion/` — learning-loop and shared-profile motion components
 - `public/images/` — production image assets, including the two latest editorial WebP images
+- `app/evidence/` — the whole practice library, searchable, generated at build time
+- `app/<topic>/page.tsx` — the six search topic pages, built on `components/EvidenceTopic.tsx`
 - `tests/` — non-negotiable positioning, wording and asset-delivery guardrails
 
 The project uses Next.js 16, React 19, TypeScript, Vinext/Vite and deploys to Cloudflare Workers. Preserve `package-lock.json` and the existing build system unless the deployment platform is deliberately being changed. The hosting platform's `.openai/hosting.json` no longer exists; the build reads `wrangler.jsonc`, whose worker name is pinned because changing it creates a second site rather than updating this one.
@@ -84,6 +89,32 @@ The product observes a meaningful signal, changes the next load, target or proto
 **Before → signal → changed action → reason**
 
 Calendar protection may exist, but it is not the category or differentiator.
+
+## The library figures
+
+The practice library is **204**, and the number is not in one file.
+`src/features/knowledge/protocols.ts` declares 177 and then spreads in five
+more — money, supplements, work, people and habits. Anything that counts the
+library must read all six. In September 2026 the site published 177, 104, 145
+and 188 for months because both the extractor and the guardrail that was meant
+to catch it read only `protocols.ts`.
+
+The current figures, all generated rather than typed:
+
+| | |
+|---|---|
+| Practices | 204 |
+| Rated C or weaker | 122 |
+| Carrying a safety note | 171 |
+| Researchers and teachers credited | 212 |
+| A / B / C / D / E | 15 / 67 / 73 / 41 / 8 |
+
+`scripts/build-evidence.mjs` regenerates `app/evidence/library.json` before
+every build, and refuses to finish if a declared safety note fails to parse.
+That guard has now caught fifteen of them: three wrapped onto the next line by
+the formatter, four written as the bare constant `DEPENDENCE_LINE`, eight as
+template literals. A safety note missing from the website is the worst thing
+this site can do quietly, so do not soften that check into a warning.
 
 ## Product-truth boundaries
 

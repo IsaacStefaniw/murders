@@ -63,6 +63,28 @@ export default function EvidencePage() {
         your head, talk to a doctor rather than a library.
       </p>
 
+      {/*
+        Six of the 204 have a page of their own, because six of the topic
+        terms have real Australian search volume behind them (section 3.1 of
+        docs/SEO_RESEARCH.md). Linking them from here is the point of the
+        cluster: a reader who lands on the magnesium page from Google finds
+        the library, and a reader browsing the library finds the long answer.
+      */}
+      <h2>Written up in full</h2>
+      <p>
+        Six of these get a page of their own, because they are the questions people
+        actually search for. Each one leads with its grade, including the ones that
+        are not flattering.
+      </p>
+      <ul className="ev-topics">
+        <li><Link href="/magnesium-for-sleep">Does magnesium help you sleep?</Link> — rated D</li>
+        <li><Link href="/does-creatine-work">Does creatine work?</Link> — rated A</li>
+        <li><Link href="/what-is-zone-2">What is zone 2?</Link> — rated B</li>
+        <li><Link href="/cyclic-sighing">Cyclic sighing</Link> — rated B</li>
+        <li><Link href="/sauna-benefits">Sauna benefits</Link> — rated C</li>
+        <li><Link href="/cold-plunge-benefits">Cold plunge benefits</Link> — rated C</li>
+      </ul>
+
       <p className="compare-cta">
         <Link className="text-link" href="/">See how these get planned into a week →</Link>
       </p>
