@@ -9,6 +9,7 @@
  */
 
 import { BEHAVIOUR_CATALOG, behaviourInfo } from '@/features/behaviours/catalog';
+import { KIDS_ONLY, OUTINGS, composition, familyVariant, withoutMatching } from '@/features/family/composition';
 import { buildGoalPlan, type GoalPlan, type ParsedGoal } from '@/features/goals/goalPlanner';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { DOMAIN_QUESTIONS, answered, type DomainQuestion } from '@/features/knowledge/questionBank';
@@ -58,6 +59,37 @@ const parsed = (title: string, domain: ParsedGoal['domain'], area: ParsedGoal['a
   domain,
   area,
 });
+
+/** The library practices behind a list of ids, as routines for this goal. */
+function routinesFor(ids: string[], profile: LifeProfile | null, goalId: string): Routine[] {
+  const routines: Routine[] = [];
+  for (const id of ids) {
+    const protocol = protocolById(id);
+    if (protocol) routines.push(toRoutine(protocol, profile, goalId));
+  }
+  return routines;
+}
+
+/** Weekend-only windows: nothing weekday-anchored will survive. */
+function weekendOnly(routines: Routine[]): void {
+  for (const r of routines) r.days = r.days.filter((d) => d === 0 || d === 6);
+}
+
+/**
+ * Who the relationship coach is about. The intake asks; an answer saved
+ * before it did is from someone who was on the partner build, and stays
+ * there — the friends build is only ever chosen, never inferred. "Not
+ * sure what to call it" gets the early-days build: the cheap practices,
+ * and nothing that presumes a state to review.
+ */
+function relationshipWith(answers: Record<string, string>): 'partner' | 'early' | 'solo' {
+  const raw = answers.with;
+  if (raw === 'early' || raw === 'solo' || raw === 'unsure') return raw === 'unsure' ? 'early' : raw;
+  return 'partner';
+}
+
+/** Ladder milestones that only make sense with a partner in the picture. */
+const PARTNER_ONLY = /\bboth\b|together/i;
 
 /**
  * The level a build is for.
@@ -594,6 +626,40 @@ export const PATHS: Record<PathId, PathDefinition> = {
       'Small, repeatable attention rather than a grand gesture you never schedule — the five minutes at the door, one thing named out loud, and one unhurried conversation a month.',
     questions: DOMAIN_QUESTIONS.relationship ?? [],
     build: (answers, profile) => {
+      const withWhom = relationshipWith(answers);
+      const noWindow = answers.window === 'none';
+
+      // Nobody right now: the coach is about the people they chose, not a
+      // partner they do not have. Friends practices, and the ladder adds
+      // no partner-shaped calendar blocks on top.
+      if (withWhom === 'solo') {
+        const plan = buildGoalPlan(
+          parsed('Closer to the people I chose', 'friends', 'enjoyment'),
+          profile,
+          undefined,
+          answers,
+        );
+        const ids = noWindow
+          ? ['friend-unprompted-message', 'good-news-response']
+          : ['friend-reach-out', 'good-news-response', 'standing-shared-activity'];
+        const routines = routinesFor(ids, profile, plan.goal.id);
+        if (answers.window === 'weekend') weekendOnly(routines);
+        const built = withLadder(
+          'relationship',
+          { goal: { ...plan.goal, routineIds: routines.map((r) => r.id) }, routines },
+          answers,
+          profile,
+          true,
+        );
+        return {
+          ...built,
+          goal: {
+            ...built.goal,
+            milestones: (built.goal.milestones ?? []).filter((m) => !PARTNER_ONLY.test(m.title)),
+          },
+        };
+      }
+
       const plan = buildGoalPlan(
         parsed('More present with the person I chose', 'relationship', 'relationship'),
         profile,
@@ -604,24 +670,31 @@ export const PATHS: Record<PathId, PathDefinition> = {
       // things are bad does not need six more calendar blocks; they need the
       // two smallest ones and an honest pointer to a professional.
       const hard = answers.temperature === 'hard';
-      const noWindow = answers.window === 'none';
-      const ids = hard || noWindow
-        ? ['partner-reunion', 'partner-appreciation']
-        : answers.obstacle === 'conflict' || answers.temperature === 'tense'
-          ? ['repair-rehearsal', 'partner-reunion', 'partner-appreciation']
-          : answers.obstacle === 'work'
-            ? ['partner-reunion', 'partner-appreciation', 'state-of-us']
-            : ['partner-appreciation', 'partner-checkin-weekly', 'state-of-us'];
+      const conflict = answers.obstacle === 'conflict' || answers.temperature === 'tense';
+      const drifting = answers.obstacle === 'drift' || answers.temperature === 'drifting';
+      let ids: string[];
+      if (hard || noWindow) {
+        ids = ['partner-reunion', 'partner-appreciation'];
+      } else if (withWhom === 'early') {
+        // Early days: the cheap practices, and something new together. The
+        // monthly state-of-us waits until there is a state to talk about.
+        ids = ['partner-appreciation', 'partner-novelty', 'turning-toward'];
+      } else if (conflict) {
+        // The written third-person look at the last argument is the one
+        // version of repair with a trial behind it; rehearsing a phrase is
+        // not, so it gives way.
+        ids = ['conflict-reappraisal-write', 'partner-reunion', 'partner-appreciation'];
+      } else if (answers.obstacle === 'work') {
+        ids = ['partner-reunion', 'partner-appreciation', 'state-of-us'];
+      } else {
+        ids = ['partner-appreciation', 'partner-checkin-weekly', 'state-of-us'];
+        // Drifting is mostly small openings going unanswered.
+        if (drifting) ids.push('turning-toward');
+      }
 
-      const routines: Routine[] = [];
-      for (const id of ids) {
-        const protocol = protocolById(id);
-        if (protocol) routines.push(toRoutine(protocol, profile, plan.goal.id));
-      }
+      const routines = routinesFor(ids, profile, plan.goal.id);
       // Weekend-only windows: nothing weekday-anchored will survive.
-      if (answers.window === 'weekend') {
-        for (const r of routines) r.days = r.days.filter((d) => d === 0 || d === 6);
-      }
+      if (answers.window === 'weekend') weekendOnly(routines);
       return withLadder(
         'relationship',
         { goal: { ...plan.goal, routineIds: routines.map((r) => r.id) }, routines },
@@ -632,16 +705,36 @@ export const PATHS: Record<PathId, PathDefinition> = {
     },
     insights: (answers) => {
       const lines: string[] = [];
+      const withWhom = relationshipWith(answers);
+      if (withWhom === 'solo') {
+        lines.push(
+          'No partner in this one, so it is about the people you chose: one plan made a week, the good news answered properly, and a standing thing with the same faces.',
+        );
+        lines.push('Friendship research is mostly people followed over years, graded B to D. Worth doing; not a law.');
+        return lines;
+      }
+      if (withWhom === 'early') {
+        lines.push(
+          answers.with === 'unsure'
+            ? 'Not sure what it is yet, so nothing here assumes: say the specific thing out loud, answer the small things, do something new together, and see.'
+            : 'Early days, so the cheap practices: say the specific thing out loud, and do something neither of you has done. The monthly state-of-us can wait until there is a state to talk about.',
+        );
+      }
       if (answers.temperature === 'hard') {
         lines.push(
-          'This one is kept deliberately small. Two five-minute practices, nothing more — and if the same conversation keeps ending badly, a couples therapist will do more than any plan here can.',
+          'This one is kept deliberately small. Two five-minute practices, nothing more — and if the same conversation keeps ending badly, counselling is worth it and will do more than any plan here can.',
         );
       }
       if (answers.obstacle === 'work') {
         lines.push('The reunion is your lever: the first five minutes home set the tone for the whole evening.');
       }
-      if (answers.obstacle === 'conflict') {
-        lines.push('Repair comes before connection. Stable couples aren’t the ones who avoid conflict — they’re the ones who cool it early.');
+      if (answers.obstacle === 'conflict' || answers.temperature === 'tense') {
+        lines.push(
+          'Repair comes before connection. The one version that has been tested is ten written minutes on the last argument, as a fair outsider would see it — that is what is on your Sunday.',
+        );
+      }
+      if (answers.obstacle === 'drift' || answers.temperature === 'drifting') {
+        lines.push('Drifting is mostly small openings going unanswered. Looking up when they say something is the cheapest practice in the app.');
       }
       if (answers.window === 'none') {
         lines.push('You told me there’s almost no window, so nothing here needs one. Both practices fit inside five minutes.');
@@ -658,22 +751,71 @@ export const PATHS: Record<PathId, PathDefinition> = {
       'The weekend that actually happens, one-on-one time with each child, and the next trip planned early enough that looking forward to it counts.',
     questions: DOMAIN_QUESTIONS.family ?? [],
     build: (answers, profile) => {
+      const comp = composition(answers, profile);
+      const variant = familyVariant(comp);
+      const stretched = answers.blocker === 'stretched';
       const plan = buildGoalPlan(
-        parsed('Time with them that I don’t keep postponing', 'family', 'family'),
+        parsed(
+          variant === 'carer'
+            ? 'Enough left of me for the people I look after'
+            : 'Time with them that I don’t keep postponing',
+          'family',
+          'family',
+        ),
         profile,
         undefined,
         answers,
       );
-      // Low energy is a real constraint: lead with the small unmoveable
-      // ritual rather than a three-hour adventure nobody has left in them.
-      const ids =
-        answers.blocker === 'energy'
-          ? ['family-ritual-anchor', 'device-free-meal']
-          : answers.blocker === 'scattered'
-            ? ['device-free-meal', 'family-adventure', 'one-on-one-child']
-            : answers.blocker === 'logistics'
-              ? ['family-adventure', 'trip-anticipation', 'one-on-one-child']
-              : ['family-adventure', 'one-on-one-child', 'device-free-meal'];
+
+      let ids: string[];
+      switch (variant) {
+        case 'carer':
+          // The carer's own recovery goes in first. Everything else in this
+          // coach depends on there being something left of them.
+          ids = ['carer-own-hours', 'carer-ask-for-cover', 'carer-ten-minutes'];
+          if (comp.kidsAtHome) {
+            ids.push(comp.teens && !comp.underFive && !comp.primary ? 'teen-side-by-side' : 'family-ritual-anchor');
+          }
+          if (stretched && comp.kidsAtHome) ids.push('parent-regulation-pause');
+          break;
+        case 'teens':
+          // Side by side, on their terms, one real decision a week. No
+          // three-hour Saturday outing: that was written for a nine-year-old.
+          ids =
+            answers.blocker === 'energy'
+              ? ['teen-side-by-side', 'device-free-meal']
+              : answers.blocker === 'scattered'
+                ? ['device-free-meal', 'teen-side-by-side', 'family-screen-agreement']
+                : ['teen-side-by-side', 'teen-their-call', 'device-free-meal'];
+          if (stretched) ids.push('parent-regulation-pause');
+          break;
+        case 'youngKids':
+          // Low energy is a real constraint: lead with the small unmoveable
+          // ritual rather than a three-hour adventure nobody has left in them.
+          // Stretched thin is a different constraint again: calm first, then
+          // the minutes they lead, and no outing at all.
+          ids = stretched
+            ? ['parent-regulation-pause', 'child-led-play', 'family-ritual-anchor']
+            : answers.blocker === 'energy'
+              ? ['family-ritual-anchor', 'device-free-meal']
+              : answers.blocker === 'scattered'
+                ? ['device-free-meal', 'family-adventure', 'one-on-one-child']
+                : answers.blocker === 'logistics'
+                  ? ['family-adventure', 'trip-anticipation', 'one-on-one-child']
+                  : ['family-adventure', 'one-on-one-child', 'device-free-meal'];
+          break;
+        case 'grandparent':
+          ids = ['family-ritual-anchor', 'family-memory-review', 'trip-anticipation'];
+          break;
+        case 'noKids':
+          // A couple gets the couple's version of adventure; someone on
+          // their own gets adventure with people in it.
+          ids = comp.partner
+            ? ['partner-novelty', 'trip-anticipation']
+            : ['standing-shared-activity', 'trip-anticipation'];
+          break;
+      }
+      if (comp.adultKids) ids.push('adult-child-standing-call');
 
       const routines: Routine[] = [];
       for (const id of ids) {
@@ -684,26 +826,25 @@ export const PATHS: Record<PathId, PathDefinition> = {
         const protocol = protocolById(id);
         if (protocol) routines.push(toRoutine(protocol, profile, plan.goal.id));
       }
+      if (variant === 'grandparent') {
+        const ritual = routines.find((r) => r.protocolId === 'family-ritual-anchor');
+        if (ritual) ritual.title = 'The standing day with the grandchildren';
+      }
       // Under-fives can't sustain a three-hour outing or a 25-minute sit.
       // A multi-answer question: a family with an under-five and a
       // primary-schooler tapped both, and the outing is still sized to the
       // youngest.
-      if (answered(answers, 'ages', 'under5')) {
+      if (comp.underFive) {
         for (const r of routines) {
           if (r.protocolId === 'family-adventure') r.durationMin = 90;
           if (r.protocolId === 'one-on-one-child') r.durationMin = 15;
         }
       }
-      if (answers.horizon === 'booked' || answers.horizon === 'choosing') {
-        const trip = protocolById('trip-anticipation');
-        if (trip && !routines.some((r) => r.protocolId === 'trip-anticipation')) {
-          routines.push(toRoutine(trip, profile, plan.goal.id));
-        }
-      }
       // `goodWeekend` was asked and then ignored across the whole audit
       // sample. It is the one answer that says what this family actually
       // enjoys, and a plan that ignores it prescribes somebody else's
-      // Saturday.
+      // Saturday. For a carer it is optional: what they enjoy, not what
+      // they owe.
       const weekendShape: Record<string, { title: string; durationMin: number; start: string; end: string }> = {
         outdoors: { title: 'Get outside together \u2014 anywhere green', durationMin: 90, start: '09:00', end: '12:00' },
         slow: { title: 'A slow morning nobody has to be anywhere for', durationMin: 90, start: '08:30', end: '11:00' },
@@ -724,29 +865,63 @@ export const PATHS: Record<PathId, PathDefinition> = {
           energy: 'morning',
           flexible: true,
           protected: false,
-          tier: 'should',
+          tier: variant === 'carer' ? 'could' : 'should',
           active: true,
         });
       }
-      return withLadder(
+      let built = withLadder(
         'family',
         { goal: { ...plan.goal, routineIds: routines.map((r) => r.id) }, routines },
         answers,
         profile,
       );
+      // The ladder is written once for the pathway and promises one-on-one
+      // time with each child and an outing in every diary. Neither survives
+      // a household that cannot use it.
+      if (!comp.kidsAtHome && !comp.grandkids) built = withoutMatching(built, KIDS_ONLY);
+      if (variant === 'carer') built = withoutMatching(built, OUTINGS);
+      return built;
     },
-    insights: (answers) => {
+    insights: (answers, profile) => {
       const lines: string[] = [];
+      const comp = composition(answers, profile);
+      const variant = familyVariant(comp);
+      if (variant === 'carer') {
+        lines.push(
+          'Your own recovery comes first here, on purpose. The two hours that are yours go in the week before anything else, because everyone you look after depends on there being something left of you. If you are past tired, your GP this week beats any plan here.',
+        );
+      }
+      if (variant === 'teens') {
+        lines.push(
+          'Written for teenagers: side by side rather than face to face, one real decision a week that is theirs, and no Saturday outing they would rather not be seen on.',
+        );
+      }
+      if (variant === 'grandparent') {
+        lines.push('Built around the grandchildren: one standing day that is always the same, and the photos afterwards.');
+      }
+      if (variant === 'noKids') {
+        lines.push(
+          comp.partner
+            ? 'No kids in this one, so no kids’ practices: something new to both of you each week, and the next trip planned early enough that looking forward to it counts.'
+            : 'Adventure for one, with people in it: a standing weekly thing with the same faces, and the next trip planned early.',
+        );
+      }
+      if (comp.adultKids) {
+        lines.push('The standing call is theirs to cancel and yours to keep. Regular beats long.');
+      }
+      if (answers.blocker === 'stretched') {
+        lines.push('Calm first: a breath before the hardest hour, then the minutes they lead. Every parent loses it sometimes; it does not undo anything.');
+      }
       if (answers.blocker === 'energy') {
         lines.push('Small and repeatable beats big and abandoned — one unmoveable ritual, not a packed weekend.');
       }
-      if (answers.blocker === 'logistics') {
+      if (answers.blocker === 'logistics' && variant === 'youngKids') {
         lines.push('Your problem is deciding, not caring. The outing goes in the calendar before the week starts, or it doesn’t happen.');
       }
       // A multi-answer question: a family with an under-five and a
       // primary-schooler tapped both, and the outing is still sized to the
       // youngest.
-      if (answered(answers, 'ages', 'under5')) {
+      if (comp.underFive && variant === 'youngKids') {
         lines.push('Sized to the youngest: 90-minute adventures and 15-minute one-on-ones. An outing nobody enjoyed is worse than a slow morning at home.');
       }
       lines.push('Much of this research is correlational — settled families sustain rituals as much as rituals settle families. Graded C and D, and said plainly.');

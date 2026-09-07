@@ -308,7 +308,8 @@ describe('journey: the new pathways', () => {
       { temperature: 'hard' },
       useAppStore.getState().profile,
     );
-    expect(insights.join(' ')).toMatch(/therapist/i);
+    // "Counselling is worth it" is as far as the copy goes — never clinical.
+    expect(insights.join(' ')).toMatch(/counselling|therapist/i);
   });
 
   it('a no-window answer never schedules a block the user said does not exist', () => {
