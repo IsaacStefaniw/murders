@@ -4,12 +4,12 @@
  * Goals were write-once: composed at creation and then fixed, with only
  * pause and drop available. That is the wrong shape for anything that lasts
  * a year. Ambitions get renamed as they get clearer, dates move for reasons
- * that have nothing to do with effort, and a milestone ladder drafted by a
+ * that have nothing to do with effort, and a list of steps drafted by a
  * parser needs a human edit more often than not.
  *
- * The rungs a person adds here carry no measurable condition, so only they
+ * The steps a person adds here carry no measurable condition, so only they
  * can tick them. Inventing one from words the app did not parse would tick
- * a rung off on evidence that has nothing to do with what they meant.
+ * a step off on evidence that has nothing to do with what they meant.
  */
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -24,8 +24,9 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
+import { describeStep, formatDay, paceLanding } from '@/features/goals/composer';
 import { goalTrajectory } from '@/features/model/trajectory';
-import { addDays, formatDateLong, todayKey } from '@/lib/dates';
+import { addDays, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 
 const HORIZONS = [
@@ -47,7 +48,7 @@ export default function EditGoal() {
   const setMilestoneDone = useAppStore((s) => s.setMilestoneDone);
   const setGoalStatus = useAppStore((s) => s.setGoalStatus);
 
-  const [newRung, setNewRung] = useState('');
+  const [newStep, setNewStep] = useState('');
   const [confirmDrop, setConfirmDrop] = useState(false);
 
   if (!goal) {
@@ -59,7 +60,14 @@ export default function EditGoal() {
     );
   }
 
+  // The fitted line through the readings once there are enough of them;
+  // until then, where the plan's own pace lands from the latest reading.
   const trajectory = goalTrajectory(goal, metrics);
+  const landing = paceLanding(goal, metrics);
+  const headline =
+    trajectory && trajectory.verdict !== 'not-enough-data' ? trajectory.headline : landing?.headline;
+  const gapNote =
+    trajectory && trajectory.verdict !== 'not-enough-data' ? trajectory.gapNote : goal.pace?.note;
 
   return (
     <Screen>
@@ -95,6 +103,7 @@ export default function EditGoal() {
             <Chip
               key={h.months}
               label={h.label}
+              selected={goal.targetDate === date}
               onPress={() => updateGoal(goal.id, { targetDate: date })}
             />
           );
@@ -107,15 +116,15 @@ export default function EditGoal() {
       </View>
       {goal.targetDate ? (
         <AppText variant="caption" color="textTertiary" style={styles.gap}>
-          Target: {formatDateLong(goal.targetDate)}
+          Target: {formatDay(goal.targetDate)}
         </AppText>
       ) : null}
-      {trajectory ? (
+      {headline || gapNote ? (
         <Card style={styles.gap}>
-          <AppText variant="secondary">{trajectory.headline}</AppText>
-          {trajectory.gapNote ? (
+          {headline ? <AppText variant="secondary">{headline}</AppText> : null}
+          {gapNote ? (
             <AppText variant="caption" color="textTertiary" style={styles.gap}>
-              {trajectory.gapNote}
+              {gapNote}
             </AppText>
           ) : null}
         </Card>
@@ -131,12 +140,23 @@ export default function EditGoal() {
               value={m.title}
               onChangeText={(title) => updateMilestone(goal.id, m.id, { title })}
             />
-            <View style={styles.rungRow}>
-              <AppText variant="caption" color="textTertiary" style={styles.grow}>
-                {m.doneWhen && m.doneWhen.kind !== 'confirm'
-                  ? 'Ticks itself when the evidence says so'
-                  : 'You decide when this is done'}
+            <View style={styles.stepLines}>
+              <AppText variant="caption" color="textTertiary">
+                {describeStep(m)}
+                {m.doneWhen && m.doneWhen.kind !== 'confirm' ? ' · ticks itself' : ' · you decide'}
               </AppText>
+              {m.how ? (
+                <AppText variant="caption" color="textSecondary">
+                  How: {m.how}
+                </AppText>
+              ) : null}
+              {m.intention ? (
+                <AppText variant="caption" color="textSecondary">
+                  {m.intention}
+                </AppText>
+              ) : null}
+            </View>
+            <View style={styles.stepRow}>
               <Chip
                 label={m.done ? 'Done' : 'Mark done'}
                 selected={m.done}
@@ -152,20 +172,20 @@ export default function EditGoal() {
           label="Add a step"
           showLabel={false}
           style={styles.grow}
-          value={newRung}
-          onChangeText={setNewRung}
+          value={newStep}
+          onChangeText={setNewStep}
           placeholder="Add a step"
           returnKeyType="done"
           onSubmitEditing={() => {
-            if (newRung.trim()) addMilestone(goal.id, newRung.trim());
-            setNewRung('');
+            if (newStep.trim()) addMilestone(goal.id, newStep.trim());
+            setNewStep('');
           }}
         />
         <Chip
           label="Add"
           onPress={() => {
-            if (newRung.trim()) addMilestone(goal.id, newRung.trim());
-            setNewRung('');
+            if (newStep.trim()) addMilestone(goal.id, newStep.trim());
+            setNewStep('');
           }}
         />
       </View>
@@ -218,7 +238,8 @@ const styles = StyleSheet.create({
   stack: { gap: Spacing.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm },
   addRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.sm },
-  rungRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm },
+  stepLines: { marginTop: Spacing.xs, gap: Spacing.xs },
+  stepRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm },
   grow: { flexShrink: 1, flexGrow: 1 },
   gap: { marginTop: Spacing.sm },
   footer: { marginTop: Spacing.xxl },

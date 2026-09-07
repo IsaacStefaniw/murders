@@ -11,7 +11,7 @@
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { answered } from '@/features/knowledge/questionBank';
 import { sessionsPerWeekFloor } from '@/features/training/programme';
-import { newId } from '@/lib/dates';
+import { addDays, newId, toDateKey } from '@/lib/dates';
 import type {
   Goal,
   GoalDomain,
@@ -74,9 +74,10 @@ export function parseGoal(text: string): ParsedGoal {
   const domain =
     DOMAIN_MATCHERS.find(([, re]) => re.test(text))?.[0] ?? ('personal' as GoalDomain);
   const target = text.match(/\$[\d,.]+\s*[mk]?|\b[\d,.]+\s*(?:kg|km|k\b|%|million)/i)?.[0]?.trim();
-  const timeframe = text.match(
-    /\bby (?:january|february|march|april|may|june|july|august|september|october|november|december|\d{4}|next \w+)|\bthis year\b|\bin \d+ (?:weeks?|months?|years?)\b/i,
-  )?.[0];
+  // "by June 2028" used to be heard as "by June" with the year dropped, and
+  // "in October" not at all. A date is the one thing the person is most
+  // likely to put in the sentence, so every way of saying one is read.
+  const timeframe = text.match(TIMEFRAME)?.[0];
   return {
     title: title.charAt(0).toUpperCase() + title.slice(1),
     domain,
@@ -84,6 +85,62 @@ export function parseGoal(text: string): ParsedGoal {
     target,
     timeframe,
   };
+}
+
+const MONTH_NAMES = [
+  'january', 'february', 'march', 'april', 'may', 'june',
+  'july', 'august', 'september', 'october', 'november', 'december',
+];
+const MONTH = MONTH_NAMES.join('|');
+const TIMEFRAME = new RegExp(
+  [
+    `\\bby (?:the )?end of (?:the )?(?:year|month|${MONTH})(?: \\d{4})?`,
+    `\\bby (?:${MONTH})(?: \\d{4})?`,
+    `\\bby \\d{4}\\b`,
+    `\\bby next \\w+`,
+    `\\bin (?:${MONTH})(?: \\d{4})?`,
+    `\\bthis year\\b`,
+    `\\bin \\d+ (?:weeks?|months?|years?)\\b`,
+  ].join('|'),
+  'i',
+);
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const endOfMonth = (year: number, month: number): string =>
+  `${year}-${pad(month)}-${pad(new Date(year, month, 0).getDate())}`;
+
+/**
+ * The date a timeframe means, from today. A month on its own is the next
+ * one of those; a year on its own is its last day; "in 12 weeks" counts
+ * from today. Nothing is invented for a sentence that gave no date.
+ */
+export function timeframeToDate(timeframe: string | undefined, today: string): string | undefined {
+  if (!timeframe) return undefined;
+  const t = timeframe.toLowerCase();
+  const [y, m, d] = today.split('-').map(Number);
+
+  const month = t.match(new RegExp(`(${MONTH})(?: (\\d{4}))?`));
+  if (month) {
+    const index = MONTH_NAMES.indexOf(month[1]) + 1;
+    const year = month[2] ? Number(month[2]) : index >= m ? y : y + 1;
+    return endOfMonth(year, index);
+  }
+  const year = t.match(/\b(20\d{2})\b/);
+  if (year) return `${year[1]}-12-31`;
+  if (/this year|end of (?:the )?year|next year/.test(t)) return `${/next year/.test(t) ? y + 1 : y}-12-31`;
+  if (/end of (?:the )?month/.test(t)) return endOfMonth(y, m);
+  if (/next month/.test(t)) return endOfMonth(m === 12 ? y + 1 : y, m === 12 ? 1 : m + 1);
+  if (/next week/.test(t)) return addDays(today, 7);
+  const rel = t.match(/in (\d+) (week|month|year)/);
+  if (rel) {
+    const n = Number(rel[1]);
+    if (rel[2] === 'week') return addDays(today, n * 7);
+    const date = new Date(y, m - 1, d);
+    if (rel[2] === 'month') date.setMonth(date.getMonth() + n);
+    else date.setFullYear(date.getFullYear() + n);
+    return toDateKey(date);
+  }
+  return undefined;
 }
 
 function milestone(title: string): GoalMilestone {
