@@ -45,8 +45,12 @@ and never run is not a guardrail.
 Those guardrails read text. They cannot see a page that renders badly while
 saying the right words — a sentence stacked one word per line down a 48px
 column passes all of them, and reached the live site. `npm run test:layout`
-renders the built site in headless Chromium at eight widths and fails on text
-squeezed into a ribbon, sideways scrolling, or elements covering each other.
+renders the built site in headless Chromium and fails on text squeezed into a
+ribbon, sideways scrolling, or elements covering each other. It reads its route
+list out of `app/sitemap.ts` — the home page at eight widths, every other page
+at three — so a page added to the sitemap is checked without being registered
+anywhere else, and a page missing from it is checked by nothing and crawled by
+nobody.
 
 It is not part of `npm test`, because a browser download would break the
 promise above that this project needs Node and npm and nothing else. It skips
@@ -95,9 +99,10 @@ Calendar protection may exist, but it is not the category or differentiator.
 The practice library is **204**, and the number is not in one file.
 `src/features/knowledge/protocols.ts` declares 177 and then spreads in five
 more — money, supplements, work, people and habits. Anything that counts the
-library must read all six. In September 2026 the site published 177, 104, 145
-and 188 for months because both the extractor and the guardrail that was meant
-to catch it read only `protocols.ts`.
+library must read all six. The site published 177, 104, 145 and 188 until
+September 2026 because both the extractor and the guardrail written to catch
+exactly this read only `protocols.ts` — a check that counts the same wrong way
+as the copy it is checking is worse than none, because it is believed.
 
 The current figures, all generated rather than typed:
 
