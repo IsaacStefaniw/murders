@@ -645,6 +645,35 @@ export default function Home() {
         
       </section>
 
+      {/*
+        The wearable door, below the fold and after the app is explained.
+        docs/WEARABLE_BRIEF.md is explicit that this must not be the hero: the
+        hero has to keep working for the person with no device, who is the
+        larger market, and leading with wearables narrows the site to the
+        quantified-self buyer.
+
+        It sits here, straight after the section about what the plan actually
+        does, because the two answer consecutive questions — what does it do,
+        and where does it get what it knows.
+
+        Every claim is checked against the code, not the brief: seven
+        READ_TYPES in src/features/health/healthkit.ts, BASELINE_DAYS = 14 in
+        readiness.ts, and the short-night branch in autoRegulate that keeps
+        the main work and slices accessories to one.
+      */}
+      <section className="wear-section section-shell" id="wearable">
+        <div className="wear-heading">
+          <div><p className="section-kicker">THE DEVICE YOU ALREADY OWN</p><h2>Your ring already knows.<br />Your Tuesday doesn&rsquo;t.</h2></div>
+          <p>Whatever you wear writes to Apple Health. IntentNorth reads it and changes what today asks of you&mdash;the session, the evening, the order things happen in. Every other recovery product stops at the number.</p>
+        </div>
+        <div className="wear-grid">
+          <article><strong>A short night changes the session</strong><p>Under six hours and the hard lifts stay while the smaller exercises come out. The session tells you that is why.</p></article>
+          <article><strong>Your own normal, not a population band</strong><p>Compared against your own median from the last fourteen days. Healthy adults vary tenfold on these numbers.</p></article>
+          <article><strong>Nothing new to buy or subscribe to</strong><p>No hardware of ours, no account, and no second health subscription on top of whatever your device charges.</p></article>
+        </div>
+        <p className="wear-link"><Link href="/works-with-what-you-wear">What we read from Apple Health, and which devices actually send it <ArrowRight /></Link></p>
+      </section>
+
       <section className="film-section" id="film"><div className="section-shell">
         <div className="film-heading">
           <div><p className="section-kicker light">THE PRODUCT, ON SCREEN</p><h2>Watch it plan<br />a week.</h2></div>
@@ -841,11 +870,50 @@ export default function Home() {
         <p className="pricing-note">Prices are Australian dollars. The App Store shows yours in your own currency and charges through your Apple account&mdash;we never see a card. Nothing is taken on this website.</p>
       </section>
 
-      <section className="faq-section section-shell"><div><p className="section-kicker">BEFORE YOU COMMIT</p><h2>Clear boundaries build better trust.</h2></div><div className="faq-grid"><article><strong>Is this a calendar?</strong><p>No. It can protect time, but the point is different: what you actually do changes the plan itself.</p></article><article><strong>What is real today?</strong><p>Each area learns from what you log, and training already responds to your sleep. Anything broader than that is where we are heading, not what we are showing.</p></article><article><strong>What remains free?</strong><p>Your profile, first insight, and recovery, urge and hardest-moment support—permanently.</p></article><article><strong>Which devices?</strong><p>iPhone, today. The plan reads sleep and heart-rate data from Apple Health, which is why it starts there. Android is a decision we have not made rather than a feature we are hiding.</p></article><article><strong>Is this medical or financial advice?</strong><p>No. IntentNorth provides education, structured experiments and progress support. Seek a qualified professional for personal advice.</p></article></div></section>
+      <section className="faq-section section-shell"><div><p className="section-kicker">BEFORE YOU COMMIT</p><h2>Clear boundaries build better trust.</h2></div><div className="faq-grid"><article><strong>Is this a calendar?</strong><p>No. It can protect time, but the point is different: what you actually do changes the plan itself.</p></article><article><strong>What is real today?</strong><p>Each area learns from what you log, and training already responds to your sleep. Anything broader than that is where we are heading, not what we are showing.</p></article><article><strong>What remains free?</strong><p>Your profile, first insight, and recovery, urge and hardest-moment support—permanently.</p></article><article><strong>Which devices?</strong><p>iPhone, today. The plan reads sleep and heart-rate data from Apple Health, so whatever you already wear can drive it&mdash;<Link href="/works-with-what-you-wear">here is exactly what we read and which devices send it</Link>. Android is a decision we have not made rather than a feature we are hiding.</p></article><article><strong>Is this medical or financial advice?</strong><p>No. IntentNorth provides education, structured experiments and progress support. Seek a qualified professional for personal advice.</p></article></div></section>
 
       <section className="disclaimer-section section-shell"><ShieldCheck /><p><strong>Education, never diagnosis or personal advice.</strong> Training, nutrition, recovery, mindfulness and financial content is educational. Research links describe evidence and limitations; observational findings do not prove causation. If an urge or behaviour creates immediate risk, contact local emergency or professional support.</p></section>
 
-      <footer><div className="footer-inner section-shell"><Logo /><p>Your whole life. One system that learns.</p><nav className="footer-links" aria-label="Legal and support"><Link href="/evidence">The evidence library</Link><Link href="/privacy">Privacy</Link><Link href="/support">Support</Link></nav><button onClick={() => setPlanOpen(true)}>Build my profile <ArrowRight /></button></div></footer>
+      {/*
+        Every page other than this one was an orphan: reachable from the
+        sitemap and from nothing a reader or a crawler could follow. /evidence
+        had no inbound link at all, and /whoop-alternative and /sleep-debt had
+        been live for days with none either. A page that nothing links to is a
+        page search engines discount and visitors never see, whatever the
+        sitemap says.
+      */}
+      <section className="reading-section section-shell" aria-labelledby="reading-heading">
+        <h2 id="reading-heading">Read before you decide</h2>
+        <div className="reading-grid">
+          <article>
+            <h3>Proof</h3>
+            <ul>
+              <li><Link href="/evidence">All 204 practices and their grades</Link></li>
+              <li><Link href="/magnesium-for-sleep">Does magnesium help you sleep?</Link></li>
+              <li><Link href="/does-creatine-work">Does creatine work?</Link></li>
+              <li><Link href="/what-is-zone-2">What is zone 2?</Link></li>
+            </ul>
+          </article>
+          <article>
+            <h3>More, graded</h3>
+            <ul>
+              <li><Link href="/sauna-benefits">Sauna benefits</Link></li>
+              <li><Link href="/cold-plunge-benefits">Cold plunge benefits</Link></li>
+              <li><Link href="/cyclic-sighing">Cyclic sighing</Link></li>
+            </ul>
+          </article>
+          <article>
+            <h3>Before you buy anything</h3>
+            <ul>
+              <li><Link href="/works-with-what-you-wear">Works with the wearable you own</Link></li>
+              <li><Link href="/whoop-alternative">An honest Whoop comparison</Link></li>
+              <li><Link href="/sleep-debt">Work out your sleep debt</Link></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <footer><div className="footer-inner section-shell"><Logo /><p>Your whole life. One system that learns.</p><nav className="footer-links" aria-label="Legal and support"><Link href="/privacy">Privacy</Link><Link href="/support">Support</Link></nav><button onClick={() => setPlanOpen(true)}>Build my profile <ArrowRight /></button></div></footer>
       <div className="mobile-conversion"><span><strong>Your first insight is free</strong><small>Premium explained upfront</small></span><button onClick={() => setPlanOpen(true)}>Build profile <ArrowRight /></button></div>
     </main>
   );

@@ -1082,3 +1082,59 @@ footer { border-top: 1px solid var(--fog); }
 
 .topic-product { margin: 40px 0 0; padding: 18px 22px; border-radius: var(--radius);
   background: var(--white); border: 1px solid var(--fog); font-size: 15px !important; }
+
+/* ── The wearable door ─────────────────────────────────────────────────────
+   One section on the home page and a page of its own. Deliberately not the
+   hero: the hero has to keep working for the person with no device. */
+.wear-section { padding-top: 8px; }
+.wear-heading { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: end; margin-bottom: 32px; }
+.wear-heading h2 { font-size: clamp(28px, 3.4vw, 42px); line-height: 1.08; letter-spacing: -.025em; margin: 0; }
+.wear-heading > p { margin: 0; font-size: 17px; line-height: 1.6; color: var(--ink-soft); }
+.wear-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.wear-grid article { padding: 22px 24px; border-radius: var(--radius); background: var(--white); border: 1px solid var(--fog); }
+.wear-grid strong { display: block; font-size: 16px; letter-spacing: -.01em; margin-bottom: 8px; }
+.wear-grid p { margin: 0; font-size: 14px; line-height: 1.65; color: var(--muted); }
+.wear-link { margin: 22px 0 0; }
+.wear-link a { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600;
+  color: var(--green-dark); text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--green-dark) 35%, transparent); padding-bottom: 2px; }
+.wear-link a:hover { border-bottom-color: var(--green-dark); }
+.wear-link svg { width: 16px; height: 16px; }
+
+.wear-points { list-style: none; margin: 0 0 8px; padding: 0; }
+.wear-points li { margin-bottom: 16px; font-size: 16px; line-height: 1.65; color: var(--ink-soft); }
+.wear-points strong { color: var(--ink); }
+.wear-reads { margin: 0 0 18px; }
+.wear-reads > div { display: grid; grid-template-columns: 190px 1fr; gap: 18px; padding: 12px 0; border-top: 1px solid var(--fog); }
+.wear-reads dt { font-size: 15px; font-weight: 600; color: var(--ink); }
+.wear-reads dd { margin: 0; font-size: 15px; line-height: 1.6; color: var(--muted); }
+.wear-cta { margin-top: 40px; padding: 18px 22px; border-radius: var(--radius); background: var(--paper-deep); }
+.wear-cta p { margin: 0; font-size: 15px; }
+
+@media (max-width: 900px) {
+  .wear-heading { grid-template-columns: 1fr; gap: 16px; align-items: start; }
+  .wear-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .wear-reads > div { grid-template-columns: 1fr; gap: 4px; }
+}
+
+/* ── Reading list ──────────────────────────────────────────────────────────
+   Every page but the home page used to be an orphan — in the sitemap and
+   linked from nothing. This is the crawl path and the reader's path, and it
+   sits above the footer rather than inside it so it is not treated as legal
+   boilerplate. */
+.reading-section { padding-top: 8px; padding-bottom: 8px; }
+.reading-section h2 { font-size: 13px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); font-weight: 600; margin: 0 0 20px; }
+.reading-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.reading-grid h3 { font-size: 14px; margin: 0 0 10px; color: var(--ink); letter-spacing: -.005em; }
+.reading-grid ul { list-style: none; margin: 0; padding: 0; }
+.reading-grid li { margin-bottom: 8px; font-size: 14px; line-height: 1.5; }
+.reading-grid a { color: var(--ink-soft); text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink-soft) 22%, transparent); }
+.reading-grid a:hover { color: var(--green-dark); border-bottom-color: var(--green-dark); }
+
+@media (max-width: 760px) {
+  .reading-grid { grid-template-columns: 1fr; gap: 22px; }
+}

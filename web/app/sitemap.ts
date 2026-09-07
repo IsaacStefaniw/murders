@@ -27,6 +27,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // rating claim the rest of the site makes.
     { url: "https://intentnorth.app/evidence", lastModified, changeFrequency: "weekly", priority: 0.8 },
 
+    // The wearable door. docs/WEARABLE_BRIEF.md: the category all ends at a
+    // number, and the gap is that nothing you already own does anything after
+    // it. Kept off the hero so the site still works for the larger market
+    // that owns no device.
+    { url: "https://intentnorth.app/works-with-what-you-wear", lastModified, changeFrequency: "monthly", priority: 0.7 },
+
     // The topic pages. Section 3 of docs/SEO_RESEARCH.md found the question
     // form ("does cold plunge work", 10 a month) has no Australian volume and
     // an unwinnable SERP of hospitals and Reddit; the volume is in the topic

@@ -82,6 +82,24 @@ export default function WhoopAlternativePage() {
         after paying us.
       </p>
 
+      {/*
+        The thing a Whoop owner most needs to know before switching, and the
+        thing every comparison page in this category gets wrong. Verified in
+        docs/WEARABLE_POSITIONING.md section 1: Whoop syncs sleep, resting
+        heart rate, SpO2, respiratory rate and workouts to Apple Health, but
+        not HRV, because it computes RMSSD and Health stores SDNN.
+      */}
+      <h2>One thing to know if you keep the band</h2>
+      <p>
+        Whoop writes your sleep and resting heart rate to Apple Health, so we can read
+        those. It does not write heart-rate variability, because Whoop computes that as
+        RMSSD and Apple Health stores SDNN — two different statistics. Any app claiming
+        to work with your Whoop variability figure is describing something that does not
+        happen. Sleep and resting heart rate are what our short-night rule and our
+        heart-rate comparison actually run on, so it matters less than it sounds, but
+        you should hear it from us rather than find out.
+      </p>
+
       <h2>What you get back</h2>
       <p>
         An Apple Watch already measures heart rate, heart-rate variability and
@@ -144,6 +162,8 @@ export default function WhoopAlternativePage() {
 
       <p className="compare-cta">
         <Link className="text-link" href="/">See how IntentNorth plans a week →</Link>
+        <br />
+        <Link className="text-link" href="/works-with-what-you-wear">What we read from Apple Health, and which devices send it →</Link>
       </p>
 
       <p className="legal-fineprint">

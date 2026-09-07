@@ -68,6 +68,7 @@ reporting the change as checked.
 - `public/images/` — production image assets, including the two latest editorial WebP images
 - `app/evidence/` — the whole practice library, searchable, generated at build time
 - `app/<topic>/page.tsx` — the six search topic pages, built on `components/EvidenceTopic.tsx`
+- `app/works-with-what-you-wear/page.tsx` — the wearable door
 - `tests/` — non-negotiable positioning, wording and asset-delivery guardrails
 
 The project uses Next.js 16, React 19, TypeScript, Vinext/Vite and deploys to Cloudflare Workers. Preserve `package-lock.json` and the existing build system unless the deployment platform is deliberately being changed. The hosting platform's `.openai/hosting.json` no longer exists; the build reads `wrangler.jsonc`, whose worker name is pinned because changing it creates a second site rather than updating this one.
@@ -120,6 +121,41 @@ That guard has now caught fifteen of them: three wrapped onto the next line by
 the formatter, four written as the bare constant `DEPENDENCE_LINE`, eight as
 template literals. A safety note missing from the website is the worst thing
 this site can do quietly, so do not soften that check into a warning.
+
+## The wearable claims
+
+Written to `docs/WEARABLE_BRIEF.md` and `docs/WEARABLE_POSITIONING.md`, both
+researched 7 Sep 2026. Six sentences are permanently out, and
+`tests/wearable-claims.test.mjs` fails the build on each of them however well
+it is phrased:
+
+1. **"Buy the band and cancel the subscription."** Whoop's own cancellation
+   page says a cancelled membership cannot collect, upload or analyse any
+   data, so nothing reaches Apple Health at all. Oura's Health integration on
+   Gen3 and Ring 4 is listed as needing an active membership, so cancelling
+   would break the exact sync we depend on. App Review 2.3.1 treats misleading
+   marketing as grounds for removal and account termination.
+2. **"Works with your Oura or Whoop HRV."** Both compute RMSSD; Apple Health
+   stores SDNN. Neither writes HRV to Health at all. **Lead on sleep and
+   resting heart rate**, which are close to universal — anything leading on
+   variability quietly excludes the two brands most likely to be reading.
+3. **"Works with any wearable."** Suunto sends neither sleep nor resting heart
+   rate. Name only Apple Watch, Garmin via Connect, and Withings; those are
+   the three families that were checked.
+4. **"Replaces your Whoop / Oura / Garmin."** We need them to keep writing.
+5. **"The only app that reads your band and changes the plan."** Training
+   Today does exactly that, for runners.
+6. **"We measure."** We read what the device wrote. Say reads, never measures.
+
+Also held back until it ships: the day-one claim. The app reads the most
+recent Health sample, so someone with two years of ring history still waits
+fourteen days for a baseline. Once the sixty-day backfill lands, the line is
+"your ring has been learning your normal for two years, and IntentNorth reads
+that history on the first morning" — the sentence no competitor can write.
+The guardrail permits it the moment `healthkit.ts` carries the backfill.
+
+The wearable story is a door, not the hero. The hero has to keep working for
+the person with no device, who is the larger market.
 
 ## Product-truth boundaries
 
