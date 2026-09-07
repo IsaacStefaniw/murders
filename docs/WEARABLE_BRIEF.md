@@ -77,32 +77,65 @@ We do not replace the app your band came with. It measures; we decide
 what the day does about it. If you stop wearing the band, the plan keeps
 working — it just stops adapting to the nights.
 
-*(Device list goes here, once verified — see `docs/WEARABLE_POSITIONING.md`.
-Name only devices confirmed to write these types to Apple Health. Do not
-write "works with any wearable".)*
+**Which devices, verified.** The full matrix is in
+`docs/WEARABLE_POSITIONING.md`; the three families worth naming are Apple
+Watch, Garmin through Garmin Connect, and Withings. Sleep and resting
+heart rate are close to universal across the matrix, and those two alone
+drive the short-night back-off and the resting-heart-rate reading. Do not
+write "works with any wearable".
+
+**The trap in the copy, and it is a big one.** Oura and Whoop compute
+heart-rate variability as RMSSD; Apple Health stores it as SDNN. Neither
+writes HRV to Apple Health at all. So "works with your Oura HRV" is
+false, and any line that leads on heart-rate variability quietly excludes
+the two brands most likely to read the page. **Lead on sleep and resting
+heart rate.** Apple Watch is the only device that reliably fills all four
+of sleep, resting heart rate, HRV and cardio fitness; Garmin withholds
+cardio fitness deliberately; Withings is the only non-Apple family found
+that sends cardio fitness as well as weight.
 
 ## What must not be said
 
 These are firm. The app's whole claim is honesty about evidence, and one
 loose line here costs more than the traffic it wins.
 
-- **Never "buy the device and cancel the subscription."** For Whoop the
-  hardware is effectively free and the membership is the product: cancel
-  and the data stops at the source, so we would be advertising something
-  that does not work. It also asks people to break another company's
-  terms, which is not a thing this app does.
+- **Never "buy the device and cancel the subscription."** Verified:
+  Whoop's own cancellation page says that once cancelled you cannot
+  "collect, upload, or analyze any of your biometric data", so nothing
+  reaches Apple Health and the band is jewellery. Oura is worse for us,
+  not better: its Apple Health integration is listed as needing an active
+  membership, so cancelling likely kills the exact sync we depend on.
+  Beyond being false, App Review 2.3.1 makes misleading marketing grounds
+  for removal and account termination. The honest line is stronger
+  anyway: no second subscription of ours, and no new hardware.
 - **Never "replaces your Whoop / Oura / Garmin."** It does not. It needs
   them to keep writing to Health.
 - **Never imply we compute anything from raw sensors.** We read what the
   device wrote. Say "reads" and never "measures".
 - **Never name a device we have not verified.** The research doc is the
   only source for that list.
+- **Never "the only app that reads your band and changes the plan."**
+  Training Today does read Apple Health, compute readiness and prescribe
+  a session. It is running only, so the defensible claim is about the
+  whole week rather than about being alone: nobody else decides between
+  the session and the family dinner from the same night.
 - **Nothing medical.** No diagnosis, no interpretation of a heart
   measure as a health finding, no "overtraining" claims. Readiness
   changes a session; that is all it does.
 - **On the App Store listing**, naming other companies' products in the
   app name or keyword field is a trademark problem. Keep the listing to
   "works with Apple Health" and let the website name devices.
+
+## The size of it
+
+Rock Health's 2025 Consumer Adoption Survey, 8,000 US adults fielded in
+December 2025: 46% own a wearable and 83% of those wear it five or more
+days a week. For Australia the only figure found is Telsyte's 2023
+smartwatch ownership at 36%, three years old, so treat it as a floor and
+do not quote it as current. The share of owners paying a separate
+subscription is not sourced and must not be invented; what is real is the
+dated backlash — Garmin's Connect+ paywall, Whoop's 2025 upgrade fee,
+Polar's paid programme.
 
 ## The forums
 
