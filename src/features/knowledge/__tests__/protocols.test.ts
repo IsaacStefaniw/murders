@@ -5,6 +5,7 @@ import {
   PROTOCOLS,
   protocolById,
   protocolsForDomain,
+  sourceLine,
   spreadDays,
   toRoutine,
   type Pillar,
@@ -40,7 +41,14 @@ describe('knowledge base integrity', () => {
     for (const p of PROTOCOLS) {
       expect(p.summary.length).toBeGreaterThan(10);
       expect(p.why.length).toBeGreaterThan(30);
-      expect(p.attribution.length).toBeGreaterThan(0);
+      // Not "somebody is named" — "the reader is told where it came
+      // from". The research rounds found many practices in the
+      // literature with nobody popularising them; the honest attribution
+      // there is empty, and sourceLine() says so in words rather than
+      // trailing off. Filling the field with a plausible name to satisfy
+      // a test would be the one failure this library cannot have.
+      expect(sourceLine(p).trim().length).toBeGreaterThan(0);
+      for (const name of p.attribution) expect(name.trim().length).toBeGreaterThan(0);
       expect(p.days.length).toBeGreaterThan(0);
       expect(p.durationMin).toBeGreaterThanOrEqual(5);
     }

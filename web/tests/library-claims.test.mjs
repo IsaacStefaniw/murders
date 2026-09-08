@@ -7,32 +7,55 @@ import { readFile } from "node:fs/promises";
  *
  * A marketing figure that drifts from the code is not a typo — under s18 of
  * the Australian Consumer Law it is misleading conduct, and s18 has no intent
- * requirement. So this test does not check that the page says "177"; it counts
- * the library itself and checks the page agrees. When the library grows, this
- * test fails, and the copy gets updated in the same commit as the data.
+ * requirement. So this test does not check that the page says a number; it
+ * counts the library itself and checks the page agrees. When the library
+ * grows, this test fails, and the copy gets updated in the same commit as the
+ * data.
+ *
+ * It counts every file spread into PROTOCOLS, not just protocols.ts. Counting
+ * only protocols.ts is how the page came to publish 177 while the library held
+ * 204 — the count agreed with the page and with nothing else, which is the
+ * precise failure a consumer-law guard is supposed to catch. The spread list
+ * is read off the array so a new satellite file cannot slip past.
  *
  * The count is line-anchored rather than brace-anchored on purpose. A brace
  * walker trips over apostrophes inside prose comments ("IntentNorth's"), which
  * open a phantom string and swallow real braces — that mistake under-counted
  * the library by more than half while looking entirely plausible.
  */
+async function libraryFiles() {
+  const dir = new URL("../../src/features/knowledge/", import.meta.url);
+  const root = await readFile(new URL("protocols.ts", dir), "utf8");
+  const body = root.slice(root.indexOf("export const PROTOCOLS: Protocol[] = ["));
+  const spreads = [...body.matchAll(/^ {2}\.\.\.([A-Z_]+),$/gm)].map((m) => m[1]);
+  assert.ok(spreads.length > 0, "PROTOCOLS spreads nothing — did the array's shape change?");
+  const rest = await Promise.all(
+    spreads.map(async (name) => {
+      const imp = root.match(new RegExp(`import \\{ ${name} \\} from '(?:@/features/knowledge|\\.)/(protocols\\.[a-z]+)'`));
+      assert.ok(imp, `${name} is spread into PROTOCOLS but its import could not be found`);
+      return readFile(new URL(`${imp[1]}.ts`, dir), "utf8");
+    }),
+  );
+  return [root, ...rest];
+}
+
 async function countLibrary() {
-  const url = new URL("../../src/features/knowledge/protocols.ts", import.meta.url);
-  const lines = (await readFile(url, "utf8")).split("\n");
-
-  const start = lines.findIndex((l) => l.startsWith("export const PROTOCOLS: Protocol[] = ["));
-  assert.ok(start > -1, "the PROTOCOLS array should be findable");
-  const end = lines.indexOf("];", start + 1);
-  // Without this, a reformat that changes the array terminator makes the slice
-  // run to end-of-file and the failure reads "update the page copy", which
-  // would send the next person to fix entirely the wrong thing.
-  assert.ok(end > start, "the PROTOCOLS array should have a findable terminator");
-
   const protocols = [];
-  let current = null;
-  for (const line of lines.slice(start + 1, end)) {
-    if (line === "  {") protocols.push((current = []));
-    else if (current) current.push(line);
+  for (const text of await libraryFiles()) {
+    const lines = text.split("\n");
+    const start = lines.findIndex((l) => /^export const [A-Z_]+: Protocol\[\] = \[$/.test(l));
+    assert.ok(start > -1, "each library file should declare one Protocol[] array");
+    const end = lines.indexOf("];", start + 1);
+    // Without this, a reformat that changes the array terminator makes the
+    // slice run to end-of-file and the failure reads "update the page copy",
+    // which would send the next person to fix entirely the wrong thing.
+    assert.ok(end > start, "the array should have a findable terminator");
+
+    let current = null;
+    for (const line of lines.slice(start + 1, end)) {
+      if (line === "  {") protocols.push((current = []));
+      else if (current) current.push(line);
+    }
   }
 
   const grades = {};
@@ -40,10 +63,10 @@ async function countLibrary() {
   const people = new Set();
   for (const protocol of protocols) {
     const body = protocol.join("\n");
-    const grade = /^ {4}evidenceLevel: '([A-E])'/m.exec(body);
+    const grade = /^ {2,8}evidenceLevel: '([A-E])'/m.exec(body);
     if (grade) grades[grade[1]] = (grades[grade[1]] ?? 0) + 1;
-    if (/^ {4}safety:/m.test(body)) safety += 1;
-    const attribution = /^ {4}attribution: \[(.*?)\],/ms.exec(body);
+    if (/^ {2,8}safety:/m.test(body)) safety += 1;
+    const attribution = /^ {2,8}attribution: \[(.*?)\],/ms.exec(body);
     if (attribution) for (const [, n] of attribution[1].matchAll(/'([^']+)'/g)) people.add(n);
   }
   return { total: protocols.length, grades, safety, people: people.size };
@@ -68,31 +91,31 @@ test("the library figures on the page match the library in the app", async () =>
   const strong = grades.A + grades.B;
   const weaker = total - strong;
 
-  assert.equal(total, 177, "protocol count changed — update the page copy too");
-  assert.equal(strong, 73, "A/B count changed — update the page copy too");
-  assert.equal(safety, 145, "safety-line count changed — update the page copy too");
-  assert.equal(people, 188, "attribution count changed — update the page copy too");
+  assert.equal(total, 317, "protocol count changed — update the page copy too");
+  assert.equal(strong, 115, "A/B count changed — update the page copy too");
+  assert.equal(safety, 268, "safety-line count changed — update the page copy too");
+  assert.equal(people, 250, "attribution count changed — update the page copy too");
 
-  // The page leads with the weaker count rather than the A/B one now — "104 of
-  // the 177 are Mixed or weaker" says more than "73 graded A or B", because a
+  // The page leads with the weaker count rather than the A/B one now — "202 of
+  // the 317 are Mixed or weaker" says more than "115 graded A or B", because a
   // reader can tell what the first one costs us to admit. The data check above
   // still pins all four figures; this checks what the page actually states.
   for (const figure of [String(total), String(weaker), String(safety), String(people)]) {
     assert.ok(html.includes(figure), `the page should state ${figure}`);
   }
   // The grade breakdown is spelled out in words; those must agree too.
-  assert.match(html, new RegExp(`${grades.A === 13 ? "Thirteen" : grades.A} practices are grade A`, "i"));
+  assert.match(html, new RegExp(`${grades.A === 17 ? "Seventeen" : grades.A} practices are grade A`, "i"));
   assert.ok(
-    html.includes(`hundred and four`) && weaker === 104,
+    html.includes(`two hundred and two`) && weaker === 202,
     "the weaker-evidence count in the copy must match the data",
   );
 });
 
 test("the page never implies the whole library is strongly evidenced", async () => {
   const html = await renderHome();
-  // The failure mode this guards is "177 evidence-based practices" as a bare
-  // boast. 104 of them are C or below, and the page has to carry that.
-  assert.doesNotMatch(html, /177 (strongly|well|rigorously) evidenced/i);
+  // The failure mode this guards is "317 evidence-based practices" as a bare
+  // boast. 202 of them are C or below, and the page has to carry that.
+  assert.doesNotMatch(html, /\d+ (strongly|well|rigorously) evidenced/i);
   assert.match(html, /C, D or E/, "the weaker grades must be named on the page");
 });
 

@@ -546,8 +546,7 @@ export default function Today() {
           </AppText>
           <AppText variant="caption" color="textTertiary">
             {todayNote.upcoming ? 'Behind ' : 'Behind today’s '}
-            {todayNote.itemTitle} at {todayNote.startsAt} · after the public work of{' '}
-            {todayNote.attribution}
+            {todayNote.itemTitle} at {todayNote.startsAt} · {todayNote.attribution}
           </AppText>
         </View>
       ) : null}

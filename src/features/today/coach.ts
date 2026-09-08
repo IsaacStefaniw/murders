@@ -8,7 +8,7 @@
  * app every morning.
  */
 
-import { protocolById, type Protocol } from '@/features/knowledge/protocols';
+import { protocolById, sourceTail, type Protocol } from '@/features/knowledge/protocols';
 import { addDays, toMinutes } from '@/lib/dates';
 import type { DailyPlan, Goal, PlanItem, Routine } from '@/types/domain';
 
@@ -83,7 +83,7 @@ export function coachNote(
   return {
     protocolTitle: protocol.title,
     why: protocol.why,
-    attribution: protocol.attribution.join(' · '),
+    attribution: sourceTail(protocol),
     itemTitle: item.title,
     startsAt: item.start,
     upcoming: toMinutes(item.start) >= nowMin,

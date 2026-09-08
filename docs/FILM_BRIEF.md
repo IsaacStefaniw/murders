@@ -65,9 +65,9 @@ not offer.
 
 ## 3. Positioning — the three things the film must land, in order
 
-1. **Proven protocols, synthesised and rated.** 204 practices distilled
+1. **Proven protocols, synthesised and rated.** 317 practices distilled
    from public evidence-based teaching, each graded A to E, each credited,
-   145 with a plain-words safety line. Nobody else shows the grade.
+   268 with a plain-words safety line. Nobody else shows the grade.
 2. **Programs that live with you.** Not a plan you found: a program placed
    into the days you actually have, that moves when your day moves, tells
    you why, and changes when your own numbers change.
@@ -121,8 +121,8 @@ have deleted three apps this year. The film has to prove, not promise.
 | Time | On the phone (real screen) | Copy (left) | Note |
 |---|---|---|---|
 | 0.0–2.6 | Today, rising into frame | *A week built with intent.* | Product on screen at 0.4s |
-| 2.6–4.6 | Library, top | 01 · PROVEN PROTOCOLS, SYNTHESISED AND RATED — *204 practices. Graded A to E. Every one credited.* | Attribution line under the phone, verbatim from the app |
-| 4.6–9.0 | Library panning slowly through Morning light, Wind-down breathing, Caffeine cutoff | *Where it came from, how good the evidence is, and where it stops.* then *145 carry a plain-words safety line.* | Evidence grades and ⚠ lines visible as they pass |
+| 2.6–4.6 | Library, top | 01 · PROVEN PROTOCOLS, SYNTHESISED AND RATED — *317 practices. Graded A to E. Every one credited.* | Attribution line under the phone, verbatim from the app |
+| 4.6–9.0 | Library panning slowly through Morning light, Wind-down breathing, Caffeine cutoff | *Where it came from, how good the evidence is, and where it stops.* then *268 carry a plain-words safety line.* | Evidence grades and ⚠ lines visible as they pass |
 | 9.0–12.6 | Pan stops on Morning light; tap ring on *Add to my plan*; button becomes *On your plan — pause it* | *One tap. It is in your week.* | The state change is the app's |
 | 12.6–15.2 | Today, the rows revealing top to bottom | 02 · PROGRAMS THAT LIVE WITH YOU — *Placed into the days you actually have.* | Soft wipe reveals the day |
 | 15.2–19.4 | Today, ring on the top card | Quote, verbatim: *"Name one thing moved to 8:50pm — health had the hour it wanted, and that is the order you set."* | The arbitration, in the app's words |
@@ -143,8 +143,8 @@ that is what Apple permits.
 
 - Every sentence on the phone is the shipped app's output. Nothing is
   mocked, retouched or typed for the camera.
-- Numbers, counted from the code on the day: 204 practices; 15 A, 67 B,
-  73 C, 41 D, 8 E; 182 with a safety line; 212 named researchers and
+- Numbers, counted from the code on the day: 317 practices; 17 A, 98 B,
+  124 C, 67 D, 11 E; 268 with a safety line; 250 named researchers and
   practitioners; seven pathways, four levels. Never "clinically proven",
   never user numbers, never outcomes.
 - Named educators appear only as the app shows them, and the app's own

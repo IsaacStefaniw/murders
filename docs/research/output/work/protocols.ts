@@ -61,6 +61,7 @@ export const WORK_CANDIDATES: Protocol[] = [
   // thousands of workers agree on the direction.
   {
     id: 'move-after-the-hard-one',
+    neverNag: true,
     evidenceLevel: 'C',
     title: 'Move first, decide later',
     pillar: 'mind',

@@ -35,6 +35,7 @@ import type {
   Weekday,
 } from '@/types/domain';
 
+import { RESEARCH_PROTOCOLS } from './protocols.research';
 import { WORK_PROTOCOLS } from './protocols.work';
 
 export type Pillar =
@@ -345,7 +346,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '18:50', windowMin: 40 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
-      safety: 'A walk, not a session. If standing or walking after eating brings on chest pain, dizziness or breathlessness, that is a doctor’s question rather than something to walk through.',
+    safety: 'A walk, not a session. If standing or walking after eating brings on chest pain, dizziness or breathlessness, that is a doctor’s question rather than something to walk through.',
   },
 
   {
@@ -402,7 +403,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'wake', offsetMin: 60, windowMin: 75 },
     energy: 'morning',
     tier: 'could',
-      safety: 'A target, not a rule. Kidney disease, a history of disordered eating, or a doctor’s existing advice about protein all outrank this — ask them, not an app. Not for anyone who has been told to restrict protein.',
+    safety: 'A target, not a rule. Kidney disease, a history of disordered eating, or a doctor’s existing advice about protein all outrank this — ask them, not an app. Not for anyone who has been told to restrict protein.',
   },
   {
     id: 'caffeine-cutoff',
@@ -421,7 +422,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'sleep', offsetMin: 10 * 60, windowMin: 30, deadline: true },
     energy: 'midday',
     tier: 'could',
-      safety: 'Cutting caffeine suddenly can bring on headaches for a few days; moving the cutoff earlier over a week is kinder than stopping dead. Palpitations, reflux or anxiety around caffeine are worth raising with a GP.',
+    safety: 'Cutting caffeine suddenly can bring on headaches for a few days; moving the cutoff earlier over a week is kinder than stopping dead. Palpitations, reflux or anxiety around caffeine are worth raising with a GP.',
   },
   {
     id: 'meal-sketch',
@@ -439,7 +440,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'any',
     tier: 'could',
     sessionType: 'meal_plan',
-      safety: 'Planning food is not the same as controlling it. If deciding meals in advance starts to feel like it cannot be broken, that is worth talking to someone about.',
+    safety: 'Planning food is not the same as controlling it. If deciding meals in advance starts to feel like it cannot be broken, that is worth talking to someone about.',
   },
   {
     id: 'kitchen-closed',
@@ -497,7 +498,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'any',
     tier: 'could',
     sessionType: 'meal_plan',
-      safety: 'A prompt, not a rule to obey. If a missed one turns into a bad evening, drop the practice — the plan is meant to reduce decisions, not add a way to fail.',
+    safety: 'A prompt, not a rule to obey. If a missed one turns into a bad evening, drop the practice — the plan is meant to reduce decisions, not add a way to fail.',
   },
   {
     id: 'portion-defaults',
@@ -533,7 +534,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '18:15', windowMin: 90 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
-      safety: 'A number you set, not a standard to meet. Weeks with no cooking in them are normal, and this practice has nothing to say about them.',
+    safety: 'A number you set, not a standard to meet. Weeks with no cooking in them are normal, and this practice has nothing to say about them.',
   },
   {
     id: 'order-before-arrival',
@@ -550,7 +551,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '17:30', windowMin: 120 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
-      safety: 'Deciding early is meant to make the meal easier, not to police it. If planning what to order turns eating out into something to dread, this is the wrong practice.',
+    safety: 'Deciding early is meant to make the meal easier, not to police it. If planning what to order turns eating out into something to dread, this is the wrong practice.',
   },
   {
     id: 'batch-cook',
@@ -627,7 +628,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'midday',
     tier: 'could',
     sessionType: 'meditate',
-      safety: 'Rest, not treatment. Persistent daytime sleepiness, or falling asleep without meaning to, can point at a sleep disorder and belongs with a doctor rather than a nap.',
+    safety: 'Rest, not treatment. Persistent daytime sleepiness, or falling asleep without meaning to, can point at a sleep disorder and belongs with a doctor rather than a nap.',
   },
   {
     id: 'evening-journal',
@@ -2153,7 +2154,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '12:45', windowMin: 150 },
     energy: 'midday',
     tier: 'could',
-      safety: 'Sun sense applies — shade, cover and sunscreen in strong UV. If getting outside is what feels impossible rather than what helps, that is worth saying to someone.',
+    safety: 'Sun sense applies — shade, cover and sunscreen in strong UV. If getting outside is what feels impossible rather than what helps, that is worth saying to someone.',
   },
   {
     id: 'micro-breaks',
@@ -3017,7 +3018,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '16:20', windowMin: 90 },
     energy: 'any',
     tier: 'should',
-      safety: 'A plan for one window, not a verdict on the evening. If eating in that window feels genuinely out of control, a GP or a dietitian will do more than any if-then line.',
+    safety: 'A plan for one window, not a verdict on the evening. If eating in that window feels genuinely out of control, a GP or a dietitian will do more than any if-then line.',
   },
   {
     id: 'plate-up-in-the-kitchen',
@@ -3068,7 +3069,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '18:15', windowMin: 60 , timeAnchored: true},
     energy: 'evening',
     tier: 'could',
-      safety: 'Attention, not restriction. This is about noticing the food, and it is not a reason to skip a meal or eat less than you need.',
+    safety: 'Attention, not restriction. This is about noticing the food, and it is not a reason to skip a meal or eat less than you need.',
   },
   {
     id: 'kitchen-shutdown',
@@ -3500,11 +3501,41 @@ export const PROTOCOLS: Protocol[] = [
   ...SUPPLEMENT_PROTOCOLS,
   ...WORK_PROTOCOLS,
   ...PEOPLE_PROTOCOLS,
+  ...RESEARCH_PROTOCOLS,
+  // The urge practices stay last on purpose — see protocols.habits.ts.
   ...HABIT_PROTOCOLS,
 ];
 
 export const protocolById = (id: string): Protocol | undefined =>
   PROTOCOLS.find((p) => p.id === id);
+
+/**
+ * Where a practice came from, in words a reader can judge.
+ *
+ * Most of the library was popularised by somebody, and naming them is the
+ * whole point of `attribution` — credit, never endorsement. The research
+ * rounds broke the assumption that there is always somebody: many of
+ * their cards were found in the literature and nobody with a public
+ * platform teaches them. That field is then empty, and empty is the
+ * accurate answer, not a gap to fill with a plausible name.
+ *
+ * So the source line branches rather than the data bending. An empty
+ * attribution says the evidence is described in `why` and there is no
+ * messenger standing behind it, which is a different and slightly
+ * stronger thing to be able to say.
+ */
+export function sourceLine(p: Protocol): string {
+  return p.attribution.length > 0
+    ? `from the public work of ${p.attribution.join(' · ')}`
+    : 'from the research described above, not from anyone’s teaching';
+}
+
+/** The same source, phrased to sit after a practice on the Today note. */
+export function sourceTail(p: Protocol): string {
+  return p.attribution.length > 0
+    ? `after the public work of ${p.attribution.join(' · ')}`
+    : 'from the research behind it';
+}
 
 /** Protocols that serve a goal domain, most relevant first. */
 /**
@@ -3755,7 +3786,25 @@ export function knowledgeContext(pillars?: Pillar[]): string {
     // prompt, and the honest answer was to scope rather than keep raising
     // the bound — so an unscoped caller gets enough to know what exists and
     // asks again with the pillars it actually needs.
-    return PROTOCOLS.map((p) => `- ${p.title} (${PILLAR_LABELS[p.pillar]}, ${p.evidenceLevel})`).join('\n');
+    //
+    // Grouped under one heading per pillar rather than repeating the pillar
+    // label on all three hundred lines. Same information, a third smaller,
+    // and it shows the caller the scopes it can ask for next — which is the
+    // whole job of an index. The research rounds are what forced this: a
+    // flat list crossed fourteen thousand characters.
+    const byPillar = new Map<Pillar, Protocol[]>();
+    for (const p of PROTOCOLS) {
+      const list = byPillar.get(p.pillar);
+      if (list) list.push(p);
+      else byPillar.set(p.pillar, [p]);
+    }
+    return [...byPillar]
+      .map(
+        ([pillar, list]) =>
+          `${PILLAR_LABELS[pillar]}:\n` +
+          list.map((p) => `- ${p.title} (${p.evidenceLevel})`).join('\n'),
+      )
+      .join('\n\n');
   }
   return PROTOCOLS.filter((p) => pillars.includes(p.pillar))
     .map((p) => `- ${p.title} (${PILLAR_LABELS[p.pillar]}, evidence ${p.evidenceLevel}): ${p.summary}`)

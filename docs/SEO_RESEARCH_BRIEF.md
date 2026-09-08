@@ -21,9 +21,9 @@ and mind practices (morning light, wind-down, meditation, breathing) scheduled
 across all of them. You answer questions once; it builds the week and rebuilds
 it when yours changes.
 
-**The differentiator, and the reason this brief exists:** every one of its 177
+**The differentiator, and the reason this brief exists:** every one of its 317
 practices carries a plain rating for the strength of the evidence behind it,
-A to E, with the source named. 104 of the 177 are rated Mixed or weaker and the
+A to E, with the source named. 202 of the 317 are rated Mixed or weaker and the
 app says so. No competitor publishes evidence grades.
 
 ## 2. The hypothesis we most want tested
@@ -32,7 +32,7 @@ We think the evidence ratings are a search asset, not just a trust asset.
 
 People type **"does cold plunge actually work"**, **"is morning light good for
 sleep"**, **"does magnesium help you sleep"**, **"is zone 2 worth it"** — they
-are asking whether a practice they have heard about is real. We have 177
+are asking whether a practice they have heard about is real. We have 317
 researched answers to exactly that question, each with a grade, a mechanism and
 a named source, and we can publish them.
 
@@ -47,8 +47,9 @@ a named source, and we can publish them.
    work" inline, the click may not exist any more. This may be the finding that
    kills the whole idea, and we would rather know now.
 
-The full list of 204 practice titles is in
-`src/features/knowledge/protocols.ts`. Pull them and check the top 30 by
+The full list of 317 practice titles is spread across
+`src/features/knowledge/protocols.ts` and the five files it spreads in,
+`protocols.research.ts` among them. Pull them and check the top 30 by
 plausible interest.
 
 ## 3. Google Trends work
@@ -136,7 +137,7 @@ We are weighing two options and would like evidence rather than opinion.
 
 **Option A — an evidence lookup.** "Is this actually backed by anything?" You
 search a practice, get our grade, the mechanism in plain words, the source, and
-the safety note. 177 answers, all already written. Genuinely useful, unique to
+the safety note. 317 answers, all already written. Genuinely useful, unique to
 us, and it demonstrates the product's whole argument.
 
 **Option B — a week audit.** A short set of questions returning what a planned

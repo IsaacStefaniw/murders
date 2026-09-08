@@ -25,7 +25,7 @@
 import { coachNote } from '@/features/today/coach';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { DOMAIN_QUESTIONS, type DomainQuestion } from '@/features/knowledge/questionBank';
-import { PROTOCOLS, audiencesFor } from '@/features/knowledge/protocols';
+import { PROTOCOLS, audiencesFor, sourceLine } from '@/features/knowledge/protocols';
 import { useAppStore } from '@/state/store';
 import { toMinutes } from '@/lib/dates';
 
@@ -250,7 +250,11 @@ export function checkQuestions(out: Finding[]): void {
 /** Every protocol carries what a reader needs to judge it. */
 export function checkLibrary(out: Finding[]): void {
   for (const p of PROTOCOLS) {
-    if (p.attribution.length === 0) {
+    // Not "has an attribution" — "the reader is told where this came
+    // from". Many research-round cards were found in the literature and
+    // nobody popularised them, so the source line says that instead of
+    // trailing off after "from the public work of".
+    if (sourceLine(p).trim().length === 0) {
       out.push({ screen: 'library', rule: 'guidance names its source', detail: p.id });
     }
     if (p.area === 'health' && !p.safety) {

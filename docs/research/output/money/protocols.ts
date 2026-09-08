@@ -338,7 +338,7 @@ export const MONEY_CANDIDATES: Protocol[] = [
     title: 'Ask for the bills to be smoothed',
     pillar: 'wealth',
     area: 'admin',
-    goalDomains: ['finance', 'admin'],
+    goalDomains: ['finance'],
     summary:
       'One afternoon, once: ring the power, gas, water and insurance providers and ask for fortnightly or monthly payments instead of the quarterly lump. Then the big bill never lands in the quiet week.',
     why: 'For anyone on casual, seasonal or shift income, the quarterly bill is the thing that turns a lean fortnight into a card balance. Australian providers generally offer bill smoothing on request, and the regulator recommends it specifically for people on casual income; most also run hardship programmes that are separate from smoothing. It changes nothing about what you pay and everything about when, which for a lumpy income is most of the game. Regulator and practitioner practice, untested and not in need of a trial.',
@@ -490,7 +490,7 @@ export const MONEY_CANDIDATES: Protocol[] = [
     anchor: { kind: 'fixed', start: '10:00', windowMin: 180 },
     energy: 'morning',
     tier: 'could',
-    safety: 'Third-party budgeting tools ask for access to your bank data, and neither the regulator nor this app vets them; read what they keep and what they charge before you connect an account. Education, never financial advice.',
+    safety: 'Third-party budgeting tools ask for access to your bank data, and neither the regulator nor this app vets them; read what they keep and what they charge before you hand over a bank login. Education, never financial advice.',
   },
   {
     id: 'willpower-retired',

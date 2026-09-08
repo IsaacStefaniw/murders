@@ -133,6 +133,7 @@ export const MIND_CANDIDATES: Protocol[] = [
     anchor: { kind: 'fixed', start: '10:00', windowMin: 360 },
     energy: 'any',
     tier: 'should',
+    safety: 'Two hours is a number from a survey, not a target anybody has to hit — a week with twenty minutes in it is a week with twenty minutes in it. Sun protection, water and footwear are the ordinary outdoor cautions. If low mood or anxiety is the reason this card appealed to you, time outside is worth having and is not a substitute for a GP or a psychologist. Educational structure, not medical advice.',
   },
   {
     id: 'write-it-three-times',

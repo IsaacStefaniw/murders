@@ -32,26 +32,26 @@ import { PROTOCOLS } from '@/features/knowledge/protocols';
  * only the numbers defeats the point of the test.
  */
 
-it('publishes the real practice count — 204', () => {
-  expect(PROTOCOLS.length).toBe(204);
+it('publishes the real practice count — 317', () => {
+  expect(PROTOCOLS.length).toBe(317);
 });
 
-it('publishes the real safety-line count — 182', () => {
-  expect(PROTOCOLS.filter((p) => p.safety).length).toBe(182);
+it('publishes the real safety-line count — 268', () => {
+  expect(PROTOCOLS.filter((p) => p.safety).length).toBe(268);
 });
 
-it('publishes the real number of people credited — 212', () => {
+it('publishes the real number of people credited — 250', () => {
   const names = new Set<string>();
   for (const p of PROTOCOLS) for (const n of p.attribution ?? []) names.add(n);
-  expect(names.size).toBe(212);
+  expect(names.size).toBe(250);
 });
 
-it('publishes the real grade spread — A15 B67 C73 D41 E8', () => {
+it('publishes the real grade spread — A17 B98 C124 D67 E11', () => {
   const spread: Record<string, number> = {};
   for (const p of PROTOCOLS) spread[p.evidenceLevel] = (spread[p.evidenceLevel] ?? 0) + 1;
-  expect(spread).toEqual({ A: 15, B: 67, C: 73, D: 41, E: 8 });
+  expect(spread).toEqual({ A: 17, B: 98, C: 124, D: 67, E: 11 });
 });
 
-it('publishes the real "Mixed or weaker" count on the evidence page — 122', () => {
-  expect(PROTOCOLS.filter((p) => p.evidenceLevel >= 'C').length).toBe(122);
+it('publishes the real "Mixed or weaker" count on the evidence page — 202', () => {
+  expect(PROTOCOLS.filter((p) => p.evidenceLevel >= 'C').length).toBe(202);
 });

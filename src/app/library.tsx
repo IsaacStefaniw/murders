@@ -19,6 +19,7 @@ import {
   listedProtocols,
   optInAudiencesFor,
   protocolsFor,
+  sourceLine,
   type Pillar,
   type Protocol,
 } from '@/features/knowledge/protocols';
@@ -79,7 +80,7 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
           Evidence {protocol.evidenceLevel} · {EVIDENCE_LABELS[protocol.evidenceLevel]}
         </AppText>
         <AppText variant="caption" color="textTertiary">
-          Source · from the public work of {protocol.attribution.join(' · ')}
+          Source · {sourceLine(protocol)}
         </AppText>
         <AppText variant="caption" color="textTertiary">
           {protocol.safety

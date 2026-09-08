@@ -87,6 +87,10 @@ describe('the library explains the letters where they are shown', () => {
     // Every practice shows all three, including the ones with no caution
     // written on them: a missing third line reads as a missing limit.
     expect(block).toContain('protocol.safety');
-    expect(block).toContain('protocol.attribution');
+    // The source line goes through sourceLine() rather than reading the
+    // attribution array directly, because many research-round practices
+    // have no messenger to name and the card must say that in words
+    // instead of trailing off after "from the public work of".
+    expect(block).toContain('sourceLine(protocol)');
   });
 });

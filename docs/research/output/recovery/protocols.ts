@@ -78,6 +78,7 @@ export const RECOVERY_CANDIDATES: Protocol[] = [
   },
   {
     id: 'sauna-rehydrate',
+    neverNag: true,
     evidenceLevel: 'C',
     title: 'Drink back what the sauna took',
     pillar: 'longevity',
@@ -209,6 +210,7 @@ export const RECOVERY_CANDIDATES: Protocol[] = [
   },
   {
     id: 'dark-glasses-home',
+    neverNag: true,
     evidenceLevel: 'B',
     title: 'Dark glasses from the door to the bed',
     pillar: 'sleep',
@@ -226,6 +228,7 @@ export const RECOVERY_CANDIDATES: Protocol[] = [
   },
   {
     id: 'no-drive-after-nights',
+    neverNag: true,
     evidenceLevel: 'B',
     title: 'Not driving home',
     pillar: 'sleep',

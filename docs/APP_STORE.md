@@ -104,7 +104,7 @@ overwhelms. It now leads with the reader's own experience instead.
 > The plan fits the week you have, not an ideal one. Move something and it learns where it really belongs. Have a bad week and nothing scolds you. Say a session was too easy and the next block changes. Connect Apple Health, read-only, and a short night quietly changes today's session: the main work stays, the accessories rest.
 >
 > A LIBRARY THAT GRADES ITS OWN EVIDENCE
-> 204 practices, each rated A to E for the strength of the research behind it and credited to the public work that popularised it — 212 researchers and practitioners named. 182 carry a plain-words safety line. Most of it is not an A, and it says so, because little of what anyone can teach you about your own life is.
+> 317 practices, each rated A to E for the strength of the research behind it — 250 researchers and practitioners named for the ones their teaching popularised. 268 carry a plain-words safety line. Most of it is not an A, and it says so, because little of what anyone can teach you about your own life is.
 >
 > TRAINING BUILT FROM YOUR OWN LIFTS
 > Four-week blocks — build, build, progress, deload — sized to your days, your equipment and what you actually lift. Log a set and the next target follows a rule you can read. Four levels, earned from your log rather than claimed. 5,376 distinct programmes from the builder's own inputs; no two people get the same one.
@@ -144,14 +144,14 @@ permanent free urge and lapse support is the single most disarming sentence
 in the listing.
 
 **Numbers that read as inventory were cut.** The counts that remain each
-prove a claim: 204/212/182 proves the grading is real, 5,376 proves no two
+prove a claim: 317/250/268 proves the grading is real, 5,376 proves no two
 programmes are the same.
 
 The two links at the end are required by guideline 3.1.2 for any app with
 auto-renewable subscriptions: the first submission of 1.0 was rejected on
 2026-09-04 for their absence, with the binary itself unchanged.
 
-Every figure above is counted from the shipped code: 204 / 182 / 212 from
+Every figure above is counted from the shipped code: 317 / 268 / 250 from
 the protocol library, 16 from the behaviour catalogue, 7 meditation scripts,
 6 money rungs, 4 levels, and 5,376 by generating every declared combination
 through `buildProgramme` and hashing the output — all distinct.

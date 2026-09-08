@@ -58,7 +58,7 @@ const constraints = [
 const heroPillars = [
   { lead: "It plans your week.", note: "Sessions, meals and practices at real times, around what you already have on." },
   { lead: "It changes when your week does.", note: "A bad night shortens the session and keeps the hard part, instead of cancelling it." },
-  { lead: "It shows its evidence.", note: "Every practice rated A to E for the research behind it. We publish the weak ones — 104 of 177." },
+  { lead: "It shows its evidence.", note: "Every practice rated A to E for the research behind it. We publish the weak ones — 202 of 317." },
 ];
 
 const todayRows = [
@@ -471,15 +471,15 @@ const libraryStats = [
   },
   {
     label: "Most of it is not rated Strong.",
-    note: "104 of the 177 are Mixed or weaker, and the app tells you which. A library where everything is excellent is a library that is not rating anything.",
+    note: "202 of the 317 are Mixed or weaker, and the app tells you which. A library where everything is excellent is a library that is not rating anything.",
   },
   {
     label: "It names where the work came from.",
-    note: "188 researchers and teachers are credited for the public work behind these practices. Credit, never endorsement.",
+    note: "250 researchers and teachers are credited for the public work behind these practices. Credit, never endorsement.",
   },
   {
     label: "It tells you when not to do something.",
-    note: "145 of them carry a safety note in plain words, shown before you add anything to your week.",
+    note: "268 of them carry a safety note in plain words, shown before you add anything to your week.",
   },
 ];
 
@@ -778,7 +778,7 @@ export default function Home() {
               <p className="rating-example-safety">Never look at the sun directly; through-window light counts for less but still counts.</p>
               <span className="rating-example-foot">Added to your week in one tap. The app picks the hour.</span>
             </div>
-            <p className="rating-honesty"><strong>104 of the 177 are rated C or weaker, and we say
+            <p className="rating-honesty"><strong>202 of the 317 are rated C or weaker, and we say
             so on the practice.</strong> A library that claimed everything in it was excellent would
             be telling you nothing.</p>
           </div>
@@ -790,7 +790,7 @@ export default function Home() {
         </div>
         <div className="library-honesty">
           <ShieldCheck />
-          <p><strong>Most of it is not an A, and it says so.</strong> Thirteen practices are grade A. Sixty are B. The remaining hundred and four are C, D or E&mdash;useful, reasoned, and openly marked as weaker evidence. A system that graded everything highly would be easier to sell and worth less to trust.</p>
+          <p><strong>Most of it is not an A, and it says so.</strong> Seventeen practices are grade A. Ninety-eight are B. The remaining two hundred and two are C, D or E&mdash;useful, reasoned, and openly marked as weaker evidence. A system that graded everything highly would be easier to sell and worth less to trust.</p>
         </div>
       </section>
 
