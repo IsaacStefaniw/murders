@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
@@ -8,6 +8,7 @@ import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { Spacing } from '@/constants/theme';
 import { PlanItemRow } from '@/features/today/plan-item-row';
+import { buildWeekShape } from '@/features/review/weekShape';
 import { QuickAdd } from '@/features/today/QuickAdd';
 import { addDays, formatDateLong, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
@@ -23,6 +24,12 @@ export default function Plan() {
   const plans = useAppStore((s) => s.plans);
   const ensurePlan = useAppStore((s) => s.ensurePlan);
   const regeneratePlan = useAppStore((s) => s.regeneratePlan);
+
+  const routines = useAppStore((s) => s.routines);
+  const shape = useMemo(
+    () => buildWeekShape(dates, plans, routines ?? [], today),
+    [dates, plans, routines, today],
+  );
 
   const [openDate, setOpenDate] = useState(today);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -46,6 +53,22 @@ export default function Plan() {
         Week
       </AppText>
       <AppText variant="title">The week ahead</AppText>
+
+      {/* What the week is FOR, before the seven days that make it up. The
+          tab used to open straight onto Monday, which is a calendar rather
+          than a coach. */}
+      {shape.intended > 0 ? (
+        <Card style={styles.shapeCard}>
+          <AppText variant="body">{shape.line}</AppText>
+          {shape.pillars.length > 1 ? (
+            <AppText variant="caption" color="textTertiary" style={styles.shapeDetail}>
+              {shape.pillars
+                .map((p) => `${p.label} ${p.done}/${p.intended}`)
+                .join(' · ')}
+            </AppText>
+          ) : null}
+        </Card>
+      ) : null}
 
       <Card
         onPress={() => router.push('/plan/routines' as never)}
@@ -143,6 +166,8 @@ export default function Plan() {
 }
 
 const styles = StyleSheet.create({
+  shapeCard: { marginBottom: Spacing.md },
+  shapeDetail: { marginTop: Spacing.xs },
   routinesCard: { marginTop: Spacing.lg, marginBottom: Spacing.md },
   stack: { gap: Spacing.sm, marginTop: Spacing.lg },
   dayHeader: {
