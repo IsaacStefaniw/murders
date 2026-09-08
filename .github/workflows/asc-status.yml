@@ -1,0 +1,25 @@
+# Read-only App Store Connect status. Safe to run at any time, including
+# while a version is in review: the script issues GETs and nothing else.
+name: App Store status
+
+on:
+  workflow_dispatch:
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Restore App Store Connect API key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+      - name: Query status
+        env:
+          EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/AuthKey.p8
+          EXPO_ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: node .github/scripts/asc-status.mjs | tee "$GITHUB_STEP_SUMMARY"
