@@ -47,7 +47,7 @@ a named source, and we can publish them.
    work" inline, the click may not exist any more. This may be the finding that
    kills the whole idea, and we would rather know now.
 
-The full list of 177 practice titles is in
+The full list of 204 practice titles is in
 `src/features/knowledge/protocols.ts`. Pull them and check the top 30 by
 plausible interest.
 

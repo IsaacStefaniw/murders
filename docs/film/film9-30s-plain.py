@@ -152,7 +152,7 @@ function focus(top,h){ const f=$('focus'); f.style.top=top+'%'; f.style.height=h
  await wait(2500); off($('focus'));
 
  // 24–28 the library
- show('lib-card'); await copy('177 practices, each with its evidence grade. <em>One tap</em> and it’s in your week.');
+ show('lib-card'); await copy('204 practices, each with its evidence grade. <em>One tap</em> and it’s in your week.');
  $('under').textContent='Attribution credits public work and implies no endorsement of IntentNorth.'; on($('under'));
  await wait(1400); await tapAt(50,29.7); show('lib-card-added'); await wait(1900); off($('under'));
 

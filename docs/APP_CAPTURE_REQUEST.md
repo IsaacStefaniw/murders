@@ -5,7 +5,7 @@
 
 ## What the site needs, and why it cannot draw it
 
-The library section now makes the strongest claim on the page: 177 practices
+The library section now makes the strongest claim on the page: 204 practices
 that grade themselves, then *run* themselves. Add one and it is planned into a
 real week, at an hour the scheduler picks, and it then answers to your results
 the same way a training block does. That claim is true — `toRoutine` in

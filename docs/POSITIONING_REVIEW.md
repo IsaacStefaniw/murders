@@ -105,7 +105,7 @@ window") to someone who does not yet know it plans a week.
   show one line per screen and let the rest blur.
 - **No person, no outcome.** Nobody's Tuesday gets better on camera. The
   competitors we studied all show what life looks like after.
-- **Too many ideas.** Seven coaches, 177 practices, grades, safety lines,
+- **Too many ideas.** Seven coaches, 204 practices, grades, safety lines,
   sleep debt, arbitration, levels and ladders in 47 seconds. A cold viewer
   retains one.
 
@@ -136,7 +136,7 @@ window") to someone who does not yet know it plans a week.
    bad week.
 4. **What you get,** in three tangible things: a day that is already
    decided when you open it, with the reason for each item; programs for
-   the seven areas that get harder as you progress; a library of 177
+   the seven areas that get harder as you progress; a library of 204
    practices with the evidence grade and a safety line, one tap to add.
 5. **Why to trust it.** Nothing you enter leaves your phone. Support for
    your hardest moments is free forever. We publish the evidence grade,
@@ -211,7 +211,7 @@ category comparison and the shared-profile diagram move to How it works.
 | 11–15 | Coaches screen, seven areas | It builds a program for each part: training, food, sleep, habits, money, work, family. |
 | 15–19 | Today, one row highlighted | Every morning, the day is already decided. Every line says why. |
 | 19–23 | Workout, tap Under 6h, session changes | Short night? Today's session changes on its own. |
-| 23–27 | Library, one card, tap Add | 177 practices, each with its evidence grade. One tap and it's in your week. |
+| 23–27 | Library, one card, tap Add | 204 practices, each with its evidence grade. One tap and it's in your week. |
 | 27–30 | End card | One app for the whole week. Free to start. Nothing leaves your phone. App Store. |
 
 One idea per beat, one readable line per screen, the rest of the UI

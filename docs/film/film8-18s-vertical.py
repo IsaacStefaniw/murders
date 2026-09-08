@@ -112,7 +112,7 @@ function ring(top,h){ const r=$('ring'); r.style.top=top+'%'; r.style.height=h+'
  await copy({line:'A week built<br>with intent.'}); await wait(1500);
 
  show('lib-card');
- await copy({chap:'01',title:'Proven protocols, rated',line:'177 practices.<br>Graded A to E.',sub:'One tap and it is in your week.'});
+ await copy({chap:'01',title:'Proven protocols, rated',line:'204 practices.<br>Graded A to E.',sub:'One tap and it is in your week.'});
  $('under').textContent='Attribution credits public work and implies no endorsement of IntentNorth.'; on($('under'));
  await wait(1100); await tapAt(50,29.7); await wait(120); show('lib-card-added'); await wait(1500); off($('under'));
 

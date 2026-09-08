@@ -174,7 +174,7 @@ const COACHES=[
 
  // 01 protocols
  show('lib-top');
- await copy({chap:'01',title:'Proven protocols, synthesised and rated',line:'177 practices.<br>Graded A to E.',sub:'Every one credited to the public work behind it.'});
+ await copy({chap:'01',title:'Proven protocols, synthesised and rated',line:'204 practices.<br>Graded A to E.',sub:'Every one credited to the public work behind it.'});
  $('under').textContent='Attribution credits public work and implies no endorsement of IntentNorth.'; on($('under'));
  await wait(1800);
  // pan the tall library: image is 2400 css tall at 420 wide → 2171px at 380 wide

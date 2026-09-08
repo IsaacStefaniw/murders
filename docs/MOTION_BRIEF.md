@@ -38,7 +38,7 @@ Not "we have content". **Every practice carries its evidence grade and its
 safety line, and we publish the weak ones.**
 
 The numbers are verified against `src/features/knowledge/protocols.ts`:
-177 protocols, nine pillars, graded A 13 · B 60 · C 63 · D 33 · E 8, 145
+204 protocols, nine pillars, graded A 15 · B 67 · C 73 · D 41 · E 8, 182
 safety lines, 188 people credited. Seventy-three are A or B. **One hundred and
 four are C or weaker, and we say so on the page.**
 

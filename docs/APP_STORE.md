@@ -95,7 +95,7 @@ full view — by name — of every coach, rung and protocol. Everything that
 > Four-week blocks — build, build, progress, deload — sized to your days, your equipment and your own lifts. Log a set and the next target follows a rule you can read: every set at the target, reps held, and the load moves. Four levels, earned from your log, with your starting point placed by what you lift. Say "this is too easy" and the block changes. Connect Apple Health (read-only) and a short night changes today's session: main work stays, accessories rest. 5,376 distinct programmes from the builder's own inputs; no two people get the same one.
 >
 > A LIBRARY THAT TELLS YOU HOW GOOD ITS EVIDENCE IS
-> 177 practices, every one graded A to E and credited to the public work behind it — 188 researchers and practitioners named. 145 carry a plain-words safety line. Most of it is not an A, and it says so.
+> 204 practices, every one graded A to E and credited to the public work behind it — 212 researchers and practitioners named. 182 carry a plain-words safety line. Most of it is not an A, and it says so.
 >
 > HABITS AND URGES, WITHOUT THE VERDICT
 > Sixteen behaviours. Log one and you get the mechanism and the lever, never a streak to break. Support for your hardest moments is free, permanently, and never behind a paywall.
@@ -115,7 +115,7 @@ The two links at the end are required by guideline 3.1.2 for any app with
 auto-renewable subscriptions: the first submission of 1.0 was rejected on
 2026-09-04 for their absence, with the binary itself unchanged.
 
-Every figure above is counted from the shipped code: 177 / 145 / 188 from
+Every figure above is counted from the shipped code: 204 / 182 / 212 from
 the protocol library, 16 from the behaviour catalogue, 7 meditation scripts,
 6 money rungs, 4 levels, and 5,376 by generating every declared combination
 through `buildProgramme` and hashing the output — all distinct.

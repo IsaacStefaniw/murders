@@ -38,7 +38,7 @@ list of articles. Sessions, meals, practices and reviews placed at specific
 hours around what you already have on. Four-week training plans written for the
 goal you pick. You never build a programme.
 
-**Every practice carries a rating for the evidence behind it.** 177 practices,
+**Every practice carries a rating for the evidence behind it.** 204 practices,
 each graded A to E, with the source named and, where it matters, a plain-words
 safety note. 145 carry one. We publish the weak ratings: 104 of the 177 are
 rated Mixed or weaker and the app tells you which. We believe this is the most
@@ -120,7 +120,7 @@ changing the programme is valuable." Precise, and unreadable. Dead.
 explained *how it works* to people who had not yet been told *what it is*. All
 removed. If you propose motion, it should show the product, not the machinery.
 
-**Vanity numbers.** "177 practices" answered a question nobody asked. Our own
+**Vanity numbers.** "204 practices" answered a question nobody asked. Our own
 founder misremembered it as 178 while briefing us, which settled the argument.
 Numbers now live inside sentences.
 

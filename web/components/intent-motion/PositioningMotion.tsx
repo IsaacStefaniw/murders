@@ -110,7 +110,7 @@ export function ProtocolGradingMotion() {
       </div>
 
       <figcaption className="iosm-sr-only" id="iosm-library-description">
-        A diagram of the practice library: 177 protocols graded A to E — 13 A, 60 B, 63 C, 33 D and
+        A diagram of the practice library: 204 protocols graded A to E — 15 A, 67 B, 73 C, 41 D and
         8 E — with one, Morning light at grade B, chosen and placed. Two captures of the
         application\u2019s own week screen show it before the practice was added, with fifteen items
         planned, and after, with sixteen and Morning light at 7:25am between breakfast and training.

@@ -16,7 +16,7 @@ sleep, habits and urges, work, money, relationship and family — built into
 the week a person actually has and rebuilt when it changes. Nothing entered
 leaves the phone. Support for the hardest moments is free, permanently.
 
-Numbers we may quote, all counted from the shipped code: 177 practices,
+Numbers we may quote, all counted from the shipped code: 204 practices,
 188 researchers and practitioners credited, 145 plain-language safety
 lines, 16 behaviours, 7 spoken meditations, 5,376 distinct training
 programmes. Never: outcomes we have not measured, testimonials that do not
