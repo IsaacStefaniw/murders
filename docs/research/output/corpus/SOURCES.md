@@ -77,13 +77,26 @@ that works, in order:
    what the recovery and money rounds used for every row.
 2. **Europe PMC REST** by DOI or PMID for the abstract and MeSH:
    `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:<doi>&resultType=core&format=json`
+2b. **OpenAlex** when the abstract is missing above, which is routine for
+   APA journals — Journal of Applied Psychology, Psychological Bulletin,
+   Group Dynamics and the rest elide their abstracts from both Crossref
+   and Europe PMC. OpenAlex stores them as an inverted index and
+   `harvest.js abstract` now rebuilds the text automatically. This route
+   rescued seven papers in the Work round. It also carries its own
+   `is_retracted` boolean, which is a third retraction signal.
 3. **PubMed Central** full text where it exists (most NIH-funded work).
 4. **NBER, SSRN, IDEAS/RePEc, J-PAL, IZA** for economics working papers
    and abstracts.
 5. **Author pages and ResearchGate** for author copies.
-6. **Retraction check**: the Crossref record's `update-to` and `relation`
-   fields, plus Retraction Watch. Ariely & Wertenbroch 2002 was retracted
-   six days before the money round; the check is not optional.
+6. **Retraction check**: see `RETRACTIONS.md`, which is the standing
+   register and the first thing a round should read. The short version is
+   that the Crossref `update-to` and `relation` fields **are not
+   reliable**: JAMA, PNAS and SAGE mark a retraction by prefixing the
+   title and leave the relation empty, so all three retracted papers
+   found so far read "none" there. `harvest.js crossref` now checks the
+   title too and prints a `DO_NOT_CITE` flag. Use that, the OpenAlex
+   `is_retracted` boolean, and Retraction Watch. Three rounds have each
+   found a retraction in scope; the check is not optional.
 
 Government and regulator pages: MoneySmart, RBA, APRA, ASIC, ABS, PC,
 Grattan all open.

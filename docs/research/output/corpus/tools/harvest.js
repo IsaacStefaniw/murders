@@ -199,11 +199,21 @@ async function cmdCrossref(doi) {
   const rel = m.relation || {};
   const flags = Object.keys(rel).filter((k) => /retract|update|correction|concern/i.test(k));
   const upd = (m['update-to'] || []).map((u) => u.type).concat(flags);
+  const title = (m.title || [])[0] || '';
+  // The relation and update-to fields are NOT reliable for this. Several
+  // publishers (JAMA, PNAS, SAGE among them) mark a retraction only by
+  // prefixing the title, and leave the relation empty — Ariely &
+  // Wertenbroch 2002 and Panagioti 2018 both read "none" there while
+  // their titles say RETRACTED. Always check both.
+  const titleFlag = /^\s*(RETRACTED|WITHDRAWN|EXPRESSION OF CONCERN)/i.test(title)
+    ? title.match(/^\s*(RETRACTED|WITHDRAWN|EXPRESSION OF CONCERN)/i)[1].toUpperCase()
+    : null;
+  if (titleFlag) upd.push('TITLE SAYS ' + titleFlag);
   console.log(
     JSON.stringify(
       {
         doi: m.DOI,
-        title: (m.title || [])[0],
+        title,
         container: (m['container-title'] || [])[0],
         year: (m.issued && m.issued['date-parts'] && m.issued['date-parts'][0][0]) || null,
         volume: m.volume,
@@ -211,11 +221,17 @@ async function cmdCrossref(doi) {
         page: m.page,
         authors: (m.author || []).slice(0, 6).map((a) => `${a.family || ''} ${a.given ? a.given[0] : ''}`.trim()),
         retraction_or_update: upd.length ? upd : 'none',
+        DO_NOT_CITE: titleFlag ? true : undefined,
       },
       null,
       1,
     ),
   );
+  if (titleFlag)
+    console.log(
+      `\n!! ${titleFlag}. Do not cite this paper. If a card or ledger rests on it, the claim comes out.\n` +
+        `!! Check whether a same-author, same-journal paper is being confused with it — that has already happened once.`,
+    );
 }
 
 const EPMC = 'https://www.ebi.ac.uk/europepmc/webservices/rest/';
@@ -276,13 +292,66 @@ async function cmdLit(q, filter) {
   console.log(`# ${j.hitCount} hits for ${used}${f ? ' [' + filter + ']' : ''}, top ${rows.length} by citations`);
 }
 
+// OpenAlex stores abstracts as an inverted index; rebuild the text.
+function deinvert(inv) {
+  if (!inv) return '';
+  const a = [];
+  for (const w in inv) for (const p of inv[w]) a[p] = w;
+  return a.join(' ').replace(/\s+/g, ' ').trim();
+}
+
+// APA journals (J Applied Psychology, Psych Bulletin, Group Dynamics and
+// the rest) have their abstracts elided from both Crossref and Europe
+// PMC. OpenAlex carries them, and a retraction flag of its own. This is
+// the route that rescued seven papers in the Work round.
+async function openAlex(doi) {
+  if (!/^10\./.test(doi)) return null;
+  await polite();
+  const r = await get(`https://api.openalex.org/works/doi:${encodeURIComponent(doi)}?mailto=research@intentnorth.app`);
+  if (r.status !== 200) return null;
+  try {
+    return JSON.parse(r.body);
+  } catch {
+    return null;
+  }
+}
+
 async function cmdAbstract(id) {
   const q = /^\d+$/.test(id) ? `EXT_ID:${id}` : `DOI:"${id}"`;
   await polite();
   const r = await get(`${EPMC}search?query=${encodeURIComponent(q)}&format=json&pageSize=1&resultType=core`);
   if (r.status !== 200) return console.log('HTTP', r.status);
   const x = ((JSON.parse(r.body).resultList || {}).result || [])[0];
-  if (!x) return console.log('# not found in Europe PMC — try Crossref, PMC or the publisher');
+  if (!x) {
+    const oa = await openAlex(id);
+    if (!oa) return console.log('# not found in Europe PMC or OpenAlex — try Crossref, PMC or the publisher');
+    const ab = deinvert(oa.abstract_inverted_index);
+    console.log(
+      JSON.stringify(
+        {
+          source: 'OpenAlex',
+          title: oa.title,
+          journal: oa.primary_location && oa.primary_location.source && oa.primary_location.source.display_name,
+          year: oa.publication_year,
+          doi: oa.doi,
+          type: oa.type,
+          openAccess: oa.open_access && oa.open_access.is_oa,
+          citedBy: oa.cited_by_count,
+          isRetracted: oa.is_retracted,
+          sampleSizesInAbstract: [...ab.matchAll(/\b[nN]\s?=\s?(\d[\d,]*)/g)].map((m) => m[1]),
+        },
+        null,
+        1,
+      ),
+    );
+    if (oa.is_retracted) console.log('\n!! OpenAlex flags this as RETRACTED. Do not cite it.');
+    console.log(
+      ab
+        ? '\nABSTRACT (source text — summarise, never paste into the library):\n' + ab
+        : '\n# no abstract in OpenAlex either.',
+    );
+    return;
+  }
   const ab = (x.abstractText || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   const ns = [...ab.matchAll(/\b(?:n\s?=\s?|N\s?=\s?)(\d[\d,]*)/g)].map((m) => m[1]);
   console.log(
@@ -306,12 +375,19 @@ async function cmdAbstract(id) {
       1,
     ),
   );
-  if (ab) console.log('\nABSTRACT (source text — summarise, never paste into the library):\n' + ab);
-  else
+  if (ab) return console.log('\nABSTRACT (source text — summarise, never paste into the library):\n' + ab);
+  // Europe PMC had the record but no abstract: try OpenAlex before giving up.
+  const oa = await openAlex(x.doi || id);
+  const oaAb = oa ? deinvert(oa.abstract_inverted_index) : '';
+  if (oaAb) {
+    if (oa.is_retracted) console.log('\n!! OpenAlex flags this as RETRACTED. Do not cite it.');
+    console.log('\nABSTRACT via OpenAlex (source text — summarise, never paste into the library):\n' + oaAb);
+  } else {
     console.log(
-      '\n# no abstract in the Europe PMC record (usual for closed-access psychology and economics).' +
+      '\n# no abstract in Europe PMC or OpenAlex (usual for closed-access psychology and economics).' +
         (x.pmcid ? ` Full text: https://pmc.ncbi.nlm.nih.gov/articles/${x.pmcid}/` : ' Try Crossref, the author page, or RePEc.'),
     );
+  }
 }
 
 async function cmdBook(q) {
