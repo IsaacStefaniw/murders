@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { AppState, Linking, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
@@ -17,11 +17,12 @@ import {
 import { useTheme } from '@/hooks/use-theme';
 import {
   PRIVACY_URL,
-  STOREKIT_AVAILABLE,
   TERMS_URL,
   buy,
+  describeNoOffers,
   loadOffers,
   restore,
+  type OfferResult,
   type PlusOffer,
 } from '@/lib/purchases';
 import { track } from '@/lib/telemetry';
@@ -41,6 +42,13 @@ import { useAppStore } from '@/state/store';
  * What stays free is stated above the prices rather than under them, and
  * every line of it is read from FREE_ALWAYS, so this screen cannot promise
  * something the entitlement code does not give.
+ *
+ * When Apple has nothing to say, this screen used to say one sentence for
+ * every possible reason — which is what App Review saw in build 16, and
+ * which told nobody anything. The empty state now names the reason it was
+ * given, offers the ask again, keeps restore and the free list in reach,
+ * and asks once more whenever the app comes back to the foreground, which
+ * is where somebody lands after signing into a sandbox Apple Account.
  */
 export default function Upgrade() {
   const router = useRouter();
@@ -49,7 +57,9 @@ export default function Upgrade() {
   const entitlement = useAppStore((s) => s.entitlement);
   const firstName = useAppStore((s) => s.profile?.firstName);
 
-  const [offers, setOffers] = useState<PlusOffer[] | null>(null);
+  const [load, setLoad] = useState<OfferResult | null>(null);
+  /** Read by the foreground listener, which must not re-ask once prices are up. */
+  const hasOffers = useRef(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
@@ -62,11 +72,24 @@ export default function Upgrade() {
   useEffect(() => {
     void track('paywall_shown');
     let live = true;
-    loadOffers().then((o) => {
-      if (live) setOffers(o);
+    const ask = () => {
+      loadOffers().then((r) => {
+        if (!live) return;
+        hasOffers.current = r.offers.length > 0;
+        setLoad(r);
+      });
+    };
+    ask();
+    // Signing into a sandbox Apple Account happens in Settings, so the
+    // reviewer leaves the app and comes back to a paywall that asked once
+    // and gave up. Coming back to the foreground asks again, but only
+    // while there is still nothing to show.
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && live && !hasOffers.current) ask();
     });
     return () => {
       live = false;
+      sub.remove();
     };
   }, []);
 
@@ -100,6 +123,9 @@ export default function Upgrade() {
     if (!Number.isFinite(n) || n <= 0) return null;
     return displayPrice.replace(m[1], (n / 12).toFixed(2));
   };
+
+  /** The empty-state copy, decided once and beside the code that caused it. */
+  const empty = load && load.offers.length === 0 ? describeNoOffers(load) : null;
 
   const explain = (kind: PlusOffer['kind']) =>
     kind === 'lifetime'
@@ -162,30 +188,48 @@ export default function Upgrade() {
       {!entitlement.plus ? (
         <>
           <SectionHeader title="Choose how to pay" />
-          {offers === null ? (
+          {load === null ? (
             <Card>
               <AppText variant="heading">Getting prices from the App Store…</AppText>
               <AppText variant="caption" color="textTertiary">
                 Prices are set by Apple in your country and shown here as they are.
               </AppText>
             </Card>
-          ) : offers.length === 0 ? (
+          ) : empty ? (
+            /* The wording and the retry both come from describeNoOffers, so
+               what the reviewer reads is the branch a test asserts. The
+               detail line is StoreKit's own answer: on a screenshot it is
+               the difference between a guess and a diagnosis. */
             <Card>
-              <AppText variant="heading">
-                {STOREKIT_AVAILABLE ? 'The App Store did not answer.' : 'Purchases happen in the iPhone app.'}
-              </AppText>
+              <AppText variant="heading">{empty.heading}</AppText>
               <AppText variant="caption" color="textTertiary">
-                {STOREKIT_AVAILABLE
-                  ? 'Check the connection and try again. Nothing has been charged.'
-                  : 'This build cannot reach the App Store, so there is nothing to buy here.'}
+                {empty.body}
               </AppText>
-              {STOREKIT_AVAILABLE ? (
-                <Button title="Try again" variant="secondary" onPress={() => loadOffers().then(setOffers)} style={styles.retry} />
+              {load.detail ? (
+                <AppText variant="caption" color="textTertiary" style={styles.detail}>
+                  {load.detail}
+                </AppText>
+              ) : null}
+              {empty.canRetry ? (
+                <Button
+                  title={busy === 'offers' ? 'Asking again…' : 'Try again'}
+                  variant="secondary"
+                  onPress={() => {
+                    if (busy) return;
+                    setBusy('offers');
+                    void loadOffers().then((r) => {
+                      hasOffers.current = r.offers.length > 0;
+                      setLoad(r);
+                      setBusy(null);
+                    });
+                  }}
+                  style={styles.retry}
+                />
               ) : null}
             </Card>
           ) : (
             <View style={styles.stack}>
-              {offers.map((o) => (
+              {load.offers.map((o) => (
                 <Card
                   key={o.productId}
                   onPress={busy ? undefined : () => onBuy(o)}
@@ -277,6 +321,7 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
   busy: { marginTop: Spacing.xs },
   retry: { marginTop: Spacing.sm },
+  detail: { marginTop: Spacing.xs },
   note: { marginTop: Spacing.md },
   freeList: { marginVertical: Spacing.sm },
   freeLine: { marginBottom: Spacing.xs },

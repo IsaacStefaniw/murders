@@ -22,4 +22,8 @@ jobs:
           EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/AuthKey.p8
           EXPO_ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-        run: node .github/scripts/asc-status.mjs | tee "$GITHUB_STEP_SUMMARY"
+        # pipefail so a product that would not reach the paywall fails the
+        # run rather than scrolling past in a green step.
+        run: |
+          set -o pipefail
+          node .github/scripts/asc-status.mjs | tee "$GITHUB_STEP_SUMMARY"
