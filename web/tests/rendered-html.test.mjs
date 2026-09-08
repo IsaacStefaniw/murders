@@ -142,9 +142,26 @@ test("reps in reserve never returns, from anywhere", async () => {
   // title after the visible one changed — so the guard was passing on
   // metadata rather than on the hero. It now asserts the sentence a reader
   // actually sees, which is the problem stated before the product is.
-  assert.match(html, /You already know what you should be doing/, "the hero lost the problem it names");
-  assert.match(html, /fitting it into a real week/, "the hero lost the plain statement of what this is");
-  assert.match(html, /rewrites it when your week goes sideways/i, "the hero lost the differentiator");
+  // The words changed on 8 Sep; the requirement did not. The hero must state
+  // the reader's problem before it states the product, because the version
+  // that led with the product is the one several people could not explain
+  // after reading it.
+  // Matching on the two halves rather than the whole sentence, because the
+  // curly apostrophe in "doesn't" is served as a literal ’ and a guard that
+  // spells the entity fails on copy that is present and correct.
+  assert.match(html, /more advice/, "the hero lost the problem it names");
+  assert.match(html, /It needs a plan/, "the hero lost the answer to it");
+  // And the hero must still say plainly what the thing is, in the same
+  // viewport. "It needs a plan" names the problem's shape; this names the
+  // product. Without both, the page is a slogan.
+  assert.match(html, /practical weekly plan/, "the hero lost the plain statement of what this is");
+  assert.match(html, /the life you actually have/, "and the promise that it fits the week you really have");
+  // Adaptation is the category difference and CLAUDE.md requires it in the
+  // first viewport. The 8 Sep rewrite dropped it from the lede and left it
+  // only in the pillars below; this is why it went back into the sentence a
+  // reader actually reads.
+  assert.match(html, /rewrites the week when yours changes/i, "the hero lost the differentiator");
+  assert.match(html, /tells you why/i, "and the reason, which is the half competitors do not have");
   // Three steps, in order, replacing three abstractions nobody could parse.
   assert.match(html, /Tell it what you want/, "step one");
   assert.match(html, /It writes your week/, "step two");
@@ -182,13 +199,20 @@ test("reps in reserve never returns, from anywhere", async () => {
   // exact figures moved into sentences further down where they can be read.
   assert.match(html, /It plans your week/, "the first thing it does");
   assert.match(html, /It changes when your week does/, "the second");
-  assert.match(html, /It shows its evidence/, "the third — the differentiator");
+  assert.match(html, /It reads the research for you/, "the third — the differentiator");
   // The evidence rating is the organising idea rather than a section, so the
   // promise has to be in the first viewport with the number that costs us
   // something to publish.
-  assert.match(html, /122 of 204/, "the admission that makes the rating credible");
+  // Was /122 of 204/. The admission still has to be in the first viewport —
+  // it is the whole reason the third pillar works — but as an idea a stranger
+  // can read rather than a ratio they have to do arithmetic on.
+  assert.match(html, /how strong the evidence behind it is/, "the admission that makes the rating credible");
   // The costly signal is the whole reason the first pillar works.
-  assert.match(html, /122 of them|122 of the 204/, "the honesty that makes the ratings credible");
+  assert.match(
+    html,
+    /Most practices are not an A|allowed to come out low/,
+    "the honesty that makes the ratings credible",
+  );
   // A reader has to be told what a rating means, not shown a letter.
   for (const word of ["Strong", "Good", "Mixed", "Thin", "Practice"]) {
     assert.match(html, new RegExp(`>${word}<`), `the rating scale lost "${word}"`);

@@ -82,56 +82,100 @@ async function countLibrary() {
   return { total: protocols.length, grades, safety, people: people.size };
 }
 
-async function renderHome() {
+async function render(route) {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}-library`);
   const { default: worker } = await import(workerUrl.href);
   const response = await worker.fetch(
-    new Request("https://intentnorth.app/", { headers: { accept: "text/html" } }),
+    new Request(`https://intentnorth.app${route}`, { headers: { accept: "text/html" } }),
     { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
     { waitUntil() {}, passThroughOnException() {} },
   );
   return response.text();
 }
 
-test("the library figures on the page match the library in the app", async () => {
+/**
+ * The figures live on /evidence now, not on the home page.
+ *
+ * Isaac's call on 8 Sep: the counts do not add value to a stranger, the ideas
+ * behind them do. So the home page states the ideas and /evidence carries the
+ * arithmetic for anyone who came to check.
+ *
+ * That change could have gutted this test, because what it used to assert was
+ * "the four figures appear on the home page and are right". It asserts
+ * something stronger now: the figures are right on the page that carries them,
+ * AND no stale figure appears anywhere on the site. The second half is the one
+ * that would actually have caught September's failure — 177, 104, 145 and 188
+ * were live for weeks and a test demanding their presence was what let them
+ * stay.
+ */
+const STALE = [
+  // The understated set, from before the six-file count was fixed.
+  ["177", "the practice count from before the five spread files were counted"],
+  ["104", "the C-or-weaker count from the same miscount"],
+  ["145", "the safety-note count from the same miscount"],
+  ["188", "the attribution count from the same miscount"],
+  // Off-by-one neighbours, which is how a hand-edited figure usually goes wrong.
+  ["203 practices", "one short"],
+  ["205 practices", "one over"],
+];
+
+test("the library figures on /evidence match the library in the app", async () => {
   const { total, grades, safety, people } = await countLibrary();
-  const html = await renderHome();
 
   const strong = grades.A + grades.B;
   const weaker = total - strong;
 
-  assert.equal(total, 204, "protocol count changed — update the page copy too");
-  assert.equal(strong, 82, "A/B count changed — update the page copy too");
-  assert.equal(safety, 171, "safety-line count changed — update the page copy too");
-  assert.equal(people, 212, "attribution count changed — update the page copy too");
+  assert.equal(total, 204, "protocol count changed — update /evidence too");
+  assert.equal(strong, 82, "A/B count changed — update /evidence too");
+  assert.equal(safety, 171, "safety-line count changed — update /evidence too");
+  assert.equal(people, 212, "attribution count changed — update /evidence too");
 
-  // The page leads with the weaker count rather than the A/B one now — "122 of
-  // the 204 are Mixed or weaker" says more than "82 graded A or B", because a
-  // reader can tell what the first one costs us to admit. The data check above
-  // still pins all four figures; this checks what the page actually states.
-  for (const figure of [String(total), String(weaker), String(safety), String(people)]) {
-    assert.ok(html.includes(figure), `the page should state ${figure}`);
+  // /evidence is generated from library.json, so this checks the render rather
+  // than the data — the data is checked by tests/evidence-library.test.mjs.
+  const evidence = await render("/evidence");
+  for (const figure of [String(total), String(weaker), String(safety)]) {
+    assert.ok(evidence.includes(figure), `/evidence should state ${figure}`);
   }
-  // The grade breakdown is spelled out in words, so the words are checked
-  // against the data rather than against each other. The previous version
-  // read `grades.A === 13 ? "Thirteen" : grades.A`, which would have looked
-  // for the digit "15" on a page that spells the number out — a check that
-  // fails for the right reason only by accident.
-  const WORDS = { 15: "Fifteen", 67: "Sixty-seven", 122: "hundred and twenty-two" };
-  for (const count of [grades.A, grades.B, weaker]) {
-    const word = WORDS[count];
-    assert.ok(word, `no spelled-out form recorded for ${count} — add one when the library changes`);
-    assert.ok(html.includes(word), `the page should spell ${count} as "${word}"`);
+});
+
+test("no stale library figure appears anywhere on the site", async () => {
+  // Every page, because a corrected figure that survives on one forgotten
+  // page is the same misleading conduct as one that survives everywhere.
+  const sitemap = await readFile(new URL("../app/sitemap.ts", import.meta.url), "utf8");
+  const routes = [...sitemap.matchAll(/^\s*\{ url: "https:\/\/intentnorth\.app(\/[a-z0-9-]*)"/gm)].map((m) => m[1]);
+  assert.ok(routes.length >= 13, `expected the whole route list, found ${routes.length}`);
+
+  for (const route of routes) {
+    const html = await render(route);
+    // Strip the JSON-LD and the head: prices and years legitimately contain
+    // three-digit runs, and this is a check on prose.
+    const body = html.slice(html.indexOf("<body")).replace(/<script[\s\S]*?<\/script>/g, "");
+    for (const [figure, why] of STALE) {
+      assert.ok(
+        !new RegExp(`\\b${figure}\\b`).test(body),
+        `${route} still says "${figure}" — ${why}`,
+      );
+    }
   }
 });
 
 test("the page never implies the whole library is strongly evidenced", async () => {
-  const html = await renderHome();
-  // The failure mode this guards is "204 evidence-based practices" as a bare
-  // boast. 122 of them are C or below, and the page has to carry that.
+  const html = await render("/");
+  // The failure this guards is "204 evidence-based practices" as a bare boast.
+  // Most of the library is C or below and the page has to carry that — as an
+  // idea now rather than a ratio, since the ratio moved to /evidence.
   assert.doesNotMatch(html, /204 (strongly|well|rigorously) evidenced/i);
-  assert.match(html, /C, D or E/, "the weaker grades must be named on the page");
+  assert.match(
+    html,
+    /Most practices are not an A/,
+    "the home page must still admit that most of the library is not strong evidence",
+  );
+  assert.match(
+    html,
+    /allowed to come out low/,
+    "and say that the rating can go against us, which is what makes it worth reading",
+  );
 });
 
 test("the screenshots the page names all exist", async () => {
@@ -175,7 +219,7 @@ test("the 5,376 figure stays off the page", async () => {
   // The figure is true and the derivation was sound. It answered a question
   // nobody asked, in the voice of the people who built it. This guard keeps it
   // off, rather than keeping it honest.
-  const html = await renderHome();
+  const html = await render("/");
   assert.doesNotMatch(html, /5,376/, "the combinatorics boast is back");
   assert.doesNotMatch(html, /hashed/i, "engineering process is not a selling point");
 });
@@ -191,7 +235,7 @@ test("the price on the page is the price Isaac set", async () => {
   // If a price changes in App Store Connect, change it here in the same
   // commit. A website quoting a price the store does not charge is the
   // kind of thing s18 exists for.
-  const html = await renderHome();
+  const html = await render("/");
 
   for (const [tier, price] of [["Yearly", "AU$89.99"], ["Monthly", "AU$14.99"], ["Lifetime", "AU$249"]]) {
     assert.ok(html.includes(price), `the ${tier} price ${price} is missing from the page`);

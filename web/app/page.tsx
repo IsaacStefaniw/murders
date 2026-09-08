@@ -53,13 +53,17 @@ const constraints = [
  * Isaac's testers did not understand the numbers, and Isaac himself wrote
  * "178" when relaying that — which is the whole argument. A number that the
  * person who commissioned it cannot recall is not doing any work on a page a
- * stranger reads once. "177 practices" also answers a question nobody asked:
- * how much stuff do we have. These answer what it does for you.
+ * stranger reads once.
+ *
+ * The third one used to lead with "122 of 204", which was the same mistake in
+ * a better disguise: a costly-signal statistic where a reader needed an idea.
+ * The honest admission still matters and is still on the page — once, inside
+ * the evidence section, in a sentence rather than as a headline figure.
  */
 const heroPillars = [
   { lead: "It plans your week.", note: "Sessions, meals and practices at real times, around what you already have on." },
   { lead: "It changes when your week does.", note: "A bad night shortens the session and keeps the hard part, instead of cancelling it." },
-  { lead: "It shows its evidence.", note: "Every practice rated A to E for the research behind it. We publish the weak ones — 122 of 204." },
+  { lead: "It reads the research for you.", note: "Every practice carries a plain rating for how strong the evidence behind it is, and says what it will not do." },
 ];
 
 const todayRows = [
@@ -472,27 +476,34 @@ const ladder = [
 ];
 
 /**
- * Four answers, not four counts. Every number here is still exact and still
- * checked against src/features/knowledge/protocols.ts by the guardrails — but
- * it sits inside a sentence, where a reader can tell what it means, rather
- * than alone in 48px type where they cannot.
+ * Four ideas, not four counts.
+ *
+ * These were four exact figures — 204, 122, 212, 171 — each sitting inside a
+ * sentence, which was already better than 48px type. Isaac's call on 8 Sep:
+ * the numbers do not add value, what they represent does. A reader deciding
+ * whether to trust us needs to know that the rating exists, that it is allowed
+ * to come out low, that the source is named, and that the app will tell them
+ * when not to do something. None of that needs a denominator.
+ *
+ * The counts are still exact, still generated from the app, and still on
+ * /evidence where somebody checking can find every one of them.
  */
 const libraryStats = [
   {
-    label: "Every practice is rated.",
-    note: "A to E for the strength of the evidence, shown on the practice itself rather than buried in a footnote.",
+    label: "Every practice carries its evidence.",
+    note: "A plain rating from A to E, on the practice itself rather than buried in a footnote, so you can see how much confidence it deserves before you give it a place in your week.",
   },
   {
-    label: "Most of it is not rated Strong.",
-    note: "122 of the 204 are Mixed or weaker, and the app tells you which. A library where everything is excellent is a library that is not rating anything.",
+    label: "The rating is allowed to come out low.",
+    note: "Most of what anyone can teach you about your own life is not settled, and the app says so on the practice. A library that graded everything highly would be telling you nothing.",
   },
   {
-    label: "It names where the work came from.",
-    note: "212 researchers and teachers are credited for the public work behind these practices. Credit, never endorsement.",
+    label: "The work is credited to the people who did it.",
+    note: "Every practice names the researchers and teachers behind the public work it came from. Credit, never endorsement.",
   },
   {
     label: "It tells you when not to do something.",
-    note: "171 of them carry a safety note in plain words, shown before you add anything to your week.",
+    note: "Where a practice has a caution — a condition, a medication, a history — it is written in plain words and shown before you add anything.",
   },
 ];
 
@@ -559,8 +570,9 @@ export default function Home() {
       <section className="hero section-shell">
         <div className="hero-copy">
           <p className="section-kicker">IPHONE APP</p>
-          <h1>Your whole life.<br />One plan that works.</h1>
-          <p className="hero-lede">You already know what you should be doing. The hard part is fitting it into a real week. IntentNorth writes that week for you — training, food, sleep, focus, habits, money, the people you love — and rewrites it when your week goes sideways. Everything it asks of you shows how strong the evidence behind it is.</p>
+          <h1>Your life doesn&rsquo;t<br />need more advice.<br />It needs a plan.</h1>
+          <p className="hero-lede">IntentNorth turns what you know &mdash; and what the evidence actually supports &mdash; into a practical weekly plan across training, food, sleep, habits, focused work, money and the people you love. Built around your goals, your schedule and the life you actually have &mdash; and it rewrites the week when yours changes, and tells you why.</p>
+          <p className="hero-support">Seven coaches. One profile. One coordinated week.</p>
           <div className="hero-actions">
             <BuildPlanButton onClick={() => setPlanOpen(true)}>See your first week, free</BuildPlanButton>
             <AppStoreCta />
@@ -788,8 +800,8 @@ export default function Home() {
 
       <section className="library-section section-shell" id="library">
         <div className="library-heading">
-          <div><p className="section-kicker">THE OBVIOUS QUESTION</p><h2>How do you know<br />any of this works?</h2></div>
-          <p>Most health advice cites nothing, or cites everything as though it were equally certain. Here, every practice carries a plain rating for how strong the evidence behind it is &mdash; and where the evidence is thin, it says so rather than hoping you will not ask.</p>
+          <div><p className="section-kicker">COACHES WHO HAVE READ THE LITERATURE</p><h2>We did the reading.<br />Then we checked<br />the footnotes.</h2></div>
+          <p>Your seven coaches are built on published research and long-form expert teaching &mdash; and popularity is never treated as proof. Every practice is graded for how strong the evidence behind it actually is, in plain language, including when the answer is inconvenient. You get the confidence a claim has earned, not the confidence it is sold with.</p>
         </div>
         <div className="library-stats">
           {libraryStats.map((stat) => (
@@ -820,9 +832,11 @@ export default function Home() {
               <p className="rating-example-safety">Never look at the sun directly; through-window light counts for less but still counts.</p>
               <span className="rating-example-foot">Added to your week in one tap. The app picks the hour.</span>
             </div>
-            <p className="rating-honesty"><strong>122 of the 204 are rated C or weaker, and we say
-            so on the practice.</strong> A library that claimed everything in it was excellent would
-            be telling you nothing.</p>
+            <p className="rating-honesty"><strong>Most practices are not an A, and each one says
+            so.</strong> Very little that anyone can teach you about your own life is certain, and
+            pretending otherwise would make the plan less useful rather than more. Where the
+            evidence is thin you will see that too &mdash; and you can still choose it, knowing
+            what you are choosing.</p>
           </div>
           <figure className="rating-shot">
             <img alt="A practice in the app showing its rating and its safety note" height={1800}
@@ -832,7 +846,7 @@ export default function Home() {
         </div>
         <div className="library-honesty">
           <ShieldCheck />
-          <p><strong>Most of it is not an A, and it says so.</strong> Fifteen practices are grade A. Sixty-seven are B. The remaining hundred and twenty-two are C, D or E&mdash;useful, reasoned, and openly marked as weaker evidence. A system that graded everything highly would be easier to sell and worth less to trust.</p>
+          <p><strong>The grade moves in both directions.</strong> Creatine for someone who lifts and a caffeine cut-off before bed are graded A, because the trials are there. Magnesium for sleep is graded D, because the reviews are not. Same scale, same method, and the answer is whatever the reading says it is.</p>
         </div>
         {/*
           The claim above is only worth making if it can be checked. Every one
@@ -841,6 +855,67 @@ export default function Home() {
         */}
         <p className="library-open"><Link href="/evidence">Read all 204 practices, with their ratings and safety notes <ArrowRight /></Link></p>
       </section>
+
+      {/*
+        Two sections that only a graded library can carry, both from Isaac's
+        8 Sep direction: positive, about what the app does for you, and about
+        rigour as a quality rather than a scoreboard.
+
+        The first is the one no competitor in docs/COMPETITIVE_REVIEW_3.md can
+        write: every other product in the category only ever adds. The second
+        is the trust play — a system that grades its own advice is only worth
+        anything if it is willing to regrade it, and both examples here are
+        real events recorded in docs/KNOWLEDGE.md and the research ledgers.
+      */}
+      <section className="subtract-section section-shell" id="subtract">
+        <div className="subtract-heading">
+          <div><p className="section-kicker">TIME BACK, NOT JUST TASKS ADDED</p><h2>Improvement isn&rsquo;t<br />always adding more.</h2></div>
+          <p>Every other app in this category only ever hands you something else to do. Your coaches will also tell you what is not worth your time &mdash; because a week with three things that work in it beats a week with nine that sound productive.</p>
+        </div>
+        <div className="subtract-grid">
+          <article>
+            <span>WHAT WE SAY TO SKIP</span>
+            <strong>Practices that did not earn their place</strong>
+            <p>Where the reading does not support something popular, the practice is graded low or left out altogether &mdash; and you can see which, and why.</p>
+          </article>
+          <article>
+            <span>WHAT WE SAY TO MOVE</span>
+            <strong>Right idea, wrong hour</strong>
+            <p>Cold water straight after lifting works against the strength you just trained for. Caffeine nine hours before bed costs you the night. The fix is timing, not effort.</p>
+          </article>
+          <article>
+            <span>WHAT YOU GET BACK</span>
+            <strong>A shorter list you will actually finish</strong>
+            <p>The plan is built from what is most likely to matter for the goal you picked, not from everything that could theoretically help.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="correction-section" id="correction"><div className="section-shell">
+        <div className="correction-heading">
+          <div><p className="section-kicker light">A SYSTEM YOU CAN TRUST</p><h2>When the evidence changes,<br />IntentNorth changes.</h2></div>
+          <p>Grading our own advice only means something if we are willing to regrade it. So the review runs again, and again, and it is allowed to take things away.</p>
+        </div>
+        <div className="correction-grid">
+          <article>
+            <strong>Caught before it reached anyone</strong>
+            <p>A well-known eating-behaviour finding traced back to a retracted paper. The practice never entered the library, the related effect was dropped after it failed its first pre-registered test, and the author was removed from every credit in the app.</p>
+          </article>
+          <article>
+            <strong>Caught after we had shipped it</strong>
+            <p>A paper behind one practice was retracted in September. We found it six days later, regraded the practice and updated its evidence record. Correction is part of the job, not an embarrassment to hide.</p>
+          </article>
+          <article>
+            <strong>The grade only ever gets harder</strong>
+            <p>Across eight rounds of review, six moved practices down and not one round upgraded something an earlier round had graded. Checking a claim properly tends to cost it confidence, not gain it.</p>
+          </article>
+        </div>
+        <p className="correction-foot">
+          The research is not there to justify what we already wanted to say. It is there to make
+          the plan more accurate &mdash; including when that means removing something.{" "}
+          <Link href="/evidence">Every practice and its grade is published</Link>.
+        </p>
+      </div></section>
 
       <section className="science-section section-shell" id="science">
         <div className="science-heading"><p className="section-kicker">SCIENCE YOU CAN INSPECT</p><h2>Credibility lives in the source—and the limitation.</h2><p>Public educators can surface useful questions. IntentNorth does not treat a personality as evidence or imply endorsement; it links mechanisms to the underlying research and labels uncertainty.</p></div>
