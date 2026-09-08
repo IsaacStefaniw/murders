@@ -18,8 +18,16 @@
  *
  * Nothing here reaches a phone until a human has read it.
  *
- * Grade spread: A 1 · B 9 · C 9 · D 2 · E 1 (22 candidates).
+ * Grade spread: A 0 · B 10 · C 9 · D 2 · E 1 (22 candidates).
+ *
  * Pillars: sleep 12 · longevity 7 · training 3.
+ *
+ * Updated 2026-09-08: strength-minimum-weekly regraded A to B by the
+ * training round, which was asked to settle an apparent conflict with a
+ * 2026 cohort of 147,374 people. It opened the full text rather than the
+ * abstract, recovered the whole dose curve, and found the card's number
+ * survives while its "strongest around thirty to sixty minutes" phrasing
+ * does not. This round now carries no A grade.
  */
 
 import type { Protocol } from '@/features/knowledge/protocols';
@@ -384,13 +392,17 @@ export const RECOVERY_CANDIDATES: Protocol[] = [
   // ── LONGEVITY: strength floor, sitting, protein in later life ────────
   {
     id: 'strength-minimum-weekly',
-    evidenceLevel: 'A',
+    // Regraded A to B on 2026-09-08 by the training round's Gate 2. Not
+    // because a new paper contradicted the number — it survived — but
+    // because checking it showed the A rested on a concordance that no
+    // longer exists. Working in docs/research/output/training/.
+    evidenceLevel: 'B',
     title: 'The strength floor: an hour a week',
     pillar: 'longevity',
     area: 'health',
     goalDomains: ['health', 'fitness'],
     summary: 'Whatever else the week holds, two short sessions of muscle-strengthening work — thirty to sixty minutes in total — and never a week at zero. Two twenty-minute sessions of bodyweight work at home count in full.',
-    why: 'Two independent pooled analyses of cohort studies found that people who do any muscle-strengthening activity have roughly ten to twenty-seven percent lower death rates over the following years than people who do none, on top of whatever aerobic activity they do, with the association strongest around thirty to sixty minutes a week. It is association rather than proof — strong people differ in many ways at once — but the shape is unusually generous: most of what the evidence can see is bought by the first hour. If you already lift, this is the floor you never drop below on a bad week. If you do not, it is the smallest version that shows up in the data, and it is very small.',
+    why: 'Pooled cohort analyses find that people who do any muscle-strengthening work have meaningfully lower death rates over the following years than people who do none, on top of whatever aerobic activity they do. The best single piece of evidence follows a hundred and forty-seven thousand people for thirty years, and its shape is the encouraging part. Almost all of the benefit is already there by the first half hour a week, the curve stays flat across the next hour, and it bends back up beyond two hours. So there is a floor worth defending and no prize for piling on. This is association rather than proof, and strong people differ in many ways at once. If you already lift, this is the floor you never drop below on a bad week. If you do not, it is the smallest version that shows up in the data, and it is very small.',
     attribution: ['Peter Attia', 'Rhonda Patrick', 'Andy Galpin'],
     days: [1, 4],
     durationMin: 30,
