@@ -131,6 +131,26 @@ Calendar import may need native permissions, which would mean **a new build
 rather than an over-the-air update.** Everything else in this document is
 JavaScript.
 
+**Done, 8 September 2026, except calendar import.**
+
+*Return.* `restartFromAnchor()` is the only bulk deactivation in the app:
+it keeps the one practice the person was actually keeping and pauses the
+rest, deleting nothing. The return screen now asks what changed and each
+of the three answers does something real — rebuild this week, open the
+week shape, or go to a minimum week and one anchor. Nothing is counted
+that was missed, which the copy tests pin.
+
+*Roster.* `features/roster/roster.ts` holds a rotation of any length with a
+start date, and `profileForDate()` turns it back into the shape the planner
+already understands. Nothing downstream changed: a wake-anchored practice
+already moved with the wake time, and now the wake time is the one for that
+kind of day. `/plan/week-shape` enters a rotation in three taps from four
+shift presets, and previews the coming week before it saves.
+
+*Calendar import is not done and is Isaac's call.* Reading the phone's
+calendar needs a native permission, so it is a new build rather than an
+update people already have.
+
 ## Wave 4 — deepen the moat
 
 The time-back surface in the weekly review ("one thing you can stop this

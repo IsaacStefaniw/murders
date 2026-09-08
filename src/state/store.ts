@@ -69,6 +69,7 @@ import {
   freeEndAtOrBefore,
   generateDailyPlan,
 } from '@/features/planner/generate';
+import { commitmentBudget } from '@/features/budget/commitment';
 import { moveWithBump, type Displacement } from '@/features/planner/moveWithBump';
 import { describeDisplaced, describeMoved } from '@/features/planner/displaced';
 import { mergeRoutines } from '@/features/planner/mergeRoutines';
@@ -430,6 +431,18 @@ export interface AppState {
   assessGoals: () => void;
   setGoalNextFocus: (goalId: string, nextFocus: string | undefined) => void;
   updateRoutine: (routineId: string, patch: Partial<Routine>) => void;
+  /**
+   * Come back to one thing.
+   *
+   * The offer on the return screen, and the only bulk deactivation in the
+   * app. Somebody returning after a fortnight does not need nine practices
+   * waiting for them, and the honest restart is the one practice they were
+   * actually keeping. Nothing is deleted: every other routine is paused and
+   * one tap in the Week tab brings any of them back.
+   *
+   * Returns the routine kept, so the screen can name it.
+   */
+  restartFromAnchor: () => Routine | null;
 
   addBehaviourIntention: (behaviour: BehaviourKey, intentionText: string) => void;
   setBehaviourIntentionActive: (id: string, active: boolean) => void;
@@ -1672,6 +1685,26 @@ export const useAppStore = create<AppState>()(
                 : g,
             ),
           });
+        },
+
+        restartFromAnchor: () => {
+          const { routines, plans, metrics, profile } = get();
+          const today = todayKey();
+          const budget = commitmentBudget({
+            routines,
+            plans,
+            metrics,
+            profile: profile ?? null,
+            // The anchor, not the state: this is called from the return
+            // screen, which already knows they have been away.
+            lastOpenedAt: null,
+            today,
+          });
+          const keep = budget.anchorRoutineId;
+          if (!keep) return null;
+          set({ routines: routines.map((r) => (r.id === keep ? { ...r, active: true } : { ...r, active: false })) });
+          if (get().profile) for (let i = 0; i <= 6; i++) get().regeneratePlan(addDays(today, i));
+          return get().routines.find((r) => r.id === keep) ?? null;
         },
 
         updateRoutine: (routineId, patch) => {

@@ -13,6 +13,7 @@ import { buildDailyPlan, computeFreeWindows } from '@/lib/scheduling/engine';
 import type { EnergyPlacement, FixedCommitment, MovedPlacement } from '@/lib/scheduling/engine';
 import { energyShape } from '@/features/health/sleepDebt';
 import { evidenceRankFor, withProtocolBounds } from '@/features/knowledge/protocols';
+import { profileForDate } from '@/features/roster/roster';
 import { durationMinutes, toHHMM, toMinutes, weekdayOf } from '@/lib/dates';
 import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine, Weekday } from '@/types/domain';
 
@@ -223,7 +224,7 @@ export function applyLearnedDurations(
 }
 
 export function generateDailyPlan(
-  profile: LifeProfile,
+  fullProfile: LifeProfile,
   routines: Routine[],
   date: string,
   calendarEvents: FixedCommitment[] = [],
@@ -235,6 +236,20 @@ export function generateDailyPlan(
    */
   learnedDurationMin: Record<string, number> = {},
 ): DailyPlan & { unplaced: Routine[]; moved: MovedPlacement[]; energy: EnergyPlacement[] } {
+  /*
+    A roster is applied before anything else looks at the profile.
+
+    Everything downstream reads one set of work hours and one wake time,
+    which is right for most people and wrong for everybody on a rotation.
+    Rather than teach the planner about rosters, the roster is turned back
+    into the shape the planner already understands, for this one date. A
+    wake-anchored practice then moves with the wake time of THIS kind of
+    day, which it always did — it was the wake time that was wrong.
+
+    A no-op for anybody without a roster, which is most people.
+  */
+  const profile = profileForDate(fullProfile, date);
+
   // Sized before anything is placed, so the carve-out of the work day and
   // the free-time placement both hold the same, real length.
   const sized = applyLearnedDurations(routines, learnedDurationMin);

@@ -8,6 +8,7 @@ import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { Spacing } from '@/constants/theme';
 import { dayCountLine } from '@/features/planner/dayCount';
+import { describeCycle } from '@/features/roster/roster';
 import { PlanItemRow } from '@/features/today/plan-item-row';
 import { buildWeekShape } from '@/features/review/weekShape';
 import { QuickAdd } from '@/features/today/QuickAdd';
@@ -79,6 +80,25 @@ export default function Plan() {
         <AppText variant="heading">Adjust when things happen</AppText>
         <AppText variant="caption" color="textTertiary">
           Days, times and lengths. You know your week better than the scheduler does.
+        </AppText>
+      </Card>
+
+      {/* For the half of this audience whose week is not the same every
+          week. Without it a rotation had to be rebuilt by hand, weekly,
+          until the person gave up — which is where a scheduling advantage
+          collapses under maintenance. */}
+      <Card
+        onPress={() => router.push('/plan/week-shape' as never)}
+        style={styles.routinesCard}
+        accessibilityLabel="Set a repeating roster"
+      >
+        <AppText variant="heading">
+          {profile?.roster ? 'Your rotation' : 'On a roster?'}
+        </AppText>
+        <AppText variant="caption" color="textTertiary">
+          {profile?.roster
+            ? describeCycle(profile.roster)
+            : 'Set a run of shifts and a run of days off, and the plan follows the rotation instead of the calendar.'}
         </AppText>
       </Card>
 

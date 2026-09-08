@@ -48,6 +48,8 @@ export type PhysicalConstraint =
   | 'hormonal'
   | 'mentalHealth';
 
+import type { Roster } from '@/features/roster/roster';
+
 /** How a person's week is shaped — see features/onboarding/markets.ts. */
 export type WeekShapeKey =
   | 'employed'
@@ -95,6 +97,21 @@ export interface LifeProfile {
   constraints?: PhysicalConstraint[];
   /** The shape of the week — decides whether work blocks exist at all. */
   weekShape?: WeekShapeKey;
+  /**
+   * A rotation, for a week that is not the same every week.
+   *
+   * The fields above hold ONE set of work hours and ONE wake time, which
+   * is right for most people and wrong for everybody on a roster. A nurse
+   * on four-on-four-off had no way to tell the app what her week was and
+   * would have rebuilt it by hand every week until she stopped — the
+   * largest week-shape gap in the product, and the one that made the
+   * scheduling advantage collapse under maintenance for half the audience.
+   *
+   * See features/roster/roster.ts: profileForDate() turns a rotation back
+   * into the shape the planner already understands, so nothing downstream
+   * needed to change.
+   */
+  roster?: Roster;
   /** Optional personal numbers, asked only where the maths uses them
    * (protein target, training guidance). Never required, never judged. */
   age?: number;
