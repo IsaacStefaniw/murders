@@ -106,9 +106,11 @@ Not protocols; things the round found that belong in code or copy.
 - **Milestones early, whole goal late.** Two small studies suggest sub-goals motivate in the first third and the finish line in the last; `plan.ts` already front-loads the milestones. No change needed, worth knowing why it is right.
 - **Podcast attribution.** Rational Reminder is the one show in this field that is not selling a product; four cards credit Ben Felix for discovery. Pape and Sethi are credited for practice they demonstrably popularised and never for evidence. No Ramsey attribution anywhere.
 
-## UNVERIFIED: figures that need a human click-through before they ship
+## UNVERIFIED: mostly resolved — see `ATO-VERIFIED.md`
 
-Every ato.gov.au URL returned HTTP 403 to automated fetch, as did studyassist.gov.au, education.gov.au, servicesaustralia.gov.au, afca.org.au and the Melbourne Institute. The figures below are corroborated by search-engine snippets of the named official page and by MoneySmart where it repeats them, and none appears on a card, but the `help-debt-timing` copy proposal and the `receipts-as-you-go` card lean on them:
+**Update, same day.** The ATO 403s were a user-agent block, not a real one. Fetched with an ordinary browser user-agent, the pages return in full, and the key figures are now verified at source: the super guarantee rate, the marginal HELP repayment calculation, the backdated indexation change, the $300 written-evidence threshold and the five-year retention rule. Two figures were wrong in the ledger and are corrected there: lost and ATO-held super is $21.2 billion across just under 7.5 million accounts at 30 June 2026, and the HELP repayment threshold for the current 2026-27 year is $69,528, not the $67,000 that applied in 2025-26. Neither appears on a card, which is the design working as intended. The `help-debt-timing` copy update is unblocked. Details, including which pages still render client-side and yield nothing, are in `ATO-VERIFIED.md`.
+
+The list below is what the round originally flagged. The figures were corroborated by search-engine snippets of the named official page and by MoneySmart where it repeats them, and none appears on a card:
 
 - Super guarantee 12% from 1 July 2025 (ATO super-guarantee page).
 - Concessional cap $30,000 for 2025-26, $32,500 for 2026-27 (the latter is on MoneySmart, opened); non-concessional $120,000 / $130,000 with bring-forward.

@@ -86,10 +86,21 @@ that works, in order:
    six days before the money round; the check is not optional.
 
 Government and regulator pages: MoneySmart, RBA, APRA, ASIC, ABS, PC,
-Grattan all open. **ato.gov.au, studyassist.gov.au, education.gov.au,
-servicesaustralia.gov.au, afca.org.au and the Melbourne Institute return
-403 or time out**; rows that rest on them are marked UNVERIFIED and need a
-human click-through.
+Grattan all open.
+
+**ato.gov.au 403s are a user-agent block, not a real one.** The money
+round flagged a dozen rows UNVERIFIED on the strength of those 403s. The
+same URLs return the full page to a request carrying an ordinary browser
+user-agent and an Australian language header, which `harvest.js fetch`
+sets. Re-verified figures are in `../money/ATO-VERIFIED.md`, and two of
+them had gone stale in the meantime. Treat a 403 as a header problem
+first and a real block second.
+
+Some ATO pages still render client-side and return a near-empty document
+to any fetcher; use MoneySmart for those. afca.org.au and the Melbourne
+Institute 403 for real. studyassist.gov.au, education.gov.au and
+servicesaustralia.gov.au time out rather than 403, which is a different
+problem and unsolved.
 
 ## Books, free and legitimate
 
