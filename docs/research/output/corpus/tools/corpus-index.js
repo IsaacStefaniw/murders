@@ -39,20 +39,22 @@ const UA =
 // Keys match the app's Pillar type. Written against episode TITLES, which
 // is all a sitemap gives; see the caveat about guest-titled shows below.
 const PILLARS = {
-  sleep: /sleep|insomnia|circadian|\bnap\b|jet.?lag|shift.?work|fatigue|dream|melatonin|rest\b|tired|snor|apnea/i,
+  // Word boundaries matter more than they look: an unbounded "rest" eats
+  // "interest", an unbounded "anger" eats "dangerous" and "manager".
+  sleep: /sleep|insomnia|circadian|\bnap\b|jet.?lag|shift.?work|fatigue|dream|melatonin|\brest\b|tired|snor|apnea/i,
   longevity:
     /longevity|aging|ageing|lifespan|healthspan|blue zone|centenarian|mortality|sauna|cold plunge|cold exposure|heat therapy|autophagy|senescen|biological age/i,
   training:
     /strength|muscle|hypertroph|cardio|zone 2|vo2|exercise|training|lifting|weight|running|endurance|mobility|athlet|fitness|workout|performance|injur/i,
   nutrition:
     /protein|\bdiet\b|nutrition|fasting|carb|fat loss|creatine|omega|vitamin|\bgut\b|microbiome|alcohol|caffeine|sugar|eating|food|supplement|metabolic|obesity|weight loss/i,
-  mind: /meditat|mindful|anxiety|depress|stress|therapy|\bcbt\b|self.?compassion|psychedelic|dopamine|trauma|mental health|emotion|happiness|purpose|meaning|fear|anger|grief|resilien|nervous system|breath/i,
+  mind: /meditat|mindful|anxiety|depress|stress|therapy|\bcbt\b|self.?compassion|psychedelic|dopamine|trauma|mental health|emotion|happiness|purpose|meaning|\bfear|\banger\b|grief|resilien|nervous system|breath/i,
   wealth: /money|saving|invest|debt|finance|wealth|retire|budget|frugal|income|rich\b|financial/i,
   leadership:
     /productiv|deep work|\bfocus\b|burnout|leadership|management|meeting|career|negotiat|entrepreneur|work.?life|business|team|hiring|decision/i,
   connection:
     /relationship|marriage|\blove\b|dating|\bsex\b|parenting|family|friendship|lonel|communicat|conflict|attachment|divorce|intimacy|social/i,
-  skill: /learning|memory|skill|practice|mastery|language|creativ|expert|talent|habit|discipline|motivation|goal|procrastinat|attention/i,
+  skill: /learning|memory|skill|practice|mastery|language|creativ|expert|talent|habit|discipline|motivation|\bgoal|procrastinat|attention/i,
 };
 
 // Roster names, for shows that title episodes by guest (JRE, Lex, Ferriss)

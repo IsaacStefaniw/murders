@@ -36,19 +36,19 @@ internal to a round and invisible afterwards.
 
 Built once, cross-field, by `tools/corpus-index.js`:
 
-**848 episodes routed to at least one pillar** from the transcript
+**836 episodes routed to at least one pillar** from the transcript
 aggregator, 61 of them featuring a roster name.
 
 | Pillar | Episodes |
 |---|---|
-| mind | 242 |
 | skill | 233 |
+| mind | 225 |
 | connection | 183 |
 | nutrition | 91 |
 | wealth | 72 |
 | leadership | 69 |
 | training | 57 |
-| sleep | 55 |
+| sleep | 53 |
 | longevity | 32 |
 
 Plus, from the shows that publish their own archives: 850+ full Tim
@@ -59,9 +59,9 @@ carries 97 linked papers).
 Two things fall straight out of that table.
 
 **The podcast corpus is richest exactly where the library is weakest on
-sourcing and thinnest where it is strongest.** Mind, skill and connection
-have 658 episodes between them and have never been researched. Sleep and
-longevity, the two pillars already done, have 87.
+sourcing and thinnest where it is strongest.** Skill, mind and connection
+have 641 episodes between them and have never been researched. Sleep and
+longevity, the two pillars already done, have 85.
 
 **Guest-titled shows are undercounted.** Rogan, Lex and Ferriss name
 episodes after the guest, so no topic word appears in the slug. Those
@@ -88,13 +88,21 @@ on the same practice, and are they citing each other or the same single
 study. **Convergence sets the order of work. It never sets a grade and it
 is never evidence.**
 
-**One honest caveat on podcast-first.** Podcast attention is not evidence
-weight, and the correlation is weaker than it looks. Sabine Sonnentag's
-psychological-detachment work is the best-evidenced thing in the entire
-work pillar and has zero podcast presence. Maslach, Amabile, Edmondson
-and Milkman are similar. A pure podcast-first funnel would systematically
-miss the quiet, well-evidenced material and over-weight whatever is
-currently sellable.
+**One honest caveat on podcast-first, now measured rather than asserted.**
+Podcast attention is not evidence weight, and the gap is larger than it
+looks. The Work round's transcript pass searched the whole aggregator
+index *and* the entire Tim Ferriss archive for the four best-evidenced
+researchers in that pillar — Sonnentag, Maslach, Amabile, Edmondson — and
+found **zero episodes between them**. Gloria Mark appeared once, as a
+guest on Freakonomics. Meanwhile the query "burnout" returned twenty
+episodes, **none of them by a burnout researcher**.
+
+A pure podcast-first funnel would therefore have missed psychological
+detachment, the progress principle, psychological safety and the
+individual-versus-organisational burnout finding, while faithfully
+capturing twenty episodes of people talking about burnout without the
+evidence. It would systematically over-weight whatever is currently
+sellable.
 
 So Gate 1 has two inlets, and podcast-first governs priority rather than
 eligibility:
@@ -106,7 +114,9 @@ eligibility:
 
 Anything arriving through inlet 2 gets a card with an honest empty or
 researcher-only attribution, which is exactly what the credit rules
-already allow.
+already allow. The Work round's strongest new candidate, the drive home
+after a night shift, has nobody in the corpus covering it and will ship
+with an empty attribution. That is the system working, not failing.
 
 ### Gate 2 — Literature. Verification and grading.
 
