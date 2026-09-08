@@ -152,13 +152,38 @@ Likely candidates: *NSDR*, *yoga nidra*, *diaphragm*, *sacrum*, *supine*,
 
 ## Service choice
 
-Yours to make. Judge candidates on: how good the slow, quiet register
-sounds (many voices are tuned for narration and get eerie when slowed),
-SSML pause control, pronunciation override support, and the **licence for
-commercial use in a paid app** — which is not optional and should be
-confirmed in writing before you generate 175 sessions.
+Isaac asked whether ChatGPT can do this. The split:
 
-Record what you chose and why, and keep the licence terms with the files.
+**Scripts** — ChatGPT or Claude, either. It is a writing job.
+
+**Audio** — not the ChatGPT app. Voice mode is a live conversation, not a
+file exporter, and there is no practical way to get 175 clips out of it.
+Use a text-to-speech API.
+
+**The OpenAI TTS API can do it.** Preset voices, real audio files, and the
+newer models take a style instruction, which is genuinely useful here. Its
+weak point is SSML: you cannot place a precise three-second pause. That
+would normally be disqualifying for meditation — except **the cue-clip
+architecture above already removes the need**, because the app owns every
+gap between lines. You only need pauses *within* a line, at the commas.
+
+**ElevenLabs is the stronger choice on voice quality** in the slow, quiet
+register, which is the hard part — most voices are tuned for narration and
+go eerie when slowed. Better warmth, better control, commercial licensing
+sorted in the voice library.
+
+**Google Cloud TTS or Azure Speech** are the pragmatic alternatives: full
+SSML with precise breaks, explicit calm speaking styles, very cheap, and
+unambiguous commercial terms.
+
+**Cost should not decide this.** The library is roughly 100,000 characters
+of actual speech per voice — about 400,000 across four. On any of these
+that is tens of dollars, not hundreds. Choose on how it sounds.
+
+Whatever you pick: confirm the **licence for commercial use in a paid app**
+in writing before generating 175 sessions, record what you chose and why,
+and keep the licence terms with the files. Verify current pricing yourself;
+it moves.
 
 ## Two things to check with Isaac before you start
 
