@@ -1,256 +1,297 @@
-# Recovery round — findings
+# Recovery round — findings (revised after review)
 
-Written 2026-09-08 against `docs/research/BRIEF-recovery.md` and the shared
-contract in `docs/research/README.md`. Twenty-five candidate protocols are in
-`protocols.ts` beside this file; every one has a row in `sources.md` with a
-resolvable DOI or PMID and the grade reasoning. Nothing here reaches a phone
-until Isaac has read it.
+Written 2026-09-08 against `docs/research/BRIEF-recovery.md`, then revised
+the same day against `REVIEW.md` and the rewritten `docs/research/README.md`.
+Twenty-two candidate protocols are in `protocols.ts` beside this file, each
+with a row in `sources.md`. Three more are held back and described below.
+Nothing here reaches a phone until Isaac has read it.
 
-How the sources were checked. About 190 papers were opened at a publisher
-page, PMC full text, or the Europe PMC / NCBI record for the same PMID
-(PubMed's own HTML refuses non-cookie fetches, so the mirror of the record
-was used). Title, first author, year, journal, design and sample size were
-read from the record, not from a podcast or a secondary article. Items that
-could not be opened are marked "unverified" in the ledgers and were not
-built on. Retraction Watch (via Crossref's embedded data and site search)
-and Europe PMC's retraction filters were run on every load-bearing author
-and paper; PubPeer returned 403 to every automated query and could not be
-checked directly. That gap is recorded rather than papered over.
+## What was checked, and how
 
-Grade spread of the 25 candidates: A 3 · B 12 · C 7 · D 2 · E 1 (sleep 15, longevity 7, training 3). Strong
-evidence is 60% of this round on its own, which is higher than the library's
-40%; the reason is that the round's biggest gaps (shift-work light, the cold
-interference effect, the CBT-I signpost, the sleep-debt trials) happen to
-sit on randomised evidence, while the sauna block that the audience most
-wants stays at C throughout. The reviewer should feel free to move any of
-the B grades down; none of them should move up.
+**About 190 papers were opened and read at the record level**: the
+publisher page, the PMC full text, or the Europe PMC / NCBI record for the
+same PMID. For each, the title, first author, year, journal, design and
+sample size were read from the record itself, never from a podcast, a
+retailer's blog or a secondary article. The five per-topic ledgers in
+`ledgers/` hold all of them, including the studies that argue against the
+cards. Items that could not be opened are marked unverified there and were
+not built on. Retraction Watch (through Crossref's embedded data and site
+search) and Europe PMC's retraction filters were run on every load-bearing
+author and paper: no retractions or expressions of concern on any source
+used. PubPeer returned 403 to every automated query and could not be
+checked; that gap is recorded rather than papered over.
+
+Podcasts were used for what the contract says they are for: *The Drive*,
+*Huberman Lab* and *FoundMyFitness* pointed at the sauna, cold, sleep and
+longevity literatures quickly, and the papers were then opened. Every
+`attribution` names people who have genuinely covered the practice in
+public; the round leans on Andrew Huberman (16 cards), Peter Attia (10),
+Rhonda Patrick (8) and Andy Galpin (4), with the researchers whose work the
+card rests on beside them where a listener would know the name.
+
+## Changes made after review
+
+1. **The "corrections to the brief" section is gone.** The five citations
+   it listed were wrong in the search prompts this round wrote for itself,
+   not in the brief, which names researchers and journals and no papers.
+   The corrections are still worth having and now sit at the end of this
+   file under "Citations that circulate wrongly", with no source document
+   invented for them.
+2. **Conditional practices on unconditional schedules.** Three cards were
+   event-driven in their copy and recurring in the scheduler:
+   `cbt-i-signpost` (worst: "book a GP about insomnia" every Monday for
+   everyone), `sleep-bank-ahead` and `debt-repay-over-nights`. They are
+   held out of `protocols.ts` pending a `condition` field, with their
+   content folded into the weekly `sleep-opportunity-tally` card, which is
+   true every week: count the hours, count the broken nights, and the copy
+   says what to do when either is short. Two more were rewritten as things
+   that recur: `sleep-need-calibration` ("once a year on holiday") is now
+   "on any alarm-free morning, note the length", checked on Sundays;
+   `cold-for-tomorrow` ("after a competition") is now "after the week's
+   hardest session", which for most people is a Saturday. A proposed shape
+   for the field is at the end of this file.
+3. **Four grades moved down**, none up: `cold-for-tomorrow` A→B (the
+   Cochrane inputs are low quality and unblinded), and `sauna-rehydrate`,
+   `sleep-opportunity-tally` and `caffeine-on-nights` B→C, in each case
+   because the practice on the card is an untested inference from a
+   well-measured fact. Spread is now A 1 · B 9 · C 9 · D 2 · E 1, which is
+   45% A and B against the library's 40%.
+4. **Every summary and why re-voiced** for the person about to do it:
+   the smallest version that still works is named, the copy says what they
+   get, nothing on a card undermines the practice it describes, and the
+   `sauna-then-cold` E-grade card now says plainly that some of the effect
+   is the ritual and the ritual works. Grades did not move for warmth.
 
 ## 1. What changed in this area's evidence since the library was written
 
 - **Sauna: the trial evidence has arrived and it is modest.** The library's
-  `sauna` card rests on the Finnish KIHD cohort, which is still the only
-  cohort. What is new is the controlled work testing the mechanism at the
-  same dose: a 41-person randomised trial of Finnish sauna four times a week
-  at 79 °C in coronary patients (Debray 2023) found no change in vessel
-  function, stiffness or blood pressure, and the first meta-analysis of
+  `sauna` card rests on the Finnish KIHD cohort, still the only cohort.
+  New since then: a 41-person randomised trial of Finnish sauna four times a
+  week at 79 °C in coronary patients (Debray 2023) found no change in
+  vessel function, stiffness or blood pressure; the first meta-analysis of
   passive-heating RCTs (Hamaya 2025, 20 trials) found a pooled systolic
-  reduction of 2.5 mmHg that did not reach significance, with nothing on
-  vessel function, glucose or lipids. The one positive trial (Lee 2022,
-  n=47) added sauna to exercise and had no sauna-only arm. The 2025 HRV
-  analysis of that trial was null. None of this contradicts the cohort; it
-  bounds it.
+  fall of 2.5 mmHg that did not reach significance and nothing on vessel
+  function, glucose or lipids; the one positive trial (Lee 2022, n=47)
+  added sauna to exercise with no sauna-only arm, and its HRV analysis was
+  null. None of this contradicts the cohort; it bounds it.
 - **Cold after lifting: settled in direction, small in size.** Four pooled
-  analyses through 2026 (Malta 2021, Grgic 2023, Piñero 2024, Yu 2026) agree
-  that cold immersion after resistance training blunts hypertrophy and
-  strength gains; the size is small to moderate and the credible interval
-  on hypertrophy crosses zero. Endurance adaptation is unaffected (Broatch
-  2017). This is now A-grade for the interference and belongs in protocol
-  copy, which it has been given.
-- **Alcohol and sleep has a real meta-analysis now.** The paper everyone
-  cites, Ebrahim 2013, is a narrative review with a published methodological
-  critique (Pressman 2015). Gardiner 2025 (27 polysomnography studies) gives
-  the numbers: REM disruption from about two standard drinks, faster sleep
-  onset only from about five. See the `alcohol-cutoff` regrade.
-- **Consumer wearables have six independent PSG validations, 2019 to 2025,
-  that agree.** Sleep detected well; wake inside the night missed about half
-  the time; stage agreement fair to moderate (kappa 0.20 to 0.65). Apple's
-  own whitepaper could not be read (PDF over the fetch limit) and is not
-  cited.
+  analyses through 2026 agree that cold immersion after resistance training
+  blunts hypertrophy and strength gains; endurance adaptation is unaffected
+  (Broatch 2017). Now in protocol copy.
+- **Alcohol and sleep has a real meta-analysis.** Ebrahim 2013, the paper
+  everyone cites, is a narrative review with a published critique
+  (Pressman 2015). Gardiner 2025 (27 polysomnography studies) gives the
+  numbers: REM disruption from about two drinks, faster onset only from
+  about five. See the `alcohol-cutoff` regrade.
+- **Consumer wearables have six independent PSG validations, 2019 to
+  2025, that agree.** Sleep detected well; wake inside the night missed
+  about half the time; stage agreement fair to moderate.
 - **HRV and the app's data path, confirmed.** Apple Health stores HRV as
-  SDNN (`HKQuantityTypeIdentifierHeartRateVariabilitySDNN`, verified on the
-  developer documentation). Oura and Whoop compute rMSSD (Whoop: API field
-  `hrv_rmssd_milli`; Oura: named by an independent validation, not by its
-  own page). Oura's Apple Health integration page (updated 19 Aug 2026)
-  lists what it writes and HRV is absent; Whoop's page returned an error
-  shell on every attempt and the secondary sources (Terra 2022, Whoop staff
-  Aug 2025) say the same, with the stated reason that the statistics differ.
-  So the brief's suspicion is right: **neither writes HRV into Apple
-  Health**, and readiness leaning on sleep and resting heart rate is the
-  honest state of things. Any HRV in Health on an Oura or Whoop user's phone
-  is Apple Watch SDNN and is not comparable to the ring's number. The
-  app's copy should not imply otherwise.
-- **HRV at the individual level.** Two meta-analyses of HRV-guided training
-  (Düking 2021; Manresa-Rocamora 2021) find no significant pooled
-  performance advantage over a fixed plan; a meta-analysis of athlete studies
-  (Bellenger 2016) finds resting rMSSD rises slightly in both good adaptation
-  and overreaching. A very large app cohort (Altini & Plews 2021, 28,175
-  people) finds the biggest movers of nightly HRV are alcohol (about −12%)
-  and illness (about −10%), not training. The library's `hrv-trend-check`
-  already says most of this; it is now checkable.
-- **The Why We Sleep problem is documented in the primary literature.**
-  Two of the book's central claims were checked against the papers: the
-  cancer claim is false as stated (Chen 2018, 65 studies, odds ratio 1.01
-  for short sleep), and "the shorter you sleep, the shorter your life" is
-  false as a monotonic claim (three meta-analyses agree on a U-shape with
-  six hours indistinguishable from seven). The author's own 2019 reply
-  concedes the WHO misattribution and the non-causal reading. No card in
-  this round attributes anything to that book.
+  SDNN (verified on the developer documentation); Oura and Whoop compute
+  rMSSD (Whoop's API field `hrv_rmssd_milli`; Oura named by an independent
+  validation). Oura's Apple Health page (updated 19 Aug 2026) lists what it
+  writes and HRV is absent; Whoop's page could not be opened and the
+  secondary sources say the same, giving the differing statistics as the
+  reason. **Neither writes HRV into Apple Health.** Readiness leaning on
+  sleep and resting heart rate is the honest state, and the app's copy
+  should not imply more.
+- **HRV-guided training** shows no significant pooled performance advantage
+  over a fixed plan (Düking 2021; Manresa-Rocamora 2021); resting rMSSD
+  rises slightly in both good adaptation and overreaching (Bellenger 2016);
+  in 28,175 app users the biggest movers of nightly HRV are alcohol (about
+  −12%) and illness (about −10%), not training (Altini & Plews 2021).
+- **Two central claims from *Why We Sleep* fail against the papers**: the
+  cancer claim (Chen 2018, 65 studies, odds ratio 1.01 for short sleep) and
+  the monotonic "shorter sleep, shorter life" (three meta-analyses agree on
+  a U-shape with six hours indistinguishable from seven). No card here
+  attributes anything to that book, and the round added no Walker credits.
 - **Longevity compounds have not moved.** Rapamycin's only 48-week RCT
   (PEARL 2025) missed its primary endpoint; TAME has not reported; NMN/NR
-  have surrogate trials and two 2025 meta-analyses that disagree on muscle
-  function; resveratrol's best RCT and cohort are null. The exclusion
-  stands and no protocol was written.
+  have surrogate trials and two 2025 meta-analyses that disagree;
+  resveratrol's best RCT and cohort are null. The exclusion holds.
 
-## 2. Overclaims found
+## 2. What is genuinely well supported
 
-Each of these is a popularised claim, the paper it traces to, and the gap.
-The first three belong in protocol copy and have been written in.
+The practices this round would put in front of somebody tomorrow.
+
+- **Bright light on nights, dark glasses home, a fixed dark day sleep.**
+  Randomised in the laboratory (Crowley 2003, n=67), replicated in real
+  nurses and police by an independent group (Boivin 2002, 2012). It moves
+  the clock nine to eleven hours against four or five without it. Three
+  cards: `night-shift-light`, `dark-glasses-home`, `night-anchor-sleep`.
+- **The evening nap before the first night, and one short nap at the low
+  point.** Schweitzer 2006 (laboratory 68, field 53); Zion 2019 (109
+  nurses); Martin-Gill 2018 (13 studies pooled). The shift-work
+  countermeasures with the best evidence the Cochrane reviewers could find.
+- **Not driving home after nights.** Lee 2016: near-crashes in 6 of 16
+  post-shift drives on a closed track, none after sleep.
+- **Cold water kept away from lifting, and used after the hardest session
+  of the week.** The interference effect is the best-established finding in
+  the cold literature; the soreness and next-day-power effect is the second.
+  Together they tell someone exactly when to plunge.
+- **The strength floor.** Two independent meta-analyses of cohorts (Momma
+  2022; Shailendra 2022): any muscle-strengthening activity is associated
+  with 10–27% lower mortality, with the association strongest at 30–60
+  minutes a week. The kindest shape in the round.
+- **Reading the tracker for timing and totals, not stages.** Six PSG
+  validations agree, and it lets people keep enjoying the device.
+- **Heat finishing well before bed, and drinking back what it took.**
+  Borrowed from the warm-bath meta-analysis and a 674-person measurement;
+  both C on the card because the sauna-specific step is inferred, both
+  worth doing tonight.
+- **CBT-I for chronic insomnia**, held as a card but carried in the ledger
+  copy: the strongest recommendation in the 2021 AASM guideline, 87 RCTs
+  pooled, a 1,711-person digital trial. An app cannot deliver it; it can
+  tell someone when it is time.
+
+## 3. Where the popular version overstates the paper
+
+Recorded plainly and without scorn. The first three are in protocol copy.
 
 | Claim | Paper | What it actually found | Gap |
 |---|---|---|---|
-| "Sauna four times a week cuts all-cause mortality by 40%" | Laukkanen 2015 JAMA Intern Med | HR 0.60 (0.46–0.80) for 4–7×/week vs once, in 2,315 Finnish men measured once by questionnaire; the 4–7×/week group was 201 men with 62 deaths; session length was not associated with all-cause mortality | An adjusted hazard ratio in one never-replicated cohort is not a cut; two letters in the same journal argued the size is implausible for a causal effect, and the authors agreed causation is unproven |
-| "Sauna is a cardio workout" | Ketelhut 2019 (n=19); Hussain 2022 (n=10); Kunutsor 2018 | Heart rate and pressure during sauna resemble 60–100 W cycling because of heat, not muscular work; infrared produced no exercise-like response; fitness dominated sauna in the joint cohort analysis (HR 0.51 vs 0.74) | No oxygen-uptake, energy-expenditure or muscle adaptation equivalence has ever been shown |
-| "Sauna improves deep sleep by 70%" | Unindexed 1976 report of 5 athletes (unverified); Haghayegh 2019 | No sauna trial with sleep as an outcome exists; the meta-analysis is warm baths at 40–42 °C one to two hours before bed | The sauna-specific claim is E; the library's `sauna` card currently says sauna "reliably helps … sleep" and should not |
-| "Infrared has the same evidence as Finnish sauna" | Hussain & Cohen 2018; Beever 2009 | 25 of 40 dry-sauna studies are infrared, mostly small clinical heart-failure series; the review says it cannot distinguish the modalities | Every mortality, dementia, stroke and hypertension association is Finnish-sauna KIHD data. Two "infrared meta-analyses" quoted on retailer sites (a 2024 Eur J Prev Cardiol 17-study analysis; a 2023 JACC 89-patient RCT) could not be found in any journal and should be treated as fabricated until someone produces a DOI. This matters for Steam Saunas' own copy. |
-| "Sauna detoxes heavy metals" | Genuis 2011 (n=20) | Metals are detectable in sweat | Detectability is not body-burden reduction; no study measured a fall in total burden |
-| "Cold plunges boost dopamine 250% for hours" | Šrámek 2000 (about 10 men) | One hour of head-out immersion at 14 °C raised plasma noradrenaline 530% and dopamine 250%, measured during the immersion | Sixty minutes, not three; no post-immersion time course; plasma is not brain. The library's `cold-finish` card says "for hours" and should not |
-| "Cold water burns fat / activates brown fat for weight loss" | Yoneshiro 2013 (n=12); van der Lans 2013 (n=17) | 0.7 kg of fat after six weeks of two hours a day at 17 °C air; brown-fat recruitment with no body-composition change | No immersion trial has measured fat loss; the acute energy burn is during the immersion |
-| "Cold showers cut sick days by a third" | Buijze 2016 (n=3,018) | Self-reported sickness absence fell 29%; days ill did not change; 30 seconds performed the same as 90 | People were ill just as often; they went to work anyway. One trial, unblinded, self-report |
-| "Cold plunges boost immunity" | Kox 2014; Zwaag 2022; Cain 2025 | The famous RCT combined breathing, meditation and cold; the dismantling study found cold alone did little and breathing drove the effect; the pooled immune effect is null and acute inflammation rises | No trial shows fewer infections |
-| "Ice baths reduce muscle inflammation" | Peake 2017 (n=9) | Intramuscular inflammatory cells and cytokines after lifting did not differ between cold and active recovery | The mechanism most often cited is not supported by the direct biopsy study |
-| "You can catch up on the weekend" | Depner 2019 (n=36); Banks 2010 (n=159); Belenky 2003 (n=66) | Weekend recovery clawed back about an hour and did not prevent a 9–27% fall in insulin sensitivity; one 10-hour night and three 8-hour nights left performance below baseline | True for felt alertness and for the mortality association (Åkerstedt 2019); false for metabolic and performance recovery |
-| "Less than seven hours doubles your cancer risk" | Chen 2018 (65 studies, 1.55M people) | Short sleep OR 1.01; long sleep OR 1.02 | The real WHO/IARC finding concerns night-shift work with circadian disruption, a different exposure |
+| "Sauna four times a week cuts all-cause mortality by 40%" | Laukkanen 2015 JAMA Intern Med | HR 0.60 (0.46–0.80) for 4–7×/week vs once, in 2,315 Finnish men measured once by questionnaire; the 4–7×/week group was 201 men with 62 deaths; session length was not associated with all-cause mortality | An adjusted hazard ratio in one never-replicated cohort is an association; two letters in the same journal argued the size is implausible for a causal effect and the authors agreed causation is unproven |
+| "Sauna is a cardio workout" | Ketelhut 2019 (n=19); Hussain 2022 (n=10); Kunutsor 2018 | Heart rate and pressure during sauna resemble 60–100 W cycling because of heat, not muscular work; infrared produced no exercise-like response; fitness dominated sauna in the joint analysis (HR 0.51 vs 0.74) | No oxygen-uptake, energy or muscle-adaptation equivalence has been shown; the sauna is an addition to exercise, and a good one |
+| "Sauna improves deep sleep by 70%" | An unindexed 1976 report of 5 athletes (unverified); Haghayegh 2019 | No sauna trial with sleep as an outcome exists; the meta-analysis is warm baths at 40–42 °C one to two hours before bed | The sauna-specific claim is E; the library's `sauna` card says sauna "reliably helps … sleep" and should not |
+| "Infrared has the same evidence as Finnish sauna" | Hussain & Cohen 2018; Beever 2009 | 25 of 40 dry-sauna studies are infrared, mostly small clinical series; the review cannot distinguish the modalities | Every long-run association is Finnish-sauna KIHD data. Two "infrared meta-analyses" quoted on retailer sites (a 2024 Eur J Prev Cardiol 17-study analysis; a 2023 JACC 89-patient RCT) could not be found in any journal and should be treated as fabricated until someone produces a DOI. This bears on Steam Saunas' own copy. |
+| "Sauna detoxes heavy metals" | Genuis 2011 (n=20) | Metals are detectable in sweat | Detectability is not body-burden reduction |
+| "Cold plunges boost dopamine 250% for hours" | Šrámek 2000 (about 10 men) | One hour at 14 °C raised plasma noradrenaline 530% and dopamine 250%, measured during the immersion | Sixty minutes, not three; no post-immersion time course; plasma is not brain. The library's `cold-finish` card says "for hours" and should not |
+| "Cold water burns fat" | Yoneshiro 2013 (n=12); van der Lans 2013 (n=17) | 0.7 kg of fat after six weeks of two hours a day at 17 °C air; brown fat recruited with no body-composition change | No immersion trial has measured fat loss |
+| "Cold showers cut sick days by a third" | Buijze 2016 (n=3,018) | Self-reported sickness absence fell 29%; days ill did not change; 30 seconds performed the same as 90 | People were ill just as often; they went to work anyway. Thirty seconds is the evidence-based length |
+| "Cold plunges boost immunity" | Kox 2014; Zwaag 2022; Cain 2025 | The famous RCT combined breathing, meditation and cold; the dismantling study found breathing drove the effect; the pooled immune effect is null | No trial shows fewer infections |
+| "Ice baths reduce muscle inflammation" | Peake 2017 (n=9) | Intramuscular inflammatory markers after lifting did not differ between cold and active recovery | The commonest stated mechanism is not supported by the direct biopsy study |
+| "You can catch up on the weekend" | Depner 2019 (n=36); Banks 2010 (n=159); Belenky 2003 (n=66) | A weekend recovered about an hour and did not prevent a 9–27% fall in insulin sensitivity; one 10-hour night and three 8-hour nights left performance below baseline | True for felt alertness and for the mortality association (Åkerstedt 2019); the repayment is several earlier nights |
+| "Less than seven hours doubles your cancer risk" | Chen 2018 (65 studies, 1.55M people) | Short sleep OR 1.01; long sleep OR 1.02 | The WHO/IARC finding concerns night-shift work, a different exposure |
 | "Eight hours is the number" | Hirshkowitz 2015; Watson 2015; Kitamura 2016 | Consensus is 7–9 hours and "7 or more"; individual need in one laboratory ranged 7.3–9.3 hours | No consensus body ever said eight |
-| "A nightcap helps you sleep" | Gardiner 2025 (27 studies); Landolt 1996 (n=10) | Sleep onset shortens only at about five drinks; REM is disrupted from about two; a moderate amount taken six hours before bed, fully cleared by lights-out, still doubled second-half wakefulness | It helps you fall asleep only at amounts that damage the rest of the night, and clearing it by bedtime does not remove the effect |
-| "Your watch measures deep sleep" | Robbins 2024; Schyvens 2025; Miller 2022; Lee 2023; Chinoy 2021 | Stage kappa 0.20–0.65; deep-sleep epoch hit rate about 50% for Apple Watch S8; wake specificity 18–54% | No consumer device records brain activity; stages are inferred from movement and heart rate |
-| "A low HRV means you are overtrained" | Bellenger 2016 (27 studies); Altini & Plews 2021 (28,175 people) | Resting rMSSD rises slightly in both adaptation and overreaching; alcohol and illness move nightly HRV far more than training | A low reading is a prompt to check sleep, alcohol and illness, not a diagnosis |
-| "Wearables detect illness days early" | Miller 2020 (Whoop, n=271); Mason 2022 (Oura, 73 cases in 63,153) | Whoop flagged 20% of positives two days before symptoms and 34% of symptomatic negatives; Oura sensitivity 82%, specificity 63%, no positive predictive value reported | At 63% specificity roughly one healthy night in three would alert; at a 0.1%/day infection rate the arithmetic predictive value of an alert is about 0.2% (my arithmetic on their numbers) |
-| "Shift workers adapt to nights" | Folkard 2008 | Under 3% of permanent night workers show complete circadian adjustment; under 25% a useful partial one | Engineered partial adaptation is achievable with light, glasses and a fixed dark day sleep; spontaneous adaptation is not |
-| "Light in the morning cures jet lag" | Khalsa 2003; Bin 2019 | The direction rules are sound physiology; nine of thirteen field studies of non-drug interventions were negative | The direction is right; the benefit on a real trip is unproven |
-| "VO2 max is the single best predictor of longevity" | Mandsager 2018 (122,007); Kokkinos 2022 (750,302) | One of the strongest predictors in referred clinical samples using treadmill-estimated METs | "Single best" has never been tested head-to-head; it is a marker that also absorbs subclinical disease |
-| "Sitting is the new smoking" | Vallance 2018 | Sedentary behaviour HR 1.22 vs smoking RR 2.8 (heavy smokers 4.1–4.4); 190 vs over 2,000 excess deaths per 100,000 per year | About an order of magnitude apart, and sitting's association is largely offset by 30–40 min a day of moderate activity (Ekelund 2020); smoking's is not |
-| "Older adults need double the protein" | Bauer 2013; Deutz 2014; Nunes 2022 | 1.0–1.2 g/kg for healthy older adults, 25–50% above the general guideline, by consensus | "Double" is the plateau from young trained lifters in Morton 2018, not an older-adult requirement |
-| "Walk 10,000 steps" | Paluch 2022 (15 cohorts, 47,471) | The curve flattens at 6,000–8,000 (over 60) and 8,000–10,000 (under 60) | Not harmful, simply not where the curve turns; the library's `step-floor` already has this right |
+| "A nightcap helps you sleep" | Gardiner 2025 (27 studies); Landolt 1996 (n=10) | Sleep onset shortens only at about five drinks; REM is disrupted from about two; a moderate amount six hours before bed, fully cleared, still doubled second-half wakefulness | Fewer drinks matters more than earlier drinks |
+| "Your watch measures deep sleep" | Robbins 2024; Schyvens 2025; Miller 2022; Lee 2023; Chinoy 2021 | Stage kappa 0.20–0.65; deep-sleep epoch hit rate about 50% for Apple Watch S8; wake specificity 18–54% | Stages are inferred from movement and heart rate; timing and totals are what the device gets right |
+| "A low HRV means you are overtrained" | Bellenger 2016; Altini & Plews 2021 | Resting rMSSD rises slightly in both adaptation and overreaching; alcohol and illness move nightly HRV far more than training | A low reading is a prompt to check sleep, alcohol and illness |
+| "Wearables detect illness days early" | Miller 2020 (Whoop, n=271); Mason 2022 (Oura, 73 cases) | Whoop flagged 20% of positives two days early and 34% of symptomatic negatives; Oura sensitivity 82%, specificity 63%, no predictive value reported | At 63% specificity about one healthy night in three would alert; the arithmetic predictive value of an alert at a 0.1%/day infection rate is about 0.2% (my arithmetic on their numbers) |
+| "Shift workers adapt to nights" | Folkard 2008 | Under 3% of permanent night workers show complete adjustment | Engineered partial adaptation with light, glasses and a fixed day sleep is achievable; spontaneous adaptation is not |
+| "Light in the morning cures jet lag" | Khalsa 2003; Bin 2019 | Sound physiology; nine of thirteen field studies negative | The direction is right; the size of the benefit on a real trip is unknown |
+| "VO2 max is the single best predictor of longevity" | Mandsager 2018; Kokkinos 2022 | One of the strongest predictors in referred clinical samples | "Single best" has never been tested head-to-head; it is also a marker of subclinical disease |
+| "Sitting is the new smoking" | Vallance 2018 | Sedentary HR 1.22 vs smoking RR 2.8 (heavy smokers 4.1–4.4) | An order of magnitude apart, and sitting's association is largely offset by 30–40 minutes a day of moderate activity (Ekelund 2020) |
+| "Older adults need double the protein" | Bauer 2013; Deutz 2014; Nunes 2022 | 1.0–1.2 g/kg for healthy older adults, a quarter to a half above the general guideline | "Double" is the plateau from young trained lifters (Morton 2018) |
+| "Walk 10,000 steps" | Paluch 2022 (15 cohorts) | The curve flattens at 6,000–8,000 (over 60) and 8,000–10,000 (under 60) | Not harmful; not where the curve turns; `step-floor` already has this right |
 
-## 3. Contradicted practices
+## 4. Time-back findings
 
-Things people do that the evidence is against, with the citation. The first
-five have been written into protocol copy in this round.
+Things people can stop, framed as the minutes they get back. Kept to about
+a fifth of the round.
 
-1. **Ice bath after every lifting session in a muscle-building block.**
-   Roberts 2015 (J Physiol, n=21), Fyfe 2019 (n=16), Fuchs 2020 (n=12), and
-   four pooled analyses (Malta 2021; Grgic 2023; Piñero 2024; Yu 2026).
-   Written into `cold-on-non-lifting-days` and `cold-for-tomorrow`.
-2. **Sauna as a substitute for exercise.** Kunutsor 2018 (fitness HR 0.51
-   vs sauna 0.74); Hussain 2022; Hamaya 2025. Written into
-   `sauna-after-endurance` and the `sauna` regrade note.
-3. **Post-workout sauna for muscle growth.** Ahokas 2025 (n=40, null);
-   Stadnyk 2018 (n=10, null); Labidi 2021 (n=15, null). Written into
-   `sauna-recovery-low-heat`.
-4. **Sleep hygiene as the treatment for chronic insomnia.** Edinger 2021
-   (AASM: conditional against as a single component); Chung 2018 (15
-   studies); Espie 2019 (it was the losing control arm). Written into
-   `cbt-i-signpost`.
-5. **Sleeping in at the weekend to repay the week.** Depner 2019; Banks
-   2010; Belenky 2003. Written into `debt-repay-over-nights`.
-6. **Alcohol anywhere near the sauna.** Kenttämies 2008 (alcohol in half of
-   all Finnish sauna deaths, 1990–2002); Yang 2018 (79% of Korean sauna
-   deaths); Hannuksela 2001. In every heat safety line.
-7. **First-trimester heat loads.** Moretti 2005 (meta-analysis, OR 1.92 for
-   neural-tube defects with maternal hyperthermia); Milunsky 1992. In every
-   heat safety line; customary Finnish practice does not override it.
-8. **Standing desks as a cardiovascular measure.** Shrestha 2018 (Cochrane:
-   about 100 min less sitting, no health endpoint); Ahmadi 2024 (83,013,
-   thigh-worn devices: standing unrelated to major heart disease, and past
-   two hours a day associated with circulatory problems in the legs).
-   Written into `desk-day-offset`.
-9. **Two naps on a night shift.** Slanger 2016 (Cochrane: non-significant
-   increase in sleepiness, very low quality). Written into `on-shift-nap`.
-10. **A thirty-minute nap straight before safety-critical work.** Hilditch
-    2016 (impairment to at least 47 minutes; none after a 10-minute nap).
-    Written into `on-shift-nap` and `pre-nights-nap`.
-11. **Driving home after a night shift as routine.** Lee 2016 (near-crashes
-    in 6 of 16 post-shift drives, none after sleep). Written into
-    `no-drive-after-nights`.
-12. **Comparing Apple Health HRV with the ring's HRV.** SDNN vs rMSSD,
-    different sampling, and the vendors do not sync it. Written into the
-    `hrv-trend-check` note below.
-13. **Trusting deep-sleep minutes as a measurement.** Every PSG validation
-    in the wearables ledger. Written into `tracker-stages-are-estimates`.
-14. **Long daily naps (an hour or more) as routine in older adults.** Yamada
-    2015 (11 cohorts: CVD RR 1.82, mortality RR 1.27 for naps ≥60 min; none
-    under 60). Association only, and confounded by illness, but a flag for
-    something wrong with the night. Not written as a card; belongs in the
-    `nap-protocol` copy.
-15. **Chasing exactly eight hours.** No consensus body recommends it;
-    individual need varies by about two hours. Written into
-    `sleep-need-calibration`.
-16. **Trusting how sleepy you feel as the gauge.** Van Dongen 2003 (felt
-    sleepiness plateaus while performance keeps falling); Rupp 2009.
-    Written into `sleep-opportunity-tally`.
-17. **A low-protein diet in midlife to live longer (from Levine 2014).**
-    A single cohort with one day's food recall and about 21 diabetes deaths
-    behind the headline; criticised in Science; not replicated. In the
-    `protein-after-sixty-five` copy.
+1. **The ice bath after every lifting session.** Twenty cold minutes back,
+   twice a week, and better gains for it. Roberts 2015; Fyfe 2019; Fuchs
+   2020; Malta 2021; Grgic 2023; Piñero 2024; Yu 2026.
+2. **The post-workout sauna for muscle.** Keep it for the pleasure and the
+   next-day ease; stop expecting it to grow anything. Ahokas 2025 (n=40,
+   null); Stadnyk 2018; Labidi 2021.
+3. **Sleep-hygiene checklists as the fix for chronic insomnia.** AASM 2021
+   recommends against hygiene alone; Chung 2018; Espie 2019 (it was the
+   losing control arm). The time goes into asking for the programme that
+   works.
+4. **The weekend lie-in as repayment.** Depner 2019; Banks 2010; Belenky
+   2003. Two earlier nights midweek do what the lie-in promised.
+5. **The standing desk as a heart measure.** Ahmadi 2024 (83,013): standing
+   unrelated to heart disease, and past two hours a day linked to leg
+   circulation trouble. Sit, stand, whatever; walk at lunch.
+6. **The second nap on a night shift.** Slanger 2016: no extra benefit. One
+   good ten-minute one.
+7. **Chasing eight hours.** No consensus body recommends it; need varies by
+   about two hours.
+8. **Comparing the Watch's HRV with the ring's.** SDNN and rMSSD are
+   different numbers and the vendors do not sync them. Pick one and trend it.
+9. **Long daily naps as routine past sixty** (an hour or more). Yamada 2015
+   (11 cohorts): associated with higher cardiovascular risk, almost certainly
+   as a marker of a bad night; a reason to fix the night, not a card.
 
-## 4. Regrades proposed
+Alcohol near the sauna and first-trimester heat loads are contradicted
+outright (Kenttämies 2008; Yang 2018; Hannuksela 2001; Moretti 2005;
+Milunsky 1992) and sit in every heat safety line rather than here.
 
-For existing protocols. The reviewer decides; the reasoning is the point.
+## 5. Regrades proposed, and what I declined to write
+
+### Regrades, for existing protocols
 
 | Protocol | Now | Proposed | Reasoning |
 |---|---|---|---|
-| `alcohol-cutoff` | B | **C**, with the copy rewritten | The card's claim is timing: "the fix is timing rather than abstinence", "last drink at least four hours before bed". The only controlled timing study (Landolt 1996, n=10) found a moderate amount taken six hours before bed, fully metabolised by lights-out, still doubled second-half wakefulness, and the meta-analysis (Gardiner 2025) shows the effect is driven by amount, with REM disruption from about two drinks. The architecture facts in the why are right; the instruction they are attached to is not supported. Suggested summary: "Fewer drinks matters more than earlier drinks: on a night that matters, one, and stop early." Keep the deadline anchor. |
-| `stimulus-control` | A | **B** | The card says this component "has the most standalone randomised evidence" inside CBT-I. The 2021 AASM guideline gives multicomponent CBT-I a strong recommendation and stimulus control a conditional one, and the standalone meta-analytic base for sleep restriction (Maurer 2021, eight RCTs, g about 0.9) is now larger than for stimulus control. A component with a conditional recommendation is "tested and held up", not "many studies agree". The practice is unchanged and still excellent. |
-| `sauna` | C | **C**, copy edited | Keep the grade. Remove "reliably helps relaxation and sleep": there is no sauna trial with sleep as an outcome, and the 70% deep-sleep figure traces to an unindexed 1976 report of five athletes. Say instead that the cohort is one Finnish population measured once, that the headline group was 201 men, and that the randomised evidence at the same dose is modest. The `finishBeforeSleepMin: 60` should become 90 to match `heat-before-bed-gap` (the bath data say one to two hours; sauna is a larger heat load). |
-| `cold-finish` | C | **C**, copy edited | Keep the grade. Remove "spikes alertness and mood chemistry for hours": the catecholamine paper measured during a one-hour immersion with no time course. Thirty seconds is the evidence-based length (Buijze 2016: 30 s performed the same as 60 or 90), so "30–60 seconds" can become "30 seconds". Add one line on lifting days: this card sits in the training pillar and a morning cold shower before an evening session is fine, but the same person should read `cold-on-non-lifting-days` before adding a plunge. |
-| `nap-protocol` | C | **C**, copy edited | Keep the grade. "Twenty minutes or ninety" should become "ten minutes of sleep, twenty in bed": in the head-to-head laboratory comparison (Brooks & Lack 2006) ten minutes of actual sleep beat twenty, which took about 35 minutes to pay off, and thirty produced inertia. The ninety-minute option has no comparable trial support and adds a long nap that the older-adult cohort data flag; consider dropping it. Add: no naps at all while working through insomnia (both CBT-I components forbid them). |
-| `hrv-trend-check` | C | **C**, copy added | Keep the grade and the card. Add two facts the app now depends on: Apple Health holds SDNN, the ring and the strap show rMSSD, and neither Oura nor Whoop writes HRV into Health, so the number the app can read is the Watch's and is not the ring's. Add that in the largest dataset alcohol and illness move nightly HRV far more than training does. |
-| `caffeine-cutoff` | B | **B**, confirmed | Gardiner 2025 supports it: a large amount disturbed polysomnography-measured sleep even twelve hours before bed, a small one did not at four. The ten-hour rule stands; the card could add that the size of the last coffee matters as much as the hour. |
-| `step-floor` | B | **B**, confirmed | Paluch 2022 (15 device-measured cohorts) is the A-grade source for the 6,000–8,000 plateau and could replace the current citation wording. It is a meta-analysis, so a case for A exists, but round two graded the same walking literature B on purpose (`daily-walk`) and consistency matters more than one letter. |
-| `wake-anchor` | B | **B**, confirmed | Windred 2024 (60,977, accelerometry) is verified: regularity out-predicted duration for mortality and duration added nothing once regularity was in the model. |
+| `alcohol-cutoff` | B | **C**, copy rewritten | The card's instruction is timing ("the fix is timing rather than abstinence"). The only controlled timing study (Landolt 1996, n=10) found a moderate amount six hours before bed, fully cleared by lights-out, still doubled second-half wakefulness, and Gardiner 2025 shows the effect is driven by amount. The architecture facts are right; the instruction is not supported. Suggested summary: "Fewer drinks matters more than earlier drinks: on a night that matters, one, and stop early." Keep the deadline anchor. |
+| `stimulus-control` | A | **B** | The 2021 AASM guideline gives multicomponent CBT-I a strong recommendation and stimulus control a conditional one, and the standalone meta-analytic base for sleep restriction (Maurer 2021) is now larger. A component with a conditional recommendation is "tested and held up". The practice is unchanged and still excellent. |
+| `sauna` | C | **C**, copy edited | Remove "reliably helps relaxation and sleep"; say the cohort is one Finnish population measured once with the headline group at 201 men, and that the randomised evidence at the same dose is modest. `finishBeforeSleepMin` 60 → 90 to match `heat-before-bed-gap`. Written warmly: it is still the thing the audience bought, and the ritual is real. |
+| `cold-finish` | C | **C**, copy edited | Remove "for hours" (the catecholamine paper measured during a one-hour immersion, no time course); "30–60 seconds" can become "30 seconds" (Buijze 2016: equal to 60 and 90). Add one line pointing at `cold-on-non-lifting-days`. |
+| `nap-protocol` | C | **C**, copy edited | "Twenty minutes or ninety" → "ten minutes of sleep, twenty in bed" (Brooks & Lack 2006: ten beat twenty; thirty produced inertia). Consider dropping the ninety. Add: no naps while working through insomnia with a clinician. |
+| `hrv-trend-check` | C | **C**, copy added | Add that Apple Health holds SDNN, the ring and strap show rMSSD, neither vendor writes HRV into Health, and that alcohol and illness move nightly HRV more than training does. |
+| `caffeine-cutoff` | B | **B**, confirmed | Gardiner 2025 supports it; the card could add that the size of the last coffee matters as much as the hour. |
+| `step-floor` | B | **B**, confirmed | Paluch 2022 (15 device-measured cohorts) is the A-grade source for the plateau; round two graded the same walking literature B on purpose and consistency matters more than one letter. |
+| `wake-anchor` | B | **B**, confirmed | Windred 2024 (60,977, accelerometry) verified. |
 
-No upgrades are proposed. The round found nothing in the existing sleep or
-longevity cards graded below what its evidence supports.
+No upgrades proposed.
 
-## 5. What I declined to write, and why
+### Held pending a `condition` field
 
-- **Sleep restriction therapy as a card.** It is the single most effective
-  component of CBT-I (Maurer 2021) and it is also the one with a documented
-  cost: reaction time slowed by about 53 ms in the first two weeks in the
-  same group's acute study, and the protocol's contraindications (bipolar
-  disorder, epilepsy, untreated sleep apnoea, safety-critical work) need a
-  clinician to screen for. Setting a person's time in bed to their average
-  sleep time and titrating it weekly is a clinician's call. `cbt-i-signpost`
-  names the programme and routes to it; it does not deliver it. This is the
-  same call the injury round made about return to training.
-- **Waon therapy and any heat protocol for heart failure.** WAON-CHF
-  (n=149) is a supervised inpatient medical treatment that missed its
-  primary endpoint. Out of scope.
-- **Sauna guidance in pregnancy beyond the contraindication.** The Finnish
-  custom (short sauna in healthy pregnancy) is reported in Finnish-language
-  sources whose content could not be read, and it is D-level practice
-  against an A-grade teratology signal for first-trimester hyperthermia.
-  Every heat card excludes the first trimester and routes the rest to a
-  doctor. Nothing more is written.
-- **Melatonin for shift work or jet lag.** A substance, handled by the
-  supplements carve-out (`melatonin-timing`). The Cochrane reviews (Liira
-  2014; Herxheimer & Petrie 2002) are recorded in the ledgers for the
-  reviewer and not built on.
-- **Cold water as a treatment for depression.** The load-bearing source is
-  a single case report (van Tulleken 2018, n=1) confounded by exercise,
-  outdoors and company. The one RCT examining mood found no difference. An
-  E-grade card with a mental-health claim on it is not education; it is a
-  liability, and the urge and mood tools elsewhere in the app carry the
-  route to help.
+Three cards whose copy is event-driven and whose schedule the interface
+cannot make conditional. Their sourcing is kept at the end of `sources.md`.
+
+- **`cbt-i-signpost`** (A): "if sleep has been broken most nights for three
+  months, book a GP and ask about CBT-I". Content folded into the weekly
+  ledger card. Should fire once, when the ledger's broken-night count has
+  been over threshold for twelve weeks.
+- **`sleep-bank-ahead`** (C): "the week before a known run of short
+  nights, an extra hour of opportunity each night". Should fire in the
+  seven days before a roster block or event the person has entered.
+- **`debt-repay-over-nights`** (B): "after a run of short nights, bed an
+  hour earlier for three to five nights, wake time unchanged". Folded into
+  the ledger card. Should fire for a fixed run of nights when the weekly
+  tally is short.
+
+A proposed shape, for the app session to weigh rather than for this round
+to build: `condition?: { kind: 'tally-below' | 'tally-above' | 'before-event' | 'after-run'; source: string; threshold?: number; forNights?: number }`, evaluated by the planner before placement, so a held card is placed for a bounded window when its condition is true and never otherwise. Until something like it exists, these three should not be pasted.
+
+### Declined
+
+- **Sleep restriction therapy as a card.** The most effective component of
+  CBT-I (Maurer 2021) and the one with a documented cost (about 53 ms of
+  reaction time in the first fortnight) and contraindications a clinician
+  screens for. Named and routed to; not delivered. The same call the injury
+  round made about return to training.
+- **Waon therapy and any heat protocol for heart failure.** A supervised
+  inpatient treatment that missed its primary endpoint. Out of scope.
+- **Sauna guidance in pregnancy beyond the contraindication.** Finnish
+  custom is reported in sources whose content could not be read, and it is
+  D-level practice against an A-grade teratology signal.
+- **Melatonin for shift work or jet lag.** A substance; the supplements
+  carve-out's business. The Cochrane reviews are in the ledgers, not built on.
+- **Cold water as a treatment for depression.** One case report (n=1),
+  confounded by exercise, outdoors and company; the one RCT on mood found
+  no difference. The urge and mood tools elsewhere carry the route to help.
 - **Illness-detection features from wearables.** Specificity of 63% and no
-  reported positive predictive value. Not a practice; a product claim the
-  app should not echo.
-- **Any compound.** Rapamycin, metformin, NAD precursors, resveratrol: the
-  evidence has not moved to outcome level (section 1). The exclusion holds.
-- **Exact intervals the evidence does not give.** How many hours after
-  lifting a cold plunge becomes safe (the ">8 h" figure is an expert
-  proposal); how long before bed a sauna must end (borrowed from bath
-  data); which clock time an anchor sleep must sit at. Each card says the
-  number is borrowed or untested rather than inventing one.
-- **Standing-desk cards, brown-fat cards, contrast-therapy cards as
-  benefits.** Standing is not activity; cold does not meaningfully move fat;
-  contrast is not better than cold alone. `sauna-then-cold` is written as an
-  E precisely so the audience that will do it anyway finds an honest card
-  rather than silence.
+  reported predictive value. A product claim, not a practice.
+- **Any compound.** The evidence has not moved to outcome level.
+- **Exact intervals the evidence does not give**: hours after lifting
+  before a plunge is safe; how long before bed a sauna must end; which
+  clock time an anchor must sit at. Each card says its number is borrowed
+  or untested.
 
-## Corrections to the brief's own citations
+## What the Recovery coach can now say on a Tuesday
 
-Recorded so the next round does not chase them.
+- "You lifted at six; the plunge goes in tomorrow morning, and you keep
+  both the gains and the buzz."
+- "Nights start Thursday: a nap at half seven tonight, the big coffee before
+  one, glasses on at the door, and the nine-to-one block is protected all
+  week."
+- "Sauna's at seven, so it's finished by half eight and bed at ten. Drink
+  half a litre when you come out."
+- "The tracker says you slept from eleven to six; that part it gets right.
+  Ignore the deep-sleep number."
+- "Strength floor's done for the week — two sessions, forty minutes. That's
+  the hour the data can see."
+- "Three short weeks in the ledger now. Two earlier nights this week, wake
+  time stays. If it's still broken next month, we book the GP."
+
+## Citations that circulate wrongly, checked and corrected during the round
+
+These were wrong in the search prompts this round wrote for itself, and are
+recorded so the next round does not chase them. None of them appears in the
+brief.
 
 - "Minors & Waterhouse 1981/1983, Ergonomics or Chronobiologia" does not
   exist under those venues; the anchor-sleep papers are Int J Chronobiol
@@ -260,6 +301,6 @@ Recorded so the next round does not chase them.
 - "López-Bueno 2022 Lancet Healthy Longevity" (grip strength) does not
   exist; the dose-response meta-analysis is Ageing Res Rev 2022 (PMID
   36332759).
-- Ebrahim 2013 is a narrative review, not a meta-analysis, and has a
-  published critique; Gardiner 2025 carries the alcohol numbers.
+- Ebrahim 2013 is a narrative review with a published critique, not a
+  meta-analysis; Gardiner 2025 carries the alcohol numbers.
 - Pietilä 2018's "about 4,000" is participants (4,098), not nights.
