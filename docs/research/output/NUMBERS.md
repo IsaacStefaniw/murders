@@ -1,5 +1,16 @@
 # The numbers, for marketing
 
+> **Superseded in part by `EVIDENCE-FACTS.md`**, which answers a review of
+> this document and carries the exact defensible sentences for the four
+> claims that needed them: the sources manifest, the two card
+> denominators, the corpus definition, and the retraction story. Where
+> the two differ, `EVIDENCE-FACTS.md` wins.
+>
+> Two corrections it makes to this file. The paper count is now
+> **computed** by `corpus/tools/build-manifest.js` into `manifest.json`
+> and should be rendered from there, not copied. And the 113 figure is
+> the number of cards **written**, not a funnel of candidates assessed
+> and rejected, so it must never be framed as a restraint claim.
 Counted on 8 September 2026 from the actual work, not estimated. Every
 figure below is reproducible from this repository, and each one says how
 it was measured so nobody has to defend a number they cannot source.
