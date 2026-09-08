@@ -48,7 +48,27 @@ Cheap, high-value, and none of it waits on anything.
 | 6 | Verify secondary-text contrast against WCAG | Stated accessibility pass; this is verification, not a known failure | Low |
 | 7 | Stop asking for last night's sleep when Health has supplied it | Re-asking undercuts the claim that connected data reduces work | Medium |
 
-**Already done:** the published counts (204 / 182 / 212) were wrong everywhere
+**Done, 8 September 2026.** All seven, plus what item 6 turned up.
+
+1. Today opens on the current action. The arbitration and energy notes fold
+   into one line under it — the claim stays readable without a tap, because
+   a differentiator behind a disclosure is one nobody sees.
+2. Was already right: the library card renders the grade, then the source.
+3. `15 planned` is now `3 for you · 12 booked`. The app had been counting
+   its own calendar rather than the size of the ask.
+4. Seventeen navigation `Done` buttons became `Close`; the only `Done` left
+   is the one that marks a real thing done. The workout's `Cancel` is now
+   `Leave without logging`, which is what it does.
+5. Adding a practice now says where it landed and what it landed between,
+   with **Undo** and **Why here?**. The scheduling had no reveal moment.
+6. **Not verification — a failure.** `textTertiary` measured 2.27:1 against
+   the pressed surface, under the 3:1 floor the accessibility pass claimed.
+   Darkened to #848885, and `src/constants/__tests__/contrast.test.ts` now
+   computes every text-on-ground pair in both themes on every run.
+7. A sleep reading from Health is stated rather than re-asked, with the
+   chips one tap away behind "Not right?".
+
+**Also done:** the published counts (204 / 182 / 212) were wrong everywhere
 and are corrected, with a test pinning them.
 
 ## Wave 1 — merge the research. The gate for everything after it.

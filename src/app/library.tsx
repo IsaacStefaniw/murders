@@ -7,7 +7,7 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
 import { Disclosure } from '@/components/disclosure';
 import {
   EVIDENCE_LABELS,
@@ -24,6 +24,7 @@ import {
   type Protocol,
 } from '@/features/knowledge/protocols';
 import { useTheme } from '@/hooks/use-theme';
+import { placementFor, placementLine, type Placement } from '@/features/planner/placement';
 import { useAppStore } from '@/state/store';
 import { FREE_PROTOCOLS_PER_PILLAR, splitLibrary } from '@/features/plus/entitlement';
 import { LockedCard, LockedRow } from '@/features/plus/Locked';
@@ -61,6 +62,26 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
   const plus = useAppStore((s) => s.entitlement.plus);
   const active = routines.some((r) => r.protocolId === protocol.id && r.active);
 
+  // The scheduling reveal. Set only by this card's own Add, so it never
+  // appears on a screen the person did not just act on, and cleared the
+  // moment they undo — a confirmation that outlives the thing it confirms
+  // is worse than none.
+  const [justPlaced, setJustPlaced] = useState<Placement | null>(null);
+
+  const add = () => {
+    const nowActive = toggleProtocol(protocol.id);
+    if (!nowActive) { setJustPlaced(null); return; }
+    // Read after the toggle: it regenerates the week synchronously, so the
+    // placement is already in the store by the time this runs.
+    const st = useAppStore.getState();
+    setJustPlaced(placementFor(protocol.id, st.routines, st.plans));
+  };
+
+  const undo = () => {
+    if (active) toggleProtocol(protocol.id);
+    setJustPlaced(null);
+  };
+
   return (
     <Card style={styles.card}>
       <View style={styles.headerRow}>
@@ -91,10 +112,32 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
       <Button
         title={active ? 'On your plan — pause it' : 'Add to my plan'}
         variant={active ? 'ghost' : 'primary'}
-        onPress={() => toggleProtocol(protocol.id)}
+        onPress={add}
         style={styles.button}
       />
-      {active ? (
+      {/*
+        The one moment the scheduling is visible.
+
+        Adding a practice used to change a button and nothing else. The
+        arbitration, the anchor, the gap it found — all of it happened on
+        a tab the person was not looking at, and the review's word for it
+        was that the intelligence "has no reveal moment". This is the
+        reveal: where it went, what it went between, an undo while the
+        decision is still fresh, and the reason on request.
+      */}
+      {justPlaced ? (
+        <View style={[styles.placement, { borderColor: theme.accent, backgroundColor: theme.accentSoft }]}>
+          <AppText variant="body">{placementLine(justPlaced)}</AppText>
+          <Disclosure title="Why here?">
+            <AppText variant="secondary">{justPlaced.reason}</AppText>
+            <AppText variant="caption" color="textTertiary">
+              Press and hold it on Today or Week to move it, and everything else
+              shuffles around where you put it.
+            </AppText>
+          </Disclosure>
+          <Button title="Undo" variant="ghost" onPress={undo} />
+        </View>
+      ) : active ? (
         <AppText variant="caption" color="success">
           {plus
             ? 'IntentNorth schedules this into your week automatically.'
@@ -128,7 +171,7 @@ export default function Library() {
         <AppText variant="label" color="textTertiary" style={styles.grow}>
           Library
         </AppText>
-        <Button title="Done" variant="ghost" onPress={close} />
+        <Button title="Close" variant="ghost" onPress={close} />
       </View>
       <AppText variant="title">Evidence-based practices</AppText>
       <AppText variant="secondary" style={styles.intro}>
@@ -249,7 +292,7 @@ export default function Library() {
         );
       })}
 
-      <Button title="Done" variant="secondary" onPress={close} style={styles.doneBottom} />
+      <Button title="Close" variant="secondary" onPress={close} style={styles.doneBottom} />
       <View style={{ height: Spacing.xl, backgroundColor: theme.background }} />
     </Screen>
   );
@@ -261,6 +304,12 @@ const styles = StyleSheet.create({
   intro: { marginTop: Spacing.sm },
   disclaimer: { marginTop: Spacing.sm },
   card: { marginBottom: Spacing.md, gap: Spacing.sm },
+  placement: {
+    borderRadius: Radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
   audienceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   audienceButton: { marginTop: Spacing.sm },
   headerRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },

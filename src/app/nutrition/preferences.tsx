@@ -221,7 +221,7 @@ export default function FoodPreferencesScreen() {
       ) : null}
 
       <Button
-        title="Done"
+        title="Close"
         onPress={() => {
           // Having seen this screen counts as having been asked, whether or
           // not anything was declared.

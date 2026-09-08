@@ -2,6 +2,10 @@
 module.exports = {
   preset: 'jest-expo',
   moduleNameMapper: {
+    // Stylesheets are for the app bundler, not for a test. theme.ts imports
+    // global.css for the web build, and without this every test that
+    // touches a design token dies on a stray ':root {'.
+    '\\.(css)$': '<rootDir>/jest.styleMock.js',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   setupFiles: ['<rootDir>/jest.setup.js'],

@@ -7,6 +7,7 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { Spacing } from '@/constants/theme';
+import { dayCountLine } from '@/features/planner/dayCount';
 import { PlanItemRow } from '@/features/today/plan-item-row';
 import { buildWeekShape } from '@/features/review/weekShape';
 import { QuickAdd } from '@/features/today/QuickAdd';
@@ -100,7 +101,7 @@ export default function Plan() {
                     {date === today ? 'Today' : formatDateLong(date)}
                   </AppText>
                   <AppText variant="caption" color="textTertiary">
-                    {items.length} planned
+                    {dayCountLine(items)}
                   </AppText>
                 </View>
               </Pressable>

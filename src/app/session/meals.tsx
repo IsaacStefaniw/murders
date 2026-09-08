@@ -113,7 +113,7 @@ export default function MealsSession() {
         <AppText variant="label" color="textTertiary" style={styles.grow}>
           Nutrition
         </AppText>
-        <Button title="Done" variant="ghost" onPress={close} />
+        <Button title="Close" variant="ghost" onPress={close} />
       </View>
       <AppText variant="title">This week&apos;s dinners</AppText>
       <AppText variant="secondary" style={styles.sub}>

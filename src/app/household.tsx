@@ -112,7 +112,7 @@ export default function Household() {
         <AppText variant="label" color="textTertiary" style={styles.grow}>
           Household
         </AppText>
-        <Button title="Done" variant="ghost" onPress={close} />
+        <Button title="Close" variant="ghost" onPress={close} />
       </View>
       <AppText variant="title">
         {partner ? `You & ${partner.name}` : 'Your household'}

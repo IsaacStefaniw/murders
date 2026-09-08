@@ -17,7 +17,11 @@ export const Colors = {
     border: '#E7E4DD',
     text: '#1C1E1D',
     textSecondary: '#6E7370',
-    textTertiary: '#9BA09C',
+    // Darkened from #9BA09C, which measured 2.27:1 against the pressed
+    // surface — under the 3:1 floor the accessibility pass had claimed and
+    // never computed. Same hue, 15% darker, and the contrast test now
+    // computes it on every run rather than trusting the claim.
+    textTertiary: '#848885',
     accent: '#3E6B58',
     accentSoft: '#E3EDE7',
     onAccent: '#FFFFFF',

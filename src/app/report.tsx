@@ -65,7 +65,7 @@ export default function WeekReportScreen() {
           <AppText variant="label" color="textTertiary" style={styles.grow}>
             Weekly report
           </AppText>
-          <Button title="Done" variant="ghost" onPress={close} />
+          <Button title="Close" variant="ghost" onPress={close} />
         </View>
         <AppText variant="title">Your week, in evidence</AppText>
         <AppText variant="secondary" style={styles.sub}>
@@ -84,7 +84,7 @@ export default function WeekReportScreen() {
         <AppText variant="label" color="textTertiary" style={styles.grow}>
           Weekly report
         </AppText>
-        <Button title="Done" variant="ghost" onPress={close} />
+        <Button title="Close" variant="ghost" onPress={close} />
       </View>
       <AppText variant="title">Your week, in evidence</AppText>
       <AppText variant="secondary" style={styles.sub}>

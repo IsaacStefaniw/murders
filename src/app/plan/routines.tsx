@@ -227,7 +227,7 @@ export default function EditRoutines() {
         </>
       ) : null}
 
-      <Button title="Done" onPress={() => router.back()} style={styles.footer} />
+      <Button title="Close" onPress={() => router.back()} style={styles.footer} />
     </Screen>
   );
 }

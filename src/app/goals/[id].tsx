@@ -229,7 +229,7 @@ export default function EditGoal() {
         <Chip label="Drop this goal" onPress={() => setConfirmDrop(true)} />
       )}
 
-      <Button title="Done" onPress={() => router.back()} style={styles.footer} />
+      <Button title="Close" onPress={() => router.back()} style={styles.footer} />
     </Screen>
   );
 }

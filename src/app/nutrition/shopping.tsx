@@ -72,7 +72,7 @@ export default function ShoppingListScreen() {
         <AppText variant="label" color="textTertiary" style={styles.grow}>
           Nutrition
         </AppText>
-        <Button title="Done" variant="ghost" onPress={close} />
+        <Button title="Close" variant="ghost" onPress={close} />
       </View>
       <AppText variant="title">Shopping list</AppText>
 

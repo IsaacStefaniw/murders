@@ -57,7 +57,7 @@ export default function JournalSession() {
         <AppText variant="label" color="textTertiary" style={styles.grow}>
           Journal
         </AppText>
-        <Button title="Done" variant="ghost" onPress={close} />
+        <Button title="Close" variant="ghost" onPress={close} />
       </View>
       <AppText variant="title">{formatDateLong(date)}</AppText>
       <AppText variant="secondary" style={styles.sub}>

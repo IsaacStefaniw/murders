@@ -98,6 +98,24 @@ export default function WorkoutSession() {
     if (!loggedSleep) addMetric('sleep.hours', h, 'pre-workout check');
   };
 
+  /*
+    Health already answered this, so stop asking it.
+
+    Three chips headed "Last night:" is a question, and a question the app
+    can already answer is the most expensive thing on the screen: it costs
+    a tap, and it quietly says the Health connection did not do what it
+    promised. The review put it plainly — re-asking undercuts the claim
+    that connected data reduces work.
+
+    So a reading that came from Health is stated rather than requested,
+    and the chips stay one tap away behind "Not right?", because Health's
+    sleep number is often wrong about when somebody actually fell asleep
+    and the person is the better source when they disagree.
+  */
+  const fromHealth = loggedSleep?.source === 'healthkit' && manualSleep === null;
+  const [correcting, setCorrecting] = useState(false);
+  const askingSleep = !fromHealth || correcting;
+
   // This morning's recovery read, against this person's own baseline.
   // Null for most people most weeks — nothing is invented from no data.
   const readiness = useMemo(() => readinessFrom(metrics), [metrics]);
@@ -371,18 +389,30 @@ export default function WorkoutSession() {
           <AppText variant="caption" color="textTertiary">
             Last night:
           </AppText>
-          {[
-            { label: 'Under 6h', value: 5 },
-            { label: '6–7h', value: 6.5 },
-            { label: '7h+', value: 8 },
-          ].map((o) => (
-            <Chip
-              key={o.label}
-              label={o.label}
-              selected={sleptHours === o.value}
-              onPress={() => logSleep(o.value)}
-            />
-          ))}
+          {askingSleep ? (
+            [
+              { label: 'Under 6h', value: 5 },
+              { label: '6–7h', value: 6.5 },
+              { label: '7h+', value: 8 },
+            ].map((o) => (
+              <Chip
+                key={o.label}
+                label={o.label}
+                selected={sleptHours === o.value}
+                onPress={() => {
+                  logSleep(o.value);
+                  setCorrecting(false);
+                }}
+              />
+            ))
+          ) : (
+            <>
+              <AppText variant="caption" color="text">
+                {loggedSleep!.value}h, from Apple Health
+              </AppText>
+              <Chip label="Not right?" onPress={() => setCorrecting(true)} />
+            </>
+          )}
         </View>
       ) : null}
 
@@ -524,7 +554,11 @@ export default function WorkoutSession() {
 
       <View style={styles.footer}>
         <Button title={allDone ? 'Session done' : 'Finish here — it counts'} onPress={finish} />
-        <Button title="Cancel" variant="ghost" onPress={() => router.back()} />
+        {/* Not "Cancel". Leaving here throws away every set logged in this
+            session, and "Cancel" reads as backing out of a dialog rather
+            than as losing work — in a product whose whole promise is that
+            what you did gets counted. */}
+        <Button title="Leave without logging" variant="ghost" onPress={() => router.back()} />
       </View>
     </Screen>
   );

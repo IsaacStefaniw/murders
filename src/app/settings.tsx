@@ -149,7 +149,7 @@ export default function Settings() {
             Restore a backup
           </AppText>
           <Button
-            title="Done"
+            title="Close"
             variant="ghost"
             onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
           />
@@ -223,7 +223,7 @@ export default function Settings() {
           Settings
         </AppText>
         <Button
-          title="Done"
+          title="Close"
           variant="ghost"
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/today'))}
         />
@@ -506,7 +506,7 @@ export default function Settings() {
           </>
         ) : null}
       </Card>
-      <Button title="Done" variant="secondary" onPress={() => router.back()} style={styles.done} />
+      <Button title="Close" variant="secondary" onPress={() => router.back()} style={styles.done} />
     </Screen>
   );
 }

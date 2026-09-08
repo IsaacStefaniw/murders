@@ -91,7 +91,7 @@ export default function PathHub() {
           <AppText variant="label" color="textTertiary" style={styles.grow}>
             Path
           </AppText>
-          <Button title="Done" variant="ghost" onPress={close} />
+          <Button title="Close" variant="ghost" onPress={close} />
         </View>
         <AppText variant="title">{def.title}</AppText>
         <AppText variant="secondary" style={styles.sub}>
@@ -183,7 +183,7 @@ export default function PathHub() {
         <AppText variant="label" color="textTertiary" style={styles.grow}>
           Path
         </AppText>
-        <Button title="Done" variant="ghost" onPress={close} />
+        <Button title="Close" variant="ghost" onPress={close} />
       </View>
       <AppText variant="title">{def.title}</AppText>
 

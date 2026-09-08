@@ -34,6 +34,7 @@ import {
 import { useTheme } from '@/hooks/use-theme';
 import { LogDidIt } from '@/features/today/LogDidIt';
 import { WelcomeBack } from '@/features/today/WelcomeBack';
+import { WhyToday } from '@/features/today/WhyToday';
 import { QuickLog } from '@/features/today/QuickLog';
 import { displacedLine } from '@/features/planner/displaced';
 import { useAppStore } from '@/state/store';
@@ -219,56 +220,6 @@ export default function Today() {
         </AppText>
       ) : null}
 
-      {/*
-        The one thing a new person needs told, told once.
-
-        Every row here is tappable and opens three actions, and there is no
-        way to discover that by looking at it. That is exactly the gap a
-        user manual exists to fill — so the app fills it instead, in a
-        sentence, at the moment it is useful.
-
-        It is derived rather than stored: it disappears the moment anything
-        has ever been completed. Nobody has to dismiss it, it cannot come
-        back, and there is no flag to migrate or get wrong.
-      */}
-      {/*
-        The arbitration, said out loud.
-
-        This one sentence is the difference between seven coaches and one
-        product. Everything else in the app can be found elsewhere and done
-        well; deciding that the evening goes to family rather than the gym,
-        because that is the order you gave, cannot — no single-domain app
-        holds enough of your life to make the call.
-
-        Placed above the day rather than below it: it is context for what
-        follows, not a footnote apologising for it.
-      */}
-      {displacedLine(plan.displaced ?? []) ? (
-        <Card style={styles.arbitration}>
-          <AppText variant="body">{displacedLine(plan.displaced ?? [])}</AppText>
-          <AppText variant="caption" color="textTertiary">
-            Nothing is lost — it goes back in the running tomorrow.
-          </AppText>
-        </Card>
-      ) : null}
-
-      {/* Where the person's own peak and dip put things today. Said only
-          when the shape actually decided something, never as a boast. */}
-      {plan.energyNote ? (
-        <Card style={styles.arbitration}>
-          <AppText variant="body">{plan.energyNote}</AppText>
-        </Card>
-      ) : null}
-
-      {neverCompletedAnything && hasTappableRow ? (
-        <Card style={styles.firstRun}>
-          <AppText variant="secondary">
-            Tap a row to start it, finish it or move it. Move one thing and the rest
-            shuffles around it.
-          </AppText>
-        </Card>
-      ) : null}
-
       {needsApproval ? (
         <Card
           onPress={() => router.push('/check-in/morning')}
@@ -281,27 +232,6 @@ export default function Today() {
           <AppText variant="secondary">Thirty seconds. Three priorities, one intention.</AppText>
         </Card>
       ) : null}
-
-      {openSuggestion ? (
-        <View style={styles.suggestion}>
-          <SuggestionCard
-            suggestion={openSuggestion}
-            onAccept={() => acceptSuggestion(openSuggestion.id)}
-            onDismiss={() => dismissSuggestion(openSuggestion.id)}
-          />
-        </View>
-      ) : null}
-
-      {/*
-        The input side of the measurement architecture. Renders nothing at
-        all unless something is genuinely due, which is most days.
-      */}
-      <CheckinCard />
-
-      {/* Both silent on an ordinary morning, which is what makes either
-          one worth reading on the morning it appears. */}
-      <WelcomeBack date={date} />
-      <ReadinessCard />
 
       <SectionHeader title="Now" color="must" />
       {nowItem ? (
@@ -350,6 +280,57 @@ export default function Today() {
           <QuickAdd date={date} profile={profile} />
         </Card>
       )}
+
+      {/*
+        The one thing a new person needs told, told once.
+
+        Every row here is tappable and opens three actions, and there is no
+        way to discover that by looking at it. That is exactly the gap a
+        user manual exists to fill — so the app fills it instead, in a
+        sentence, at the moment it is useful.
+
+        It is derived rather than stored: it disappears the moment anything
+        has ever been completed. Nobody has to dismiss it, it cannot come
+        back, and there is no flag to migrate or get wrong.
+
+        It sits directly under the row it is about, rather than three cards
+        above it, because an instruction the reader has to hold in their
+        head until they scroll to the thing is not an instruction.
+      */}
+      {neverCompletedAnything && hasTappableRow ? (
+        <Card style={styles.firstRun}>
+          <AppText variant="secondary">
+            Tap a row to start it, finish it or move it. Move one thing and the rest
+            shuffles around it.
+          </AppText>
+        </Card>
+      ) : null}
+
+      {/* What the plan did with today, in one line that opens. Below the
+          current action rather than above it: the screen answers "what
+          now?" first and "what did the system decide?" second. */}
+      <WhyToday displaced={displacedLine(plan.displaced ?? [])} energyNote={plan.energyNote} />
+
+      {openSuggestion ? (
+        <View style={styles.suggestion}>
+          <SuggestionCard
+            suggestion={openSuggestion}
+            onAccept={() => acceptSuggestion(openSuggestion.id)}
+            onDismiss={() => dismissSuggestion(openSuggestion.id)}
+          />
+        </View>
+      ) : null}
+
+      {/*
+        The input side of the measurement architecture. Renders nothing at
+        all unless something is genuinely due, which is most days.
+      */}
+      <CheckinCard />
+
+      {/* Both silent on an ordinary morning, which is what makes either
+          one worth reading on the morning it appears. */}
+      <WelcomeBack date={date} />
+      <ReadinessCard />
 
       {/* After eight, the reset comes before everything else on the page:
           at 9pm it was five sections down, two screens on a small phone,

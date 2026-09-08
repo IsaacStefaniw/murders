@@ -142,7 +142,7 @@ export function BehaviourLog({ intention, onDone }: Props) {
             you, rather than a message after the fact.
           </AppText>
         ) : null}
-        <Button title="Done" variant="secondary" onPress={onDone} style={styles.gap} />
+        <Button title="Close" variant="secondary" onPress={onDone} style={styles.gap} />
       </Card>
     );
   }
