@@ -89,8 +89,17 @@ with `verdict` one of:
 - **TRACED (adjacent)** — they cover the topic but not this practice.
   Reword the credit rather than removing it.
 - **RESEARCHER** — a scientist credited for the underlying work rather
-  than for popularising it. Legitimate, and it must say so; verify the
-  author list via `crossref`.
+  than for popularising it. Legitimate, and it must say so.
+
+  **The author-list rule.** A researcher credit requires that person on
+  the author list of a source in that card's own `sources.md` row.
+  Verify it with `harvest.js crossref`.
+
+  This one rule would have caught every error the audit of the first two
+  rounds found. Four recovery credits named researchers who are on no
+  paper the card cites — credited by association with a field rather than
+  with the work, which reads as authoritative and is not true. It costs
+  one lookup.
 - **UNTRACED** — searched properly, found nothing. **The credit comes
   off the card.** An empty attribution line is honest; a false one is
   not, and the recognition only works while it is real.
@@ -100,7 +109,27 @@ A round with no `episodes.md` is not finished, however good its papers.
 ## Backfill for what already shipped
 
 - **Recovery and money**: audited together, output in
-  `output/attribution-audit/`. Recovery is the one with the real problem.
+  `output/attribution-audit/`. All 47 cards and 116 credits.
+
+  Recovery was the one with the real problem, and the audit confirms it
+  precisely. Of Andrew Huberman's 16 credits, 3 are exact, 11 adjacent
+  and 2 untraceable. Of Peter Attia's 10, 3 are exact, and on one card
+  his stated public position runs *opposite* to what the card says. Four
+  researcher credits fail the author-list rule above. The roster warned
+  about exactly this when it said to use Huberman freely *and verify
+  hard*.
+
+  Two findings are the other way round and matter as much. **Rhonda
+  Patrick's 8 credits all trace exactly**, several to the precise figure
+  on the card, and she is under-used. And **Matthew Walker has zero
+  credits** across 12 sleep cards, while Huberman and Attia are credited
+  for material that on several of those cards is Walker's guest series on
+  their own shows.
+
+  The money round did the job properly. Its residual issues are
+  structural rather than false: a host credited four times where the
+  practice belongs to the guest, and twelve cards crediting no person at
+  all because the Australian block reads as government agencies.
 - **Every future round**: pass two from the start. Cheaper than an audit,
   and it finds *missing* credits as well as wrong ones, which is the
   upside — an uncredited card where a well-known voice demonstrably
