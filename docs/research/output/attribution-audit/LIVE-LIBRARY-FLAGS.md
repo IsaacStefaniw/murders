@@ -36,6 +36,45 @@ attribution credits, delete the deadline sentence from the `why`, and
 keep the practice, which is sensible on its own and can be written warmly
 without a fabricated study behind it.
 
+## 0b. The most-used meditation card has the weakest safety line
+
+**`meditation-10`** (`protocols.ts`, mind pillar, graded B,
+`sessionType: 'meditate'`, 10 minutes).
+
+Its entire safety line is: *"Non-clinical; no therapeutic claims."*
+
+Compare **`open-monitoring`** — a lower-use card graded C — whose safety
+line names distress, feeling detached from yourself, reliably feeling
+worse, says to stop rather than push through, and routes to a doctor or
+therapist.
+
+The card with the guided voice session and the largest usage has the
+weaker note, and the mind round's verification is the reason this now
+matters rather than being a tidiness point. Verified this round from the
+primary literature:
+
+| Figure | Status |
+|---|---|
+| 10.6% of meditators report a functionally impairing adverse effect (N=434 of 953 screened) | **VERIFIED** |
+| Impairment lasting a month or more: 1.2% | **VERIFIED**, and the honest refinement to the headline |
+| 60% of those reporting difficulties were **meditation teachers** | **VERIFIED verbatim** from the results section |
+
+The teacher figure is the one that removes the comfortable explanation.
+This is not people practising wrongly.
+
+**Two changes proposed, and the second is the one worth prioritising.**
+
+1. Rewrite `meditation-10`'s safety line on the `open-monitoring`
+   template. The mind round's findings file specifies eight elements it
+   should contain.
+2. **"You may stop at any time" belongs in the guided-session player
+   itself**, not only on a card somebody read once before starting. A
+   safety note that is only reachable outside the session is not
+   reachable during the session, which is when it is needed.
+
+The second is a product change rather than a copy change, which is why
+it is here rather than only in the round's findings.
+
 ## 1. Six cards breach the roster's Peterson rule
 
 `COMMUNICATORS.md` says, of Jordan Peterson: *"keep, do not expand, and
