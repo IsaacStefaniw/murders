@@ -33,6 +33,38 @@ teaching popularised the practice, which is almost always the guest.
 | **JRE, Lex Fridman, Rich Roll, Modern Wisdom, Diary of a CEO** | Via happyscribe, above. | `harvest.js search "<guest name>"` | Venues. Tier the episode by the guest. |
 | **Waking Up / Making Sense (Sam Harris)** | Not on happyscribe; Making Sense publishes partial transcripts for subscribers. | Use his Ferriss and Huberman appearances (both free) and the papers those point at. | — |
 
+## Finding the papers in the first place
+
+Until now rounds found papers through a general web search, which is slow
+and biased toward whatever is popular this month. Europe PMC has a free
+REST search over roughly 45 million records with no key, and it is far
+better for this job because it filters by publication type and sorts by
+citation count.
+
+`harvest.js lit "<phrase>" [meta|review|rct|oa|any]` runs it. It searches
+the exact phrase first and, if that returns nothing, ANDs the words
+inside title-and-abstract so a match has to be about the topic. Results
+come back most-cited first with year, DOI, journal, open-access flag and
+citation count, which is close to a landmark-paper finder:
+
+- `lit "psychological detachment"` returns Sonnentag & Fritz's 2007
+  Recovery Experience Questionnaire at the top, 477 citations.
+- `lit "burnout intervention physicians" meta` returns the 2017 JAMA
+  Internal Medicine controlled-intervention meta-analysis, 866 citations.
+- `lit "sauna cardiovascular mortality"` returns the 2015 JAMA Internal
+  Medicine Finnish cohort and the 2018 Mayo review.
+
+`harvest.js abstract <doi-or-pmid>` then returns the structured record:
+title, authors, journal, volume, pages, publication types, open-access
+status, citation count, any sample sizes stated in the abstract, and the
+abstract itself where the record carries one. That is most of a ledger
+row in one call. Closed-access psychology and economics records often
+have no abstract, and the tool says so and points at PMC or Crossref.
+
+Caveat worth knowing: sorting by citations favours older work, so a
+2025 trial that overturns a 2005 classic will sit below it. Run the
+search twice, once by citations and once reading the recent end.
+
 ## Paper verification, tested
 
 Publisher landing pages (Elsevier, Wiley, Springer, SAGE, OUP, UChicago,
@@ -61,21 +93,45 @@ human click-through.
 
 ## Books, free and legitimate
 
-NCBI Bookshelf (StatPearls, Endotext, full clinical references), DOAB and
-OAPEN for open-access academic books, publisher open-access programmes,
-author-released chapters. Books orient; they never set a grade.
+**NCBI Bookshelf** is searchable through the same free NCBI API, and
+`harvest.js book "<query>"` runs it: relevance-ordered, with the
+drug-reimbursement reviews that dominate Bookshelf by volume filtered
+out. A search for shift work and circadian rhythm returns the National
+Academies sleep-deprivation volume's chapters on need for sleep, recovery
+sleep and preventing chronic sleep loss, plus the circadian
+sleep-wake-disorder references. Good for mechanism and background.
+
+DOAB and OAPEN for open-access academic books, publisher open-access
+programmes, and author-released chapters round it out. Books orient; they
+never set a grade, and a five-year-old chapter loses to a current
+meta-analysis every time.
 
 ## What a round does with this
 
-1. `harvest.js search` and `harvest.js tim` for every roster name the
+Two passes, and the order matters: the literature decides what is true,
+the communicators decide what gets written on the card and whose name
+goes on it.
+
+**Pass one, the literature.**
+1. `harvest.js lit "<topic phrase>" meta` for every topic in the brief,
+   then again with `any` and read the recent end.
+2. `harvest.js abstract <doi>` for each candidate: design, n, journal,
+   publication type, citation count, abstract.
+3. `harvest.js crossref <doi>` for the registry record and the retraction
+   or update relation. This is not optional; a landmark paper in the money
+   round had been retracted six days earlier.
+4. `harvest.js book "<topic>"` where mechanism or background is thin.
+
+**Pass two, the communicators.**
+5. `harvest.js search` and `harvest.js tim` for every roster name the
    brief touches, plus the brief's topic words. Convergence across
    independent communicators decides what to verify first; it moves no
    grade.
-2. `harvest.js fetch <url> "kw,kw"` to read the claim-shaped lines, then
+6. `harvest.js fetch <url> "kw,kw"` to read the claim-shaped lines, then
    the cached text where a claim needs context.
-3. `harvest.js refs` on the show's own page to get the papers the host
-   listed.
-4. `harvest.js crossref <doi>` and Europe PMC for every paper before it
-   enters a ledger. Record where the episode overstates the paper.
-5. The ledger row carries the episode (show, guest, date, URL) beside the
-   paper, so the attribution on the card is traceable.
+7. `harvest.js refs` on the show's own page to get the papers the host
+   listed, and check them against what pass one already found. Where the
+   episode overstates the paper, record it.
+8. The ledger row carries the episode (show, guest, date, URL) beside the
+   paper, so the attribution on the card is traceable and the credit is
+   real.

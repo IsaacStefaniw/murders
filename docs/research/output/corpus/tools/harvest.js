@@ -21,6 +21,10 @@
  *   node harvest.js refs <url>                DOIs / PMIDs / journal links
  *   node harvest.js links <url> <regex>       hrefs matching a pattern
  *   node harvest.js crossref <doi>            title, journal, year, retraction flag
+ *   node harvest.js lit "<query>" [filter]    Europe PMC search, most-cited first
+ *                                             filter: meta | review | rct | oa | any
+ *   node harvest.js abstract <doi-or-pmid>    Europe PMC record: abstract, n, journal
+ *   node harvest.js book "<query>"            NCBI Bookshelf search (free textbooks)
  *
  * Be polite: one request a second, cached forever, personal research use.
  */
@@ -214,10 +218,147 @@ async function cmdCrossref(doi) {
   );
 }
 
+const EPMC = 'https://www.ebi.ac.uk/europepmc/webservices/rest/';
+
+const LIT_FILTERS = {
+  meta: ' AND (PUB_TYPE:"Meta-Analysis" OR PUB_TYPE:"Systematic Review")',
+  review: ' AND PUB_TYPE:"Review"',
+  rct: ' AND PUB_TYPE:"Randomized Controlled Trial"',
+  oa: ' AND OPEN_ACCESS:y',
+  any: '',
+};
+
+async function litQuery(query, f) {
+  // Sort server-side by citation count: the default is newest-first, which
+  // buries the landmark papers under this month's minor ones.
+  await polite();
+  const url = `${EPMC}search?query=${encodeURIComponent(query + f)}&format=json&pageSize=25&resultType=core&sort=${encodeURIComponent('CITED desc')}`;
+  const r = await get(url);
+  if (r.status !== 200) return null;
+  return JSON.parse(r.body);
+}
+
+async function cmdLit(q, filter) {
+  const f = LIT_FILTERS[filter || 'any'];
+  if (f === undefined) return console.log('filter must be one of: ' + Object.keys(LIT_FILTERS).join(', '));
+  // Bare multi-word queries are treated loosely and, sorted by citations,
+  // return the most-cited papers in all of medicine rather than yours. Try
+  // the exact phrase first; if that is empty, AND the terms but confine
+  // each to the title and abstract so the match has to be about the topic.
+  const bare = !/[:"()]|\bAND\b|\bOR\b/.test(q);
+  const words = q.trim().split(/\s+/).filter((w) => w.length > 2);
+  let j = null;
+  let used = q;
+  if (bare && words.length > 1) {
+    used = `"${q}"`;
+    j = await litQuery(used, f);
+    if (!j || !j.hitCount) {
+      used = words.map((w) => `TITLE_ABS:${w}`).join(' AND ');
+      j = await litQuery(used, f);
+    }
+  } else {
+    j = await litQuery(used, f);
+  }
+  if (!j) return console.log('# search failed');
+  const rows = (j.resultList && j.resultList.result) || [];
+  for (const x of rows.slice(0, 25)) {
+    console.log(
+      [
+        x.pubYear || '????',
+        'cited:' + (x.citedByCount || 0),
+        x.isOpenAccess === 'Y' ? 'OA' : '--',
+        x.doi ? 'doi:' + x.doi : 'PMID:' + (x.pmid || x.id),
+        (x.journalTitle || x.bookOrReportDetails?.publisher || '').slice(0, 30),
+        (x.title || '').replace(/\s+/g, ' ').slice(0, 110),
+      ].join(' | '),
+    );
+  }
+  console.log(`# ${j.hitCount} hits for ${used}${f ? ' [' + filter + ']' : ''}, top ${rows.length} by citations`);
+}
+
+async function cmdAbstract(id) {
+  const q = /^\d+$/.test(id) ? `EXT_ID:${id}` : `DOI:"${id}"`;
+  await polite();
+  const r = await get(`${EPMC}search?query=${encodeURIComponent(q)}&format=json&pageSize=1&resultType=core`);
+  if (r.status !== 200) return console.log('HTTP', r.status);
+  const x = ((JSON.parse(r.body).resultList || {}).result || [])[0];
+  if (!x) return console.log('# not found in Europe PMC — try Crossref, PMC or the publisher');
+  const ab = (x.abstractText || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const ns = [...ab.matchAll(/\b(?:n\s?=\s?|N\s?=\s?)(\d[\d,]*)/g)].map((m) => m[1]);
+  console.log(
+    JSON.stringify(
+      {
+        title: x.title,
+        authors: x.authorString,
+        journal: x.journalInfo && x.journalInfo.journal && x.journalInfo.journal.title,
+        year: x.pubYear,
+        volume: x.journalInfo && x.journalInfo.volume,
+        pages: x.pageInfo,
+        doi: x.doi,
+        pmid: x.pmid,
+        pmcid: x.pmcid,
+        types: x.pubTypeList && x.pubTypeList.pubType,
+        openAccess: x.isOpenAccess,
+        citedBy: x.citedByCount,
+        sampleSizesInAbstract: ns.length ? ns : 'none stated',
+      },
+      null,
+      1,
+    ),
+  );
+  if (ab) console.log('\nABSTRACT (source text — summarise, never paste into the library):\n' + ab);
+  else
+    console.log(
+      '\n# no abstract in the Europe PMC record (usual for closed-access psychology and economics).' +
+        (x.pmcid ? ` Full text: https://pmc.ncbi.nlm.nih.gov/articles/${x.pmcid}/` : ' Try Crossref, the author page, or RePEc.'),
+    );
+}
+
+async function cmdBook(q) {
+  await polite();
+  // Relevance order, and drop the drug-reimbursement reviews that dominate
+  // Bookshelf by volume and are never what a behaviour round wants.
+  const s = await get(
+    'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=books&retmode=json&sort=relevance&retmax=40&term=' +
+      encodeURIComponent(q),
+  );
+  if (s.status !== 200) return console.log('HTTP', s.status);
+  const meta = JSON.parse(s.body).esearchresult;
+  const ids = meta.idlist || [];
+  if (!ids.length) return console.log('# no Bookshelf hits');
+  await polite();
+  const d = await get(
+    'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=books&retmode=json&id=' + ids.join(','),
+  );
+  const res = JSON.parse(d.body).result || {};
+  const NOISE = /reimbursement review|therapeutic area|committee discussion|model parameters|^background$|^aim \d|cadth|clinical review report/i;
+  let shown = 0;
+  for (const id of ids) {
+    const x = res[id];
+    if (!x) continue;
+    const book = x.booktitle || x.title || '';
+    const chapter = x.title || '';
+    if (NOISE.test(book) || NOISE.test(chapter)) continue;
+    console.log(
+      [
+        (x.pubdate || '').slice(0, 7),
+        book.slice(0, 60),
+        chapter && chapter !== book ? '› ' + chapter.slice(0, 60) : '',
+        `https://www.ncbi.nlm.nih.gov/books/${x.bookaccession || 'NBK' + id}/`,
+      ].join(' | '),
+    );
+    if (++shown >= 15) break;
+  }
+  console.log(`# ${shown} shown of ${meta.count} Bookshelf hits for "${q}" (drug-review noise filtered)`);
+}
+
 (async () => {
   const [cmd, a, b] = process.argv.slice(2);
   try {
-    if (cmd === 'search') await cmdSearch(a);
+    if (cmd === 'lit') await cmdLit(a, b);
+    else if (cmd === 'abstract') await cmdAbstract(a);
+    else if (cmd === 'book') await cmdBook(a);
+    else if (cmd === 'search') await cmdSearch(a);
     else if (cmd === 'show') await cmdShow(a);
     else if (cmd === 'tim') await cmdTim(a);
     else if (cmd === 'fetch') await cmdFetch(a, b);
