@@ -8,7 +8,9 @@ About 95 peer-reviewed papers, working papers and official reports, checked at r
 
 Two retraction findings that matter. Ariely & Wertenbroch 2002, the standard citation for "people bind themselves with self-imposed deadlines", was **retracted on 2 September 2026**, six days before this round, after Data Colada found the data tampered with and a July 2026 replication failed. Shu et al. 2012 was retracted in 2021. Nothing in this round cites either; three other Ariely-co-authored papers were checked, are untouched, and are not load-bearing anywhere.
 
-Grade spread of the 22: A 0 · B 6 · C 5 · D 11 · E 0. Weighted to C and D as the brief said a believable round would be. The A-grade behaviour in this pillar, the automatic transfer, already exists as `payday-automation`; this round builds the pieces around it and proposes moving that card to B (section 5).
+**Revised against REVIEW.md the same day.** The review asked for HECS-HELP and Centrelink, which had no references in the round, and one or two more income-variability cards. Added: `help-in-the-picture` (D; the loan declared to payroll and carried in the quarterly position number, beside the existing `help-debt-timing`), `overtime-to-the-transfer` (D; base roster runs the budget, penalty and overtime dollars go to the goal) and `bill-smoothing` (D; the regulator's own recommendation for casual income). Services Australia on 132 850 is now in the hardship card's safety line. The round is 25 candidates.
+
+Grade spread of the 25: A 0 · B 6 · C 5 · D 14 · E 0. Weighted to C and D as the brief said a believable round would be. The A-grade behaviour in this pillar, the automatic transfer, already exists as `payday-automation`; this round builds the pieces around it and proposes moving that card to B (section 5).
 
 ## 1. What changed
 

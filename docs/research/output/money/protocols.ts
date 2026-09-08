@@ -26,9 +26,14 @@
  *
  * Nothing here reaches a phone until a human has read it.
  *
- * Grade spread: A 0 · B 6 · C 5 · D 11 · E 0 (22 candidates).
- * Time-back: 4 of 22.
- * Pillar: wealth 22 (areas admin 18 · relationship 2 · health 1 · growth 1).
+ * Revised the same day against docs/research/output/money/REVIEW.md:
+ * three cards added (help-in-the-picture, overtime-to-the-transfer,
+ * bill-smoothing) for the two review items, HECS-HELP and income
+ * variability, and Services Australia added to the hardship card.
+ *
+ * Grade spread: A 0 · B 6 · C 5 · D 14 · E 0 (25 candidates).
+ * Time-back: 4 of 25.
+ * Pillar: wealth 25 (areas admin 21 · relationship 2 · health 1 · growth 1).
  */
 
 import type { Protocol } from '@/features/knowledge/protocols';
@@ -289,7 +294,61 @@ export const MONEY_CANDIDATES: Protocol[] = [
     energy: 'evening',
     tier: 'could',
     neverNag: true,
-    safety: 'If a payment is going to be missed, tell the lender before the date and call the National Debt Helpline on 1800 007 007, or Mob Strong Debt Help on 1800 808 488 for Aboriginal and Torres Strait Islander peoples; a free financial counsellor is a licensed professional in your corner, and this app is not one. Education, never financial advice.',
+    safety: 'If a payment is going to be missed, tell the lender before the date and call the National Debt Helpline on 1800 007 007, or Mob Strong Debt Help on 1800 808 488 for Aboriginal and Torres Strait Islander peoples; a free financial counsellor is a licensed professional in your corner, and this app is not one. If income has stopped altogether, Services Australia on 132 850 is the other call, because income support and a crisis payment exist for exactly that. Education, never financial advice.',
+  },
+  {
+    id: 'help-in-the-picture',
+    evidenceLevel: 'D',
+    title: 'Put the student loan in the picture',
+    pillar: 'wealth',
+    area: 'admin',
+    goalDomains: ['finance'],
+    summary:
+      'Each time you do the quarterly position check: the HELP balance from your tax office account goes on the list, and payroll knows you have one.',
+    why: 'An Australian student loan is easy to forget because it never touches your bank account: repayments come out of pay through the tax system once income passes a threshold, and the balance grows once a year on 1 June by an index the government sets. Two things follow. If payroll does not know about the loan, nothing is withheld and a whole year’s repayment arrives as one bill after you lodge. And the loan belongs in your position number, because a debt with no interest is still a debt with a date. It is rarely the first thing to pay extra on; an expensive card balance or the buffer almost always matters more, and the timing card beside this one handles the once-a-year question of whether a voluntary payment is worth it. Rules of the system, not a trial.',
+    attribution: ['Australian Taxation Office', 'Moneysmart (ASIC)'],
+    days: [0],
+    durationMin: 10,
+    anchor: { kind: 'fixed', start: '10:00', windowMin: 120 },
+    energy: 'morning',
+    tier: 'could',
+    safety: 'Whether a voluntary repayment beats keeping the money elsewhere, and how the repayment rules apply to your income, is an accountant or licensed adviser question; the threshold, the rates and the index change every year, so read the ATO page rather than a memory of it. Education, never financial advice.',
+  },
+  {
+    id: 'overtime-to-the-transfer',
+    evidenceLevel: 'D',
+    title: 'Base rate runs the week, overtime goes to the goal',
+    pillar: 'wealth',
+    area: 'admin',
+    goalDomains: ['finance', 'behaviour'],
+    summary:
+      'For shift and penalty-rate work: build the budget on the base roster only. Every overtime and penalty dollar goes to the transfer the pay it lands.',
+    why: 'Overtime is the most common way a lumpy income disguises itself as a big one. A run of double shifts feels like a pay rise, spending rises to meet it, and the quiet roster three months later is the one that hurts; bank data on millions of families shows spending tracks income swings almost one for one. Build the budget on the base roster and send the rest to the goal, and the good fortnights compound instead of evaporating, while a quiet month is just a month. Practitioner practice, not a trial: the same logic as paying yourself a salary, for people whose employer does the paying.',
+    attribution: ['Moneysmart (ASIC)'],
+    days: [5],
+    durationMin: 5,
+    anchor: { kind: 'fixed', start: '18:00', windowMin: 120 },
+    energy: 'evening',
+    tier: 'should',
+    safety: 'Where the overtime lands, savings, an offset account or a loan, depends on your debts and your tax and is a licensed adviser or accountant question. Education, never financial advice.',
+  },
+  {
+    id: 'bill-smoothing',
+    evidenceLevel: 'D',
+    title: 'Ask for the bills to be smoothed',
+    pillar: 'wealth',
+    area: 'admin',
+    goalDomains: ['finance', 'admin'],
+    summary:
+      'One afternoon, once: ring the power, gas, water and insurance providers and ask for fortnightly or monthly payments instead of the quarterly lump. Then the big bill never lands in the quiet week.',
+    why: 'For anyone on casual, seasonal or shift income, the quarterly bill is the thing that turns a lean fortnight into a card balance. Australian providers generally offer bill smoothing on request, and the regulator recommends it specifically for people on casual income; most also run hardship programmes that are separate from smoothing. It changes nothing about what you pay and everything about when, which for a lumpy income is most of the game. Regulator and practitioner practice, untested and not in need of a trial.',
+    attribution: ['Moneysmart (ASIC)'],
+    days: [2],
+    durationMin: 30,
+    anchor: { kind: 'fixed', start: '14:00', windowMin: 180 },
+    energy: 'any',
+    tier: 'could',
+    safety: 'Smoothing is a payment schedule, not a discount; if a bill is already overdue, the provider’s hardship team and the free National Debt Helpline on 1800 007 007 come first, and a financial counsellor there is the professional to call. Education, never financial advice.',
   },
 
   // ── STRESS AND SLEEP ──────────────────────────────────────────────────
