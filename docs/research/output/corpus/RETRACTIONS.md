@@ -90,6 +90,17 @@ searched for and could not find at any source. Never print these.
 - Karlan's reminder figures of 6% and 16%; Kaiser's 0.2 and 0.1 standard
   deviations; a $2,467 buffer figure; a $2,000 emergency-fund target
   attributed to the Australian regulator, which its page does not say.
+- The relationship "bids" figures of 33% and 86%, and the 69%
+  perpetual-problems figure. Widely repeated, traced to no peer-reviewed
+  paper. The peer-reviewed bids study is observational, n=49, and its
+  authors disclaim causation.
+- "Loneliness is as bad as fifteen cigarettes a day." The paper's
+  discussion says "comparable with quitting smoking". There is no
+  cigarette count in it.
+- Divorce prediction accuracy of 90% or more, quoted without the
+  crossvalidation. The development-sample figure is real; after
+  crossvalidation accuracy falls to 69.3%, sensitivity to 46.0, and the
+  positive predictive value at a realistic base rate is about 21%.
 
 ## Sweep the library against this file, do not just read it
 

@@ -75,6 +75,37 @@ This is not people practising wrongly.
 The second is a product change rather than a copy change, which is why
 it is here rather than only in the round's findings.
 
+## 0c. Six connection cards have no safety field at all
+
+Swept mechanically: **31 live connection cards, 6 with no `safety` field**,
+and only **4 carrying `neverNag`**.
+
+| file | id | why it matters |
+|---|---|---|
+| `protocols.ts` | `partner-appreciation` | couple behaviour, no carve-out |
+| `protocols.people.ts` | `turning-toward` | couple behaviour, no carve-out |
+| `protocols.ts` | `friend-reach-out` | also one of the six Peterson cards below |
+| `protocols.ts` | `partner-reunion` | couple behaviour |
+| `protocols.ts` | `good-news-response` | proposed for an upgrade to B this round |
+| `protocols.ts` | `standing-shared-activity` | |
+
+This is a pillar that touches coercive control, and two of these are
+cards telling someone how to behave toward a partner. A person being
+controlled who reads "turn toward your partner's bids" with no carve-out
+is being given advice that does not apply to them and may cost them.
+
+**Proposed.** Every card in this pillar that could be read as advice to
+someone in a controlling relationship carries the same carve-out and the
+same route, as a shared constant rather than retyped: this does not apply
+where you are afraid of the person or are being controlled, that is not a
+communication problem, and 1800RESPECT is 1800 737 732. The connection
+round's `protocols.ts` defines that constant and uses it.
+
+**Also proposed: `neverNag` from 4 cards to 18.** This pillar is full of
+practices that cannot be scheduled and must never be scored. A missed
+week of reaching out to a friend is not a lapse, and a carer who did not
+manage their two hours does not need a broken streak.
+
 ## 1. Six cards breach the roster's Peterson rule
 
 `COMMUNICATORS.md` says, of Jordan Peterson: *"keep, do not expand, and

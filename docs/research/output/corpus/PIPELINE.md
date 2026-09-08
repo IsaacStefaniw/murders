@@ -189,12 +189,17 @@ would have failed it.
 | leadership (work) | done | done | done | done | 26 | `output/work/` |
 | mind | done | done | done | done | 7 | `output/mind/` |
 | skill | done | done | done | done | 6 | `output/skill/` |
-| connection | done | done | running | — | — | `output/gate1/connection.md` |
+| connection | done | done | done | done | 12 | `output/connection/` |
 | nutrition, training | done | — | — | — | — | — |
 | supplements | done | — | — | — | — | — |
 
-86 candidate cards across five completed rounds, plus proposed regrades
-to 20 existing ones.
+98 candidate cards across six completed rounds, plus proposed regrades to
+24 existing ones.
+
+Grade spread per round, against the library's 40% at A and B: recovery
+45%, work 42%, skill 33%, money 24%, mind 14%, connection 0%. The rounds
+run cooler than the library as they go deeper, which is the right
+direction.
 
 **Card count is not the measure, and the last two rounds show why.** Work
 produced 26 and mind produced 7, because the work pillar was thin and
