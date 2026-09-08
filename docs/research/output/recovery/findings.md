@@ -1,5 +1,25 @@
-# Recovery round — findings (revised after review)
+# Recovery round — findings
 
+> **Update, 8 September 2026.** `strength-minimum-weekly` has been
+> regraded **A to B**, and this round now carries no A grade. The
+> training round was asked to settle an apparent conflict with a 2026
+> cohort of 147,374 people whose abstract reports a mortality optimum of
+> 90 to 120 minutes a week, against this card's 30 to 60. It opened the
+> full text rather than the abstract and recovered the whole dose curve:
+> hazard ratios of 0.95 at 1–29 minutes, 0.91 at 30–59, 0.91 at 60–89,
+> 0.87 at 90–119 and **0.92 above 120**. Almost all the benefit is bought
+> by the first half hour, the middle bands overlap heavily, and the top
+> band being worse than the one below it marks the upper end as noise.
+> The cancer-mortality benefit appears only in the two lowest bands,
+> which argues *for* this card's number.
+> 
+> **So the prescription survives and the grade does not.** The A rested
+> on a concordance between pooled analyses that no longer exists, one of
+> the two supporting figures came from a four-study arm, and everything
+> here is observational and self-reported while a B-graded card in the
+> same round rests on device-measured data. The sentence claiming the
+> association is strongest at 30 to 60 minutes has been removed and a
+> two-hour ceiling added. Working in `../training/`.
 Written 2026-09-08 against `docs/research/BRIEF-recovery.md`, then revised
 the same day against `REVIEW.md` and the rewritten `docs/research/README.md`.
 Twenty-two candidate protocols are in `protocols.ts` beside this file, each
