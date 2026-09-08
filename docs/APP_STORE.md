@@ -34,8 +34,8 @@ Found by auditing the TestFlight build against the App Review Guidelines:
 
 | Field | Value |
 |---|---|
-| Name | IntentNorth |
-| Subtitle (30) | Sleep, training, routine coach |
+| Name (30) | IntentNorth: Habit & Routine (28) — see ASO note below |
+| Subtitle (30) | Sleep, training, day planner (28) |
 | Primary category | Health & Fitness |
 | Secondary category | Productivity |
 | Price | Free to download; IntentNorth Plus by in-app purchase (see below) |
@@ -158,25 +158,74 @@ through `buildProgramme` and hashing the output — all distinct.
 
 ## Keywords (100, comma-separated, no spaces)
 
-`weekly,daily,tracker,workout,gym,strength,meditation,breathing,money,budget,family,evidence,life` — 96 characters. Do not add competitor names.
+`tracker,workout,gym,strength,meditation,breathing,money,budget,family,evidence,weekly,fitness,goal` — 98 characters. Do not add competitor names.
 
-**Changed 7 Sep 2026 on the search research** (`docs/SEO_RESEARCH.md` §5). The
-old subtitle, "Seven coaches. One profile.", contained no word anyone searches
-in the App Store — the iTunes search for "coach" in Australia returns The
-Coach, Louis Vuitton, H&M and Nike Run Club, so the word carries no shelf at
-all. The words that do are *habit*, *routine*, *planner*, *sleep*, *training*
-and *fitness*.
+## The three indexed fields, and why they changed
 
-Apple indexes title, subtitle and keyword field together, so a word repeated
-across them wastes characters. The old keyword list repeated five words that
-now sit in the title and subtitle; this one drops them and adds the modifiers
-people prepend, the training synonyms, and the two areas no competitor covers
-(money, family). "evidence" is in there because nobody searches it and nobody
-else can claim it.
+**Only the name, subtitle and keyword field are indexed for App Store
+search.** The description is not — its whole job is conversion once somebody
+has already found the listing. So these 160 characters are the entire search
+surface, and Apple weights them in that order, the name most heavily.
 
-Fallback if the title must stay bare "IntentNorth": subtitle
-`Habit, sleep & routine planner` (30) with keyword field
-`training,coach,weekly,daily,tracker,workout,gym,strength,meditation,breathing,money,family,evidence` (98).
+**We were using 137 of 160, and every wasted character was in the name.**
+
+| Field | Was | Now |
+|---|---|---|
+| Name | `IntentNorth` (11/30) | `IntentNorth: Habit & Routine` (28/30) |
+| Subtitle | `Sleep, training, routine coach` (30/30) | `Sleep, training, day planner` (28/30) |
+| Keywords | 96/100 | 98/100 |
+| **Total indexed** | **137/160** | **154/160** |
+
+No word repeats across the three, which matters because Apple indexes them
+together and a repeat spends the character twice for nothing. `coach` is
+dropped from all three: the earlier search research found the iTunes query for
+"coach" in Australia returns The Coach, Louis Vuitton, H&M and Nike Run Club,
+so the word carries no shelf at all. `routine` moves up into the name, the
+highest-weighted field, and `planner` enters the subtitle in its place.
+
+### What the competitor data says
+
+From `docs/research/seo/appstore_batch1.md`, 22 AU listings with verified
+character counts. The apps with the largest rating counts — the closest
+available proxy for install volume — all pack the name to its limit:
+
+| App | AU ratings | Name | Used |
+|---|---:|---|---|
+| Hevy | 16K | `Hevy - Workout Tracker Gym Log` | 30/30 |
+| Structured | 15K | `Structured: Daily Planner Todo` | 30/30 |
+| Strong | 13K | `Strong Workout Tracker Gym Log` | 30/30 |
+| Fitbod | 9.5K | `Fitbod Workout & Gym Planner` | 28/30 |
+| Sunsama | 37 | `Sunsama` | 7/30 |
+
+They also keep the subtitle's words distinct from the name's. Hevy's name
+carries workout, tracker, gym, log; its subtitle carries weight, lifting,
+exercise, plan. Eight terms, no overlap, both fields full.
+
+The exceptions prove the rule rather than breaking it. WHOOP has no subtitle
+at all and 4K ratings, because it sells a wearable and its demand arrives from
+outside the store. "I Am Sober" is itself the phrase people search. Neither
+route is open to us.
+
+### Honest limits on this
+
+The structural finding is a fact: 23 indexed characters were unused, in the
+field that counts most. **The choice of which words fill them is judgement,
+not measurement** — we have no search-volume data, and nothing here has been
+tested against real installs. Treat the term selection as a first version to
+be revised once the App Store Connect analytics show what people actually
+searched to reach the listing.
+
+### Two things to check before changing this
+
+**The App Store name is not the home-screen name.** `CFBundleDisplayName`
+stays `IntentNorth`, so the icon label is unchanged; only the store listing
+carries the longer string. That is standard practice and not a rename.
+
+**Editing metadata on a version in review may require pulling it from the
+queue.** 1.0 is currently Waiting for Review. Confirm in App Store Connect
+before touching these fields, and if in doubt let them ride to the next
+submission — an under-optimised listing costs installs, a lost queue position
+costs days.
 
 ## What's New (1.0.0)
 
