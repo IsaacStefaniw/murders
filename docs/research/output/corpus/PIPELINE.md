@@ -182,16 +182,27 @@ would have failed it.
 
 ## Where things actually stand
 
-| Pillar | Gate 0 | Gate 1 | Gate 2 | Gates 3–5 | Output |
-|---|---|---|---|---|---|
-| sleep, longevity (recovery) | — | retrofitted by audit | done | done | `output/recovery/` + audit |
-| wealth (money) | — | partial, ledger only | done | done | `output/money/` + audit |
-| leadership (work) | done | done | done | done | `output/work/` |
-| mind | done | done | running | — | `output/gate1/mind-skill.md` |
-| skill | done | done | running | — | `output/gate1/mind-skill.md` |
-| connection | done | running | — | — | — |
-| nutrition, training | done | — | — | — | — |
-| supplements | done | — | — | — | — |
+| Pillar | Gate 0 | Gate 1 | Gate 2 | Gates 3–5 | Cards | Output |
+|---|---|---|---|---|---|---|
+| sleep, longevity (recovery) | — | retrofitted by audit | done | done | 22 | `output/recovery/` + audit |
+| wealth (money) | — | partial | done | done | 25 | `output/money/` + audit |
+| leadership (work) | done | done | done | done | 26 | `output/work/` |
+| mind | done | done | done | done | 7 | `output/mind/` |
+| skill | done | done | done | done | 6 | `output/skill/` |
+| connection | done | done | running | — | — | `output/gate1/connection.md` |
+| nutrition, training | done | — | — | — | — | — |
+| supplements | done | — | — | — | — | — |
+
+86 candidate cards across five completed rounds, plus proposed regrades
+to 20 existing ones.
+
+**Card count is not the measure, and the last two rounds show why.** Work
+produced 26 and mind produced 7, because the work pillar was thin and
+badly shaped for half the audience while the mind pillar was already the
+largest in the library and needed depth rather than volume. The skill
+round produced 6 and its most valuable output was five regrades, four of
+them downward. A round that comes back large in an already-strong pillar
+has misread the brief.
 
 The Work round was the first to run both passes and the first to produce
 `episodes.md` and `ladder.md`. Mind and skill were mined together in one
