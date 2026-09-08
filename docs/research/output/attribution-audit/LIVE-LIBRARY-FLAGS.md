@@ -7,6 +7,35 @@ session cannot change them. They need an app-session decision.
 Swept mechanically across all 204 cards carrying an attribution, on
 8 September 2026.
 
+## 0. URGENT — a shipped card is built on a retracted paper
+
+**`ship-monthly`** (`protocols.ts:1626`, skill pillar, currently graded C).
+
+Its `why` says that students who set their own spaced deadlines finished
+better than those working to one distant deadline. Its entire attribution
+line is `['Dan Ariely', 'Klaus Wertenbroch']`.
+
+That is Ariely & Wertenbroch 2002, DOI 10.1111/1467-9280.00441,
+**retracted 2 September 2026** after the data were found to be tampered
+with or fabricated and a replication failed. The registry check prints
+`DO_NOT_CITE`; Europe PMC types it "Retracted Publication".
+
+**How it got missed is the more important part.** The paper has been in
+`../corpus/RETRACTIONS.md` since the day the register was created. It was
+filed under the money round, which found it, and nobody swept the
+*already shipped* cards against the register. A register nobody sweeps
+against is a bibliography.
+
+That is now fixed: `../corpus/tools/retraction-sweep.js` checks every
+card against the register by author and by claim pattern, and exits
+non-zero so it can gate a build. **The rest of the library is clean** —
+204 cards, one flagged, and it is this one.
+
+**Proposed fix**, from the skill round: grade C to E, remove both
+attribution credits, delete the deadline sentence from the `why`, and
+keep the practice, which is sensible on its own and can be written warmly
+without a fabricated study behind it.
+
 ## 1. Six cards breach the roster's Peterson rule
 
 `COMMUNICATORS.md` says, of Jordan Peterson: *"keep, do not expand, and

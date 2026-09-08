@@ -91,8 +91,30 @@ searched for and could not find at any source. Never print these.
   deviations; a $2,467 buffer figure; a $2,000 emergency-fund target
   attributed to the Australian regulator, which its page does not say.
 
+## Sweep the library against this file, do not just read it
+
+A register nobody enforces is a bibliography.
+
+`tools/retraction-sweep.js` checks every shipped card against the rows
+above, by author and by claim pattern, and exits non-zero so it can gate
+a build. Run it whenever this file changes and before any round ships.
+
+It exists because of a near-miss worth recording. Ariely & Wertenbroch
+2002 was entered here the day the register was created, filed under the
+money round that found it. Days later the skill round discovered that a
+live card, `ship-monthly`, had that paper as its reasoning and both its
+attribution credits. The register had the answer the whole time and
+nobody had asked it about the cards already shipped.
+
+The sweep now finds that card in under a second, and reports the rest of
+the library clean.
+
 ## How to add to this file
 
 When a round finds one: the DOI, the date checked, what it was the
 standard citation for, and what survives instead. A retraction is only
 useful to the next round if the replacement claim is recorded beside it.
+
+**Then add it to the sweep.** `retraction-sweep.js` carries its own copy
+of the author list and the claim patterns; a row added here and not there
+is a row that stops being enforced.
