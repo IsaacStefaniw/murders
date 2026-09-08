@@ -87,21 +87,33 @@ full view — by name — of every coach, rung and protocol. Everything that
 
 ## Description (4,000)
 
-> Seven coaches, one profile, and a week that fits the life you actually have.
+Rewritten 8 September 2026. The description is **not indexed for App Store
+search** — only the name, subtitle and keyword field are — so its whole job
+is conversion, and the first three lines before "more" are almost all most
+people read. The previous opening led with "Seven coaches", which is the
+thing an outside review and Isaac independently identified as the part that
+overwhelms. It now leads with the reader's own experience instead.
+
+> You already know what to do. You have listened to hundreds of hours of it.
 >
-> IntentNorth builds a real program for each thing you care about — training, food, habits and urges, work, money, your relationship and your family — from one set of answers, and places it into the days you have. Every line on today's plan carries the reason it is there.
+> IntentNorth is the part that puts it into Tuesday.
 >
-> TRAINING THAT LEARNS FROM WHAT YOU LOG
-> Four-week blocks — build, build, progress, deload — sized to your days, your equipment and your own lifts. Log a set and the next target follows a rule you can read: every set at the target, reps held, and the load moves. Four levels, earned from your log, with your starting point placed by what you lift. Say "this is too easy" and the block changes. Connect Apple Health (read-only) and a short night changes today's session: main work stays, accessories rest. 5,376 distinct programmes from the builder's own inputs; no two people get the same one.
+> Answer twelve questions once. Seven coaches — training, food, habits and urges, work, money, your relationship and your family — build one week from the same set of answers, and place it around the work, sleep and commitments you already have. Every line on today's plan carries the reason it is there.
 >
-> A LIBRARY THAT TELLS YOU HOW GOOD ITS EVIDENCE IS
-> 204 practices, every one graded A to E and credited to the public work behind it — 212 researchers and practitioners named. 182 carry a plain-words safety line. Most of it is not an A, and it says so.
+> WHAT ACTUALLY HAPPENS
+> The plan fits the week you have, not an ideal one. Move something and it learns where it really belongs. Have a bad week and nothing scolds you. Say a session was too easy and the next block changes. Connect Apple Health, read-only, and a short night quietly changes today's session: the main work stays, the accessories rest.
 >
-> HABITS AND URGES, WITHOUT THE VERDICT
-> Sixteen behaviours. Log one and you get the mechanism and the lever, never a streak to break. Support for your hardest moments is free, permanently, and never behind a paywall.
+> A LIBRARY THAT GRADES ITS OWN EVIDENCE
+> 204 practices, each rated A to E for the strength of the research behind it and credited to the public work that popularised it — 212 researchers and practitioners named. 182 carry a plain-words safety line. Most of it is not an A, and it says so, because little of what anyone can teach you about your own life is.
+>
+> TRAINING BUILT FROM YOUR OWN LIFTS
+> Four-week blocks — build, build, progress, deload — sized to your days, your equipment and what you actually lift. Log a set and the next target follows a rule you can read. Four levels, earned from your log rather than claimed. 5,376 distinct programmes from the builder's own inputs; no two people get the same one.
 >
 > THE REST OF A LIFE
 > Guided breathing. Seven spoken meditations, in a voice you choose. A weekly review that ends in one decision. A money ladder with one step live at a time. Rituals that survive a bad week, and a weekend that actually happens.
+>
+> FREE, FOR AS LONG AS YOU LIKE
+> Your profile and your first insight. The shape of your day. The habits you already have, placed into your week. And every urge, reset and lapse-recovery tool — permanently, and never behind a paywall.
 >
 > YOURS, ON YOUR PHONE
 > No account. No analytics. Nothing you enter leaves your device. Apple Health is read, never written. Save a backup any time; delete the app and it is gone.
@@ -110,6 +122,30 @@ full view — by name — of every coach, rung and protocol. Everything that
 >
 > Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 > Privacy Policy: https://intentnorth.app/privacy
+
+### Why it is ordered this way
+
+**The opening names the reader's problem, not the app's structure.** Somebody
+browsing this has bought self-improvement before and watched their week stay
+the same. "You already know what to do" is the most specific true thing we
+can say to them, and it makes their existing listening an asset rather than a
+competitor.
+
+**"What actually happens" moved to second.** The old copy went straight to
+training specifications. A person deciding whether to download wants to know
+what using it is like before they want a programme spec.
+
+**Evidence moved above training.** Training is the deepest feature; the
+grading is the one no competitor has. Depth proves the product, difference
+sells it.
+
+**The free section stays late but stays in.** It is the trust close, and the
+permanent free urge and lapse support is the single most disarming sentence
+in the listing.
+
+**Numbers that read as inventory were cut.** The counts that remain each
+prove a claim: 204/212/182 proves the grading is real, 5,376 proves no two
+programmes are the same.
 
 The two links at the end are required by guideline 3.1.2 for any app with
 auto-renewable subscriptions: the first submission of 1.0 was rejected on
