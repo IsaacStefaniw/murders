@@ -74,3 +74,14 @@ tends to compress the findings into slogans.
 valuable half. And a verification pass on the two A grades — they are
 almost certainly right, but a library that grades honestly should be able
 to show its working on its strongest claims.
+
+## What this gives the Skill coach to say
+
+- "Twenty minutes today beats two hours on Sunday, and it isn't close."
+- "You got it wrong four times before it stuck. That's the mechanism, not
+  a bad session."
+- "Time to test yourself rather than review it again — that's the switch
+  that makes it stay."
+
+The good news in this pillar is unusually strong and unusually
+actionable. Lead with it.

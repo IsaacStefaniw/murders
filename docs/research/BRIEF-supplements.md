@@ -83,3 +83,21 @@ honestly — which means several D grades on best-sellers. At least two
 "this is heavily marketed and the evidence does not support it" entries.
 And an explicit list of what you declined to write because it needed a
 test result or a professional.
+
+## What this gives the coaches to say
+
+Supplements are where people most want a straight answer and least often
+get one. The coaches should be able to say:
+
+- "Creatine's about as well-evidenced as supplements get. Here's what the
+  position stands actually say."
+- "Magnesium for sleep is everywhere, and the reviews rate the evidence
+  low. If you take it and it helps you, that's real — just know what
+  you're buying."
+- "That one needs a blood test before it means anything. Worth asking your
+  GP rather than guessing."
+
+Straight, warm, never sneering at somebody for taking something. A person
+who has bought a supplement made a reasonable attempt to look after
+themselves, and the answer should respect that even when the evidence is
+thin.
