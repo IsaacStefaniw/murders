@@ -190,16 +190,19 @@ would have failed it.
 | mind | done | done | done | done | 7 | `output/mind/` |
 | skill | done | done | done | done | 6 | `output/skill/` |
 | connection | done | done | done | done | 12 | `output/connection/` |
-| nutrition, training | done | — | — | — | — | — |
+| training | done | done | done | done | 8 | `output/training/` |
+| nutrition | done | done | done | done | 7 | `output/nutrition/` |
 | supplements | done | — | — | — | — | — |
 
-98 candidate cards across six completed rounds, plus proposed regrades to
-24 existing ones.
+113 candidate cards across eight completed rounds, plus proposed regrades
+to 30 existing ones. Only supplements remains, and it is narrow and
+rule-bound by design.
 
 Grade spread per round, against the library's 40% at A and B: recovery
-45%, work 42%, skill 33%, money 24%, mind 14%, connection 0%. The rounds
-run cooler than the library as they go deeper, which is the right
-direction.
+45%, work 42%, skill 33%, training 25%, money 24%, mind 14%, nutrition
+14%, connection 0%. The rounds run cooler than the library as they go
+deeper, which is the right direction. **No round graded a card up from
+what its previous round had, and six rounds graded cards down.**
 
 **Card count is not the measure, and the last two rounds show why.** Work
 produced 26 and mind produced 7, because the work pillar was thin and
