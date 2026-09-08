@@ -313,8 +313,15 @@ export function savingsPlan(input: SavingsPlanInput): SavingsPlan {
   const landsOn = monthsAtPace === null ? null : addMonths(today, monthsAtPace);
   const onTrack = !paceKnown ? null : landsOn !== null && landsOn <= byDate;
 
-  // The rungs: first $1k, a month of expenses, then by quarters, with
-  // three-quarters so the last stretch is never the longest.
+  // The rungs: first $1k, $2,000, a month of expenses, then by quarters,
+  // with three-quarters so the last stretch is never the longest.
+  //
+  // $2,000 is not a round number somebody liked. It is the amount the ABS
+  // asks households about, and the line that separates a household able to
+  // absorb a bad week from one that cannot — in Australia and in two other
+  // countries' data. About one in five Australian households could not
+  // raise it. Reaching it is the rung that turns an emergency back into an
+  // inconvenience, and it deserves to be marked.
   const rungs: { id: string; title: string; amount: number }[] = [];
   const push = (id: string, title: string, amount: number) => {
     const a = round(amount);
@@ -323,6 +330,7 @@ export function savingsPlan(input: SavingsPlanInput): SavingsPlan {
     rungs.push({ id, title, amount: a });
   };
   push('first-1k', 'The first $1,000', 1000);
+  push('first-2k', 'Two thousand, in reach', 2000);
   if (input.monthlyExpenses && input.monthlyExpenses > 0) {
     push('one-month', 'A month of expenses banked', input.monthlyExpenses);
   }

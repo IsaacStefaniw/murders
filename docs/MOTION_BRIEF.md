@@ -39,7 +39,7 @@ safety line, and we publish the weak ones.**
 
 The numbers are verified against `src/features/knowledge/protocols.ts`:
 317 protocols, nine pillars, graded A 15 · B 100 · C 120 · D 70 · E 12, 278
-safety lines, 248 people credited. One hundred and fifteen are A or B. **Two
+safety lines, 249 people credited. One hundred and fifteen are A or B. **Two
 hundred and two are C or weaker, and we say so on the page.**
 
 That last sentence is the asset. Every competitor in this category presents

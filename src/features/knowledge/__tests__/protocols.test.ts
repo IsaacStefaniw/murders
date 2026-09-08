@@ -77,7 +77,10 @@ describe('knowledge base integrity', () => {
       const p = PROTOCOLS.find((x) => x.id === id);
       expect(p).toBeDefined();
       expect(p!.safety).toBeTruthy();
-      expect(p!.safety!.toLowerCase()).toMatch(/adviser|professional|accountant|charity/);
+      // "counsellor" is on this list because a financial counsellor is the
+      // correct Australian route for debt specifically — free, independent
+      // and selling nothing — and is not an adviser or an accountant.
+      expect(p!.safety!.toLowerCase()).toMatch(/adviser|professional|accountant|charity|counsellor/);
     }
   });
 

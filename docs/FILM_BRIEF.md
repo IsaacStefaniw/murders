@@ -144,7 +144,7 @@ that is what Apple permits.
 - Every sentence on the phone is the shipped app's output. Nothing is
   mocked, retouched or typed for the camera.
 - Numbers, counted from the code on the day: 317 practices; 15 A, 100 B,
-  120 C, 70 D, 12 E; 278 with a safety line; 248 named researchers and
+  120 C, 70 D, 12 E; 278 with a safety line; 249 named researchers and
   practitioners; seven pathways, four levels. Never "clinically proven",
   never user numbers, never outcomes.
 - Named educators appear only as the app shows them, and the app's own

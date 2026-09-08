@@ -19,7 +19,7 @@ export const MONEY_PROTOCOLS: Protocol[] = [
     area: 'admin',
     goalDomains: ['finance', 'behaviour'],
     summary: 'Until one month of expenses is sitting somewhere you can reach, the automatic transfer goes there and nowhere else.',
-    why: 'Households with even a small cash buffer report less financial stress and are far less likely to sell investments or borrow at high rates when a car or a tooth breaks; that comes from large surveys in several countries, consistent but observational. Australian government guidance suggests three months as the target. The first month does most of the work: it turns an emergency back into an inconvenience.',
+    why: 'Households with even a small cash buffer report less financial stress and are far less likely to sell investments or borrow at high rates when a car or a tooth breaks; that comes from large surveys in several countries, consistent but observational. Australian government guidance suggests three months as the target, and the early rungs do most of the work. The first is about two thousand dollars — the amount national surveys use to separate a household that can absorb a bad week from one that cannot. The second is roughly six weeks of take-home, which is where bank-account data shows a bad month stops doing damage. Three months is the destination; almost all of the relief arrives before it.',
     attribution: ['Moneysmart (ASIC)', 'Scott Pape'],
     days: [5],
     durationMin: 10,

@@ -475,7 +475,7 @@ const libraryStats = [
   },
   {
     label: "It names where the work came from.",
-    note: "248 researchers and teachers are credited for the public work behind these practices. Credit, never endorsement.",
+    note: "249 researchers and teachers are credited for the public work behind these practices. Credit, never endorsement.",
   },
   {
     label: "It tells you when not to do something.",

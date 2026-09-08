@@ -952,7 +952,7 @@ export const RESEARCH_PROTOCOLS: Protocol[] = [
     summary:
       'If sleep has been poor, look at the fibre and the very sweet things in the day before you look at anything else in the evening.',
     why: 'The relationship between food and sleep runs both directions, and the daytime half is the less obvious one. In controlled feeding work, days higher in fibre were followed by more deep sleep, while days higher in sugar and saturated fat were followed by lighter, more broken nights. That is a small literature and it does not make dinner a sleep intervention. It does mean that when someone has tried every evening ritual and is still waking at three, the day before is a reasonable place to look next, and it is a cheaper thing to change than the bedroom.',
-    attribution: [],
+    attribution: ['Marie-Pierre St-Onge'],
     days: [0],
     durationMin: 10,
     anchor: { kind: 'fixed', start: '11:00', windowMin: 360 },

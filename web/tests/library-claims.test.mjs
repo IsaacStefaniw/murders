@@ -94,7 +94,7 @@ test("the library figures on the page match the library in the app", async () =>
   assert.equal(total, 317, "protocol count changed — update the page copy too");
   assert.equal(strong, 115, "A/B count changed — update the page copy too");
   assert.equal(safety, 278, "safety-line count changed — update the page copy too");
-  assert.equal(people, 248, "attribution count changed — update the page copy too");
+  assert.equal(people, 249, "attribution count changed — update the page copy too");
 
   // The page leads with the weaker count rather than the A/B one now — "202 of
   // the 317 are Mixed or weaker" says more than "115 graded A or B", because a

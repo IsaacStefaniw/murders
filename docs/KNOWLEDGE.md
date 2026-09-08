@@ -1,9 +1,24 @@
 # The knowledge base — sourcing policy and architecture
 
-`src/features/knowledge/protocols.ts` is INTENT's evidence-based practice
-library: structured protocols for sleep, training, nutrition, longevity,
-mind, wealth, leadership and connection that the engine can plan
-automatically.
+`src/features/knowledge/protocols.ts` is IntentNorth's evidence-based
+practice library: structured protocols for sleep, training, nutrition,
+longevity, mind, wealth, leadership and connection that the engine can
+plan automatically.
+
+It is not the whole library, and that distinction has cost us once
+already. `PROTOCOLS` spreads in six more files beside it —
+`protocols.money.ts`, `.people.ts`, `.work.ts`, `.supplements.ts`,
+`.habits.ts` and `.research.ts` — and a count of `protocols.ts` alone
+gives 177 of the 317 that ship. That number went into the App Store
+description, the website, and five internal documents, each of which
+said in the same breath that it was counted from the code. **Anything
+that counts the library counts every file spread into the array**, and
+`src/features/knowledge/__tests__/publishedCounts.test.ts` lists every
+place a figure is published so the next change updates the copy first.
+
+Shared safety paragraphs live in `safetyLines.ts`. A caution that has to
+appear on twenty cards exists once, because the copy that drifts is the
+one somebody reads.
 
 ## Sourcing policy
 
@@ -14,7 +29,20 @@ automatically.
   INTENT's own words; no transcript or article text is reproduced.
 - **Attribution, not endorsement.** `attribution` credits whose public
   work popularised a practice. The UI states explicitly that this implies
-  no endorsement of INTENT by these people.
+  no endorsement of IntentNorth by these people.
+- **An empty attribution is an answer, not a gap.** Fifty-nine cards
+  credit nobody, because the verification rounds found them in the
+  literature and no communicator with a public platform teaches them.
+  `sourceLine()` says that on the card, in words, instead of trailing off
+  after "from the public work of". Filling the field with a plausible
+  name to satisfy a test is the one failure this library cannot have, and
+  the integrity tests are written to assert *the reader is told where
+  this came from* rather than *somebody is named*.
+- **The author-list rule.** A researcher credit requires that person to
+  be on the author list of a source in the card's own row. Applying it
+  across the connection pillar turned up eleven failing credits, six of
+  which were the same name standing alone on cards about children and
+  caring.
 - **No overclaiming.** Evidence language is calibrated ("associated with",
   "reliably improves") and a test bans cure/prescription language. Health
   protocols carry a plain-words `safety` note; the library header and

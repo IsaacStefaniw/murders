@@ -40,10 +40,10 @@ it('publishes the real safety-line count — 278', () => {
   expect(PROTOCOLS.filter((p) => p.safety).length).toBe(278);
 });
 
-it('publishes the real number of people credited — 248', () => {
+it('publishes the real number of people credited — 249', () => {
   const names = new Set<string>();
   for (const p of PROTOCOLS) for (const n of p.attribution ?? []) names.add(n);
-  expect(names.size).toBe(248);
+  expect(names.size).toBe(249);
 });
 
 it('publishes the real grade spread — A15 B100 C120 D70 E12', () => {

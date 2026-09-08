@@ -186,7 +186,7 @@
    "gradeLabel": "Good",
    "pillar": "sleep",
    "summary": "Last caffeine of the day, ten hours before your bedtime.",
-   "why": "Caffeine’s half-life is 5–6 hours: a quarter of that afternoon coffee is still circulating at midnight, quietly shaving deep sleep you never see. Ten hours leaves only a trace by lights-out.",
+   "why": "Caffeine’s half-life is 5–6 hours: a quarter of that afternoon coffee is still circulating at midnight, quietly shaving deep sleep you never see. Ten hours leaves only a trace by lights out. The newer work adds a second lever the hour alone misses — how much is in the last one. A large late coffee costs more than a small one at the same time, so if the cutoff is hard to move, making the last one smaller is the other way in.",
    "safety": "Cutting caffeine suddenly can bring on headaches for a few days; moving the cutoff earlier over a week is kinder than stopping dead. Palpitations, reflux or anxiety around caffeine are worth raising with a GP.",
    "attribution": [
     "Andrew Huberman",
@@ -708,8 +708,8 @@
    "gradeLabel": "Mixed",
    "pillar": "wealth",
    "summary": "Monthly: list every balance with its rate, choose one order, and automate the extra payment against the first one only.",
-   "why": "Highest rate first costs least on paper; the follow-through evidence is mixed and leans to smallest balance first, since closing an account is visible progress. Finishing matters more than the order.",
-   "safety": "If payments are already being missed, or a lender is chasing, that is a licensed debt adviser or a nonprofit debt charity — not a habit app. Education, never financial advice.",
+   "why": "Highest rate first costs least on paper, and it is worth knowing how much less: the penalty for going smallest-first is single digits as a percentage of total interest, not a different league. Against that, three independent datasets link concentrating on one balance, and closing it, with people actually finishing. No trial has compared the two head to head. So pick one balance, put everything spare on it, and let the order be the one you will follow.",
+   "safety": "If payments are already being missed, or a lender is chasing, that is a financial counsellor rather than a habit app. In Australia the National Debt Helpline is 1800 007 007, free, independent, and the counsellor sells nothing. Education, never financial advice.",
    "attribution": [
     "Richard Thaler"
    ],
@@ -1713,7 +1713,7 @@
    "pillar": "mind",
    "summary": "Once a week, read resting heart rate and heart-rate variability as a multi-week trend against your own baseline — never as a daily verdict.",
    "why": "Heart-rate variability really does track autonomic state, and a sustained fall alongside a rising resting heart rate is a fair hint that load, short sleep, alcohol or a coming illness is stacking up. What the numbers will not carry is the weight most products put on them. Healthy people differ several-fold in absolute values, single readings swing on posture, breathing rate and whichever algorithm your device uses, and the work showing guided decisions beat a fixed plan comes mostly from small endurance-athlete trials. Weekly direction against your own baseline is roughly as much signal as this carries.",
-   "safety": "A number can quietly become one more thing to fail at. If checking leaves you more anxious than informed, stop checking — nothing is lost. These readings say nothing reliable about illness on their own: symptoms go to a doctor, and anything that feels like a heart rhythm problem goes there promptly.",
+   "safety": "A number can quietly become one more thing to fail at. If checking leaves you more anxious than informed, stop checking — nothing is lost. Worth knowing before you compare anything: Apple Health stores one measure of variability and most rings and straps report a different one, so their numbers are not the same number and neither vendor writes theirs into Health. Alcohol and a coming illness move a night’s reading more than training does. These readings say nothing reliable about illness on their own: symptoms go to a doctor, and anything that feels like a heart rhythm problem goes there promptly.",
    "attribution": [
     "Marco Altini",
     "Andrew Huberman"
@@ -2692,7 +2692,7 @@
    "gradeLabel": "Good",
    "pillar": "wealth",
    "summary": "Until one month of expenses is sitting somewhere you can reach, the automatic transfer goes there and nowhere else.",
-   "why": "Households with even a small cash buffer report less financial stress and are far less likely to sell investments or borrow at high rates when a car or a tooth breaks; that comes from large surveys in several countries, consistent but observational. Australian government guidance suggests three months as the target. The first month does most of the work: it turns an emergency back into an inconvenience.",
+   "why": "Households with even a small cash buffer report less financial stress and are far less likely to sell investments or borrow at high rates when a car or a tooth breaks; that comes from large surveys in several countries, consistent but observational. Australian government guidance suggests three months as the target, and the early rungs do most of the work. The first is about two thousand dollars — the amount national surveys use to separate a household that can absorb a bad week from one that cannot. The second is roughly six weeks of take-home, which is where bank-account data shows a bad month stops doing damage. Three months is the destination; almost all of the relief arrives before it.",
    "safety": "Where the buffer sits, a savings account, an offset account against a home loan, or somewhere else, depends on your loan, your tax and how quickly you may need it, and that is a licensed adviser or accountant question. Education, never financial advice.",
    "attribution": [
     "Moneysmart (ASIC)",
@@ -3683,7 +3683,9 @@
    "summary": "If sleep has been poor, look at the fibre and the very sweet things in the day before you look at anything else in the evening.",
    "why": "The relationship between food and sleep runs both directions, and the daytime half is the less obvious one. In controlled feeding work, days higher in fibre were followed by more deep sleep, while days higher in sugar and saturated fat were followed by lighter, more broken nights. That is a small literature and it does not make dinner a sleep intervention. It does mean that when someone has tried every evening ritual and is still waking at three, the day before is a reasonable place to look next, and it is a cheaper thing to change than the bedroom.",
    "safety": "Ordinary food and no amounts. This is not a plan for insomnia; weeks of bad sleep is a conversation for a doctor. If counting or restricting what you eat has been difficult for you in the past, skip this card rather than working around it.",
-   "attribution": [],
+   "attribution": [
+    "Marie-Pierre St-Onge"
+   ],
    "durationMin": 10
   },
   {
