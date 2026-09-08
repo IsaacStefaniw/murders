@@ -180,11 +180,28 @@ A round with no `episodes.md` is not finished, however good its papers.
 That rule is in `METHOD.md` and it exists because the recovery round
 would have failed it.
 
-## Sequencing under the new structure
+## Where things actually stand
 
-Gate 0 is done. The Work round is finishing under the old structure and
-its research is unaffected; it needs an `episodes.md` and a `ladder.md`
-added. The attribution audit backfills recovery and money.
+| Pillar | Gate 0 | Gate 1 | Gate 2 | Gates 3–5 | Output |
+|---|---|---|---|---|---|
+| sleep, longevity (recovery) | — | retrofitted by audit | done | done | `output/recovery/` + audit |
+| wealth (money) | — | partial, ledger only | done | done | `output/money/` + audit |
+| leadership (work) | done | done | done | done | `output/work/` |
+| mind | done | done | running | — | `output/gate1/mind-skill.md` |
+| skill | done | done | running | — | `output/gate1/mind-skill.md` |
+| connection | done | running | — | — | — |
+| nutrition, training | done | — | — | — | — |
+| supplements | done | — | — | — | — |
+
+The Work round was the first to run both passes and the first to produce
+`episodes.md` and `ladder.md`. Mind and skill were mined together in one
+Gate 1 pass, which is the restructure working as intended: 48 episodes
+read once and used for both pillars.
+
+The attribution audit backfills recovery and money, and it produced a
+third artefact nobody planned for: `output/attribution-audit/LIVE-LIBRARY-FLAGS.md`,
+recording rule breaches in the shipped library that only an app session
+can fix.
 
 After that, the remaining pillars should run in the order the corpus
 suggests rather than the order the old README set:
@@ -200,3 +217,24 @@ suggests rather than the order the old README set:
 
 That is close to the reverse of the old order, which was set by how thin
 each pillar was rather than by what could actually be sourced well.
+
+## The finding that keeps repeating, now across three pillars
+
+Every round run under this structure has found the same thing, and it is
+the strongest argument for the two-inlet design.
+
+| Round | Best-evidenced researchers | Podcast episodes found |
+|---|---|---|
+| work | Sonnentag, Maslach, Amabile, Edmondson | **0 between them** |
+| mind, skill | Dimidjian, the Bjorks, Roediger, Karpicke, Rohrer, Wulf, Pennebaker, Segal, Goldberg and two others | **0 between them** |
+
+Meanwhile the same corpus returns twenty episodes on burnout by no
+burnout researcher, and nothing at all on behavioural activation,
+retrieval practice, spaced repetition or deliberate practice.
+
+The practical rule this produces: **the more rigorous the underlying
+science, the less likely a podcast covers it.** Podcast discovery finds
+what is being sold and what is being argued about. The literature inlet
+finds what is true and quiet. A library built on either alone would be
+badly wrong in a different direction, and the cards that come through the
+quiet inlet are the ones that ship with an empty attribution.
