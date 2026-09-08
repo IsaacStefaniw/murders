@@ -68,7 +68,11 @@ This pillar sits closest to clinical territory of any in the library.
 - **Psychedelics are out of scope.** Whatever the trial evidence now
   shows, this library does not write compounds, and this one especially.
 
-## Contradicted practices to hunt
+## Time back — what people can stop
+
+Framed as a gift, not a lecture. Someone who stops doing a thing that does
+not work gets those minutes back for something that does. Keep this to
+roughly a fifth of the round.
 
 - Catharsis and venting as anger management, which has evidence against it
 - Positive affirmations for people with low self-esteem, where the
@@ -102,3 +106,20 @@ effects work, behavioural activation, rumination and grief are the
 priorities. Several regrades, because a 40-protocol pillar written across
 three earlier rounds will contain some drift. And a hard look at whether
 the single A grade in this pillar deserves to be there.
+
+## What this gives the Mind coach to say
+
+The mind coach runs real guided sessions in someone's ear. It should be
+able to say:
+
+- "Ten minutes tonight. Not to fix anything — just to sit."
+- "You've done this eleven days running. That's the part that compounds."
+- "Low today? The evidence says do the small thing first and wait for the
+  mood to follow, not the other way round." (Behavioural activation, and
+  it is one of the better-evidenced things in this brief.)
+- "If it ever feels worse rather than better, that's a known thing and
+  it's worth stopping and talking to someone." (Said once, kindly, not as
+  a disclaimer on every session.)
+
+That last one is the differentiator — an honest safety note delivered with
+warmth, which nobody else in the category offers.

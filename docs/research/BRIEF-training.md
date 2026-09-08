@@ -51,7 +51,11 @@ framing is extrapolated from athlete data.
 reason people get hurt when they progress load on a schedule that suits
 muscle. Isometrics and heavy slow resistance have real evidence.
 
-## Contradicted practices to hunt
+## Time back — what people can stop
+
+Framed as a gift, not a lecture. Someone who stops doing a thing that does
+not work gets those minutes back for something that does. Keep this to
+roughly a fifth of the round.
 
 The library already names foam rolling, movement screens, internal
 body-part cueing, and the 10% running rule. Likely more:
@@ -115,3 +119,20 @@ robustness and load-management practices. You may not write rehabilitation.
 autoregulation, older adults and tendon work. Four or five contradicted
 practices with citations. And an honest look at whether any of the
 existing 27 is graded above what it can carry.
+
+## What this gives the Training coach to say
+
+The training coach is already the strongest one. This round should let it
+meet people on their worst weeks rather than only their best:
+
+- "You've got twenty minutes, not an hour. That's still enough to hold
+  what you've built — here's the version that does it."
+- "Two weeks off won't cost you what you think. Strength comes back fast,
+  and here's what to expect on the way in."
+- "You're under-recovered today. Drop a set and keep the load — that's the
+  autoregulation working, not a failure."
+- "You're 58. The evidence is on your side here, and the fall-prevention
+  work is some of the best in the field."
+
+The minimum-effective-dose material is the highest-value thing in this
+brief, because it is what turns a missed week into a smaller week.

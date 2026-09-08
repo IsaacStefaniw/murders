@@ -15,8 +15,17 @@ found an A, write it up in `findings.md` with the evidence and let a human
 decide — do not attempt to ship it.
 
 This is the pillar where the gap between popular confidence and actual
-evidence is widest in the entire project. Treat every famous finding as
-guilty until checked.
+evidence is widest in the project — so check famous findings before
+leaning on them.
+
+But be careful not to let that make the coach cold. This is the area where
+warmth matters most and where a discouraging tone does the most damage.
+Someone reaching for the relationship coach is usually trying to be a
+better partner or parent, often at a hard moment. The honest position is
+not "none of this is proven" — it is that these are decent, humane
+practices that people who care about each other do, the evidence is
+modest, and doing them thoughtfully is better than not. Write it that
+way.
 
 ## The replication problem, named
 
@@ -119,3 +128,21 @@ need an adherence score.
 adult friendship. Honest C and D grades throughout, no A. Five or six
 contradicted practices, which this pillar has more of than any other. And
 an explicit list of famous findings you checked and declined to use.
+
+## What this gives the Relationship and Family coaches to say
+
+These coaches speak to people at their most tender. They should be able to
+say:
+
+- "You two haven't had an evening this fortnight. Thursday's clear —
+  want it held?"
+- "When she tells you good news, the response is the part that lands. Here's
+  what that looks like."
+- "Row last night? The repair matters more than the row did."
+- "You're carrying your mum's appointments as well as your own week. Here's
+  an hour that's yours."
+
+Warm, specific, never scolding, and never implying somebody is failing at
+their family. Where the evidence is modest — which is most of it — the
+honest framing is that these are humane things people who care about each
+other do, and doing them on purpose is better than not.

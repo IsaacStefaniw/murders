@@ -42,12 +42,17 @@ Questions that need real answers, because people will ask them:
 - Contraindications, plainly: pregnancy, cardiovascular conditions,
   alcohol, medication that affects thermoregulation.
 
-Be careful and be honest. Most of this literature is **observational
+Be honest about the grade. Most of this literature is **observational
 cohort work**, which under this library's taxonomy is B at best and often
 C — very large consistent cohort evidence is stronger than "moderate
-observational" but it is not a controlled trial. If you come back grading
-sauna an A because it suits the launch, you have failed the round and
-damaged the product. Isaac would rather have a truthful C.
+observational" but it is not a controlled trial. Do not grade sauna an A
+because it suits the launch; a truthful B is worth more.
+
+And then write it warmly, because the honest picture is genuinely good
+news. The Finnish cohorts are large, consistent, and point one way. Heat
+feels good, people keep doing it, and someone who has just installed a
+sauna is going to use it — which makes it one of the rare practices where
+adherence is not the problem. The coach should sound pleased for them.
 
 ## The second gap: cold
 
@@ -159,3 +164,57 @@ app and finds it takes their purchase seriously. A grade spread that still
 looks like the rest of the library. And at least three contradicted
 practices named — cold-after-lifting is the obvious one, and there will be
 more.
+
+## What this gives the Recovery coach to say
+
+Right now, a sauna owner opens the app on their first morning and the
+recovery coach has essentially nothing for them. That is the gap this
+round closes. By the end it should be able to say, on an ordinary Tuesday:
+
+- "You've got a session in tonight — keep it finished about ninety minutes
+  before bed and you'll sleep better for it." (A real scheduling fact,
+  from `finishBeforeSleepMin`.)
+- "Four sessions this week. That's the range the Finnish cohort work
+  associates with the strongest numbers."
+- "You trained hard today — if you're going to use the cold plunge, leave
+  it a few hours, and you'll keep more of the adaptation you just earned."
+- "Your sleep's been short three nights running. Tonight's the one to
+  protect, and here's the smallest version that still helps."
+
+Every one of those is a sentence the coach can only say if this round
+produces the protocol behind it. Write toward the sentences.
+
+---
+
+# Round 2 addendum — after the first recovery round
+
+The first round ran against this brief in its original form and produced 25
+candidates, ~190 verified papers and five source ledgers. It is reviewed in
+`docs/research/output/recovery/REVIEW.md`. **Read that before starting.**
+
+Four things carry forward:
+
+1. **Do not repeat the conditional-schedule mistake.** Five cards were
+   written as event-driven ("after a competition", "if sleep has been
+   broken for three months") and scheduled as unconditional weekly items.
+   `cbt-i-signpost` would have put "book a GP about your insomnia" on the
+   calendar of a good sleeper every Monday, forever. Either write a
+   practice that is true every week, or say plainly in `findings.md` that
+   it needs a `condition` field the interface does not yet have.
+2. **Never attribute a claim to a source document you cannot quote.** The
+   first round closed with corrections to citations the brief never
+   contained. The corrections may have been true; the framing was invented,
+   and that is the one error that makes a reviewer distrust everything else.
+3. **The grade discipline was excellent — keep it.** Sauna at C,
+   sauna-then-cold at E, infrared at D, under obvious pressure to do
+   otherwise. That is exactly right and it is why the package is
+   trustworthy. Do the same again.
+4. **Re-voice for warmth.** The shared contract has been rewritten since:
+   adherence is the active ingredient, expectancy is a real mechanism, and
+   the grade and the encouragement live in different fields. The first
+   round's copy informs; it does not get anyone off the sofa.
+
+Still open in this pillar: HRV interpretation at the individual level,
+recovery sleep after a newborn, heat and sleep in hot climates without air
+conditioning (Brisbane), and the sauna-and-training-adaptation question the
+first round left at C.

@@ -58,7 +58,11 @@ sold as engagement.
 **Return-to-work and career transitions.** Redundancy is a life
 transition; anything you write here likely wants `neverNag`.
 
-## Contradicted practices to hunt
+## Time back — what people can stop
+
+Framed as a gift, not a lecture. Someone who stops doing a thing that does
+not work gets those minutes back for something that does. Keep this to
+roughly a fifth of the round.
 
 The library already names the "23 minutes to refocus" figure and the claim
 that micro-breaks raise output. Likely more:
@@ -104,5 +108,23 @@ assumes a 9-to-5 will place badly.
 
 15-20 new protocols weighted toward recovery from work, burnout, shift
 work and non-desk roles. The grade spread should stay honest — if it comes
-back with more B than the current pillar has, be suspicious of yourself.
+back with far more B than the current pillar has, check your reasoning —
+though the recovery-from-work literature genuinely is stronger than the
+rest of this pillar and should be graded that way.
 Five or six contradicted practices, which this area has in abundance.
+
+## What this gives the Work coach to say
+
+Half this audience is not at a desk. The coach should be able to say:
+
+- "You're off at six. Do the two-minute close-down and then genuinely stop
+  — the detachment is the part that does the work."
+- "Four nights on this week. Here's the shape that protects the drive
+  home."
+- "That review went badly. Here's the thing worth doing tomorrow, and it
+  isn't working later."
+- "You finished the big one. Take the win before the next thing starts."
+
+Be honest about limits too: where a job itself is the cause of burnout, the
+coach should say so kindly rather than implying a breathing practice will
+fix an unsustainable role. Naming that is respectful, not defeatist.

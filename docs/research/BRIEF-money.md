@@ -80,7 +80,11 @@ and this audience often does not have one.
 **Insurance and the boring protective layer.** Under-covered everywhere
 because nobody sells content about it.
 
-## Contradicted practices to hunt
+## Time back — what people can stop
+
+Framed as a gift, not a lecture. Someone who stops doing a thing that does
+not work gets those minutes back for something that does. Keep this to
+roughly a fifth of the round.
 
 - The latte factor and small-expense framing as the primary lever
 - Budgeting apps and tracking as sufficient on their own
@@ -109,14 +113,19 @@ mostly selling something). Treat every podcast where the host sells a
 product, a course or a platform as an advertisement that happens to
 contain some research, and verify accordingly.
 
-## Grade honestly, and expect it to be low
+## Grade honestly — and lead with what works
 
-Behavioural finance has a replication problem. Several famous effects in
-this literature have failed to replicate or shrunk substantially under
-scrutiny. Check before you lean on any classic finding, and grade the
-current state of the evidence rather than the state it had in 2010.
+Behavioural finance has had a hard decade — several famous effects have
+shrunk under scrutiny. Check before you lean on a classic finding, and
+grade the current state of the evidence rather than its 2010 state.
 
-A round that returns mostly C and D here would be entirely believable.
+But lead with the good news, because there is plenty. Automatic
+escalation and default effects are among the best-evidenced behavioural
+interventions in any field, with real field experiments and real effect
+sizes behind them. Someone who sets one thing up automatically today is
+genuinely better off, and the coach should be able to say that with
+confidence. A round weighted toward C and D would be believable; a round
+that fails to surface the strong stuff has missed the point.
 
 ## What a good round looks like
 
@@ -125,3 +134,21 @@ toward the mechanisms with field-experiment evidence, the Australian
 specifics, and income variability. Every constraint respected. And an
 honest note on which famous behavioural findings you checked and declined
 to use.
+
+## What this gives the Money coach to say
+
+The money coach currently has 11 protocols and a goal ladder. It should
+come out of this round able to say:
+
+- "Set the increase to happen automatically next payday. It's the
+  best-evidenced money behaviour there is, and you only do it once."
+- "You're $340 a fortnight off the target date. Here's the one change that
+  closes it."
+- "Income's lumpy this quarter — here's how to plan against that instead
+  of pretending it's a salary."
+- "That's the emergency fund milestone done. Genuinely, that's the hardest
+  one."
+
+Money is where encouragement matters most and is rarest. Most financial
+content makes people feel behind and ashamed, which is exactly the
+emotional state that stops them opening the app. Write the opposite.

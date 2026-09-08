@@ -6,194 +6,312 @@ every round; the brief is what makes yours different.
 
 You have web access. The session that wrote these does not. That is the
 entire reason you exist: everything here has to be traced to a primary
-source you can actually open, and the value you add over the existing
-library is verification, not volume.
+source you can actually open.
 
-## What you are producing
+## What this library is actually for
 
-Candidate `Protocol` objects for `src/features/knowledge/protocols.ts`,
-plus a source ledger. **You are not shipping to users.** A human reviews
-every entry before it goes near a build. Nothing you write reaches a phone
-without Isaac reading it first.
+Not a literature review. **The job is to get someone to do something good
+for them on a Tuesday**, and to make them feel capable while they do it.
 
-The library is at **204 protocols**, graded A 15 · B 67 · C 73 · D 41 · E 8.
-Read `docs/KNOWLEDGE.md` in full before starting — it is the sourcing
-policy, it is binding, and it records what previous rounds already
-excluded and why.
+Every protocol you write lands in a real person's week — at a real hour,
+with a duration the scheduler has to honour, under a coach that will speak
+to them about it. Somebody who has just bought a sauna, or just decided to
+save $100k, or just told the app they sleep badly, is going to open a
+screen and read what you wrote. Write for that moment.
 
-## The three source types, and what each is worth
+**The active ingredient in almost everything here is adherence.** A C-grade
+practice someone does for twelve weeks beats an A-grade practice they
+abandon in week two. That is not a compromise with rigour — it is what the
+behaviour-change literature actually shows, and it should shape every
+choice you make about what to include and how to write it.
 
-**Peer-reviewed research is the only thing that sets a grade.** Journals,
-systematic reviews, meta-analyses, position stands from professional
-bodies. This is the evidence.
+So: **grade the evidence honestly, and write the practice so somebody
+wants to do it.** Those are different jobs, done in different fields, and
+the rest of this document explains how to hold both.
 
-**Science journalism and journals' own summaries** help you find the
-research and understand its context. They never set a grade on their own.
+## The default is encouragement
 
-**Podcasts are discovery sources. They are never evidence.** This is the
-rule that matters most, and the one that will be hardest to hold.
+The person reading this app is trying. That is the starting assumption.
 
-### Working with podcast transcripts
+Doing a healthy thing beats not doing it. Doing it imperfectly beats not
+doing it. Ten minutes of walking is not a failed hour of Zone 2 — it is
+ten minutes of walking, and it counts. Every protocol should be written so
+that the version somebody manages on a bad week still reads as a win.
 
-Transcripts are widely available and genuinely useful — a good long-form
-episode will surface a body of work in an hour that would take you a day
-to find cold. Use them for that and nothing else.
+Concretely, in the copy you write:
 
-Four rules, all binding:
+- **Name the smallest version that still works.** "Even five minutes
+  helps" is often literally true, and it is the sentence that gets someone
+  off the sofa.
+- **Never write a practice as a test the person can fail.** No implied
+  standard they are falling short of.
+- **Say what they get, not what they are risking.** "The cheapest lever
+  for falling asleep easier" beats "poor sleep is associated with worse
+  outcomes."
+- **Assume competence.** They are an adult who has chosen to work on this.
 
-1. **Never reproduce transcript text.** Not a sentence, not a phrase.
-   Every protocol is written in IntentNorth's own words. This is already
-   policy for the whole library; it applies with particular force here
-   because a transcript is a copyrighted work.
-2. **Trace every claim to the study.** A podcaster says "there's a study
-   showing X" — your job is to find that study, open it, and read the
-   abstract and methods. If you cannot identify the study, the claim does
-   not enter the library. No exceptions, however well-known the speaker.
-3. **Grade the study, never the speaker.** A confident presentation of a
-   single small crossover trial is a C. Fame is not evidence and the grade
-   must not move because someone respected said it with conviction.
-4. **Record where the podcast and the paper disagree.** This happens
-   constantly, and catching it is one of the most valuable things you can
-   do. When a popularised claim overstates what the paper found, write it
-   into `findings.md` under **Overclaims found**, naming the claim, the
-   paper, and the gap. Several of these belong in protocol copy as things
-   people believe that the evidence does not support.
+Fear-based framing is not merely unpleasant — it is worse at producing
+behaviour change over any horizon longer than a fortnight. This library
+should carry almost none of it.
 
-Attribution credits whose public teaching popularised a practice. It
-implies no endorsement of IntentNorth, the UI says so, and you should
-never write as though anyone has endorsed anything.
+## Expectancy is a real mechanism, not a confound to apologise for
+
+This matters enough to have its own section.
+
+Open-label placebo research — Ted Kaptchuk's group at Harvard among others
+— finds real effects even when people are told plainly that what they are
+taking is a placebo. Expectancy is a genuine causal contributor to
+outcome, and it operates twice over: directly, and through the fact that
+somebody who believes a practice will help actually does it.
+
+Three consequences for how you write:
+
+1. **A low-grade but harmless practice that somebody finds meaningful has
+   real value.** Grade it D honestly and write it warmly. Those are not in
+   tension, and treating them as though they are is the mistake.
+2. **Never write copy that undermines a practice the person is about to
+   do.** "The evidence here is early" is honest and fine. "This probably
+   won't do much" is discouraging, and given expectancy it is partly
+   self-fulfilling — you would be reducing the effect by describing it.
+3. **Where expectancy is a large part of the mechanism, say so** — plainly
+   and without embarrassment. "Some of this is the ritual itself, and the
+   ritual works" is an honest and unusual thing for an app to say.
+
+What this does **not** license: including practices that do not work,
+because believing helps. Expectancy raises the value of harmless
+low-grade practices. **It never raises their grade.**
+
+## The grade and the encouragement are different fields
+
+This is the crux, and it resolves most of the apparent tension here.
+
+`evidenceLevel` is the honest grade. It is checkable, a reviewer will
+check it, and inflating it destroys the one thing this product has that
+competitors cannot copy.
+
+`summary` and `why` are where a person meets the practice. Warm, concrete,
+motivating.
+
+A C-grade protocol can honestly read:
+
+> Ten minutes most evenings. The research is early and mixed, and the
+> people who do this consistently tend to keep doing it — which is usually
+> the part that matters.
+
+Rather than:
+
+> Some evidence, not settled. Likely marginal benefit.
+
+Both are truthful. One gets done. Write the first.
+
+The app already shows the grade beside every practice with a plain-words
+explanation, and closes with: *"Most of what is here is not an A. Little
+of what anyone can teach you about your own life is. You get to see which
+is which, and decide."* That line does the honesty work. Your copy does
+not need to repeat it in a discouraged tone.
 
 ## Grading
 
 `A` many studies agree · `B` tested and it held up · `C` some evidence,
-not settled · `D` early days · `E` unproven. The precise wording is in
+not settled · `D` early days · `E` unproven. Precise wording in
 `protocols.ts` (`EVIDENCE_PLAIN` / `EVIDENCE_PRECISE`).
 
-**A round that comes back mostly A and B has failed.** The current library
-is 7% A. That is honest, it is the product's whole differentiator, and a
-round that inflates it damages the thing it was meant to enrich. Most of
-what anyone can teach you about your own life is not an A, and the app
-says so out loud.
+The library is at **204 protocols**, graded A 15 · B 67 · C 73 · D 41 · E 8.
 
-**Grade in both directions.** If you find an existing protocol graded
-above what its evidence supports, say so — previous rounds moved
-`daily-walk` from A to B on exactly that basis. A downgrade with reasoning
-is as valuable as a new entry.
+Grade truthfully in both directions — up where deserved (retrieval
+practice and spaced review were graded *up* to A on review) and down where
+not (`daily-walk` moved A to B). Do not inflate to make a round look
+strong; do not deflate to look rigorous. Both are failures of the same
+kind.
 
-## Four things that will catch you out
+**A C you would genuinely recommend to a friend is a better entry than a B
+nobody will ever do.** Choose what to include on that basis, then grade
+what you included honestly.
 
-**Retractions and failed replications.** Check every load-bearing study.
-Retraction Watch, PubPeer, and the paper's own landing page. A previous
-round traced "don't shop hungry" to a retracted paper and excluded the
-whole lineage including its author from every attribution. Do the same.
+## Give people their time back
 
-**Underpowered single studies presented as settled.** Nutrition, sleep and
-psychology are all full of these. n=12 crossover designs are C at best.
+Some of what people do does not work, and saying so is a service — not
+because debunking is satisfying, but because **somebody spending twenty
+minutes foam rolling before every session can have those twenty minutes
+back**, and probably spend them on something that helps.
 
-**Predatory and low-bar journals.** Some venues publish nearly everything
-submitted. Check the venue before you lean on a paper.
+Frame it that way. "You can skip this" is a gift. "You have been wasting
+your time" is a lecture, and nobody returns to an app that lectures them.
 
-**Effect sizes that are real but trivial.** A statistically significant
-result that moves the outcome by 2% is not a practice worth putting in
-someone's week. Say so rather than shipping it as a D.
+Keep it proportionate: **roughly one in five of what you return**, not
+half. A round that is mostly debunking has misunderstood the job. The
+library already names the ten-thousand-hours framing, blocked repetition,
+internal body-part cueing, foam rolling, movement screens, the 10% running
+rule, the "23 minutes to refocus" figure, micro-breaks raising output, the
+smaller-plate effect, the five stages of grief, learning styles,
+highlighting and rereading. Add a few good ones. Do not go hunting.
 
-## Say what does not work
+## What this gives the coach to say
 
-Every brief must return practices the evidence contradicts, not only ones
-it supports. The library already names the ten-thousand-hours framing,
-blocked repetition, internal body-part cueing, foam rolling, movement
-screens, the 10% running rule, the "23 minutes to refocus" figure,
-micro-breaks raising output, the smaller-plate effect, the five stages of
-grief, psychological debriefing, learning styles, highlighting and
-rereading. Add to that list. A library that only ever adds practices never
-tells anyone what to stop doing.
+Your brief has a section on this, and it is the one that decides whether
+the round was worth running.
+
+Each coach speaks to a person daily. A protocol is not a document — it is
+material the coach uses. Before you finish, answer plainly: **what can this
+coach now say on a Tuesday morning that it could not say before?** If the
+answer is thin, the round produced a bibliography rather than a product
+improvement.
+
+## The three source types
+
+**Peer-reviewed research is the only thing that sets a grade.** Journals,
+systematic reviews, meta-analyses, position stands.
+
+**Science journalism** helps you find and contextualise research. It never
+sets a grade on its own.
+
+**Podcasts are discovery sources. They are never evidence** — but they do a
+second job that matters commercially, described below.
+
+### Working with podcast transcripts
+
+Transcripts are widely available and genuinely useful — a good long-form
+episode surfaces a body of work in an hour that would take a day to find
+cold. Use them for that.
+
+1. **Never reproduce transcript text.** Not a sentence. Everything is
+   written in IntentNorth's own words. A transcript is a copyrighted work.
+2. **Trace every claim to the study.** If you cannot identify the paper
+   behind "there's a study showing X", the claim does not enter the
+   library — however well-known the speaker.
+3. **Grade the study, never the speaker.** A confident presentation of one
+   small crossover trial is a C.
+4. **Note where the podcast and the paper differ.** Useful, and often the
+   most interesting thing you will find. Record it without scorn — most
+   overclaiming is enthusiasm, not dishonesty.
+
+Attribution credits whose public teaching popularised a practice and
+implies no endorsement. The UI says so.
+
+### Attribution is a product feature, not just a credit line
+
+This is why the big podcasts are worth mining rather than avoiding.
+
+Somebody who opens a card and reads *Andrew Huberman · Peter Attia*
+recognises the names. They think "I've heard that" — and they start from
+confidence rather than suspicion. Given everything above about expectancy
+and adherence, that recognition is not decoration: it is part of why the
+practice works for them.
+
+So **populate `attribution` generously and accurately**. Where a
+well-known communicator has genuinely covered a practice in public, name
+them. Where they have not, do not — a false attribution is worse than an
+empty one, and the recognition only helps while it is real.
+
+Long-form episodes are also simply the most efficient way to survey a
+literature: an hour of a good one will point you at twenty papers worth
+opening. Use them for exactly that, then open the papers.
+
+**`COMMUNICATORS.md` beside this file is the roster** — who to mine, tiered
+by how well they cite, with the named risks and where to find transcripts.
+Read it before every round. Mining the big shows properly is now an
+explicit goal, not a grudging allowance: the ambition is a library whose
+coaches carry the distilled practice of the category's best, with the
+research deciding what ships.
+
+The rule is unchanged and worth restating because the two ideas sit close
+together: **a podcast can tell you what to read and whose name belongs on
+the card. It can never tell you the grade.**
+
+## Verification, kept in proportion
+
+Check load-bearing studies for retractions and failed replications —
+Retraction Watch, PubPeer, the paper's landing page. A previous round
+traced "don't shop hungry" to a retracted paper and correctly excluded the
+whole lineage.
+
+Watch for underpowered single studies presented as settled, very low-bar
+publication venues, and effects that are statistically real but too small
+to matter in a life.
+
+This is quality control, not the purpose of the round. Spend maybe a fifth
+of your effort here and the rest on finding good practices worth doing.
 
 ## Hard constraints
 
-- **Education, never advice.** Never "prescription". Use programme, plan,
-  practice, protocol. A test bans cure and prescription language.
-- **Safety notes** in plain words on every health entry. 182 of 204 carry
-  one.
-- **No substances** beyond the existing supplements carve-out in
-  `protocols.supplements.ts`, which has its own rules: no amount beyond
-  what a named position stand states, every entry `neverNag`, and
-  `SUPPLEMENT_SAFETY_LINE` verbatim. Still excluded: rapamycin, metformin,
-  NAD precursors, resveratrol, hormone therapy, anything needing a result
-  or a professional to decide.
+- **Education, never advice.** Never "prescription" — programme, plan,
+  practice, protocol. Enforced by test.
+- **Safety notes** in plain words on health entries. Write them as care,
+  not as disclaimer: they should read like a good coach mentioning
+  something, not like a lawyer covering themselves.
+- **No substances** beyond the supplements carve-out
+  (`protocols.supplements.ts`), which has its own rules.
 - **Money entries** must name a licensed professional as the next step and
-  may never name a product, platform, ticker or return figure. Enforced by
-  test.
-- **Anchor direction is correctness, not taste.** Whether something
-  anchors to wake, to sleep, or to a fixed time changes what it is. The
-  caffeine cutoff shipped wrong for exactly this reason. Deadlines
-  (`anchor.deadline`) may be moved earlier and never later.
-- **`neverNag`** on anything where a missed day carries no meaning —
-  bereavement, redundancy, life transitions, supplements.
-- **`appliesTo`** on anything not for everybody: `femaleAnatomy`,
-  `pregnancy`, `menopause`. A man found pelvic floor training in his
-  library once. Do not let it happen again.
-- **Decline the parts that need clinical judgement.** A previous round
-  refused to write the return-to-training half of its own brief because
-  graded reintroduction after a named injury is a clinician's call. That
-  refusal was correct. Make the same call where it applies and say why.
+  may never name a product, platform, ticker or return figure.
+- **Anchor direction is correctness.** Wake, sleep or fixed changes what a
+  practice *is*. Deadlines (`anchor.deadline`) may move earlier, never
+  later.
+- **`neverNag`** wherever a missed day carries no meaning — bereavement,
+  redundancy, transitions, supplements. Use it generously. Nothing in this
+  library should ever make somebody feel behind.
+- **`appliesTo`** for `femaleAnatomy`, `pregnancy`, `menopause`.
+- **Decline what needs clinical judgement**, and say why. A previous round
+  refused to write return-to-training after a named injury. That was right.
 
 ## Deliverables
 
 Write to `docs/research/output/<your-area>/`:
 
 **`protocols.ts`** — candidate objects, valid TypeScript against the
-`Protocol` interface, ready to paste. Every field. Unique ids that do not
-collide with the existing 204.
+`Protocol` interface, ready to paste. Unique ids. Every field. Copy a real
+person would want to read.
 
-**`sources.md`** — one row per protocol: id, the primary source with DOI
-or PMID and a resolvable link, study design, sample size, the grade, and
-**two sentences on why that grade and not the one above it**. The grade
-reasoning is the part a reviewer cannot reconstruct and the part that
-makes the entry checkable.
+**`sources.md`** — per protocol: id, primary source with DOI or PMID,
+design, sample size, grade, and two sentences on why that grade and not
+the one above.
 
 **`findings.md`** — five sections:
 1. What changed in this area's evidence since the library was written
-2. **Overclaims found** — popularised claims the papers do not support
-3. **Contradicted practices** — things people do that the evidence is
-   against, with the citation
-4. **Regrades proposed** — existing protocols whose grade should move, up
-   or down, with reasoning
-5. **What I declined to write, and why**
+2. **What is genuinely well supported** — the practices you would happily
+   put in front of somebody tomorrow, and why
+3. **Where the popular version overstates the paper** — recorded plainly
+4. **Time-back findings** — things people do that they can stop
+5. **Regrades proposed**, up or down, and **what you declined to write**
 
 ## Volume
 
-Quality over count. **15-25 genuinely new, well-sourced protocols** is a
-strong round. Forty thin ones is a worse outcome than twelve good ones,
-and the reviewer's time is the constraint. If your area is already dense,
-spend the round on regrades, contradicted practices and depth instead —
-say so in `findings.md` rather than padding.
+**25-40 genuinely useful, well-sourced protocols**, and a source count
+worth quoting.
+
+Breadth, depth and rigour are the product here, not just the method. The
+recovery round opened around 190 papers at publisher or PMC level and that
+is one of the strongest things about it — say what you checked and how, in
+`findings.md`, rather than burying it. A library that can show its working
+across hundreds of verified sources is a credibility asset no competitor
+in this category has.
+
+That said: thin entries still subtract. If your area is already dense,
+spend the round on depth, better copy for existing entries, and regrades —
+and say so rather than padding to hit a number.
 
 ## Where this lands
 
 One list feeds the interview, the goal wizard, the library screen, the AI
-planner's context and the scheduler. A protocol is not a document — it is
-a thing the engine places in a real person's week, at a real hour, with a
-duration it has to honour. Write the scheduling shape as carefully as the
-evidence.
+planner's context and the scheduler. Write the scheduling shape as
+carefully as the evidence, and the copy as carefully as both.
 
 ## The nine briefs, in the order worth running them
 
 | # | Brief | Pillar(s) | Now | Why this position |
 |---|---|---|---|---|
-| 1 | `BRIEF-recovery.md` | sleep 11, longevity 7 | 18 | Thinnest area, and where the sauna audience lands. Heat is the single biggest gap in the library. |
-| 2 | `BRIEF-money.md` | wealth 11 | 11 | Joint-thinnest, carries the goal ladder, and Isaac rates it as needing work. |
-| 3 | `BRIEF-work.md` | leadership 23 | 23 | Weakest grade spread (D 9, E 3). Shift work and non-desk roles are the association and employer wedge. |
-| 4 | `BRIEF-nutrition.md` | nutrition 32 | 32 | Dense already; depth on protein, satiety, shift-work eating, alcohol. |
+| 1 | `BRIEF-recovery.md` | sleep 11, longevity 7 | 18 | Thinnest area, and where the sauna audience lands. Heat is the biggest single gap. |
+| 2 | `BRIEF-money.md` | wealth 11 | 11 | Joint-thinnest, carries the goal ladder, rated as needing work. |
+| 3 | `BRIEF-work.md` | leadership 23 | 23 | Weakest grades. Shift work and non-desk roles are the association and employer wedge. |
+| 4 | `BRIEF-nutrition.md` | nutrition 32 | 32 | Depth on protein, satiety, shift-work eating, alcohol. |
 | 5 | `BRIEF-training.md` | training 27 | 27 | Strongest coach. Minimum effective dose and older adults are the gaps. |
-| 6 | `BRIEF-relationships.md` | connection 31 | 31 | Widest gap between popular confidence and evidence. No A grades permitted. |
-| 7 | `BRIEF-mind.md` | mind 40 | 40 | Largest pillar. Adverse effects of meditation is the priority. |
-| 8 | `BRIEF-supplements.md` | (carve-out) | — | Narrow, rule-bound, high care. |
-| 9 | `BRIEF-skill.md` | skill 22 | 22 | Best-evidenced already. Run short or run last. |
+| 6 | `BRIEF-relationships.md` | connection 31 | 31 | Warmth matters most here. No A grades permitted. |
+| 7 | `BRIEF-mind.md` | mind 40 | 40 | Largest pillar. Behavioural activation and honest safety are the priorities. |
+| 8 | `BRIEF-supplements.md` | (carve-out) | — | Narrow, rule-bound. |
+| 9 | `BRIEF-skill.md` | skill 22 | 22 | Best-evidenced already. Run short or last. |
 
-One brief per session. They are independent — nothing in brief 5 depends
-on brief 1 having run — but where two overlap the later one should read
-the earlier one's `findings.md` and cross-reference protocol ids rather
-than duplicating. The known overlaps: shift work spans recovery, work and
+One brief per session. They are independent, but where two overlap the
+later should read the earlier one's `findings.md` and cross-reference
+protocol ids. Known overlaps: shift work spans recovery, work and
 nutrition; money-and-couples spans money and relationships; sleep and
 consolidation spans recovery and skill.
 
@@ -201,9 +319,9 @@ consolidation spans recovery and skill.
 
 Give the session this README, its brief, and read access to the
 repository. It needs `docs/KNOWLEDGE.md`,
-`src/features/knowledge/protocols.ts` and, for the supplements round,
-`protocols.supplements.ts`. It does not need the rest of the app.
+`src/features/knowledge/protocols.ts`, and for the supplements round
+`protocols.supplements.ts`.
 
 It writes only to `docs/research/output/<area>/`. It does not edit
-`protocols.ts`, does not run builds, and does not touch the branch that
-carries the app. A human merges candidates in after review.
+`protocols.ts`, does not run builds, and does not touch the app branch. A
+human reviews before anything merges.

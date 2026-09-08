@@ -62,7 +62,11 @@ of the country's best-selling supplements — that is the standard. Still
 excluded entirely: anything needing a blood result or a professional to
 decide.
 
-## Contradicted practices to hunt
+## Time back — what people can stop
+
+Framed as a gift, not a lecture. Someone who stops doing a thing that does
+not work gets those minutes back for something that does. Keep this to
+roughly a fifth of the round.
 
 The library already excludes "don't shop hungry" (retracted source) and
 names the smaller-plate effect as having failed pre-registered testing.
@@ -115,3 +119,20 @@ that names a food needs to survive the exclusion filters.
 and alcohol. A supplements extension that grades honestly. Five or six
 contradicted practices. And an explicit note on anything you declined
 because it could not be written without a prescriptive number.
+
+## What this gives the Nutrition coach to say
+
+The nutrition coach has to be warm, because this is the pillar where
+harshness does real harm. It should be able to say:
+
+- "Get protein into breakfast and you'll find the afternoon easier. Here's
+  what that looks like with what's already in your kitchen."
+- "You're eating out tonight — that's fine, and here's the one thing worth
+  doing."
+- "Night shift this week. Here's how to eat around it so you're not
+  fighting your own body clock."
+- "You had a big weekend. Nothing to fix, just carry on from here."
+
+That last one matters more than any protocol in the round. The single most
+useful thing a nutrition coach can do is make a bad week a non-event.
+Nothing here should ever imply a person has fallen behind on food.
