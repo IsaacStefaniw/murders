@@ -207,6 +207,13 @@ Long-form episodes are also simply the most efficient way to survey a
 literature: an hour of a good one will point you at twenty papers worth
 opening. Use them for exactly that, then open the papers.
 
+**`COMMUNICATORS.md` beside this file is the roster** — who to mine, tiered
+by how well they cite, with the named risks and where to find transcripts.
+Read it before every round. Mining the big shows properly is now an
+explicit goal, not a grudging allowance: the ambition is a library whose
+coaches carry the distilled practice of the category's best, with the
+research deciding what ships.
+
 The rule is unchanged and worth restating because the two ideas sit close
 together: **a podcast can tell you what to read and whose name belongs on
 the card. It can never tell you the grade.**

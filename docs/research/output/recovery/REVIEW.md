@@ -181,3 +181,60 @@ corrections section, and a copy pass for warmth.
 
 Then run the money round next — 11 protocols, carrying the goal ladder,
 and the thinnest pillar left.
+
+---
+
+# Rebrief for round 2
+
+Isaac's direction, verbatim in substance: *"I want us to have the most
+robust library of protocols and findings — that means our coaches embody
+all of the top performers in this category. Then the science element is an
+excellent layer on top."*
+
+Three changes to how you work.
+
+**1. Mine the big shows properly — this is now a goal, not a tolerance.**
+
+`docs/research/COMMUNICATORS.md` is the new roster: three tiers by how well
+each cites, plus named risks. Tier 1 (Attia, Rhonda Patrick, Huberman with
+verification, Galpin, Layne Norton, Stronger By Science, Sigma Nutrition,
+Kaeberlein, Ben Felix, Sam Harris) are where to start. Tier 2 are strong
+practice popularisers. Tier 3 (Tony Robbins, Joe Rogan) carry recognition
+and little evidence — mine Rogan's *guests* and credit the guests.
+
+Two flagged for Isaac rather than assumed: **David Sinclair** — do not add
+new longevity or supplement attributions, since the library already
+excludes by policy the exact compounds he is known for. **Jordan Peterson**
+— the existing 13 credits are defensible; do not expand, and never let his
+name stand alone on a card.
+
+The recovery round already did the recognition layer well — 25/25
+attributions populated, Huberman 15, Attia 11, Patrick 7. Keep that
+density and widen the roster.
+
+**2. Volume and sourcing depth are now the target.**
+
+25-40 protocols per round, and a source count worth quoting. The ~190
+papers you opened is one of the best things about the last package — lead
+with it in `findings.md` rather than burying it in a methods note. Breadth
+and rigour are what the product sells.
+
+**3. Journals and books.**
+
+No subscription for now — access was not your bottleneck last round,
+verification time was. If you hit repeated paywalls, name the specific
+journals in `findings.md` and Isaac will buy those. NCBI Bookshelf, DOAB
+and OAPEN are legitimate free book sources and are worth using for
+mechanism and background; they never set a grade, and shadow libraries are
+not a source this project uses.
+
+## And the four fixes from the review above
+
+Briefly restated because they gate the merge: the five conditional cards
+(`cbt-i-signpost` worst), the twelve B grades you offered to have marked
+down, the fabricated corrections section, and a copy pass for warmth
+against the rewritten contract.
+
+The grade discipline was the best thing in the package. Sauna at C with a
+sauna launch waiting on it is exactly right. Do not let the wider roster
+change that: **more communicators mined, same grades.**
