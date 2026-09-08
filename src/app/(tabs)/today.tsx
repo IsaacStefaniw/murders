@@ -35,6 +35,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { LogDidIt } from '@/features/today/LogDidIt';
 import { WelcomeBack } from '@/features/today/WelcomeBack';
 import { WhyToday } from '@/features/today/WhyToday';
+import { BudgetCard } from '@/features/budget/BudgetCard';
+import { commitmentBudget, mayOffer } from '@/features/budget/commitment';
 import { QuickLog } from '@/features/today/QuickLog';
 import { displacedLine } from '@/features/planner/displaced';
 import { useAppStore } from '@/state/store';
@@ -72,6 +74,7 @@ export default function Today() {
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
   const metrics = useAppStore((s) => s.metrics);
+  const previousOpenAt = useAppStore((s) => s.previousOpenAt);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   /** Set by a long press, so the row opens on the move picker. */
@@ -116,6 +119,28 @@ export default function Today() {
     () => dueInterventions(behaviourIntentions, behaviourEvents, metrics, date),
     [behaviourIntentions, behaviourEvents, metrics, date],
   );
+  /*
+    How much new is reasonable this week.
+
+    Every signal here already existed and was read by a different feature
+    for a different purpose — adherence for the weekly report, moves for
+    learned placement, sleep for auto-regulation, capacity for plan size.
+    This is where they become one decision, which had been getting made
+    implicitly, by default, as "offer all of it".
+  */
+  const budget = useMemo(
+    () =>
+      commitmentBudget({
+        routines,
+        plans,
+        metrics,
+        profile: profile ?? null,
+        lastOpenedAt: previousOpenAt,
+        today: date,
+      }),
+    [routines, plans, metrics, profile, previousOpenAt, date],
+  );
+
   const todayNote = useMemo(
     () => (plans[date] ? coachNote(date, plans[date].items, routines, nowMinutes()) : null),
     [date, plans, routines],
@@ -311,7 +336,15 @@ export default function Today() {
           now?" first and "what did the system decide?" second. */}
       <WhyToday displaced={displacedLine(plan.displaced ?? [])} energyNote={plan.energyNote} />
 
-      {openSuggestion ? (
+      {/* What the app is asking of you this week, and what it is holding
+          back. Silent in the ordinary stable case — a card that appears
+          every day stops being read on the day it matters. */}
+      <BudgetCard budget={budget} />
+
+      {/* A suggestion is the app proposing something, so it goes through
+          the same gate as everything else it proposes. Nothing here stops
+          a person adding what they like from the library. */}
+      {openSuggestion && mayOffer(budget) ? (
         <View style={styles.suggestion}>
           <SuggestionCard
             suggestion={openSuggestion}

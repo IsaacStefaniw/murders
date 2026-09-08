@@ -9,6 +9,7 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
+import { startingSet } from '@/features/budget/commitment';
 import { PATHS } from '@/features/paths/definitions';
 import { describeConstraints } from '@/features/onboarding/constraints';
 import { useOnboardingStore } from '@/features/onboarding/state';
@@ -39,7 +40,25 @@ export default function PlanReview() {
   const startPath = useAppStore((s) => s.startPath);
 
   const plan = useMemo(() => buildLifeOperatingPlan(answers), [answers]);
-  const [disabledRoutines, setDisabledRoutines] = useState<Set<string>>(new Set());
+
+  /*
+    Two things start, not nine.
+
+    The plan is right — every routine in it is warranted by something this
+    person said — and on a first Monday it is also nine new things at
+    once. The number of new things that survive a first week is closer to
+    two, so the plan stays whole and the START is an anchor plus one short
+    daily practice that makes the anchor easier to keep.
+
+    Held is not dropped and not hidden: every held routine is on this
+    screen with its switch already rendered, one tap from starting. Anyone
+    who wants all nine gets all nine and the app does not argue. What it
+    will not do is choose nine on somebody's behalf.
+  */
+  const start = useMemo(() => startingSet(plan.routines), [plan.routines]);
+  const [disabledRoutines, setDisabledRoutines] = useState<Set<string>>(
+    () => new Set(start.heldIds),
+  );
   // The first insight is the free half of the promise; this is the moment it is seen.
   useEffect(() => {
     void track('first_insight_seen');
@@ -177,6 +196,19 @@ export default function PlanReview() {
       ) : null}
 
       <SectionHeader title="Weekly rhythm" />
+      {start.heldIds.length > 0 ? (
+        <Card style={styles.holdBack}>
+          <AppText variant="body">
+            Two of these start now. The rest are ready when you want them.
+          </AppText>
+          <AppText variant="caption" color="textTertiary">
+            Everything below is yours and none of it is going anywhere — switch on as many
+            as you like. Two is where IntentNorth starts because two is what usually
+            survives a first week, and one change at a time is the only way to tell which
+            change did what.
+          </AppText>
+        </Card>
+      ) : null}
       <View style={styles.stack}>
         {plan.routines.map((routine) => (
           <Card key={routine.id} style={styles.routineRow}>
@@ -191,6 +223,8 @@ export default function PlanReview() {
                 {' · around '}
                 {formatTime(routine.preferredStart)}
                 {routine.protected ? ' · protected' : ''}
+                {routine.id === start.anchorId ? ' · your anchor' : ''}
+                {routine.id === start.supportId ? ' · makes the anchor easier' : ''}
               </AppText>
             </View>
             <Switch
@@ -222,6 +256,7 @@ export default function PlanReview() {
 
 const styles = StyleSheet.create({
   top: { marginBottom: Spacing.sm },
+  holdBack: { gap: Spacing.sm, marginBottom: Spacing.sm },
   pillars: { gap: Spacing.sm },
   pillar: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   stack: { gap: Spacing.sm },
