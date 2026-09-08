@@ -96,16 +96,29 @@ did not ask for it, and four of them are about children or caring.
 His other seven credits satisfy the rule and sit beside Tim Ferriss,
 Andrew Huberman or Barbara Fiese.
 
-**Three options, and this is Isaac's call.** Add a second, genuinely
-traceable name to each. Remove the credit and leave the field empty,
-which the contract permits and which the Work round did twenty times.
-Or replace him where another communicator demonstrably teaches the same
-practice. The connection round is next but one and can do the work; the
-rule breach exists now, which is why it is written down now.
+**Resolved by the connection round's discovery pass**, better than
+expected. Five of the six can be fixed by *replacement* rather than
+deletion, and four of those five trace exactly to a communicator who
+demonstrably teaches that practice:
 
-Whichever way it goes, the author-list rule in `../corpus/METHOD.md`
-applies to any replacement: a researcher credit requires that person on
-the author list of a source in that card's row.
+| card | proposed replacement | strength |
+|---|---|---|
+| `adult-child-standing-call` | Kasley Killam | teaches the standing scheduled call precisely |
+| `one-on-one-child` | Eyberg and Webster-Stratton | already credited in the library on the neighbouring card |
+| `friend-reach-out` | Tim Ferriss and Kasley Killam | traced |
+| `teen-their-call` | Stuart Ablon | traced |
+| `teen-side-by-side` | candidate identified, weaker | verify at Gate 2 |
+| `carer-ask-for-cover` | **none — leave empty** | one carer episode exists in the whole 836-episode corpus, and it is journalism |
+
+Gate 2 verifies each before anything is proposed as final, and the
+author-list rule in `../corpus/METHOD.md` applies to any researcher
+credit: that person must be on the author list of a source in the card's
+own row.
+
+Worth noting the other direction too. Peterson's one genuinely traceable
+teaching in this pillar, roughly ninety minutes a week with a partner,
+sits on `partner-checkin-weekly` — which already carries a second name
+and already complies with the rule.
 
 ## 2. Three Sinclair credits sit in exactly the place the roster warns about
 

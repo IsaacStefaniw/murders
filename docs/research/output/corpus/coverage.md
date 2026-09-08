@@ -94,6 +94,35 @@ The tim.blog counts are search hits, not guaranteed dedicated episodes;
 `harvest.js tim "<name>"` now filters to transcript slugs containing a
 query word, so a count above about five usually means a real episode.
 
+## Corrections to the table above, found by using it
+
+The counts are raw search hits. Three failure modes turned up once rounds
+started working from them, and all three are now checked rather than
+assumed.
+
+**A name can match something else entirely.** The **Sue Johnson** row
+says 4. All four are BBC News items about people *suing Johnson &
+Johnson* over talcum powder. She has **zero** aggregator episodes. Her
+one real conversation is on tim.blog and turned out to be the most
+protocol-dense source in the connection round. Spot-checks of Adam Grant,
+James Clear, Rick Hanson and Sam Harris came back genuine, so this is a
+name-collision failure rather than a general one — but it means a count
+is a starting point, not a finding.
+
+**A listed episode may serve no transcript.** **Esther Perel** shows 20
+and only **11** carry a real transcript. The rest are stubs, including
+the Huberman Lab one, which is the episode most worth having. Always
+check the word count after fetching: a few hundred words is a stub.
+
+**An episode title can misname the guest.** The connection round found
+three, including its single most important family-block source, which the
+index attributes to the wrong Harvard psychologist. It also found one
+conversation published twice under different titles, which reads as
+convergence and is not.
+
+None of this changes the shape of the corpus or the conclusions below.
+It changes how a count should be treated: as a place to look.
+
 ## What this changes about how a round runs
 
 1. **Search the practice across venues, not the show for practices.** The
@@ -122,6 +151,11 @@ query word, so a count above about five usually means a real episode.
 - Search returns few results per query (three for "sauna"), so it finds
   episodes by name and phrase, not exhaustively by topic. Combine it with
   the direct sites.
+- **The corpus is more concentrated than the totals suggest.** In the
+  connection pillar, 155 of 183 routed rows come from five shows, and 69
+  from one host across two feeds. Twenty-eight titles assert a prediction
+  or a secret the guest does not actually make. A pillar can look
+  well-covered and be one venue's editorial voice repeated.
 - Show pages list about 14 recent episodes and do not paginate; the
   sitemaps are the complete index and that is what was crawled here.
 - 403s remain on Elsevier, Wiley, Springer, SAGE, OUP, Science, PNAS and
