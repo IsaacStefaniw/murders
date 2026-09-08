@@ -88,18 +88,18 @@ right.
 
 ## Tier 3 — high recognition, thin evidence
 
-Real name recognition, very little that grades above D on its own. Use them
-to find topics. Credit them only where the practice stands on somebody
-else's research.
+For people whose *own* teaching is the thing being weighed. Real name
+recognition, very little that grades above D on its own. Use them to find
+topics; credit them only where the practice stands on somebody else's
+research. Note this tier is about a person's own material — a show they
+host is judged separately, per "Big shows are venues" below.
 
 **Tony Robbins** — enormous recognition and almost nothing that meets this
 library's evidence bar. Where a practice he popularised has independent
 support (implementation intentions, priming a state before a hard task),
 credit him beside the researcher. Never alone on a card.
-**Joe Rogan** — the largest audience in the category, but an interviewer
-rather than a domain expert, and the show carries a very wide range of
-claim quality. **Mine the guests, credit the guests.** Rogan's own name on
-a protocol card adds little and risks a lot.
+*(Joe Rogan moved out of this tier — see "Big shows are venues" below.
+Tiering a show by its host was the wrong unit of analysis.)*
 
 ## Handle with care — named risks
 
@@ -128,13 +128,59 @@ testing service, a course. Not disqualifying — Attia and Ferriss both sell
 things — but where the episode is effectively an advertisement, the
 framing follows the product. Weight accordingly.
 
-## Where to find transcripts
+## Big shows are venues, not voices
 
-Most large shows publish them: official sites and show notes (Huberman Lab,
-The Drive, Tim Ferriss, Sigma Nutrition all do), YouTube auto-captions for
-the rest, and podcast platforms increasingly carry them natively. Show
-notes are often better than the transcript for our purposes — the good
-shows list the papers directly.
+A correction to an earlier version of this file, which put Joe Rogan in
+Tier 3. That was the wrong unit of analysis.
+
+**JRE is a venue.** Attia, Huberman, Galpin, Rhonda Patrick, Kaeberlein and
+Layne Norton have all done long-form episodes there, and a three-hour
+conversation where a naive host makes an expert explain themselves plainly
+is often *better* source material than that expert's own show. Other
+episodes are genuinely fringe. Tiering the show as a whole gets both cases
+wrong.
+
+**So tier the episode by its guest, not the show by its host.** This
+applies to every large show, not just Rogan — Ferriss, Rogan, Peterson,
+Dan Harris and the rest all interview across a wide quality range.
+
+Attribution still follows the person whose teaching popularised the
+practice, which is almost always the guest. If Rhonda Patrick explains
+sauna frequency on JRE, the card credits Rhonda Patrick — not as a slight
+to the venue, simply because she is the one the listener associates with
+the claim, which is what makes the recognition work.
+
+## Finding practices: search across shows, not show by show
+
+Transcript aggregators — Isaac raised
+`https://podcasts.happyscribe.com/`, and there are others — index many
+shows at once. That changes the method, and for the better.
+
+**Search the practice across the whole category, not one show for
+practices.** "Sauna frequency", "protein distribution", "sleep debt" run
+across hundreds of episodes returns who has said what, in one pass. Then
+open the papers.
+
+This also gives you a genuinely useful prioritisation signal:
+
+> **Convergence tells you where to look, never what is true.** When six
+> independent credible communicators land on the same practice, that is a
+> strong prior it is worth the verification time. It is not evidence, it
+> does not move a grade, and it can be six people citing the same weak
+> study — which is itself worth finding out and recording.
+
+Use it to decide what to research first, given a finite round.
+
+Direct sources remain good too: Huberman Lab, The Drive, Tim Ferriss and
+Sigma Nutrition all publish transcripts and show notes, and the good shows
+list their papers directly — often more useful than the transcript itself.
+
+**Two practical notes.** The session that wrote this could not reach
+happyscribe.com (network egress blocked at its end), so check the site's
+terms of use yourself before relying on it, and use whatever access it
+offers within those terms. And the rule does not bend for convenience:
+read transcripts, never reproduce them, and everything ships in
+IntentNorth's own words.
 
 ## On paying for journal access
 

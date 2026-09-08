@@ -238,3 +238,34 @@ against the rewritten contract.
 The grade discipline was the best thing in the package. Sauna at C with a
 sauna launch waiting on it is exactly right. Do not let the wider roster
 change that: **more communicators mined, same grades.**
+
+## Addendum — two corrections to the rebrief above
+
+**Joe Rogan was mis-tiered, and the fix generalises.** Tiering a show by
+its host is the wrong unit of analysis. JRE is a venue: Attia, Huberman,
+Galpin, Rhonda Patrick, Kaeberlein and Layne Norton have all done long-form
+episodes there, and a three-hour conversation where a naive host makes an
+expert explain themselves plainly is often better source material than that
+expert's own show. **Tier the episode by its guest.** This applies to every
+large show, not just that one.
+
+Attribution is unchanged and for a reason that is not a slight to any
+venue: credit the person whose teaching popularised the practice, which is
+almost always the guest, because they are who the listener associates with
+the claim — and that association is what makes the recognition work.
+
+**Use a transcript aggregator to search across shows.** Isaac raised
+`https://podcasts.happyscribe.com/`; there are others. Search the *practice*
+across the whole category rather than one show for practices — "sauna
+frequency", "protein distribution", "sleep debt" across hundreds of
+episodes in one pass, then open the papers.
+
+That also gives you a prioritisation signal worth using explicitly:
+**convergence tells you where to look, never what is true.** Six
+independent credible communicators landing on the same practice is a strong
+prior that it is worth your verification time. It is not evidence, it moves
+no grade, and it may be six people citing one weak study — which is itself
+a finding worth recording.
+
+Check the aggregator's terms of use yourself; this session could not reach
+the site (egress blocked at our end) and has not verified them.
