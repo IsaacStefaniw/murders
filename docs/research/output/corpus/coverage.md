@@ -123,6 +123,12 @@ convergence and is not.
 None of this changes the shape of the corpus or the conclusions below.
 It changes how a count should be treated: as a place to look.
 
+**A fourth, found by the nutrition and training round: clips inflate a
+pillar.** Of the 135 rows routed to those two pillars, **91 are clips and
+shorts from four venues** rather than full conversations. The nutrition
+pillar looks better covered than it is. Check the word count and the
+venue before treating a routed row as a source.
+
 ## What this changes about how a round runs
 
 1. **Search the practice across venues, not the show for practices.** The
