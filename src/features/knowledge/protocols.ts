@@ -3673,6 +3673,32 @@ export function withProtocolBounds(routines: Routine[]): Routine[] {
   });
 }
 
+/**
+ * Routine id → how well evidenced the practice behind it is, best first.
+ *
+ * The grade has been on every protocol since the library existed and has
+ * decided nothing: it renders on three screens and influences no placement,
+ * no arbitration and no cut. We are the only app in this category that
+ * grades its content, and grading it and then ignoring it is the largest
+ * piece of unclaimed value in the codebase.
+ *
+ * ONLY routines carrying a protocolId get a rank, and that is the whole
+ * safety property. A habit the person already had has no grade, and must
+ * never be cut *because* it has no grade — their own walk is not weaker
+ * evidence than a C-grade protocol, it is a different kind of thing
+ * entirely. The engine therefore compares evidence only when both sides
+ * have it and falls through to the existing tie-break otherwise.
+ */
+export function evidenceRankFor(routines: Routine[]): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const r of routines) {
+    if (!r.protocolId) continue;
+    const level = protocolById(r.protocolId)?.evidenceLevel;
+    if (level) out[r.id] = EVIDENCE_ORDER.indexOf(level);
+  }
+  return out;
+}
+
 /** A protocol as a schedulable routine, anchored to the user's real day. */
 export function toRoutine(p: Protocol, profile: LifeProfile | null, goalId?: string): Routine {
   const start = startFor(p, profile);

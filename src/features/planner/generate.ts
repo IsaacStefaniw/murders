@@ -12,7 +12,7 @@
 import { buildDailyPlan, computeFreeWindows } from '@/lib/scheduling/engine';
 import type { EnergyPlacement, FixedCommitment, MovedPlacement } from '@/lib/scheduling/engine';
 import { energyShape } from '@/features/health/sleepDebt';
-import { withProtocolBounds } from '@/features/knowledge/protocols';
+import { evidenceRankFor, withProtocolBounds } from '@/features/knowledge/protocols';
 import { durationMinutes, toHHMM, toMinutes, weekdayOf } from '@/lib/dates';
 import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine, Weekday } from '@/types/domain';
 
@@ -264,6 +264,11 @@ export function generateDailyPlan(
     // during-work routines are already in the fixed list — don't place twice.
     // Bounds are stamped here rather than trusted from each producer.
     routines: withProtocolBounds(sized.filter((r) => !r.duringWork)),
+    // The grade finally decides something. Last tie-break in both the
+    // placement order and the cut, so it never outranks what the person
+    // said matters or a goal they committed to — and it is silent on
+    // anything they brought themselves.
+    evidenceRank: evidenceRankFor(sized),
   });
   // A during-work block the hours could not hold is as unplaced as
   // anything the engine turned away, and is reported the same way.

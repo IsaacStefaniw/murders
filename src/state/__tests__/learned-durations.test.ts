@@ -41,11 +41,39 @@ function onboard() {
   });
 }
 
+/**
+ * A flexible, routine-backed item with room to grow into.
+ *
+ * Two assumptions used to live here and both were wrong. It pinned to
+ * todayKey(), so the suite passed or failed on what day it ran. And it took
+ * whichever item came first, which on this profile is "Wind down, screens
+ * away" — twenty minutes, sleep-anchored, with a fifteen-minute window. A
+ * test about learned durations then stretched it and watched the engine
+ * correctly refuse to fit forty minutes into fifteen, which proves nothing
+ * about learning.
+ *
+ * So: scan for the day, and pick the item whose window has the most slack,
+ * because that is the one a longer measured duration can actually be shown
+ * on.
+ */
 const firstFlexible = () => {
-  const date = todayKey();
-  const plan = useAppStore.getState().ensurePlan(date);
-  const item = plan.items.find((i) => !i.fixed && i.status === 'planned' && i.routineId)!;
-  return { date, item };
+  for (let n = 0; n < 14; n += 1) {
+    const date = addDays(todayKey(), n);
+    const plan = useAppStore.getState().ensurePlan(date);
+    const routines = useAppStore.getState().routines ?? [];
+    const slackOf = (item: PlanItem) => {
+      const r = routines.find((x) => x.id === item.routineId);
+      if (!r) return -1;
+      return (
+        durationMinutes(r.preferredStart, r.preferredEnd) - r.durationMin
+      );
+    };
+    const roomiest = plan.items
+      .filter((i) => !i.fixed && i.status === 'planned' && i.routineId)
+      .sort((a, b) => slackOf(b) - slackOf(a))[0];
+    if (roomiest && slackOf(roomiest) >= 30) return { date, item: roomiest };
+  }
+  throw new Error('no flexible routine-backed item with room to grow');
 };
 
 const readItem = (date: string, id: string): PlanItem =>
@@ -172,12 +200,17 @@ describe('the plan uses what it has learned', () => {
     onboard();
     const { date, item } = firstFlexible();
     const planned = durationMinutes(item.start, item.end);
-    const longer = planned + Math.max(20, Math.ceil(planned * 0.6));
+    // Twenty minutes, not sixty per cent. The old stretch turned a
+    // one-hour block into a ninety-six-minute one, which a real evening is
+    // entitled to refuse — so the test was failing on the day being full
+    // rather than on the length being wrong, which is not what it is for.
+    const longer = planned + 20;
     seedHistory(item.routineId!, [longer, longer, longer], item);
 
     const rebuilt = useAppStore.getState().regeneratePlan(date);
-    const placed = rebuilt.items.find((i) => i.routineId === item.routineId)!;
-    expect(durationMinutes(placed.start, placed.end)).toBe(longer);
+    const placed = rebuilt.items.find((i) => i.routineId === item.routineId);
+    expect(placed).toBeDefined();
+    expect(durationMinutes(placed!.start, placed!.end)).toBe(longer);
   });
 
   it('holds the declared length until three sessions exist', () => {

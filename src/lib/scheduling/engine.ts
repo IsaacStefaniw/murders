@@ -36,6 +36,12 @@ export interface DayContext {
   /** goalId → the goal's next step; stamped as `focus` on goal-linked items
    * so every block on the plan knows what it is moving forward. */
   goalFocus?: Record<string, string>;
+  /**
+   * Routine id → evidence rank, best first, for routines backed by a
+   * protocol. The planner builds it; see evidenceRankFor(). Omitted, the
+   * day is placed and cut exactly as it was before evidence existed.
+   */
+  evidenceRank?: Record<string, number>;
   /** Minutes of breathing room enforced between scheduled items. */
   bufferMin?: number;
   /**
@@ -174,6 +180,12 @@ export interface PlacementOptions {
   fineWindows?: Window[];
   /** The person's peak, dip and second wind. A tie-break; see energy.ts. */
   energy?: DayEnergy;
+  /**
+   * Routine id → evidence rank, best first, for the routines that have one.
+   * Supplied by the planner from the knowledge base so this module stays
+   * free of it. Absent for anything the person brought themselves.
+   */
+  evidenceRank?: Record<string, number>;
 }
 
 /**
@@ -200,6 +212,25 @@ export interface PlacementOptions {
  * narrower and more sensible: when two things have equal claim on the same
  * hour, the one in the area they care most about takes it.
  */
+/**
+ * Better-evidenced first, but only when both sides carry a grade.
+ *
+ * Returns 0 the moment either routine has no protocol behind it, which is
+ * the point: an ungraded routine is the person's own habit, and losing an
+ * hour to a C-grade protocol because nobody has run a trial on walking the
+ * dog would be the app mistaking its library for their life.
+ */
+export function compareEvidence(
+  a: Routine,
+  b: Routine,
+  evidenceRank: Record<string, number>,
+): number {
+  const ra = evidenceRank[a.id];
+  const rb = evidenceRank[b.id];
+  if (ra === undefined || rb === undefined) return 0;
+  return ra - rb;
+}
+
 export function placeRoutines(
   windows: Window[],
   routines: Routine[],
@@ -209,36 +240,64 @@ export function placeRoutines(
   dayEnd?: number,
   opts: PlacementOptions = {},
 ): PlacementResult {
-  const ordered = [...routines].sort((a, b) => {
+  const evidence = opts.evidenceRank ?? {};
+  const baseSort = (a: Routine, b: Routine): number => {
     if (a.protected !== b.protected) return a.protected ? -1 : 1;
     const tier = TIER_ORDER[a.tier] - TIER_ORDER[b.tier];
     if (tier !== 0) return tier;
     const goal = (a.goalId ? 0 : 1) - (b.goalId ? 0 : 1);
     if (goal !== 0) return goal;
-    const rank = areaRank(a.area, priorities) - areaRank(b.area, priorities);
-    if (rank !== 0) return rank;
-    const slackA = toMinutes(a.preferredEnd) - toMinutes(a.preferredStart);
-    const slackB = toMinutes(b.preferredEnd) - toMinutes(b.preferredStart);
-    return slackA - slackB;
-  });
+    return areaRank(a.area, priorities) - areaRank(b.area, priorities);
+  };
+  const bySlack = (a: Routine, b: Routine): number =>
+    toMinutes(a.preferredEnd) -
+    toMinutes(a.preferredStart) -
+    (toMinutes(b.preferredEnd) - toMinutes(b.preferredStart));
 
+  const ordered = [...routines].sort((a, b) => baseSort(a, b) || bySlack(a, b));
   const plain = runPass(windows, ordered, bufferMin, dayEnd, opts.fineWindows);
-  if (!opts.energy) return plain;
 
-  // ── The tie-break has to be free ──────────────────────────────────────
+  /** True when `candidate` fails to seat something `reference` managed to. */
+  const costsSomething = (reference: PlacementResult, candidate: PlacementResult): boolean => {
+    const seated = new Set(candidate.placements.map((p) => p.routine.id));
+    return reference.placements.some((p) => !seated.has(p.routine.id));
+  };
+
+  // ── Evidence orders the day, and the tie-break has to be free ─────────
   //
-  // Sliding a session towards the peak changes which minutes the next
-  // routine finds, and on a tight day that is enough to cost the day
-  // something. A chronotype curve is not entitled to that: tier, goal and
-  // the person's stated life-area order decide what is on the day, and
-  // energy only decides where among equals. So the day is placed both ways
-  // and the energy-aware one is taken only when it costs nothing — when
-  // every routine the ordinary pass seated is still seated. Otherwise the
-  // shape is simply not used today, and nothing is said about it.
-  const shaped = runPass(windows, ordered, bufferMin, dayEnd, opts.fineWindows, opts.energy);
-  const seated = new Set(shaped.placements.map((p) => p.routine.id));
-  const costsSomething = plain.placements.some((p) => !seated.has(p.routine.id));
-  return costsSomething ? plain : shaped;
+  // Better-evidenced practices get seated first, so on an ordinary day they
+  // take the hour they actually want and the weaker ones fit around them.
+  //
+  // What evidence is NOT allowed to do is change what makes the day at all.
+  // The first version of this let it, and a learned-duration test caught
+  // the cost immediately: a routine the person had finished three times was
+  // displaced by a better-graded one they had never done. Adherence is the
+  // active ingredient in almost everything in this library — a C done for
+  // twelve weeks beats an A abandoned in week two — and nothing at this
+  // seam knows which is which. A grade is not entitled to spend the day's
+  // last hour on that guess.
+  //
+  // So the day is placed both ways and the evidence-ordered one is taken
+  // only when it seats everything the plain one seated. Same rule the
+  // chronotype shape lives under, for the same reason.
+  let best = plain;
+  let winning = ordered;
+  if (Object.keys(evidence).length > 0) {
+    const byEvidence = [...routines].sort(
+      (a, b) => baseSort(a, b) || compareEvidence(a, b, evidence) || bySlack(a, b),
+    );
+    const graded = runPass(windows, byEvidence, bufferMin, dayEnd, opts.fineWindows);
+    if (!costsSomething(plain, graded)) {
+      best = graded;
+      winning = byEvidence;
+    }
+  }
+
+  if (!opts.energy) return best;
+
+  // The chronotype shape, under the same rule, on whichever order won.
+  const shaped = runPass(windows, winning, bufferMin, dayEnd, opts.fineWindows, opts.energy);
+  return costsSomething(best, shaped) ? best : shaped;
 }
 
 function runPass(
@@ -582,6 +641,19 @@ export function buildDailyPlan(
   const schedulable = Math.floor(totalFree * (1 - reserved));
 
   const priorities = ctx.priorities ?? [];
+  /**
+   * Evidence seats the day; it deliberately does NOT decide the cut.
+   *
+   * The first version of this ranked the drop list by grade too, and a
+   * learned-duration test caught what that costs: a routine the person had
+   * finished three times was cut in favour of a better-graded one they had
+   * never done. Adherence is the active ingredient in almost everything in
+   * the library — a C done for twelve weeks beats an A abandoned in week
+   * two — and this seam has no adherence data to weigh against the grade.
+   * So the grade decides who gets the good hour first, and what survives a
+   * full day stays with tier, goal and the person's own stated order.
+   */
+  const evidenceRank = ctx.evidenceRank ?? {};
   // Bedtime as the engine sees it, so a routine bounded by it is bounded by
   // the same number the free windows were built from.
   const sleepMin = toMinutes(ctx.sleepTime);
@@ -604,6 +676,7 @@ export function buildDailyPlan(
         MIN_SECOND_PASS_WINDOW,
       ),
       energy: ctx.energy,
+      evidenceRank,
     },
   );
 
