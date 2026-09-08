@@ -93,8 +93,8 @@ test("the library figures on the page match the library in the app", async () =>
 
   assert.equal(total, 317, "protocol count changed — update the page copy too");
   assert.equal(strong, 115, "A/B count changed — update the page copy too");
-  assert.equal(safety, 268, "safety-line count changed — update the page copy too");
-  assert.equal(people, 250, "attribution count changed — update the page copy too");
+  assert.equal(safety, 278, "safety-line count changed — update the page copy too");
+  assert.equal(people, 248, "attribution count changed — update the page copy too");
 
   // The page leads with the weaker count rather than the A/B one now — "202 of
   // the 317 are Mixed or weaker" says more than "115 graded A or B", because a
@@ -104,7 +104,7 @@ test("the library figures on the page match the library in the app", async () =>
     assert.ok(html.includes(figure), `the page should state ${figure}`);
   }
   // The grade breakdown is spelled out in words; those must agree too.
-  assert.match(html, new RegExp(`${grades.A === 17 ? "Seventeen" : grades.A} practices are grade A`, "i"));
+  assert.match(html, new RegExp(`${grades.A === 15 ? "Fifteen" : grades.A} practices are grade A`, "i"));
   assert.ok(
     html.includes(`two hundred and two`) && weaker === 202,
     "the weaker-evidence count in the copy must match the data",

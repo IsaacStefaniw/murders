@@ -181,7 +181,7 @@ const COACHES=[
  show('lib-tall',{y:0,pan:-620,dur:4200});
  await copy({chap:'01',title:'Proven protocols, synthesised and rated',line:'Where it came from.<br>How good the evidence is.<br>Where it stops.'});
  await wait(2300);
- await copy({chap:'01',title:'Proven protocols, synthesised and rated',line:'268 carry a<br>plain-words safety line.'});
+ await copy({chap:'01',title:'Proven protocols, synthesised and rated',line:'278 carry a<br>plain-words safety line.'});
  await wait(2000);
  // choose one
  show('lib-card');

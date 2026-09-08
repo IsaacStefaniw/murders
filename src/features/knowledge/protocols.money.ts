@@ -20,7 +20,7 @@ export const MONEY_PROTOCOLS: Protocol[] = [
     goalDomains: ['finance', 'behaviour'],
     summary: 'Until one month of expenses is sitting somewhere you can reach, the automatic transfer goes there and nowhere else.',
     why: 'Households with even a small cash buffer report less financial stress and are far less likely to sell investments or borrow at high rates when a car or a tooth breaks; that comes from large surveys in several countries, consistent but observational. Australian government guidance suggests three months as the target. The first month does most of the work: it turns an emergency back into an inconvenience.',
-    attribution: ['Moneysmart (ASIC)', 'Tim Ferriss'],
+    attribution: ['Moneysmart (ASIC)', 'Scott Pape'],
     days: [5],
     durationMin: 10,
     anchor: { kind: 'fixed', start: '18:00', windowMin: 120 },

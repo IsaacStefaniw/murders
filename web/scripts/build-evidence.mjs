@@ -24,7 +24,7 @@
  * earlier brace-walking attempt got wrong: apostrophes inside prose opened
  * phantom strings and it under-counted 67 of 177.
  */
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -109,7 +109,20 @@ const satellites = spreads.map((name) => {
 
 const sources = [root, ...(await Promise.all(satellites.map((f) => readFile(f, "utf8"))))];
 const source = sources.join("\n");
-const constants = moduleConstants(source);
+
+// Constants are resolved from the whole knowledge directory, not only from
+// the card files. The shared safety paragraphs — the coercive-control
+// carve-out on twenty connection cards, the dependence line on the four
+// urge practices — live in safetyLines.ts precisely so one copy cannot
+// drift from another, and a card referencing one must not lose its safety
+// note on the way to the website because the definition sits next door.
+const knowledgeDir = path.dirname(appFile);
+const constantSources = await Promise.all(
+  (await readdir(knowledgeDir))
+    .filter((f) => f.endsWith(".ts"))
+    .map((f) => readFile(path.join(knowledgeDir, f), "utf8")),
+);
+const constants = moduleConstants(constantSources.join("\n"));
 const starts = [...source.matchAll(/^ {2,8}id: '/gm)].map((m) => m.index);
 if (starts.length === 0) throw new Error("no protocols found — the app file's shape changed");
 

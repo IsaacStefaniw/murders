@@ -36,20 +36,20 @@ it('publishes the real practice count — 317', () => {
   expect(PROTOCOLS.length).toBe(317);
 });
 
-it('publishes the real safety-line count — 268', () => {
-  expect(PROTOCOLS.filter((p) => p.safety).length).toBe(268);
+it('publishes the real safety-line count — 278', () => {
+  expect(PROTOCOLS.filter((p) => p.safety).length).toBe(278);
 });
 
-it('publishes the real number of people credited — 250', () => {
+it('publishes the real number of people credited — 248', () => {
   const names = new Set<string>();
   for (const p of PROTOCOLS) for (const n of p.attribution ?? []) names.add(n);
-  expect(names.size).toBe(250);
+  expect(names.size).toBe(248);
 });
 
-it('publishes the real grade spread — A17 B98 C124 D67 E11', () => {
+it('publishes the real grade spread — A15 B100 C120 D70 E12', () => {
   const spread: Record<string, number> = {};
   for (const p of PROTOCOLS) spread[p.evidenceLevel] = (spread[p.evidenceLevel] ?? 0) + 1;
-  expect(spread).toEqual({ A: 17, B: 98, C: 124, D: 67, E: 11 });
+  expect(spread).toEqual({ A: 15, B: 100, C: 120, D: 70, E: 12 });
 });
 
 it('publishes the real "Mixed or weaker" count on the evidence page — 202', () => {

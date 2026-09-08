@@ -36,6 +36,7 @@ import type {
 } from '@/types/domain';
 
 import { RESEARCH_PROTOCOLS } from './protocols.research';
+import { FRIENDSHIP_LIMIT, VIOLENCE_ROUTE } from './safetyLines';
 import { WORK_PROTOCOLS } from './protocols.work';
 
 export type Pillar =
@@ -197,6 +198,17 @@ export interface Protocol {
    * the content beside it. See audiencesFor().
    */
   appliesTo?: 'femaleAnatomy' | 'pregnancy' | 'menopause';
+  /**
+   * A during-work practice that closes the day sits against the end of
+   * THIS person's work hours, not a clock time.
+   *
+   * `shutdown-ritual` sat at a fixed 17:10, which is a nine-to-five
+   * assumption, and about half of this audience is not on one. A nurse
+   * finishing at seven in the morning got a closing ritual placed in the
+   * late afternoon, in the middle of the sleep it was supposed to protect.
+   * See Routine.anchorToWorkEnd, which the planner already honours.
+   */
+  anchorToWorkEnd?: boolean;
   /**
    * Minutes before bedtime this should have finished by.
    *
@@ -376,8 +388,8 @@ export const PROTOCOLS: Protocol[] = [
     pillar: 'training',
     area: 'health',
     goalDomains: ['health', 'behaviour'],
-    summary: 'End the morning shower with 30–60 seconds cold.',
-    why: 'Brief deliberate cold reliably spikes alertness and mood chemistry for hours — and practising the first uncomfortable minute is rehearsal for every urge you’ll surf later.',
+    summary: 'End the morning shower with 30 seconds cold.',
+    why: 'Brief deliberate cold lifts alertness and mood chemistry sharply — the study people quote measured it during a one-hour immersion and never followed how long it lasts, so how far into the morning it carries is genuinely unknown. Thirty seconds is enough: in a controlled comparison it did as much as sixty or ninety. The other half is the useful half. Practising the first uncomfortable moment, on purpose, in a place where nothing is at stake, is rehearsal for every urge you will meet later in the day. If you lift, the cold goes in on the days you did not — straight after strength work is the one time to leave it.',
     attribution: ['Andrew Huberman', 'Rhonda Patrick'],
     days: [1, 2, 3, 4, 5],
     durationMin: 5,
@@ -390,7 +402,7 @@ export const PROTOCOLS: Protocol[] = [
   // ── Nutrition ─────────────────────────────────────────────────────────
   {
     id: 'protein-breakfast',
-    evidenceLevel: 'B',
+    evidenceLevel: 'C',
     title: 'Protein-first breakfast',
     pillar: 'nutrition',
     area: 'health',
@@ -451,7 +463,7 @@ export const PROTOCOLS: Protocol[] = [
     goalDomains: ['health'],
     summary: 'A consistent last bite by three hours before bed; eat within a daylight window.',
     why: 'A steady, earlier eating window supports sleep and metabolic rhythm; late eating works against both.',
-    attribution: ['David Sinclair', 'Rhonda Patrick'],
+    attribution: ['Rhonda Patrick'],
     days: [0, 1, 2, 3, 4],
     durationMin: 5,
     // Also a deadline — "last bite by", not an activity to slot in.
@@ -470,7 +482,7 @@ export const PROTOCOLS: Protocol[] = [
     goalDomains: ['health'],
     summary: 'A consistent daily eating window — first bite and last bite at roughly the same times.',
     why: 'Consistency beats duration: a steady window supports metabolic rhythm and quietly caps grazing, without counting anything.',
-    attribution: ['Peter Attia', 'David Sinclair', 'Rhonda Patrick'],
+    attribution: ['Peter Attia', 'Rhonda Patrick'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 5,
     anchor: { kind: 'sleep', offsetMin: 180, windowMin: 30 },
@@ -576,14 +588,14 @@ export const PROTOCOLS: Protocol[] = [
   {
     id: 'sauna',
     // Heat exposure ending an hour or more before bed is the timing that helps sleep; ending right before it does not.
-    finishBeforeSleepMin: 60,
+    finishBeforeSleepMin: 90,
     evidenceLevel: 'C',
     title: 'Sauna sessions',
     pillar: 'longevity',
     area: 'health',
     goalDomains: ['health'],
     summary: 'Two to four sauna sessions a week, ~15–20 minutes at a heat you tolerate well.',
-    why: 'Regular sauna use is associated in long-running Finnish cohort studies with lower cardiovascular risk, and reliably helps relaxation and sleep.',
+    why: 'The heart findings come from one Finnish population followed for decades, with the headline result resting on 201 men in the frequent-use group — a real and carefully collected observation, and a single cohort measured once rather than a settled result. Randomised trials using the same length and heat show modest changes in blood pressure and vessel function. The relaxation is not in question and does not need a study: an unhurried twenty minutes where nothing can be asked of you is worth having on its own terms, and it is why people keep the ritual.',
     attribution: ['Rhonda Patrick', 'David Sinclair'],
     days: [3, 6],
     durationMin: 30,
@@ -596,13 +608,13 @@ export const PROTOCOLS: Protocol[] = [
   // ── Mind ──────────────────────────────────────────────────────────────
   {
     id: 'meditation-10',
-    evidenceLevel: 'B',
+    evidenceLevel: 'C',
     title: 'Ten minutes of stillness',
     pillar: 'mind',
     area: 'health',
     goalDomains: ['health', 'personal'],
     summary: 'A short daily sit — breath as the anchor, thoughts allowed to pass.',
-    why: 'The single most common daily practice among the high performers Ferriss has interviewed; short consistent sessions measurably improve attention and stress recovery.',
+    why: 'Ten minutes is enough to count and short enough to keep. Across 65 trials and 5,489 people, brief mindfulness produces a small but consistent improvement in attention and stress; publication bias is detectable and the effect shrinks against an active control, which is why this sits at C rather than higher. The size of the effect is not the reason to do it. A short sit is ten minutes in which nothing is being asked of you, it costs almost nothing to try, and the people who keep it are the people who kept it short.',
     attribution: ['Tim Ferriss', 'Andrew Huberman'],
     days: [0, 2, 4],
     durationMin: 10,
@@ -610,7 +622,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'midday',
     tier: 'could',
     sessionType: 'meditate',
-    safety: 'Non-clinical; no therapeutic claims.',
+    safety: 'Educational structure, not treatment, and no claim to be. Roughly one person in ten reports an unpleasant experience during meditation — restlessness, low mood, or difficult memories surfacing — most of it brief and self-limiting. If that happens, opening your eyes and stopping is the correct response, not a failure of technique. If it keeps happening, or if you live with trauma, panic or psychosis, this is worth doing with a clinician rather than alone with an app.',
   },
   {
     id: 'nsdr',
@@ -638,7 +650,7 @@ export const PROTOCOLS: Protocol[] = [
     area: 'growth',
     goalDomains: ['personal'],
     summary: 'Five written minutes: what went well, what you’re grateful for, one line for tomorrow.',
-    why: 'Brief written gratitude and reflection reliably improve mood and sleep quality, and writing forces the clarity that vague rumination never reaches.',
+    why: 'Brief written gratitude and reflection reliably lift mood, and writing forces the clarity that vague rumination never reaches. It used to say the same about sleep, and that half has been taken out: the nearest meta-analytic evidence for journalling improving sleep is null. Keep it for the thing it does. Five minutes of naming what went well is a good way to end a day whatever it does to the night.',
     attribution: ['Tim Ferriss', 'Jordan Peterson', 'Andrew Huberman'],
     days: [0, 1, 2, 3, 4],
     durationMin: 5,
@@ -668,16 +680,16 @@ export const PROTOCOLS: Protocol[] = [
   // ── Wealth ────────────────────────────────────────────────────────────
   {
     id: 'money-checkin',
-    evidenceLevel: 'D',
+    evidenceLevel: 'C',
     title: 'Weekly money check-in',
     pillar: 'wealth',
     area: 'admin',
     goalDomains: ['finance'],
-    summary: 'Thirty Sunday minutes: automate the transfer first, then review the week’s money.',
-    why: 'Automation beats willpower budgeting — pay the goal first and the review becomes observation, not judgement. A weekly cadence catches drift while it’s still small.',
+    summary: 'Ten Sunday minutes: automate the transfer first, then a quick look at the week’s money.',
+    why: 'Automation beats willpower budgeting — pay the goal first and the review becomes observation rather than judgement. A light, fixed cadence is what the monitoring evidence supports, and it is deliberately light: checking money more often than this has been found to backfire, and half an hour every Sunday is more than the finding asks for. Ten minutes catches drift while it is still small and leaves the rest of the evening alone.',
     attribution: ['Tim Ferriss'],
     days: [0],
-    durationMin: 30,
+    durationMin: 10,
     anchor: { kind: 'fixed', start: '19:30', windowMin: 60 },
     energy: 'evening',
     tier: 'could',
@@ -780,12 +792,14 @@ export const PROTOCOLS: Protocol[] = [
     goalDomains: ['friends'],
     summary: 'One message a week that turns into a concrete plan with someone you like.',
     why: 'Strong relationships are the most consistent predictor of long-term wellbeing in the research — and they run on logistics, not sentiment.',
-    attribution: ['Jordan Peterson'],
+    attribution: ['Tim Ferriss', 'Kasley Killam'],
     days: [3],
     durationMin: 15,
     anchor: { kind: 'fixed', start: '12:45', windowMin: 30 },
     energy: 'midday',
     tier: 'could',
+    neverNag: true,
+    safety: `One message a week, and a week without one is not a lapse. ${FRIENDSHIP_LIMIT}`,
   },
 
   // ── Connection: partner ───────────────────────────────────────────────
@@ -804,6 +818,8 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '17:35', windowMin: 90 },
     energy: 'evening',
     tier: 'should',
+    neverNag: true,
+    safety: `Five minutes of attention, not a performance — a quiet reunion after a hard day is still a reunion. ${VIOLENCE_ROUTE}`,
   },
   {
     id: 'partner-appreciation',
@@ -820,6 +836,8 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'sleep', offsetMin: 150, windowMin: 90 },
     energy: 'evening',
     tier: 'should',
+    neverNag: true,
+    safety: `Say it when you mean it. Praise offered to keep the peace is not what this is, and somebody who has to manage how the other person reacts is in a different situation. ${VIOLENCE_ROUTE}`,
   },
   {
     id: 'partner-checkin-weekly',
@@ -836,11 +854,12 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '21:00', windowMin: 60 },
     energy: 'evening',
     tier: 'could',
-    safety: 'A logistics conversation, not a grievance hearing. If the same subject keeps ending badly, that is a sign to talk to a couples therapist — not to hold more meetings.',
+    neverNag: true,
+    safety: `A logistics conversation, not a grievance hearing. If the same subject keeps ending badly, that is a sign to talk to a couples therapist — not to hold more meetings. ${VIOLENCE_ROUTE}`,
   },
   {
     id: 'state-of-us',
-    evidenceLevel: 'C',
+    evidenceLevel: 'D',
     title: 'State of us',
     pillar: 'connection',
     area: 'relationship',
@@ -853,7 +872,8 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '10:00', windowMin: 180 },
     energy: 'morning',
     tier: 'could',
-    safety: 'Educational structure, not couples therapy. If this conversation reliably turns into the same fight, or either of you dreads it, a couples therapist is the right next step.',
+    neverNag: true,
+    safety: `Educational structure, not couples therapy. If this conversation reliably turns into the same fight, or either of you dreads it, a couples therapist is the right next step. ${VIOLENCE_ROUTE}`,
   },
   {
     id: 'repair-rehearsal',
@@ -870,14 +890,15 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '20:45', windowMin: 60 },
     energy: 'evening',
     tier: 'could',
+    neverNag: true,
     sessionType: 'journal',
-    safety: 'Private reflection on your own part, never a case file on your partner. Out of scope entirely where there is fear, coercion or anything you would call abuse — that needs a professional, and support lines exist for exactly this.',
+    safety: `Private reflection on your own part, never a case file on your partner. ${VIOLENCE_ROUTE}`,
   },
 
   // ── Connection: family time & adventure ───────────────────────────────
   {
     id: 'family-adventure',
-    evidenceLevel: 'C',
+    evidenceLevel: 'D',
     title: 'The booked-in family adventure',
     pillar: 'connection',
     area: 'family',
@@ -890,6 +911,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '09:30', windowMin: 120 },
     energy: 'morning',
     tier: 'should',
+    neverNag: true,
     safety: 'Match the outing to the youngest child’s stamina — an adventure nobody enjoyed is worse than a slow morning at home.',
   },
   {
@@ -901,12 +923,13 @@ export const PROTOCOLS: Protocol[] = [
     goalDomains: ['family'],
     summary: 'Twenty-odd minutes a week with each child, one at a time, doing what they choose.',
     why: 'Child-led one-to-one time is a building block of parenting programmes that have been trialled properly, though it has rarely been tested on its own.',
-    attribution: ['Jordan Peterson'],
+    attribution: ['Sheila Eyberg', 'Carolyn Webster-Stratton'],
     days: [2, 4],
     durationMin: 25,
     anchor: { kind: 'fixed', start: '17:15', windowMin: 60 },
     energy: 'evening',
     tier: 'should',
+    neverNag: true,
     safety: 'Let the child pick and lead. If it starts feeling like an appointment they have to perform at, make it shorter or let it go.',
   },
   {
@@ -924,6 +947,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '20:00', windowMin: 60 },
     energy: 'evening',
     tier: 'could',
+    neverNag: true,
     safety: 'Keep plans loose enough to change. Building a trip up as the thing that will fix a hard year sets everyone up to be let down.',
   },
   {
@@ -941,6 +965,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '18:15', windowMin: 45 , timeAnchored: true},
     energy: 'evening',
     tier: 'should',
+    neverNag: true,
     safety: 'Aim only at the nights that are realistic. Conversation, not inspection — a meal that becomes a performance review stops being the good thing here.',
   },
   {
@@ -958,6 +983,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '17:00', windowMin: 60 },
     energy: 'evening',
     tier: 'could',
+    neverNag: true,
     safety: 'Follow what the child wants to talk about, and skip anything anyone found upsetting. Educational structure, never a wellbeing intervention.',
   },
   {
@@ -975,13 +1001,14 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '18:30', windowMin: 60 },
     energy: 'evening',
     tier: 'should',
+    neverNag: true,
     safety: 'Small and repeatable beats big and abandoned. If it turns into an obligation everyone dreads, change the ritual rather than defend it.',
   },
 
   // ── Wealth: the money system ──────────────────────────────────────────
   {
     id: 'payday-automation',
-    evidenceLevel: 'A',
+    evidenceLevel: 'B',
     title: 'Payday transfer, set once',
     pillar: 'wealth',
     area: 'admin',
@@ -1055,7 +1082,7 @@ export const PROTOCOLS: Protocol[] = [
     area: 'admin',
     goalDomains: ['finance', 'behaviour', 'personal'],
     summary: 'Optional spending over a threshold you set waits 72 hours on a list; twice a week, buy only what still earns it.',
-    why: 'Wanting is loudest in the moment and fades on its own, so the delay hands the call to the calm version of you. Present bias is well evidenced; the rule itself is a heuristic to test on yourself.',
+    why: 'Wanting is loudest in the moment and fades on its own, so the delay hands the call to the calm version of you. The card used to claim the underlying bias is well evidenced; a meta-analysis of 220 estimates finds it small and selectively reported where money is concerned, so that sentence is gone. The rule stays as what it always was: a heuristic worth testing on yourself, and cheap to test.',
     attribution: ['Tim Ferriss'],
     days: [3, 6],
     durationMin: 10,
@@ -1073,7 +1100,7 @@ export const PROTOCOLS: Protocol[] = [
     goalDomains: ['finance', 'personal'],
     summary: 'Once a quarter, write everything owned minus everything owed as one number, in the same place each time.',
     why: 'Meta-analytic work on goal pursuit finds that monitoring progress, and writing it down, makes reaching a goal more likely; the effect is general, not money-specific. Quarterly catches drift without chasing noise.',
-    attribution: ['Peter Attia'],
+    attribution: ['Ramit Sethi', 'Moneysmart (ASIC)'],
     days: [0],
     durationMin: 20,
     anchor: { kind: 'fixed', start: '10:00', windowMin: 120 },
@@ -1230,13 +1257,13 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'body-scan-sleep',
-    evidenceLevel: 'C',
+    evidenceLevel: 'D',
     title: 'Body scan before sleep',
     pillar: 'mind',
     area: 'health',
     goalDomains: ['health', 'behaviour'],
     summary: 'Ten minutes lying down, moving attention slowly from the feet to the head.',
-    why: 'A body scan hands the mind a concrete, boring task at exactly the hour it most wants to plan and replay. Relaxation-based wind-downs are associated with modest improvements in how fast people fall asleep and how they rate the night — smaller than the effect of a consistent sleep and wake time, but it stacks on top of one.',
+    why: 'A body scan hands the mind a concrete, boring task at exactly the hour it most wants to plan and replay, and that is the whole of the case for it. The trials are early days: six of them, 330 people, most sleep outcomes null, and one measure of arousal pointing the wrong way. It stays in the library because it is pleasant, costs nothing, and expecting something to help is itself part of why things help. Treat it as a nice way to end the day rather than as a way to fall asleep faster, and a consistent sleep and wake time is the thing that actually moves that.',
     attribution: ['Andrew Huberman', 'Tim Ferriss'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 10,
@@ -1302,13 +1329,13 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'skill-one-external-cue',
-    evidenceLevel: 'B',
+    evidenceLevel: 'D',
     title: 'One cue, pointed outward',
     pillar: 'skill',
     area: 'growth',
     goalDomains: ['fitness', 'personal'],
     summary: 'Write one cue before you practise, and aim it at the effect you want rather than at a body part.',
-    why: 'Instructions aimed outside the body — send it low over the net, push the floor away — reliably produce better movement than the same instruction aimed inward, at the wrist or the shoulder. The external-focus effect has been replicated across hundreds of small experiments, which makes it the most usable finding here and the one most amateur coaching quietly gets backwards.',
+    why: 'Instructions aimed outside the body — send it low over the net, push the floor away — have been reported to produce better movement than the same instruction aimed inward, at the wrist or the shoulder, across hundreds of small experiments. The honest version of that story is more interesting than the headline. A 2024 reanalysis of the field’s own dataset found strong publication bias throughout it, and the bias-corrected effect is somewhere between nothing and small. What that leaves is not nothing: it is real variation between people, tasks and cues that nobody has explained yet. Which is a good reason to try one cue, keep the one that works for you, and hold it loosely.',
     attribution: ['Gabriele Wulf', 'Rebecca Lewthwaite'],
     days: [1, 3, 6],
     durationMin: 5,
@@ -1625,14 +1652,14 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'ship-monthly',
-    evidenceLevel: 'C',
+    evidenceLevel: 'E',
     title: 'Ship it monthly',
     pillar: 'skill',
     area: 'growth',
     goalDomains: ['personal', 'career'],
     summary: 'Once a month, a named date when something actually goes out — published, sent, played, hung, or handed to one real person.',
-    why: 'Work with no delivery date drifts, and the firmest evidence here is about the drift rather than the work: students who set their own spaced deadlines finished better than those working toward one distant one. None of that measured whether what got made was any good, and other experiments have found that working under evaluation and time pressure can flatten creativity rather than sharpen it. Hence monthly rather than weekly, and an audience of one being enough.',
-    attribution: ['Dan Ariely', 'Klaus Wertenbroch'],
+    why: 'This one is here on experience rather than evidence, and it is worth saying why. The study this card used to rest on — students setting their own spaced deadlines and finishing better — was retracted in 2026 after its data were found to have been tampered with, and a replication failed. Nothing replaces it. What is left is the reason people who make things keep doing this anyway: a named date turns work that could always be improved into work that has been finished, and finishing is the part that teaches you something. Monthly rather than weekly, and an audience of one is enough, because the experiments that do exist suggest evaluation and time pressure flatten creative work rather than sharpen it.',
+    attribution: [],
     days: [5],
     durationMin: 45,
     anchor: { kind: 'fixed', start: '16:30', windowMin: 120 },
@@ -1717,13 +1744,13 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'alcohol-cutoff',
-    evidenceLevel: 'B',
+    evidenceLevel: 'C',
     title: 'Alcohol cutoff',
     pillar: 'sleep',
     area: 'health',
     goalDomains: ['health', 'behaviour'],
-    summary: 'Last drink at least four hours before bed — nothing about whether you drink, only about when you stop.',
-    why: 'Alcohol is the most convincing sleep impostor there is: it gets you under faster, so it feels like it helped. Laboratory work is consistent about what happens next — REM sleep is suppressed, the first half of the night is unusually deep, and as the alcohol clears the second half fragments into more awakenings. You wake with the hours logged and none of the repair. The body clears roughly one standard drink an hour, so the fix is timing rather than abstinence.',
+    summary: 'Fewer drinks does more than earlier drinks. On a night that matters, make it one, and finish it well before bed.',
+    why: 'Alcohol is the most convincing sleep impostor there is: it gets you under faster, so it feels like it helped. Laboratory work is consistent about what happens next — REM sleep is suppressed, the first half of the night is unusually deep, and as the alcohol clears the second half fragments into more awakenings. You wake with the hours logged and none of the repair. What changed the card is which lever actually moves it. The one controlled timing study is small — ten people — and a moderate amount six hours before bed, fully cleared by lights out, still doubled wakefulness in the second half. The amount is what tracks with the damage. So the hour is worth keeping as a habit and the number of drinks is the thing to spend your attention on.',
     attribution: ['Peter Attia', 'Andrew Huberman'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 5,
@@ -1739,7 +1766,7 @@ export const PROTOCOLS: Protocol[] = [
     pillar: 'sleep',
     area: 'health',
     goalDomains: ['health', 'behaviour'],
-    summary: 'Twenty minutes or ninety, never in between — and nothing after mid-afternoon.',
+    summary: 'Ten minutes of sleep, about twenty in bed — and nothing after mid-afternoon.',
     why: 'Short naps of ten to twenty minutes reliably lift alertness in controlled studies and leave you clear-headed, because you surface before the deepest sleep arrives. Wake out of that deep stage — roughly where a forty-five minute nap lands you — and you get the groggy half-hour that gives napping its bad name. The timing half is reasoning rather than trial evidence: a nap spends sleep pressure you were saving for tonight, so the later it runs, the more it borrows from the night.',
     attribution: ['Andrew Huberman', 'Tim Ferriss'],
     days: [0, 6],
@@ -1751,7 +1778,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'stimulus-control',
-    evidenceLevel: 'A',
+    evidenceLevel: 'B',
     title: 'The twenty-minute rule',
     pillar: 'sleep',
     area: 'health',
@@ -1984,7 +2011,7 @@ export const PROTOCOLS: Protocol[] = [
     area: 'growth',
     goalDomains: ['personal', 'career', 'business'],
     summary: 'Fifteen minutes a day back over older material — the oldest and the shakiest first.',
-    why: 'Meeting the same material again after a gap, instead of in one long sitting, is among the most replicated findings in learning research: hundreds of controlled comparisons across ages, subjects and delays, and the advantage grows the longer you need to hold on to it. Same total minutes, far more of it still there in a month.',
+    why: 'Meeting the same material again after a gap, instead of in one long sitting, is among the most replicated findings in learning research: 839 assessments across 317 experiments, spanning ages, subjects and delays, and the advantage grows the longer you need to hold on to it. There is even an answer to how long the gap should be, which the card used to leave out. It scales with how long you need the material: roughly a fifth to two fifths of the way out for something you need next week, and a much smaller fraction of the distance for something you need next year. Same total minutes, far more of it still there in a month.',
     attribution: ['Robert Bjork', 'Elizabeth Bjork', 'John Dunlosky'],
     days: [0, 1, 2, 3, 4, 5, 6],
     durationMin: 15,
@@ -2198,17 +2225,18 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'shutdown-ritual',
-    evidenceLevel: 'D',
+    evidenceLevel: 'C',
     title: 'Closing the working day',
     pillar: 'mind',
     area: 'work',
     goalDomains: ['behaviour', 'business'],
-    summary: 'Ten minutes at the end of the working day: loose ends written down, tomorrow’s first move named, one deliberate line that says you are done.',
-    why: 'Unfinished work keeps interrupting attention until it has a plan, and a small experimental literature suggests writing the plan is enough to quieten it even though nothing got finished. Add the boundary-crossing idea — that moving between roles goes better with a marker — and you have a cheap, plausible ritual that hands the detachment window a clean start. Plausible is the honest word: the underlying studies are small, and the ritual as a package has been described far more often than tested.',
+    summary: 'Ten minutes at the end of your working day: for each loose end, where and when you will pick it up — then one deliberate line that says you are done.',
+    why: 'Unfinished work keeps interrupting attention until it has a plan, and there is a direct experiment on this exact practice: 103 employees and 1,127 loose ends, where writing plans for the unfinished work raised how well people detached that evening — most of all in the people who find detaching hardest. The detail that matters is what was actually written. Not a list of what is outstanding, which is the version most people do: where, when and how each loose end gets picked up. That is the whole manipulation, and it is why the ten minutes is worth more than a tidy-up.',
     attribution: ['Cal Newport', 'Blake Ashforth'],
     days: [1, 2, 3, 4, 5],
     durationMin: 10,
-    anchor: { kind: 'fixed', start: '17:10', windowMin: 45 },
+    anchorToWorkEnd: true,
+    anchor: { kind: 'fixed', start: '17:10', windowMin: 45, deadline: true },
     energy: 'any',
     tier: 'should',
     duringWork: true,
@@ -2304,11 +2332,12 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '13:30', windowMin: 180 },
     energy: 'midday',
     tier: 'could',
+    neverNag: true,
     safety: 'Send it and let it go — a slow reply, or none, is usually a busy week rather than a verdict. Where someone has asked for space, respect that instead.',
   },
   {
     id: 'good-news-response',
-    evidenceLevel: 'C',
+    evidenceLevel: 'B',
     title: 'Answer the good news properly',
     pillar: 'connection',
     area: 'growth',
@@ -2321,6 +2350,8 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '19:30', windowMin: 120 },
     energy: 'evening',
     tier: 'could',
+    neverNag: true,
+    safety: `Their good news, on their terms — this is about answering well, not about producing enthusiasm you do not feel. ${FRIENDSHIP_LIMIT}`,
   },
   {
     id: 'standing-shared-activity',
@@ -2337,6 +2368,8 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '19:00', windowMin: 90 },
     energy: 'evening',
     tier: 'could',
+    neverNag: true,
+    safety: `A standing plan is meant to take organising off you, not to become another thing to keep up. Miss one and the next one still stands. ${VIOLENCE_ROUTE}`,
   },
   {
     id: 'group-belonging',
@@ -2353,6 +2386,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '18:45', windowMin: 120 },
     energy: 'evening',
     tier: 'could',
+    neverNag: true,
     safety: 'Attendance is the whole practice — a group you dread is the wrong group, not a discipline problem. Swap it rather than defend it.',
   },
   {
@@ -2370,6 +2404,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '20:15', windowMin: 90 },
     energy: 'evening',
     tier: 'could',
+    neverNag: true,
     sessionType: 'journal',
     safety: 'A prompt for noticing, not a scorecard on your friendships. Loneliness that sits heavily for months, or arrives alongside low mood, is worth raising with a doctor rather than writing your way through.',
   },
@@ -2865,7 +2900,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'one-small-act',
-    evidenceLevel: 'C',
+    evidenceLevel: 'B',
     title: 'One small thing that matters',
     pillar: 'mind',
     area: 'health',
@@ -2961,7 +2996,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'best-possible-self',
-    evidenceLevel: 'C',
+    evidenceLevel: 'B',
     title: 'Best possible self',
     pillar: 'mind',
     area: 'growth',
@@ -2979,7 +3014,7 @@ export const PROTOCOLS: Protocol[] = [
   },
   {
     id: 'gratitude-letter',
-    evidenceLevel: 'C',
+    evidenceLevel: 'B',
     title: 'The thank-you letter',
     pillar: 'mind',
     area: 'growth',
@@ -3221,6 +3256,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '18:45', windowMin: 45 , timeAnchored: true},
     energy: 'evening',
     tier: 'should',
+    neverNag: true,
     safety: 'Educational structure, never medical advice. Hold it warmly: a sequence enforced against a frightened or distressed child has stopped being a routine, and an off night is an off night, not a verdict on you. If sleep is a lasting worry — loud snoring or pauses in breathing, tiredness that never lifts, or a child repeatedly terrified at night — that belongs with your GP or health visitor rather than with a better schedule.',
   },
   {
@@ -3238,6 +3274,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '17:30', windowMin: 90 },
     energy: 'evening',
     tier: 'should',
+    neverNag: true,
     safety: 'Ordinary play, not therapy, and not a way of managing behaviour in the moment. Follow rather than steer, and stop when they are finished — play a child has to complete has lost the point of itself. If something about your child’s behaviour or development worries you over time, a GP or health visitor can point you to a properly delivered programme; ten minutes at home is no substitute for one.',
   },
   {
@@ -3255,6 +3292,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '17:45', windowMin: 90 },
     energy: 'evening',
     tier: 'should',
+    neverNag: true,
     safety: 'Warmth, not a reward economy. The line is approval that has to be earned: praise handed out to steer a child, or pointedly withheld while you are annoyed, does something different from praise given because you noticed. Some children dislike being singled out in front of others — quiet and specific works just as well.',
   },
   {
@@ -3272,6 +3310,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '16:45', windowMin: 90 },
     energy: 'evening',
     tier: 'should',
+    neverNag: true,
     safety: 'A pause means a breath before you speak. It is not silence aimed at a child, not walking out on one who needs you, and not affection switched off until they behave — when a young child is distressed, staying with them comes first. Every parent loses their temper sometimes and it does not undo a relationship. If your own anger frightens you, or you dread being alone with your child, that is worth raising with your GP, and support lines exist for exactly this.',
   },
   {
@@ -3289,6 +3328,7 @@ export const PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '19:30', windowMin: 120 },
     energy: 'evening',
     tier: 'could',
+    neverNag: true,
     safety: 'An agreement written with the children old enough to be part of it, not a sanction handed down. Confiscation used as a punishment tends to make the device the most valuable thing in the house. What a child sees and who they talk to online matters more than minutes on a clock: if you are worried about either, that is a safeguarding conversation with your school, GP or a children’s charity, not a scheduling problem.',
   },
 
@@ -3756,6 +3796,7 @@ export function toRoutine(p: Protocol, profile: LifeProfile | null, goalId?: str
     protected: false,
     finishBeforeSleepMin: p.finishBeforeSleepMin,
     duringWork: p.duringWork,
+    anchorToWorkEnd: p.anchorToWorkEnd,
     sessionType: p.sessionType,
     tier: p.tier,
     active: true,

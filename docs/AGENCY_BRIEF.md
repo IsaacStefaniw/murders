@@ -40,7 +40,7 @@ goal you pick. You never build a programme.
 
 **Every practice carries a rating for the evidence behind it.** 317 practices,
 each graded A to E, with the source named and, where it matters, a plain-words
-safety note. 268 carry one. We publish the weak ratings: 202 of the 317 are
+safety note. 278 carry one. We publish the weak ratings: 202 of the 317 are
 rated Mixed or weaker and the app tells you which. We believe this is the most
 defensible thing we own, and every cold reviewer independently agreed.
 

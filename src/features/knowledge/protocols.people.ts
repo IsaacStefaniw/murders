@@ -12,12 +12,13 @@
  */
 
 import type { Protocol } from './protocols';
+import { VIOLENCE_ROUTE } from './safetyLines';
 
 export const PEOPLE_PROTOCOLS: Protocol[] = [
   // ── Connection: the carer's own recovery ─────────────────────────────
   {
     id: 'carer-own-hours',
-    evidenceLevel: 'C',
+    evidenceLevel: 'D',
     title: 'Two hours that are yours',
     pillar: 'connection',
     area: 'health',
@@ -42,7 +43,7 @@ export const PEOPLE_PROTOCOLS: Protocol[] = [
     goalDomains: ['family', 'personal'],
     summary: 'Ten minutes on Sunday: name one thing someone else could carry this week, and ask them.',
     why: 'Practical help and someone to lean on are what soften the road from a heavy week to burning out, across the carer research. The asking is the step carers skip, so this makes it a fixed ten minutes rather than a thing you would do if it got bad enough.',
-    attribution: ['Jordan Peterson'],
+    attribution: [],
     days: [0],
     durationMin: 10,
     anchor: { kind: 'fixed', start: '18:00', windowMin: 120 },
@@ -80,12 +81,13 @@ export const PEOPLE_PROTOCOLS: Protocol[] = [
     goalDomains: ['family'],
     summary: 'Half an hour side by side with a teenager, doing something — the drive, the dog, the washing up — with no questions lined up.',
     why: 'Teenagers say more sideways than face to face, and the big time-use study found that engaged family time in the teenage years, not the total hours, went with fewer risky choices. Nobody has trialled the car as a setting; what is tested is that the time has to be theirs to fill, not an interview.',
-    attribution: ['Jordan Peterson'],
+    attribution: [],
     days: [2, 5],
     durationMin: 30,
     anchor: { kind: 'fixed', start: '17:00', windowMin: 180 },
     energy: 'evening',
     tier: 'should',
+    neverNag: true,
     safety: 'If they do not want to talk, that is allowed. The point is being there when they do. A teenager who has gone quiet for weeks, stopped eating or sleeping, or dropped every friend is a conversation with your GP or the school, not a longer drive.',
   },
   {
@@ -96,13 +98,14 @@ export const PEOPLE_PROTOCOLS: Protocol[] = [
     area: 'family',
     goalDomains: ['family', 'behaviour'],
     summary: 'Once a week, hand a teenager one real decision — the meal, the plan, the route, the rule — and back it.',
-    why: 'Across dozens of studies, teenagers whose parents give them real say do better on mood and motivation than those who are steered, and diary work finds a single moment of being trusted lifts the same day. The effect varies a lot between families, which is why it is one decision a week and not a new regime.',
-    attribution: ['Jordan Peterson'],
+    why: 'This one is here on practice rather than a literature, and the card used to say otherwise: it claimed dozens of studies and named none, and none could be found. What stands behind it is the approach clinicians use when a teenager and an adult are stuck — hand over a real decision, and mean it — which has trials behind the wider method if not behind this exact move. The effect varies enormously between families, which is why it is one decision a week rather than a new regime, and why the interesting part is what you learn from watching how it goes.',
+    attribution: ['Stuart Ablon'],
     days: [0],
     durationMin: 15,
     anchor: { kind: 'fixed', start: '18:30', windowMin: 120 },
     energy: 'evening',
     tier: 'should',
+    neverNag: true,
     safety: 'A real decision with a real yes at the end, not a test they can fail. Safety calls stay yours, and saying so plainly is part of it.',
   },
 
@@ -122,6 +125,8 @@ export const PEOPLE_PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '19:30', windowMin: 120 },
     energy: 'evening',
     tier: 'could',
+    neverNag: true,
+    safety: `Answering the small things is a practice for an ordinary relationship under ordinary strain. ${VIOLENCE_ROUTE}`,
   },
   {
     id: 'conflict-reappraisal-write',
@@ -138,8 +143,9 @@ export const PEOPLE_PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '20:30', windowMin: 90 },
     energy: 'evening',
     tier: 'could',
+    neverNag: true,
     sessionType: 'journal',
-    safety: 'About your own view of a disagreement, never a case against your partner. Out of scope where there is fear or anything you would call abuse — that needs a professional, and support lines exist for exactly this.',
+    safety: `About your own view of a disagreement, never a case against your partner. ${VIOLENCE_ROUTE}`,
   },
   {
     id: 'partner-novelty',
@@ -156,7 +162,8 @@ export const PEOPLE_PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '14:00', windowMin: 240 },
     energy: 'any',
     tier: 'could',
-    safety: 'New, not extreme. The point is doing it together, not the thing itself.',
+    neverNag: true,
+    safety: `New, not extreme. The point is doing it together, not the thing itself. ${VIOLENCE_ROUTE}`,
   },
 
   // ── Connection: grown-up children ────────────────────────────────────
@@ -169,7 +176,7 @@ export const PEOPLE_PROTOCOLS: Protocol[] = [
     goalDomains: ['family'],
     summary: 'The same half hour every week for a call with a grown-up child who has moved out — theirs to cancel, yours to keep.',
     why: 'Nobody has trialled a weekly call. What is known is that contact between parents and grown-up children runs on habit rather than intention, and that closeness in later life tracks how regular the contact was, not how long each visit lasted.',
-    attribution: ['Jordan Peterson'],
+    attribution: ['Kasley Killam'],
     days: [0],
     durationMin: 30,
     anchor: { kind: 'fixed', start: '17:00', windowMin: 180 },

@@ -28,9 +28,7 @@
  */
 
 import type { Protocol } from './protocols';
-
-const VIOLENCE_ROUTE =
-  'None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.';
+import { FRIENDSHIP_LIMIT, VIOLENCE_ROUTE } from './safetyLines';
 
 export const RESEARCH_PROTOCOLS: Protocol[] = [
   // ── Connection & family round (12) ───────────────────────────────────
@@ -72,6 +70,7 @@ export const RESEARCH_PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '12:00', windowMin: 420 },
     energy: 'any',
     tier: 'could',
+    safety: FRIENDSHIP_LIMIT,
     neverNag: true,
   },
   {
@@ -130,6 +129,7 @@ export const RESEARCH_PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '18:00', windowMin: 240 },
     energy: 'any',
     tier: 'could',
+    safety: `A question, not a technique to run on somebody. ${VIOLENCE_ROUTE}`,
     neverNag: true,
   },
   {
@@ -148,6 +148,8 @@ export const RESEARCH_PROTOCOLS: Protocol[] = [
     anchor: { kind: 'sleep', offsetMin: 120, windowMin: 180 },
     energy: 'evening',
     tier: 'could',
+    neverNag: true,
+    safety: `Naming a feeling out loud only works where it is safe to be heard. ${VIOLENCE_ROUTE}`,
   },
   {
     id: 'name-the-fear-under-it',
@@ -206,6 +208,7 @@ export const RESEARCH_PROTOCOLS: Protocol[] = [
     anchor: { kind: 'fixed', start: '16:00', windowMin: 240 },
     energy: 'any',
     tier: 'could',
+    safety: `Hearing someone out is not the same as agreeing, and it is not something to do when you are the one who needs hearing out. ${VIOLENCE_ROUTE}`,
     neverNag: true,
   },
   {

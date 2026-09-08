@@ -475,11 +475,11 @@ const libraryStats = [
   },
   {
     label: "It names where the work came from.",
-    note: "250 researchers and teachers are credited for the public work behind these practices. Credit, never endorsement.",
+    note: "248 researchers and teachers are credited for the public work behind these practices. Credit, never endorsement.",
   },
   {
     label: "It tells you when not to do something.",
-    note: "268 of them carry a safety note in plain words, shown before you add anything to your week.",
+    note: "278 of them carry a safety note in plain words, shown before you add anything to your week.",
   },
 ];
 
@@ -790,7 +790,7 @@ export default function Home() {
         </div>
         <div className="library-honesty">
           <ShieldCheck />
-          <p><strong>Most of it is not an A, and it says so.</strong> Seventeen practices are grade A. Ninety-eight are B. The remaining two hundred and two are C, D or E&mdash;useful, reasoned, and openly marked as weaker evidence. A system that graded everything highly would be easier to sell and worth less to trust.</p>
+          <p><strong>Most of it is not an A, and it says so.</strong> Fifteen practices are grade A. One hundred are B. The remaining two hundred and two are C, D or E&mdash;useful, reasoned, and openly marked as weaker evidence. A system that graded everything highly would be easier to sell and worth less to trust.</p>
         </div>
       </section>
 

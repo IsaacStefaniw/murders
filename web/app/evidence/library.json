@@ -2,11 +2,11 @@
  "generated": "by scripts/build-evidence.mjs from the app's protocols.ts",
  "total": 317,
  "counts": {
-  "B": 98,
-  "A": 17,
-  "D": 67,
-  "C": 124,
-  "E": 11
+  "B": 100,
+  "A": 15,
+  "D": 70,
+  "C": 120,
+  "E": 12
  },
  "gradeMeaning": {
   "A": {
@@ -155,8 +155,8 @@
    "grade": "C",
    "gradeLabel": "Mixed",
    "pillar": "training",
-   "summary": "End the morning shower with 30–60 seconds cold.",
-   "why": "Brief deliberate cold reliably spikes alertness and mood chemistry for hours — and practising the first uncomfortable minute is rehearsal for every urge you’ll surf later.",
+   "summary": "End the morning shower with 30 seconds cold.",
+   "why": "Brief deliberate cold lifts alertness and mood chemistry sharply — the study people quote measured it during a one-hour immersion and never followed how long it lasts, so how far into the morning it carries is genuinely unknown. Thirty seconds is enough: in a controlled comparison it did as much as sixty or ninety. The other half is the useful half. Practising the first uncomfortable moment, on purpose, in a place where nothing is at stake, is rehearsal for every urge you will meet later in the day. If you lift, the cold goes in on the days you did not — straight after strength work is the one time to leave it.",
    "safety": "Uncomfortable, never painful. Heart conditions → clinician first. Never combine cold water with open water alone.",
    "attribution": [
     "Andrew Huberman",
@@ -167,8 +167,8 @@
   {
    "id": "protein-breakfast",
    "title": "Protein-first breakfast",
-   "grade": "B",
-   "gradeLabel": "Good",
+   "grade": "C",
+   "gradeLabel": "Mixed",
    "pillar": "nutrition",
    "summary": "Roughly 30 g of protein within a couple of hours of waking.",
    "why": "A protein-anchored first meal steadies appetite and energy for the whole day and front-loads the daily protein target where it’s easiest to hit.",
@@ -220,7 +220,6 @@
    "why": "A steady, earlier eating window supports sleep and metabolic rhythm; late eating works against both.",
    "safety": "Structure, not restriction — skip this protocol entirely if eating windows are a fraught topic for you.",
    "attribution": [
-    "David Sinclair",
     "Rhonda Patrick"
    ],
    "durationMin": 5
@@ -236,7 +235,6 @@
    "safety": "Not for everyone — skip entirely if pregnant, underweight, or if restriction has ever been a fraught topic. Protein and training quality come first.",
    "attribution": [
     "Peter Attia",
-    "David Sinclair",
     "Rhonda Patrick"
    ],
    "durationMin": 5
@@ -326,7 +324,7 @@
    "gradeLabel": "Mixed",
    "pillar": "longevity",
    "summary": "Two to four sauna sessions a week, ~15–20 minutes at a heat you tolerate well.",
-   "why": "Regular sauna use is associated in long-running Finnish cohort studies with lower cardiovascular risk, and reliably helps relaxation and sleep.",
+   "why": "The heart findings come from one Finnish population followed for decades, with the headline result resting on 201 men in the frequent-use group — a real and carefully collected observation, and a single cohort measured once rather than a settled result. Randomised trials using the same length and heat show modest changes in blood pressure and vessel function. The relaxation is not in question and does not need a study: an unhurried twenty minutes where nothing can be asked of you is worth having on its own terms, and it is why people keep the ritual.",
    "safety": "Hydrate; no alcohol around sessions; heart conditions or pregnancy → talk to a clinician first.",
    "attribution": [
     "Rhonda Patrick",
@@ -337,12 +335,12 @@
   {
    "id": "meditation-10",
    "title": "Ten minutes of stillness",
-   "grade": "B",
-   "gradeLabel": "Good",
+   "grade": "C",
+   "gradeLabel": "Mixed",
    "pillar": "mind",
    "summary": "A short daily sit — breath as the anchor, thoughts allowed to pass.",
-   "why": "The single most common daily practice among the high performers Ferriss has interviewed; short consistent sessions measurably improve attention and stress recovery.",
-   "safety": "Non-clinical; no therapeutic claims.",
+   "why": "Ten minutes is enough to count and short enough to keep. Across 65 trials and 5,489 people, brief mindfulness produces a small but consistent improvement in attention and stress; publication bias is detectable and the effect shrinks against an active control, which is why this sits at C rather than higher. The size of the effect is not the reason to do it. A short sit is ten minutes in which nothing is being asked of you, it costs almost nothing to try, and the people who keep it are the people who kept it short.",
+   "safety": "Educational structure, not treatment, and no claim to be. Roughly one person in ten reports an unpleasant experience during meditation — restlessness, low mood, or difficult memories surfacing — most of it brief and self-limiting. If that happens, opening your eyes and stopping is the correct response, not a failure of technique. If it keeps happening, or if you live with trauma, panic or psychosis, this is worth doing with a clinician rather than alone with an app.",
    "attribution": [
     "Tim Ferriss",
     "Andrew Huberman"
@@ -370,7 +368,7 @@
    "gradeLabel": "Good",
    "pillar": "mind",
    "summary": "Five written minutes: what went well, what you’re grateful for, one line for tomorrow.",
-   "why": "Brief written gratitude and reflection reliably improve mood and sleep quality, and writing forces the clarity that vague rumination never reaches.",
+   "why": "Brief written gratitude and reflection reliably lift mood, and writing forces the clarity that vague rumination never reaches. It used to say the same about sleep, and that half has been taken out: the nearest meta-analytic evidence for journalling improving sleep is null. Keep it for the thing it does. Five minutes of naming what went well is a good way to end a day whatever it does to the night.",
    "safety": null,
    "attribution": [
     "Tim Ferriss",
@@ -397,16 +395,16 @@
   {
    "id": "money-checkin",
    "title": "Weekly money check-in",
-   "grade": "D",
-   "gradeLabel": "Thin",
+   "grade": "C",
+   "gradeLabel": "Mixed",
    "pillar": "wealth",
-   "summary": "Thirty Sunday minutes: automate the transfer first, then review the week’s money.",
-   "why": "Automation beats willpower budgeting — pay the goal first and the review becomes observation, not judgement. A weekly cadence catches drift while it’s still small.",
+   "summary": "Ten Sunday minutes: automate the transfer first, then a quick look at the week’s money.",
+   "why": "Automation beats willpower budgeting — pay the goal first and the review becomes observation rather than judgement. A light, fixed cadence is what the monitoring evidence supports, and it is deliberately light: checking money more often than this has been found to backfire, and half an hour every Sunday is more than the finding asks for. Ten minutes catches drift while it is still small and leaves the rest of the evening alone.",
    "safety": null,
    "attribution": [
     "Tim Ferriss"
    ],
-   "durationMin": 30
+   "durationMin": 10
   },
   {
    "id": "fear-setting",
@@ -488,9 +486,10 @@
    "pillar": "connection",
    "summary": "One message a week that turns into a concrete plan with someone you like.",
    "why": "Strong relationships are the most consistent predictor of long-term wellbeing in the research — and they run on logistics, not sentiment.",
-   "safety": null,
+   "safety": "One message a week, and a week without one is not a lapse. Reaching out is the part you control and the reply is not, so a message that goes nowhere says nothing about you. If loneliness has stopped feeling like something a plan can fix, that is worth raising with a GP — and Lifeline is 13 11 14, any hour.",
    "attribution": [
-    "Jordan Peterson"
+    "Tim Ferriss",
+    "Kasley Killam"
    ],
    "durationMin": 15
   },
@@ -502,7 +501,7 @@
    "pillar": "connection",
    "summary": "The first five minutes back together get your attention before anything else does.",
    "why": "Work stress reliably follows people home as withdrawal; daily-diary research finds the reunion sets the tone for the whole evening, which makes five deliberate minutes the cheapest place to spend attention.",
-   "safety": null,
+   "safety": "Five minutes of attention, not a performance — a quiet reunion after a hard day is still a reunion. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [
     "John Gottman",
     "Julie Gottman"
@@ -517,7 +516,7 @@
    "pillar": "connection",
    "summary": "Say one specific thing you noticed and valued about them — out loud, most days.",
    "why": "Happy couples run a lopsided ratio of warm to sour moments. Diary studies and small experiments link specific, spoken appreciation to feeling valued — and to raising hard things more easily.",
-   "safety": null,
+   "safety": "Say it when you mean it. Praise offered to keep the peace is not what this is, and somebody who has to manage how the other person reacts is in a different situation. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [
     "John Gottman",
     "Robert Emmons"
@@ -532,7 +531,7 @@
    "pillar": "connection",
    "summary": "Twenty minutes on Sunday: the week ahead, who carries what, one thing each of you needs.",
    "why": "How fairly the load feels shared tracks closely with satisfaction in survey after survey. The meeting itself is untested — a heuristic for making the invisible load visible before it becomes an argument.",
-   "safety": "A logistics conversation, not a grievance hearing. If the same subject keeps ending badly, that is a sign to talk to a couples therapist — not to hold more meetings.",
+   "safety": "A logistics conversation, not a grievance hearing. If the same subject keeps ending badly, that is a sign to talk to a couples therapist — not to hold more meetings. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [
     "Jordan Peterson",
     "Tim Ferriss"
@@ -542,12 +541,12 @@
   {
    "id": "state-of-us",
    "title": "State of us",
-   "grade": "C",
-   "gradeLabel": "Mixed",
+   "grade": "D",
+   "gradeLabel": "Thin",
    "pillar": "connection",
    "summary": "Roughly monthly, forty-five unhurried minutes on the relationship itself, not the logistics.",
    "why": "The few randomised trials here found brief structured reflection — minutes a year, not hours a week — slowed the ordinary decline in satisfaction about as well as full skills courses did.",
-   "safety": "Educational structure, not couples therapy. If this conversation reliably turns into the same fight, or either of you dreads it, a couples therapist is the right next step.",
+   "safety": "Educational structure, not couples therapy. If this conversation reliably turns into the same fight, or either of you dreads it, a couples therapist is the right next step. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [
     "John Gottman",
     "Julie Gottman"
@@ -562,7 +561,7 @@
    "pillar": "connection",
    "summary": "Ten written minutes on the last friction: what set it off, and the words that would have cooled it.",
    "why": "Stable couples are not the ones who avoid conflict, they are the ones who de-escalate early. The repair itself happens in the moment; what you can practise beforehand is the phrase you reach for.",
-   "safety": "Private reflection on your own part, never a case file on your partner. Out of scope entirely where there is fear, coercion or anything you would call abuse — that needs a professional, and support lines exist for exactly this.",
+   "safety": "Private reflection on your own part, never a case file on your partner. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [
     "John Gottman"
    ],
@@ -571,8 +570,8 @@
   {
    "id": "family-adventure",
    "title": "The booked-in family adventure",
-   "grade": "C",
-   "gradeLabel": "Mixed",
+   "grade": "D",
+   "gradeLabel": "Thin",
    "pillar": "connection",
    "summary": "One family outing a week, chosen and in the calendar before the week starts.",
    "why": "Experiences tend to buy more lasting happiness than possessions, and the calendar entry is what turns the intention into an actual Saturday. Effect sizes are modest and debated.",
@@ -593,7 +592,8 @@
    "why": "Child-led one-to-one time is a building block of parenting programmes that have been trialled properly, though it has rarely been tested on its own.",
    "safety": "Let the child pick and lead. If it starts feeling like an appointment they have to perform at, make it shorter or let it go.",
    "attribution": [
-    "Jordan Peterson"
+    "Sheila Eyberg",
+    "Carolyn Webster-Stratton"
    ],
    "durationMin": 25
   },
@@ -659,8 +659,8 @@
   {
    "id": "payday-automation",
    "title": "Payday transfer, set once",
-   "grade": "A",
-   "gradeLabel": "Strong",
+   "grade": "B",
+   "gradeLabel": "Good",
    "pillar": "wealth",
    "summary": "Set the payday transfer so the saving leaves automatically, before any of it can be spent.",
    "why": "Large workplace field trials found that making saving the default moves how much people keep far more than intention or budgeting does. The transfer is the intervention — you decide once.",
@@ -722,7 +722,7 @@
    "gradeLabel": "Practice",
    "pillar": "wealth",
    "summary": "Optional spending over a threshold you set waits 72 hours on a list; twice a week, buy only what still earns it.",
-   "why": "Wanting is loudest in the moment and fades on its own, so the delay hands the call to the calm version of you. Present bias is well evidenced; the rule itself is a heuristic to test on yourself.",
+   "why": "Wanting is loudest in the moment and fades on its own, so the delay hands the call to the calm version of you. The card used to claim the underlying bias is well evidenced; a meta-analysis of 220 estimates finds it small and selectively reported where money is concerned, so that sentence is gone. The rule stays as what it always was: a heuristic worth testing on yourself, and cheap to test.",
    "safety": "The delay is for optional spending only — never postpone medical care, repairs that worsen, or anything with a real deadline.",
    "attribution": [
     "Tim Ferriss"
@@ -739,7 +739,8 @@
    "why": "Meta-analytic work on goal pursuit finds that monitoring progress, and writing it down, makes reaching a goal more likely; the effect is general, not money-specific. Quarterly catches drift without chasing noise.",
    "safety": "A position number is a measurement, not a verdict on what to do next — investment, pension and tax decisions belong with a licensed professional. Education, never financial advice.",
    "attribution": [
-    "Peter Attia"
+    "Ramit Sethi",
+    "Moneysmart (ASIC)"
    ],
    "durationMin": 20
   },
@@ -864,11 +865,11 @@
   {
    "id": "body-scan-sleep",
    "title": "Body scan before sleep",
-   "grade": "C",
-   "gradeLabel": "Mixed",
+   "grade": "D",
+   "gradeLabel": "Thin",
    "pillar": "mind",
    "summary": "Ten minutes lying down, moving attention slowly from the feet to the head.",
-   "why": "A body scan hands the mind a concrete, boring task at exactly the hour it most wants to plan and replay. Relaxation-based wind-downs are associated with modest improvements in how fast people fall asleep and how they rate the night — smaller than the effect of a consistent sleep and wake time, but it stacks on top of one.",
+   "why": "A body scan hands the mind a concrete, boring task at exactly the hour it most wants to plan and replay, and that is the whole of the case for it. The trials are early days: six of them, 330 people, most sleep outcomes null, and one measure of arousal pointing the wrong way. It stays in the library because it is pleasant, costs nothing, and expecting something to help is itself part of why things help. Treat it as a nice way to end the day rather than as a way to fall asleep faster, and a consistent sleep and wake time is the thing that actually moves that.",
    "safety": "Falling asleep partway through is fine — that is rather the point here. It is not a fix for insomnia; weeks of bad sleep is a conversation for a doctor or a sleep clinician.",
    "attribution": [
     "Andrew Huberman",
@@ -925,11 +926,11 @@
   {
    "id": "skill-one-external-cue",
    "title": "One cue, pointed outward",
-   "grade": "B",
-   "gradeLabel": "Good",
+   "grade": "D",
+   "gradeLabel": "Thin",
    "pillar": "skill",
    "summary": "Write one cue before you practise, and aim it at the effect you want rather than at a body part.",
-   "why": "Instructions aimed outside the body — send it low over the net, push the floor away — reliably produce better movement than the same instruction aimed inward, at the wrist or the shoulder. The external-focus effect has been replicated across hundreds of small experiments, which makes it the most usable finding here and the one most amateur coaching quietly gets backwards.",
+   "why": "Instructions aimed outside the body — send it low over the net, push the floor away — have been reported to produce better movement than the same instruction aimed inward, at the wrist or the shoulder, across hundreds of small experiments. The honest version of that story is more interesting than the headline. A 2024 reanalysis of the field’s own dataset found strong publication bias throughout it, and the bias-corrected effect is somewhere between nothing and small. What that leaves is not nothing: it is real variation between people, tasks and cues that nobody has explained yet. Which is a good reason to try one cue, keep the one that works for you, and hold it loosely.",
    "safety": "A cue is an attention tool, not a safety brief. Anything a coach gave you for injury reasons stays regardless of how it is phrased.",
    "attribution": [
     "Gabriele Wulf",
@@ -1196,16 +1197,13 @@
   {
    "id": "ship-monthly",
    "title": "Ship it monthly",
-   "grade": "C",
-   "gradeLabel": "Mixed",
+   "grade": "E",
+   "gradeLabel": "Practice",
    "pillar": "skill",
    "summary": "Once a month, a named date when something actually goes out — published, sent, played, hung, or handed to one real person.",
-   "why": "Work with no delivery date drifts, and the firmest evidence here is about the drift rather than the work: students who set their own spaced deadlines finished better than those working toward one distant one. None of that measured whether what got made was any good, and other experiments have found that working under evaluation and time pressure can flatten creativity rather than sharpen it. Hence monthly rather than weekly, and an audience of one being enough.",
+   "why": "This one is here on experience rather than evidence, and it is worth saying why. The study this card used to rest on — students setting their own spaced deadlines and finishing better — was retracted in 2026 after its data were found to have been tampered with, and a replication failed. Nothing replaces it. What is left is the reason people who make things keep doing this anyway: a named date turns work that could always be improved into work that has been finished, and finishing is the part that teaches you something. Monthly rather than weekly, and an audience of one is enough, because the experiments that do exist suggest evaluation and time pressure flatten creative work rather than sharpen it.",
    "safety": "A date, not a verdict on you. If shipping has come to mean performing for an audience you dread, make the audience smaller before you make the deadline harder.",
-   "attribution": [
-    "Dan Ariely",
-    "Klaus Wertenbroch"
-   ],
+   "attribution": [],
    "durationMin": 45
   },
   {
@@ -1271,11 +1269,11 @@
   {
    "id": "alcohol-cutoff",
    "title": "Alcohol cutoff",
-   "grade": "B",
-   "gradeLabel": "Good",
+   "grade": "C",
+   "gradeLabel": "Mixed",
    "pillar": "sleep",
-   "summary": "Last drink at least four hours before bed — nothing about whether you drink, only about when you stop.",
-   "why": "Alcohol is the most convincing sleep impostor there is: it gets you under faster, so it feels like it helped. Laboratory work is consistent about what happens next — REM sleep is suppressed, the first half of the night is unusually deep, and as the alcohol clears the second half fragments into more awakenings. You wake with the hours logged and none of the repair. The body clears roughly one standard drink an hour, so the fix is timing rather than abstinence.",
+   "summary": "Fewer drinks does more than earlier drinks. On a night that matters, make it one, and finish it well before bed.",
+   "why": "Alcohol is the most convincing sleep impostor there is: it gets you under faster, so it feels like it helped. Laboratory work is consistent about what happens next — REM sleep is suppressed, the first half of the night is unusually deep, and as the alcohol clears the second half fragments into more awakenings. You wake with the hours logged and none of the repair. What changed the card is which lever actually moves it. The one controlled timing study is small — ten people — and a moderate amount six hours before bed, fully cleared by lights out, still doubled wakefulness in the second half. The amount is what tracks with the damage. So the hour is worth keeping as a habit and the number of drinks is the thing to spend your attention on.",
    "safety": "A timing habit for ordinary drinking, and nothing more. If cutting down or stopping feels difficult, or you drink daily, that is a conversation for a doctor — not something to manage with a scheduling app.",
    "attribution": [
     "Peter Attia",
@@ -1289,7 +1287,7 @@
    "grade": "C",
    "gradeLabel": "Mixed",
    "pillar": "sleep",
-   "summary": "Twenty minutes or ninety, never in between — and nothing after mid-afternoon.",
+   "summary": "Ten minutes of sleep, about twenty in bed — and nothing after mid-afternoon.",
    "why": "Short naps of ten to twenty minutes reliably lift alertness in controlled studies and leave you clear-headed, because you surface before the deepest sleep arrives. Wake out of that deep stage — roughly where a forty-five minute nap lands you — and you get the groggy half-hour that gives napping its bad name. The timing half is reasoning rather than trial evidence: a nap spends sleep pressure you were saving for tonight, so the later it runs, the more it borrows from the night.",
    "safety": "Skip naps entirely while you are struggling to fall asleep at night — they work against the pressure you need. Regular daytime sleepiness despite full nights is worth raising with a doctor.",
    "attribution": [
@@ -1301,8 +1299,8 @@
   {
    "id": "stimulus-control",
    "title": "The twenty-minute rule",
-   "grade": "A",
-   "gradeLabel": "Strong",
+   "grade": "B",
+   "gradeLabel": "Good",
    "pillar": "sleep",
    "summary": "Still awake after about twenty minutes? Get up, sit somewhere dim and dull, and go back only when sleepy.",
    "why": "Lying in bed frustrated teaches the bed something. The longer you spend awake there, the more reliably the room starts to signal alertness rather than sleep, and the association builds night after night without your help. Getting up breaks the pairing. Do not clock-watch — twenty minutes is a feel, not a measurement. Of all the components inside cognitive behavioural therapy for insomnia, this is the one with the most standalone randomised evidence behind it.",
@@ -1485,7 +1483,7 @@
    "gradeLabel": "Strong",
    "pillar": "skill",
    "summary": "Fifteen minutes a day back over older material — the oldest and the shakiest first.",
-   "why": "Meeting the same material again after a gap, instead of in one long sitting, is among the most replicated findings in learning research: hundreds of controlled comparisons across ages, subjects and delays, and the advantage grows the longer you need to hold on to it. Same total minutes, far more of it still there in a month.",
+   "why": "Meeting the same material again after a gap, instead of in one long sitting, is among the most replicated findings in learning research: 839 assessments across 317 experiments, spanning ages, subjects and delays, and the advantage grows the longer you need to hold on to it. There is even an answer to how long the gap should be, which the card used to leave out. It scales with how long you need the material: roughly a fifth to two fifths of the way out for something you need next week, and a much smaller fraction of the distance for something you need next year. Same total minutes, far more of it still there in a month.",
    "safety": "Educational structure for ordinary study, nothing more. Memory or attention trouble that genuinely worries you is a conversation for a doctor, not a study habit.",
    "attribution": [
     "Robert Bjork",
@@ -1665,11 +1663,11 @@
   {
    "id": "shutdown-ritual",
    "title": "Closing the working day",
-   "grade": "D",
-   "gradeLabel": "Thin",
+   "grade": "C",
+   "gradeLabel": "Mixed",
    "pillar": "mind",
-   "summary": "Ten minutes at the end of the working day: loose ends written down, tomorrow’s first move named, one deliberate line that says you are done.",
-   "why": "Unfinished work keeps interrupting attention until it has a plan, and a small experimental literature suggests writing the plan is enough to quieten it even though nothing got finished. Add the boundary-crossing idea — that moving between roles goes better with a marker — and you have a cheap, plausible ritual that hands the detachment window a clean start. Plausible is the honest word: the underlying studies are small, and the ritual as a package has been described far more often than tested.",
+   "summary": "Ten minutes at the end of your working day: for each loose end, where and when you will pick it up — then one deliberate line that says you are done.",
+   "why": "Unfinished work keeps interrupting attention until it has a plan, and there is a direct experiment on this exact practice: 103 employees and 1,127 loose ends, where writing plans for the unfinished work raised how well people detached that evening — most of all in the people who find detaching hardest. The detail that matters is what was actually written. Not a list of what is outstanding, which is the version most people do: where, when and how each loose end gets picked up. That is the whole manipulation, and it is why the ten minutes is worth more than a tidy-up.",
    "safety": "A closing marker, not a productivity system. If the list is genuinely undoable inside contracted hours, ten minutes of tidying will not change that — the size of the list is what to raise with whoever sets it.",
    "attribution": [
     "Cal Newport",
@@ -1755,12 +1753,12 @@
   {
    "id": "good-news-response",
    "title": "Answer the good news properly",
-   "grade": "C",
-   "gradeLabel": "Mixed",
+   "grade": "B",
+   "gradeLabel": "Good",
    "pillar": "connection",
    "summary": "Ten minutes to go back to the good news a friend shared and reply like you mean it: ask for the detail, say why it lands.",
    "why": "How you answer someone’s good news appears to matter as much as how you answer their bad news. Diary and lab work links warm, curious replies with both people feeling closer afterwards, while a flat acknowledgement reads as indifference even when none was meant. Most of this research was done inside couples and measures how people already respond more often than it changes it, so the direction is reasonably solid and the size is not.",
-   "safety": null,
+   "safety": "Their good news, on their terms — this is about answering well, not about producing enthusiasm you do not feel. Reaching out is the part you control and the reply is not, so a message that goes nowhere says nothing about you. If loneliness has stopped feeling like something a plan can fix, that is worth raising with a GP — and Lifeline is 13 11 14, any hour.",
    "attribution": [
     "Shelly Gable",
     "Harry Reis"
@@ -1775,7 +1773,7 @@
    "pillar": "connection",
    "summary": "One activity with the same people at the same hour every week, decided once so nobody has to organise it again.",
    "why": "Adult friendships mostly form as a by-product of repeated shared time rather than from deciding to be closer, and familiarity does much of the early work. A standing slot removes the weekly negotiation that quietly kills most plans. The count-the-hours research everyone quotes here is a single study on a modest sample using recalled estimates, so we keep the direction — ordinary hours side by side accumulate into closeness — and leave its specific thresholds alone.",
-   "safety": null,
+   "safety": "A standing plan is meant to take organising off you, not to become another thing to keep up. Miss one and the next one still stands. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [
     "Jeffrey Hall",
     "Robert Zajonc"
@@ -2191,8 +2189,8 @@
   {
    "id": "one-small-act",
    "title": "One small thing that matters",
-   "grade": "C",
-   "gradeLabel": "Mixed",
+   "grade": "B",
+   "gradeLabel": "Good",
    "pillar": "mind",
    "summary": "Plan one small act that matters to you the day before, and do it whether or not you feel like it when the time comes.",
    "why": "Doing a small planned thing on a schedule rather than waiting to feel ready is the active ingredient in behavioural activation, which has strong randomised support. All of that support comes from the treatment of depression, which is not where this app stands, so we take only the non-clinical core and grade it for the use rather than for the trials. Motivation usually arrives after the action rather than before it, and in a stretch where nothing feels worth starting, ten planned minutes is a fairer test of that than an hour.",
@@ -2268,8 +2266,8 @@
   {
    "id": "best-possible-self",
    "title": "Best possible self",
-   "grade": "C",
-   "gradeLabel": "Mixed",
+   "grade": "B",
+   "gradeLabel": "Good",
    "pillar": "mind",
    "summary": "Roughly fortnightly, fifteen minutes writing in detail about a year from now in which things have gone about as well as they realistically could — then one concrete step you would take this month.",
    "why": "Small randomised experiments have compared this with neutral writing and found short-term lifts in mood and optimism, fairly consistently across a few labs. The caveats are the usual ones: small samples, brief follow-ups, self-reported outcomes and very little evidence that anything holds beyond a few weeks. It is included because it does something the rest of this group does not — makes a wanted future specific enough to act on. The step at the end is not decoration: separate work on imagined futures suggests that dwelling on a pleasant fantasy without confronting what stands in the way can quietly drain the effort to pursue it.",
@@ -2283,8 +2281,8 @@
   {
    "id": "gratitude-letter",
    "title": "The thank-you letter",
-   "grade": "C",
-   "gradeLabel": "Mixed",
+   "grade": "B",
+   "gradeLabel": "Good",
    "pillar": "mind",
    "summary": "Once a month, a letter to one person about something specific they actually did for you — and, where you can face it, read it to them.",
    "why": "The much-quoted result is a randomised trial in which writing and then delivering a letter of thanks produced the largest short-term happiness bump of the exercises tested — and in the same paper it had faded within a few months, against a control doing very little. Later meta-analyses of gratitude exercises land on small effects, mostly self-reported. What has held up more robustly is a smaller, stranger finding: senders consistently underestimate how much a message like this lands, and overestimate how awkward it will be, which is exactly the miscalculation that stops people sending them.",
@@ -2698,7 +2696,7 @@
    "safety": "Where the buffer sits, a savings account, an offset account against a home loan, or somewhere else, depends on your loan, your tax and how quickly you may need it, and that is a licensed adviser or accountant question. Education, never financial advice.",
    "attribution": [
     "Moneysmart (ASIC)",
-    "Tim Ferriss"
+    "Scott Pape"
    ],
    "durationMin": 10
   },
@@ -2910,8 +2908,8 @@
   {
    "id": "carer-own-hours",
    "title": "Two hours that are yours",
-   "grade": "C",
-   "gradeLabel": "Mixed",
+   "grade": "D",
+   "gradeLabel": "Thin",
    "pillar": "connection",
    "summary": "Two hours a week, in the calendar, with cover arranged — not spent on chores, not spent catching up, yours.",
    "why": "Reviews of support for family carers keep finding the same thing: a real break, taken, lowers strain and low mood a little, and the people who never get one are the ones who go under. The break only counts if it actually happens, which is why it goes in the week first.",
@@ -2931,9 +2929,7 @@
    "summary": "Ten minutes on Sunday: name one thing someone else could carry this week, and ask them.",
    "why": "Practical help and someone to lean on are what soften the road from a heavy week to burning out, across the carer research. The asking is the step carers skip, so this makes it a fixed ten minutes rather than a thing you would do if it got bad enough.",
    "safety": "One ask, small enough to say yes to. If there is genuinely nobody to ask, that is what carer organisations and your GP are for — say so to them.",
-   "attribution": [
-    "Jordan Peterson"
-   ],
+   "attribution": [],
    "durationMin": 10
   },
   {
@@ -2959,9 +2955,7 @@
    "summary": "Half an hour side by side with a teenager, doing something — the drive, the dog, the washing up — with no questions lined up.",
    "why": "Teenagers say more sideways than face to face, and the big time-use study found that engaged family time in the teenage years, not the total hours, went with fewer risky choices. Nobody has trialled the car as a setting; what is tested is that the time has to be theirs to fill, not an interview.",
    "safety": "If they do not want to talk, that is allowed. The point is being there when they do. A teenager who has gone quiet for weeks, stopped eating or sleeping, or dropped every friend is a conversation with your GP or the school, not a longer drive.",
-   "attribution": [
-    "Jordan Peterson"
-   ],
+   "attribution": [],
    "durationMin": 30
   },
   {
@@ -2971,10 +2965,10 @@
    "gradeLabel": "Mixed",
    "pillar": "connection",
    "summary": "Once a week, hand a teenager one real decision — the meal, the plan, the route, the rule — and back it.",
-   "why": "Across dozens of studies, teenagers whose parents give them real say do better on mood and motivation than those who are steered, and diary work finds a single moment of being trusted lifts the same day. The effect varies a lot between families, which is why it is one decision a week and not a new regime.",
+   "why": "This one is here on practice rather than a literature, and the card used to say otherwise: it claimed dozens of studies and named none, and none could be found. What stands behind it is the approach clinicians use when a teenager and an adult are stuck — hand over a real decision, and mean it — which has trials behind the wider method if not behind this exact move. The effect varies enormously between families, which is why it is one decision a week rather than a new regime, and why the interesting part is what you learn from watching how it goes.",
    "safety": "A real decision with a real yes at the end, not a test they can fail. Safety calls stay yours, and saying so plainly is part of it.",
    "attribution": [
-    "Jordan Peterson"
+    "Stuart Ablon"
    ],
    "durationMin": 15
   },
@@ -2986,7 +2980,7 @@
    "pillar": "connection",
    "summary": "When they show you something, say something, sigh — look up and answer it. Most days, for a week at a time.",
    "why": "In the best-known couples lab, the people still together years later had answered each other’s small openings most of the time; the ones who split had mostly not. That was watched, not tested, and the famous prediction numbers did not hold up on fresh couples — so take it as the cheapest habit here, not a law.",
-   "safety": null,
+   "safety": "Answering the small things is a practice for an ordinary relationship under ordinary strain. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [
     "John Gottman",
     "Julie Gottman"
@@ -3001,7 +2995,7 @@
    "pillar": "connection",
    "summary": "Ten written minutes: the last disagreement described the way a fair outsider who wanted the best for you both would describe it.",
    "why": "One two-year trial gave half its couples three seven-minute writing exercises like this; the usual slide in how they felt about the marriage stopped in that half and carried on in the other. One study, one site, so a good bet rather than a settled fact — and it is the only version of \"repair\" here that has been tested.",
-   "safety": "About your own view of a disagreement, never a case against your partner. Out of scope where there is fear or anything you would call abuse — that needs a professional, and support lines exist for exactly this.",
+   "safety": "About your own view of a disagreement, never a case against your partner. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [
     "Eli Finkel"
    ],
@@ -3015,7 +3009,7 @@
    "pillar": "connection",
    "summary": "Once a week, ninety minutes on something new to both of you — a route, a class, a place, a game — rather than the usual dinner.",
    "why": "Small experiments that sent couples to do something new and a bit demanding together found them closer afterwards than couples given something pleasant and familiar, and surveys find the same link. Small samples, so a modest effect held loosely.",
-   "safety": "New, not extreme. The point is doing it together, not the thing itself.",
+   "safety": "New, not extreme. The point is doing it together, not the thing itself. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [
     "Arthur Aron",
     "Tim Ferriss"
@@ -3032,7 +3026,7 @@
    "why": "Nobody has trialled a weekly call. What is known is that contact between parents and grown-up children runs on habit rather than intention, and that closeness in later life tracks how regular the contact was, not how long each visit lasted.",
    "safety": "A standing offer, not a standing demand. If they cancel three weeks running, ask what time would suit them rather than holding the slot against them.",
    "attribution": [
-    "Jordan Peterson"
+    "Kasley Killam"
    ],
    "durationMin": 30
   },
@@ -3056,7 +3050,7 @@
    "pillar": "connection",
    "summary": "Once a fortnight, message the person you assume has moved on. Not to arrange anything. Just to say you thought of them.",
    "why": "People consistently underestimate how pleased an old friend will be to hear from them, and they underestimate it by a lot. The gap is largest exactly where it matters: the more out of touch you are, the more you underestimate the welcome, and so the less likely you are to reach out. That is a self-sealing loop and this is how you open it. The message does not need a purpose and asking to catch up sometime is not required. Being thought of is the entire content.",
-   "safety": null,
+   "safety": "Reaching out is the part you control and the reply is not, so a message that goes nowhere says nothing about you. If loneliness has stopped feeling like something a plan can fix, that is worth raising with a GP — and Lifeline is 13 11 14, any hour.",
    "attribution": [
     "Kasley Killam"
    ],
@@ -3094,7 +3088,7 @@
    "pillar": "connection",
    "summary": "When someone brings you a problem, ask first: do you want help with this, or do you want me to hear it?",
    "why": "Most unhelpful responses are the right response to a different question. Somebody wanting to be heard gets a solution; somebody wanting a solution gets sympathy; both leave slightly worse off, and neither person has done anything wrong. Asking takes four words and removes the guess. There is no trial of this and there probably never will be one, so it is graded early days honestly. It is what experienced people do, and the cost of being wrong is nil.",
-   "safety": null,
+   "safety": "A question, not a technique to run on somebody. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [],
    "durationMin": 5
   },
@@ -3106,7 +3100,7 @@
    "pillar": "connection",
    "summary": "A couple of evenings a week, when you report on the day, add the part about how it felt. That is the half that gets left out.",
    "why": "The best-supported mechanism under this whole pillar is not communication skill, it is whether the other person feels understood, cared for and taken seriously. Diary studies following couples day by day find that closeness on a given evening tracks self-disclosure and, more strongly, the sense that the disclosure landed. Most people report the facts of the day accurately and leave out the part that would actually let someone respond. Adding it takes a sentence.",
-   "safety": null,
+   "safety": "Naming a feeling out loud only works where it is safe to be heard. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [],
    "durationMin": 5
   },
@@ -3142,7 +3136,7 @@
    "pillar": "connection",
    "summary": "Weekly, when nothing is on fire: pick one recurring friction with a child and ask what makes it hard for them. Say nothing of your own until you can repeat theirs back.",
    "why": "This is one component of an approach that beat a waitlist in a proper randomised trial with a hundred and thirty-four children, and matched a well-established parenting programme. The order is the active part, and it is the part everyone skips: their concern, fully understood and repeated back, before yours goes on the table, before any solution. It is graded some-evidence rather than tested because the trial tested the whole treatment in a clinical population, and this is one move from it used at the kitchen table.",
-   "safety": null,
+   "safety": "Hearing someone out is not the same as agreeing, and it is not something to do when you are the one who needs hearing out. None of this applies where you are afraid of the person, where you are being controlled, or where money, contact or freedom is being used against you. That is not a communication problem and nothing on this card will help with it. 1800RESPECT is 1800 737 732, free and confidential, twenty-four hours.",
    "attribution": [
     "Ross Greene",
     "Stuart Ablon"
