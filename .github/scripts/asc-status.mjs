@@ -97,6 +97,39 @@ if (!subs?.data?.length) console.log('  (none returned)');
 for (const s of subs?.data ?? []) {
   const a = s.attributes ?? {};
   console.log(`  state=${a.state ?? '?'}  platform=${a.platform ?? '-'}  submitted=${a.submittedDate ?? '-'}`);
+
+  /*
+    What is actually IN the submission, which is a different question from
+    whether the products are configured.
+
+    On a first release the in-app purchases have to be added to the version
+    being reviewed. Products that are configured perfectly and never
+    attached sit at READY_TO_SUBMIT forever, and the reviewer is looking at
+    a paywall for products that are not part of what they were asked to
+    review. Apple's own note says products do not need prior approval to
+    FUNCTION in review — which is true, and is not the same as them being
+    part of the submission.
+  */
+  const items = await get(`/v1/reviewSubmissions/${s.id}/items?limit=25`);
+  const kinds = new Map();
+  for (const item of items?.data ?? []) {
+    for (const [rel, value] of Object.entries(item.relationships ?? {})) {
+      if (!value?.data) continue;
+      kinds.set(rel, (kinds.get(rel) ?? 0) + 1);
+    }
+  }
+  if (kinds.size === 0) {
+    console.log('      items: (none returned)');
+  } else {
+    for (const [rel, n] of kinds) console.log(`      items: ${rel} × ${n}`);
+  }
+  const iapItems = (kinds.get('inAppPurchaseV2') ?? 0) + (kinds.get('subscription') ?? 0);
+  if (iapItems === 0) {
+    console.log('      !! no in-app purchase is part of this submission.');
+    console.log('         On a first release they are added to the version in');
+    console.log('         App Store Connect, under the version’s In-App Purchases');
+    console.log('         section, and submitted with it.');
+  }
 }
 
 console.log('\nRECENT BUILDS (newest first)');
