@@ -1,10 +1,32 @@
-// Attach the three in-app purchases to the version under review, and
-// optionally submit it.
+// Put the right build on the version, and say exactly what still has to be
+// done by hand.
+//
+// It was written to attach the three in-app purchases as well. IT CANNOT,
+// and the attempt is recorded here rather than deleted, because the next
+// person will have the same idea:
+//
+//   POST /v1/reviewSubmissionItems  { relationships: { subscription } }
+//   → 409 ENTITY_ERROR.RELATIONSHIP.UNKNOWN
+//     "'subscription' is not a relationship on the resource
+//      'reviewSubmissionItems'"
+//
+//   ...and the same for 'inAppPurchaseV2'.
+//
+// So on this API version an in-app purchase is not an attachable item, and
+// the purchases go on the version through the App Store Connect UI. The
+// second wall behind it, for completeness: a submission in
+// UNRESOLVED_ISSUES is frozen —
+//
+//   → 409 STATE_ERROR.ENTITY_STATE_INVALID
+//     "reviewSubmission state does not allow adding more items."
+//
+// What is left is worth automating anyway: version 1.0 is still carrying
+// build 16, the rejected binary, and moving that IS in the API.
 //
 // This is the ONLY script here that writes. Everything in asc-status.mjs
-// is a GET; this one POSTs and PATCHes against a live App Store listing,
-// so it defaults to a dry run and will not write a byte until it is told
-// to twice — CONFIRM=yes in the environment, which the workflow only sets
+// is a GET; this one PATCHes against a live App Store listing, so it
+// defaults to a dry run and will not write a byte until it is told to
+// twice — CONFIRM=yes in the environment, which the workflow only sets
 // when a human ticks the box.
 //
 // Why it exists: the 2.1(b) rejection of build 16 was not a configuration
@@ -161,96 +183,34 @@ if (!pick) {
   );
 }
 
-// An existing submission has to be cleared before a new one can be built:
-// Apple allows one open review submission per app.
+// What the submission looks like now, read-only. A rejected submission is
+// frozen — items cannot be added to it — so this reports rather than acts.
 const subs = await get(`/v1/apps/${app.id}/reviewSubmissions?filter[state]=READY_FOR_REVIEW,WAITING_FOR_REVIEW,IN_REVIEW,UNRESOLVED_ISSUES&limit=5`);
-let submission = subs?.data?.[0];
-if (submission) {
-  const st = submission.attributes?.state;
-  console.log(`\nOPEN SUBMISSION  state=${st}  id=${submission.id}`);
-  if (st === 'UNRESOLVED_ISSUES' || st === 'READY_FOR_REVIEW') {
-    console.log('  This is the rejected submission. Items get added to it and it is resubmitted.');
-  } else {
-    console.error('  It is with a reviewer. Refusing to touch a submission in review.');
-    process.exit(2);
-  }
+const submission = subs?.data?.[0];
+console.log('\nSUBMISSION');
+if (!submission) {
+  console.log('  none open. A new one is created when you submit from App Store Connect.');
 } else {
-  console.log('\nNo open submission — one will be created.');
-  const made = await write(
-    'POST',
-    '/v1/reviewSubmissions',
-    { data: { type: 'reviewSubmissions', relationships: { app: { data: { type: 'apps', id: app.id } } }, attributes: { platform: 'IOS' } } },
-    'create a review submission',
-  );
-  submission = made?.data ?? null;
-  if (!submission && CONFIRM) process.exit(1);
-}
-
-// What is already in it, so re-running this is safe.
-const existing = new Set();
-if (submission?.id) {
-  const items = await get(`/v1/reviewSubmissions/${submission.id}/items?limit=25`);
-  for (const item of items?.data ?? []) {
-    for (const [rel, value] of Object.entries(item.relationships ?? {})) {
-      if (value?.data?.id) existing.add(`${rel}:${value.data.id}`);
-    }
+  console.log(`  state=${submission.attributes?.state}  id=${submission.id}`);
+  if (submission.attributes?.state === 'UNRESOLVED_ISSUES') {
+    console.log('  frozen — Apple does not allow items to be added to a rejected');
+    console.log('  submission. Submitting again from the version page opens a new one.');
   }
 }
 
-console.log('\nATTACHING');
-const sid = submission?.id ?? '(new submission)';
-if (!existing.has(`appStoreVersion:${version.id}`)) {
-  await write(
-    'POST',
-    '/v1/reviewSubmissionItems',
-    {
-      data: {
-        type: 'reviewSubmissionItems',
-        relationships: {
-          reviewSubmission: { data: { type: 'reviewSubmissions', id: sid } },
-          appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } },
-        },
-      },
-    },
-    `version ${version.attributes?.versionString}`,
-  );
-} else {
-  console.log(`  already there — version ${version.attributes?.versionString}`);
-}
-
-for (const t of targets) {
-  if (existing.has(`${t.rel}:${t.id}`)) {
-    console.log(`  already there — ${t.pid}`);
-    continue;
-  }
-  await write(
-    'POST',
-    '/v1/reviewSubmissionItems',
-    {
-      data: {
-        type: 'reviewSubmissionItems',
-        relationships: {
-          reviewSubmission: { data: { type: 'reviewSubmissions', id: sid } },
-          [t.rel]: { data: { type: t.type, id: t.id } },
-        },
-      },
-    },
-    t.pid,
-  );
-}
-
-console.log('\nSUBMIT');
-if (process.env.SUBMIT !== 'yes') {
-  console.log('  not submitting — SUBMIT is not set. Attach first, look at it in App Store');
-  console.log('  Connect, then run again with submit ticked.');
-} else {
-  await write(
-    'PATCH',
-    `/v1/reviewSubmissions/${sid}`,
-    { data: { type: 'reviewSubmissions', id: sid, attributes: { submitted: true } } },
-    'submit for review',
-  );
-}
+console.log('\nWHAT HAS TO BE DONE BY HAND, AND WHY');
+console.log('  The in-app purchases cannot be attached through the API. Apple:');
+console.log("    \"'subscription' is not a relationship on the resource");
+console.log('     \'reviewSubmissionItems\'"  (409, and the same for inAppPurchaseV2)');
+console.log('');
+console.log('  In App Store Connect, on the 1.0 version page:');
+console.log('    1. Find "In-App Purchases and Subscriptions" on the version.');
+console.log('    2. Add app.intentnorth.plus.annual, .monthly and .lifetime.');
+console.log('    3. Submit for review.');
+console.log('');
+console.log('  Then run the App Store status workflow. It reads the submission’s');
+console.log('  own items and will say whether the purchases are actually in it,');
+console.log('  which is the check that caught this in the first place.');
 
 console.log('\nWHAT THIS CANNOT CHECK');
 console.log('  The Paid Applications agreement has no API. If it is not Active,');

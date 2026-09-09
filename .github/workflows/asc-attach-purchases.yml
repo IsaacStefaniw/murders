@@ -1,13 +1,15 @@
-# Attach the three in-app purchases to the version under review, and
-# optionally submit it.
+# Put the right build on version 1.0, and print what still has to be done
+# by hand in App Store Connect.
 #
-# The only workflow here that writes to App Store Connect. It defaults to a
-# dry run: nothing is changed unless BOTH boxes are ticked, because the
-# thing being changed is a live App Store listing and a wrong submission
-# costs a review cycle.
+# It was meant to attach the in-app purchases too. Apple's API refuses:
+# 'subscription' and 'inAppPurchaseV2' are not relationships on
+# reviewSubmissionItems, so that part is four clicks in the browser and the
+# script says which four.
 #
-# Run the dry run first and read it. It prints every call it would make.
-name: Attach purchases to the version
+# The only workflow here that writes to App Store Connect. Nothing is
+# changed unless the box is ticked; the dry run prints every call it would
+# make.
+name: Put the build on the version
 
 on:
   workflow_dispatch:
@@ -37,7 +39,7 @@ jobs:
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
         run: printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
-      - name: Attach
+      - name: Put the build on the version
         env:
           EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/AuthKey.p8
           EXPO_ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
