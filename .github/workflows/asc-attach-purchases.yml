@@ -1,0 +1,45 @@
+# Attach the three in-app purchases to the version under review, and
+# optionally submit it.
+#
+# The only workflow here that writes to App Store Connect. It defaults to a
+# dry run: nothing is changed unless BOTH boxes are ticked, because the
+# thing being changed is a live App Store listing and a wrong submission
+# costs a review cycle.
+#
+# Run the dry run first and read it. It prints every call it would make.
+name: Attach purchases to the version
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "WRITE to App Store Connect (leave off for a dry run)"
+        type: boolean
+        default: false
+      submit:
+        description: "Also submit for review (only with WRITE on)"
+        type: boolean
+        default: false
+
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Restore App Store Connect API key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+      - name: Attach
+        env:
+          EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/AuthKey.p8
+          EXPO_ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          CONFIRM: ${{ inputs.confirm && 'yes' || 'no' }}
+          SUBMIT: ${{ inputs.confirm && inputs.submit && 'yes' || 'no' }}
+        run: |
+          set -o pipefail
+          node .github/scripts/asc-attach-purchases.mjs | tee "$GITHUB_STEP_SUMMARY"
