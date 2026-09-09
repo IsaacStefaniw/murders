@@ -170,19 +170,32 @@ says so instead of silently failing.
    → the 1.0 version page → *In-App Purchases and Subscriptions* → add
    `annual`, `monthly` and `lifetime`. This is the established cause and
    the only step that is definitely required.
+
+   **This one cannot be automated.** It was tried against the live account
+   and Apple's API refuses: `'subscription' is not a relationship on the
+   resource 'reviewSubmissionItems'` (409), and the same for
+   `inAppPurchaseV2`. A rejected submission is frozen on top of that —
+   *"reviewSubmission state does not allow adding more items"* — so
+   submitting again opens a fresh one, which is the normal flow after a
+   rejection. Both errors are quoted in
+   `.github/scripts/asc-attach-purchases.mjs` so nobody spends the
+   afternoon rediscovering them.
 2. Business → Agreements: Paid Applications *Active*, banking and tax
    complete. No read API, so it has to be looked at; Apple named it, and
-   nothing sells without it.
+   nothing sells without it. **Confirmed Active on 2026-09-09.**
 3. Dispatch **App Store status**. It should now end with *"would reach the
    paywall, and are in the submission"* rather than the warning about
    configured-but-not-attached.
 4. On a device signed into a sandbox tester: open the paywall, see three
    prices, buy the monthly, confirm Plus turns on, delete the app,
    reinstall, and confirm "Restore purchases" turns it back on.
-5. Attach build 17 (or a fresh one) to 1.0, resubmit, and reply to the
-   review thread naming what changed — that the purchases are now part of
-   the submission, and that the paywall now names the reason and retries
-   rather than showing one sentence for every failure.
+5. Put the right build on 1.0 — **build 18**, which carries the paywall
+   fixes; 16 was the rejected binary and 17 predates them. The *Put the
+   build on the version* workflow does this by API, or it is a dropdown on
+   the version page. Then resubmit, and reply to the review thread naming
+   what changed: the purchases are now part of the submission, and the
+   paywall names the reason and retries instead of showing one sentence
+   for every failure.
 
 ## Promotional text (170)
 
