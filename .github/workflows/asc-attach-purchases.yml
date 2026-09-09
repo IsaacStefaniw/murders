@@ -20,6 +20,10 @@ on:
         description: "Also submit for review (only with WRITE on)"
         type: boolean
         default: false
+      build_number:
+        description: "Build to put on the version (blank = newest valid)"
+        type: string
+        required: false
 
 jobs:
   attach:
@@ -40,6 +44,7 @@ jobs:
           EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           CONFIRM: ${{ inputs.confirm && 'yes' || 'no' }}
           SUBMIT: ${{ inputs.confirm && inputs.submit && 'yes' || 'no' }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
         run: |
           set -o pipefail
           node .github/scripts/asc-attach-purchases.mjs | tee "$GITHUB_STEP_SUMMARY"

@@ -127,6 +127,40 @@ if (!version) {
 const vstate = version.attributes?.appVersionState ?? version.attributes?.appStoreState;
 console.log(`\nVERSION  ${version.attributes?.versionString}  ${vstate}  id=${version.id}`);
 
+/*
+  Which build the version carries.
+
+  `eas submit` puts a binary in TestFlight and stops there — attaching it
+  to the App Store version is a separate act, and version 1.0 is still
+  carrying build 16, the one that was rejected. Submitting without this
+  would send the reviewer the same binary again.
+
+  Newest VALID build wins unless BUILD_NUMBER names one, because the usual
+  case is "the one that just finished" and naming it is the exception.
+*/
+const builds = await get(`/v1/builds?filter[app]=${app.id}&limit=10&sort=-uploadedDate`);
+const wanted = process.env.BUILD_NUMBER?.trim();
+const pick = (builds?.data ?? []).find((b) =>
+  wanted ? b.attributes?.version === wanted : b.attributes?.processingState === 'VALID',
+);
+const attached = await get(`/v1/appStoreVersions/${version.id}/build`);
+const attachedNo = attached?.data?.attributes?.version ?? null;
+console.log(`\nBUILD`);
+console.log(`  on the version now: ${attachedNo ?? '(none)'}`);
+if (!pick) {
+  console.log(`  ! ${wanted ? `build ${wanted} not found` : 'no VALID build to attach'} — leaving the version as it is`);
+} else if (pick.attributes?.version === attachedNo) {
+  console.log(`  already build ${attachedNo} — nothing to change`);
+} else {
+  console.log(`  would move to: ${pick.attributes?.version} (${pick.attributes?.processingState})`);
+  await write(
+    'PATCH',
+    `/v1/appStoreVersions/${version.id}/relationships/build`,
+    { data: { type: 'builds', id: pick.id } },
+    `put build ${pick.attributes?.version} on version ${version.attributes?.versionString}`,
+  );
+}
+
 // An existing submission has to be cleared before a new one can be built:
 // Apple allows one open review submission per app.
 const subs = await get(`/v1/apps/${app.id}/reviewSubmissions?filter[state]=READY_FOR_REVIEW,WAITING_FOR_REVIEW,IN_REVIEW,UNRESOLVED_ISSUES&limit=5`);
