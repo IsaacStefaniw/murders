@@ -95,24 +95,51 @@ no products.** Apple's reply says the rest — review the product
 configurations, complete any missing information, and confirm the Paid
 Applications agreement is in effect.
 
-**Two things have to be true, and only one of them is code.**
+### The cause, established 2026-09-09
 
-**1. App Store Connect has three sellable products.** A product reaches
-StoreKit — in sandbox, in review and in production alike — only once it has
-a price, a complete localisation, and a state past *Missing Metadata*.
-Until the Paid Applications agreement is *Active*, no product can be
-priced, so all three stay unsellable and the paywall is empty however
-correct the app is. Run the **App Store status** workflow
-(`.github/workflows/asc-status.yml`, manual dispatch, read-only): it now
-reads the three identifiers out of `src/features/plus/entitlement.ts`, asks
-Apple about each one, and ends with a line per product saying whether it
-would reach the paywall. Get all three to *served* before resubmitting.
-The one thing it cannot read is the agreement itself — check that by hand
-under **Business → Agreements**.
+The first reading of this rejection was that the products must be
+misconfigured. **They are not.** The App Store status workflow, run against
+the live account, reports all three with prices, localisations and a clean
+state:
 
-**2. The app copes with anything less.** Three faults in `lib/purchases.ts`
-turned a slow or partial answer into that sentence, and all three are
-fixed:
+```
+app.intentnorth.plus.annual     served (READY_TO_SUBMIT)
+app.intentnorth.plus.monthly    served (READY_TO_SUBMIT)
+app.intentnorth.plus.lifetime   served (READY_TO_SUBMIT)
+```
+
+That rules out the configuration hypothesis and points at what
+`READY_TO_SUBMIT` actually means: **never submitted.** The same run, reading
+the review submission's own contents:
+
+```
+state=UNRESOLVED_ISSUES  platform=IOS  submitted=2026-09-04
+    items: appStoreVersion × 1
+    !! no in-app purchase is part of this submission.
+```
+
+**Three products, configured correctly, none of them attached to the
+version under review.** On a first release the in-app purchases are added
+to the version in App Store Connect and submitted alongside it. Until that
+happens they sit at *Ready to Submit* forever, and the reviewer opens a
+paywall for products that are not part of what they were asked to review.
+
+Apple's line that purchases "do not need prior approval to function in
+review" is true and is a different sentence: it means an *approved* product
+is not a prerequisite, not that an unsubmitted one behaves normally on a
+first release.
+
+**So: attach the three purchases to 1.0. That is the fix.** The agreement
+is still worth confirming — Apple named it, it has no read API, and nothing
+sells without it — but it is now the second thing to check rather than the
+first.
+
+**And the app copes with anything less.** Everything below stands
+regardless of the cause: it is what turned a slow, partial or absent answer
+into the one sentence the reviewer screenshotted.
+
+Three faults in `lib/purchases.ts` turned a slow or partial answer into
+that sentence, and all three are fixed:
 
 - The two product fetches ran under `Promise.all`, so one unavailable
   product discarded the other two. They are settled separately now — if
@@ -139,16 +166,23 @@ says so instead of silently failing.
 
 **Before the next submission, in order:**
 
-1. Business → Agreements: Paid Applications *Active*, banking and tax
-   complete. Nothing below works until this is.
-2. Dispatch **App Store status** and read the last section. Every product
-   must say *served*.
-3. On a device signed into a sandbox tester: open the paywall, see three
+1. **Attach the three in-app purchases to version 1.0.** App Store Connect
+   → the 1.0 version page → *In-App Purchases and Subscriptions* → add
+   `annual`, `monthly` and `lifetime`. This is the established cause and
+   the only step that is definitely required.
+2. Business → Agreements: Paid Applications *Active*, banking and tax
+   complete. No read API, so it has to be looked at; Apple named it, and
+   nothing sells without it.
+3. Dispatch **App Store status**. It should now end with *"would reach the
+   paywall, and are in the submission"* rather than the warning about
+   configured-but-not-attached.
+4. On a device signed into a sandbox tester: open the paywall, see three
    prices, buy the monthly, confirm Plus turns on, delete the app,
    reinstall, and confirm "Restore purchases" turns it back on.
-4. Fresh production build, attach it to 1.0, attach the three in-app
-   purchases to the version, resubmit, and reply to the review thread
-   naming what changed.
+5. Attach build 17 (or a fresh one) to 1.0, resubmit, and reply to the
+   review thread naming what changed — that the purchases are now part of
+   the submission, and that the paywall now names the reason and retries
+   rather than showing one sentence for every failure.
 
 ## Promotional text (170)
 

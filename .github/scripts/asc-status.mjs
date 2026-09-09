@@ -91,6 +91,7 @@ for (const v of versions?.data ?? []) {
   console.log(`     build attached: ${b ? `${b.version} (uploaded ${b.uploadedDate})` : 'NONE'}`);
 }
 
+let submissionMissingPurchases = false;
 console.log('\nREVIEW SUBMISSIONS');
 const subs = await get(`/v1/apps/${app.id}/reviewSubmissions?limit=5`);
 if (!subs?.data?.length) console.log('  (none returned)');
@@ -124,6 +125,9 @@ for (const s of subs?.data ?? []) {
     for (const [rel, n] of kinds) console.log(`      items: ${rel} × ${n}`);
   }
   const iapItems = (kinds.get('inAppPurchaseV2') ?? 0) + (kinds.get('subscription') ?? 0);
+  if (iapItems === 0 && (a.state === 'UNRESOLVED_ISSUES' || a.state === 'WAITING_FOR_REVIEW' || a.state === 'IN_REVIEW')) {
+    submissionMissingPurchases = true;
+  }
   if (iapItems === 0) {
     console.log('      !! no in-app purchase is part of this submission.');
     console.log('         On a first release they are added to the version in');
@@ -234,6 +238,23 @@ console.log('  StoreKit returns nothing however the app is written.');
 if (blocked > 0) {
   console.log(`\n${blocked} of ${EXPECTED_IDS.length} products would not reach the paywall. Fix these before resubmitting.`);
   process.exitCode = 1;
+} else if (submissionMissingPurchases) {
+  /*
+    Configured is not the same as submitted, and this is the gap the 2.1(b)
+    rejection fell into: three products with prices, localisations and a
+    clean state, none of them attached to the version under review. On a
+    first release that is what leaves a reviewer looking at an empty
+    paywall while every check above says the products are fine.
+
+    Loud, and a non-zero exit, because "all products configured" read as
+    "nothing to fix here" once already.
+  */
+  console.log(`\nAll ${EXPECTED_IDS.length} products are configured — and none of them is attached`);
+  console.log('to the version under review. Configured is not submitted. On a first');
+  console.log('release the purchases go on the version in App Store Connect and are');
+  console.log('submitted with it; until then they stay at READY_TO_SUBMIT and the');
+  console.log('reviewer is looking at a paywall for products outside the submission.');
+  process.exitCode = 1;
 } else {
-  console.log(`\nAll ${EXPECTED_IDS.length} products would reach the paywall.`);
+  console.log(`\nAll ${EXPECTED_IDS.length} products would reach the paywall, and are in the submission.`);
 }
