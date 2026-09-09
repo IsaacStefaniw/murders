@@ -95,7 +95,7 @@ no products.** Apple's reply says the rest — review the product
 configurations, complete any missing information, and confirm the Paid
 Applications agreement is in effect.
 
-### The cause, established 2026-09-09
+### The cause — first answer wrong, corrected 2026-09-09
 
 The first reading of this rejection was that the products must be
 misconfigured. **They are not.** The App Store status workflow, run against
@@ -108,9 +108,8 @@ app.intentnorth.plus.monthly    served (READY_TO_SUBMIT)
 app.intentnorth.plus.lifetime   served (READY_TO_SUBMIT)
 ```
 
-That rules out the configuration hypothesis and points at what
-`READY_TO_SUBMIT` actually means: **never submitted.** The same run, reading
-the review submission's own contents:
+The second reading was that the products were configured but never attached
+to the submission, on the strength of this, from the same run:
 
 ```
 state=UNRESOLVED_ISSUES  platform=IOS  submitted=2026-09-04
@@ -118,21 +117,38 @@ state=UNRESOLVED_ISSUES  platform=IOS  submitted=2026-09-04
     !! no in-app purchase is part of this submission.
 ```
 
-**Three products, configured correctly, none of them attached to the
-version under review.** On a first release the in-app purchases are added
-to the version in App Store Connect and submitted alongside it. Until that
-happens they sit at *Ready to Submit* forever, and the reviewer opens a
-paywall for products that are not part of what they were asked to review.
+**That was also wrong, and it is the more expensive mistake of the two.**
+App Store Connect's own App Review page lists the submission of 4 September
+as **5 Items**, and the draft that replaced it — the same five — as the
+version, the subscription group, both subscriptions and the one-off
+purchase. The purchases were in the submission the whole time. The reviewer
+had them.
 
-Apple's line that purchases "do not need prior approval to function in
-review" is true and is a different sentence: it means an *approved* product
-is not a prerequisite, not that an unsubmitted one behaves normally on a
-first release.
+What the script actually saw is that `/v1/reviewSubmissions/{id}/items`
+returns items whose relationships arrive without `data` for everything
+except the version. Absent linkage is not an absent product, and the script
+reported it as one. It has since been changed to say when it knows nothing;
+**submission contents are read in the browser, on the app's App Review
+page, and nowhere else.**
 
-**So: attach the three purchases to 1.0. That is the fix.** The agreement
-is still worth confirming — Apple named it, it has no read API, and nothing
-sells without it — but it is now the second thing to check rather than the
-first.
+Three consequences worth recording, because each cost something:
+
+- Four days were spent on a theory the evidence never supported, while the
+  real cause went unexamined.
+- Three attempts to attach the purchases over the API all failed. Two of
+  the calls in the last attempt succeeded: they cancelled the healthy
+  submission and opened an empty one, which dropped all three products to
+  *Developer Rejected* and required them to be re-added by hand.
+- The corrected sequence is the ordinary one. Every submittable item —
+  version, subscription group, each subscription, each purchase — carries
+  its own **Add for Review** button on its own page, and the draft
+  submission collects them. There is no API path for this; do it in the
+  browser.
+
+**So the cause is in the app, and it is what the next section describes.**
+The reviewer had all three products available and the paywall was still
+empty, which leaves the client. The agreement is still worth confirming —
+Apple named it, it has no read API, and nothing sells without it.
 
 **And the app copes with anything less.** Everything below stands
 regardless of the cause: it is what turned a slow, partial or absent answer

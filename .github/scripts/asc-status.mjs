@@ -100,16 +100,32 @@ for (const s of subs?.data ?? []) {
   console.log(`  state=${a.state ?? '?'}  platform=${a.platform ?? '-'}  submitted=${a.submittedDate ?? '-'}`);
 
   /*
-    What is actually IN the submission, which is a different question from
-    whether the products are configured.
+    What is actually IN the submission — which this endpoint cannot tell you.
 
-    On a first release the in-app purchases have to be added to the version
-    being reviewed. Products that are configured perfectly and never
-    attached sit at READY_TO_SUBMIT forever, and the reviewer is looking at
-    a paywall for products that are not part of what they were asked to
-    review. Apple's own note says products do not need prior approval to
-    FUNCTION in review — which is true, and is not the same as them being
-    part of the submission.
+    Read this before trusting anything printed below it. On 8 September this
+    check reported
+
+      items: (none returned)
+      !! no in-app purchase is part of this submission.
+
+    for a submission that App Store Connect showed, in the browser, as
+    holding five items: the version, the subscription group, both
+    subscriptions and the one-off purchase. The App Review page listed the
+    rejected submission as "5 Items" too. The purchases were there the whole
+    time. This endpoint returns items whose relationships arrive without
+    `data`, and the script read that silence as an answer.
+
+    It cost a wrong diagnosis: the 2.1(b) rejection was blamed on unattached
+    products for four days, and the real cause — the app chaining its two
+    product fetches, so either one failing blanked the paywall — went
+    unexamined while the wrong theory was written into this script, into
+    docs/APP_STORE.md, and into three attempts to fix it over the API. One of
+    those attempts cancelled a healthy submission and dropped all three
+    products to Developer Rejected.
+
+    So this block now reports what came back and says plainly when that is
+    nothing. Submission contents are read in the browser, on the app's App
+    Review page, and nowhere else.
   */
   const items = await get(`/v1/reviewSubmissions/${s.id}/items?limit=25`);
   const kinds = new Map();
@@ -119,31 +135,33 @@ for (const s of subs?.data ?? []) {
       kinds.set(rel, (kinds.get(rel) ?? 0) + 1);
     }
   }
-  if (kinds.size === 0) {
-    console.log('      items: (none returned)');
-  } else {
+  const itemCount = items?.data?.length ?? 0;
+  if (kinds.size > 0) {
     for (const [rel, n] of kinds) console.log(`      items: ${rel} × ${n}`);
+  } else if (itemCount > 0) {
+    console.log(`      items: ${itemCount} returned, none carrying relationship data.`);
+    console.log('         What they are is not readable here. Open the app’s App Review');
+    console.log('         page in App Store Connect to see the contents.');
+  } else {
+    console.log('      items: the API returned none.');
+    console.log('         This has been empty for a submission the browser showed as');
+    console.log('         holding five items, so it is not evidence of anything. Open');
+    console.log('         the app’s App Review page to see the contents.');
   }
-  const iapItems = (kinds.get('inAppPurchaseV2') ?? 0) + (kinds.get('subscription') ?? 0);
-  /*
-    Any submission that is not finished counts.
 
-    This used to check only UNRESOLVED_ISSUES, WAITING_FOR_REVIEW and
-    IN_REVIEW — so when a fresh READY_FOR_REVIEW submission sat there with
-    no purchases in it, the run printed "no in-app purchase is part of this
-    submission" and then ended with "All 3 products would reach the
-    paywall, and are in the submission." A check that contradicts itself
-    two lines apart is worse than no check, and this one exists precisely
-    because a false all-clear on this question already cost a review cycle.
+  /*
+    Only an answer counts as an answer. When the relationships resolve and
+    carry no purchase, that is a finding. When nothing resolves, the script
+    knows nothing and must not fail the run on it — the earlier version did,
+    and a check that manufactures findings out of missing data is worse than
+    no check at all.
   */
-  if (iapItems === 0 && a.state !== 'COMPLETE' && a.state !== 'CANCELING') {
+  const iapItems = (kinds.get('inAppPurchaseV2') ?? 0) + (kinds.get('subscription') ?? 0);
+  if (kinds.size > 0 && iapItems === 0 && a.state !== 'COMPLETE' && a.state !== 'CANCELING') {
     submissionMissingPurchases = true;
-  }
-  if (iapItems === 0) {
-    console.log('      !! no in-app purchase is part of this submission.');
-    console.log('         On a first release they are added to the version in');
-    console.log('         App Store Connect, under the version’s In-App Purchases');
-    console.log('         section, and submitted with it.');
+    console.log('      !! items resolved, and no in-app purchase is among them.');
+    console.log('         Add each product from its own page in App Store Connect');
+    console.log('         (Add for Review), then submit the draft that collects them.');
   }
 }
 
@@ -260,12 +278,14 @@ if (blocked > 0) {
     Loud, and a non-zero exit, because "all products configured" read as
     "nothing to fix here" once already.
   */
-  console.log(`\nAll ${EXPECTED_IDS.length} products are configured — and none of them is attached`);
-  console.log('to the version under review. Configured is not submitted. On a first');
-  console.log('release the purchases go on the version in App Store Connect and are');
-  console.log('submitted with it; until then they stay at READY_TO_SUBMIT and the');
-  console.log('reviewer is looking at a paywall for products outside the submission.');
+  console.log(`\nAll ${EXPECTED_IDS.length} products are configured, and the submission's own`);
+  console.log('items came back without any of them. Configured is not submitted: add');
+  console.log('each product from its page in App Store Connect with Add for Review,');
+  console.log('then submit the draft that collects them alongside the version.');
   process.exitCode = 1;
 } else {
-  console.log(`\nAll ${EXPECTED_IDS.length} products would reach the paywall, and are in the submission.`);
+  console.log(`\nAll ${EXPECTED_IDS.length} products are configured and would reach the paywall.`);
+  console.log('Whether they are IN the submission is not something this script can');
+  console.log('read — see REVIEW SUBMISSIONS above. Confirm it on the app’s App');
+  console.log('Review page in App Store Connect.');
 }
