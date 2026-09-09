@@ -81,6 +81,75 @@ tool, breathing and the two-minute practices, backup and restore, and a
 full view — by name — of every coach, rung and protocol. Everything that
 *runs* is Plus.
 
+## Build 16, rejected 2.1(b) — read this before resubmitting
+
+Submission `0e37c77b-8a7f-4e76-a6a9-a4b8549955ef`, reviewed 2026-09-08 on
+iPhone 17 Pro Max and iPad Air 11-inch (M3), iOS and iPadOS 26.6.1:
+
+> the app displayed 'The App Store did not answer' when landing on the
+> IntentNorth Plus screen.
+
+That sentence was the paywall's own empty state, and the warning three
+paragraphs above this one had already named the cause: **StoreKit returned
+no products.** Apple's reply says the rest — review the product
+configurations, complete any missing information, and confirm the Paid
+Applications agreement is in effect.
+
+**Two things have to be true, and only one of them is code.**
+
+**1. App Store Connect has three sellable products.** A product reaches
+StoreKit — in sandbox, in review and in production alike — only once it has
+a price, a complete localisation, and a state past *Missing Metadata*.
+Until the Paid Applications agreement is *Active*, no product can be
+priced, so all three stay unsellable and the paywall is empty however
+correct the app is. Run the **App Store status** workflow
+(`.github/workflows/asc-status.yml`, manual dispatch, read-only): it now
+reads the three identifiers out of `src/features/plus/entitlement.ts`, asks
+Apple about each one, and ends with a line per product saying whether it
+would reach the paywall. Get all three to *served* before resubmitting.
+The one thing it cannot read is the agreement itself — check that by hand
+under **Business → Agreements**.
+
+**2. The app copes with anything less.** Three faults in `lib/purchases.ts`
+turned a slow or partial answer into that sentence, and all three are
+fixed:
+
+- The two product fetches ran under `Promise.all`, so one unavailable
+  product discarded the other two. They are settled separately now — if
+  Apple returns the subscriptions but not the lifetime product, the paywall
+  shows the subscriptions.
+- One attempt, no retry, no deadline. StoreKit answers late on a freshly
+  signed-in sandbox account, and the paywall opens seconds after launch.
+  It now asks up to three times, and abandons a call that hangs rather than
+  spinning on "Getting prices…" forever.
+- Every failure collapsed to an empty array, so "Apple errored", "Apple has
+  no products for this app" and "there is no StoreKit here" were one
+  indistinguishable sentence. The screen now names which, in StoreKit's own
+  words, and asks again by itself when the app returns to the foreground —
+  which is where a reviewer lands after signing into a sandbox account in
+  Settings.
+
+A fourth fix is not about the empty paywall but would have been the next
+rejection: `requestPurchase` does not return the outcome — expo-iap says in
+as many words not to rely on its result — and the entitlement was read once,
+immediately. A sandbox purchase that landed a second later therefore looked
+like nothing had happened. The entitlement is now polled until the
+transaction arrives, and a purchase Apple has taken but not yet confirmed
+says so instead of silently failing.
+
+**Before the next submission, in order:**
+
+1. Business → Agreements: Paid Applications *Active*, banking and tax
+   complete. Nothing below works until this is.
+2. Dispatch **App Store status** and read the last section. Every product
+   must say *served*.
+3. On a device signed into a sandbox tester: open the paywall, see three
+   prices, buy the monthly, confirm Plus turns on, delete the app,
+   reinstall, and confirm "Restore purchases" turns it back on.
+4. Fresh production build, attach it to 1.0, attach the three in-app
+   purchases to the version, resubmit, and reply to the review thread
+   naming what changed.
+
 ## Promotional text (170)
 
 > Seven coaches, one profile. A training block built from your own lifts, a library that grades its own evidence, and nothing you enter ever leaves your phone.
