@@ -36,6 +36,7 @@ import { LogDidIt } from '@/features/today/LogDidIt';
 import { WelcomeBack } from '@/features/today/WelcomeBack';
 import { WhyToday } from '@/features/today/WhyToday';
 import { BudgetCard } from '@/features/budget/BudgetCard';
+import { TrialReview } from '@/features/knowledge/TrialReview';
 import { commitmentBudget, mayOffer } from '@/features/budget/commitment';
 import { QuickLog } from '@/features/today/QuickLog';
 import { displacedLine } from '@/features/planner/displaced';
@@ -340,6 +341,11 @@ export default function Today() {
           back. Silent in the ordinary stable case — a card that appears
           every day stops being read on the day it matters. */}
       <BudgetCard budget={budget} />
+
+      {/* A trial whose fortnight is up. The asking is the whole value of
+          time-boxing something: a practice nobody revisits is how a week
+          fills with things that stopped mattering. */}
+      <TrialReview />
 
       {/* A suggestion is the app proposing something, so it goes through
           the same gate as everything else it proposes. Nothing here stops

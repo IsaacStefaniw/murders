@@ -158,6 +158,30 @@ week", with the citation and the minutes saved), evidence passports with
 regrade history, personal response shown *beside* rather than inside the
 grade, and time-boxed experiments for lower-confidence practices.
 
+**Done, 8 September 2026.**
+
+*Time back.* Eight entries the verification rounds went looking for and did
+not find — per-meal protein, hydration and thinking, growth-mindset
+self-talk, the daily HRV verdict — one a week in the review, rotated, with
+what the evidence found and roughly what it cost to keep believing it. A
+test forbids the smug register: the reader has been doing this in good
+faith on somebody else's advice.
+
+*Evidence passports.* All seventeen regrades from the merge, with the
+before, the after, the date and the reason, on the card itself. Fourteen
+went down. A test pins that a history always ends at the grade the card
+now shows, because a passport that disagrees with the letter beside it is
+worse than no passport.
+
+*Personal response.* Beside the grade, never inside it. A practice
+somebody has kept for eleven weeks is not better evidenced than it was in
+week one, and letting a personal record move a published letter would turn
+the library into a preference engine wearing a lab coat.
+
+*Time-boxed trials.* On D and E practices, offered and never required —
+the opt-in and the stated reason were declined for the reasons under
+"Where I disagree" below, and the review date is the half worth keeping.
+
 ---
 
 ## Where I disagree with the review

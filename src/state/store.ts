@@ -70,6 +70,7 @@ import {
   generateDailyPlan,
 } from '@/features/planner/generate';
 import { commitmentBudget } from '@/features/budget/commitment';
+import { startExperiment, type Experiment } from '@/features/knowledge/experiments';
 import { moveWithBump, type Displacement } from '@/features/planner/moveWithBump';
 import { describeDisplaced, describeMoved } from '@/features/planner/displaced';
 import { mergeRoutines } from '@/features/planner/mergeRoutines';
@@ -269,6 +270,20 @@ export interface AppState {
   addGoal: (goal: Goal, routines: Routine[]) => void;
   /** Toggle a knowledge-base protocol on the plan. Returns true if now active. */
   toggleProtocol: (protocolId: string) => boolean;
+
+  /**
+   * Time-boxed trials of thin-evidence practices.
+   *
+   * Not a gate on adding one — that idea was rejected deliberately, and
+   * the reasoning is in features/knowledge/experiments.ts. This is the
+   * review date, which is the useful half: thin evidence is exactly where
+   * "does this do anything for me" is the only way to find out, and a
+   * practice nobody revisits is how a week fills with things that stopped
+   * mattering.
+   */
+  experiments: Experiment[];
+  startTrial: (protocolId: string) => void;
+  endTrial: (protocolId: string, outcome: 'keeping' | 'dropping') => void;
 
   /** Personal Performance Model — universal metric observations. */
   metrics: MetricObservation[];
@@ -510,6 +525,7 @@ const initialData = {
   behaviourEvents: [] as BehaviourEvent[],
   reflections: [] as Reflection[],
   suggestions: [] as Suggestion[],
+  experiments: [] as Experiment[],
   mealPlan: null as { weekStart: string; dinners: Record<number, string> } | null,
   paths: {} as Partial<
     Record<PathId, { startedAt: string; answers: Record<string, string>; goalId: string }>
@@ -1685,6 +1701,26 @@ export const useAppStore = create<AppState>()(
                 : g,
             ),
           });
+        },
+
+        startTrial: (protocolId) => {
+          const today = todayKey();
+          const held = get().experiments.filter((e) => e.protocolId !== protocolId || !!e.outcome);
+          set({ experiments: [...held, startExperiment(protocolId, today)] });
+        },
+
+        endTrial: (protocolId, outcome) => {
+          set({
+            experiments: get().experiments.map((e) =>
+              e.protocolId === protocolId && !e.outcome ? { ...e, outcome } : e,
+            ),
+          });
+          // Dropping it takes it off the week; keeping it changes nothing,
+          // which is the point — a kept practice was already working.
+          if (outcome === 'dropping') {
+            const active = get().routines.some((r) => r.protocolId === protocolId && r.active);
+            if (active) get().toggleProtocol(protocolId);
+          }
         },
 
         restartFromAnchor: () => {

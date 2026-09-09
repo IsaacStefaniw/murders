@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
@@ -25,6 +25,10 @@ import {
 } from '@/features/knowledge/protocols';
 import { useTheme } from '@/hooks/use-theme';
 import { placementFor, placementLine, type Placement } from '@/features/planner/placement';
+import { worthTesting } from '@/features/knowledge/experiments';
+import { personalResponse } from '@/features/knowledge/personal';
+import { regradesFor } from '@/features/knowledge/regrades';
+import { todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 import { FREE_PROTOCOLS_PER_PILLAR, splitLibrary } from '@/features/plus/entitlement';
 import { LockedCard, LockedRow } from '@/features/plus/Locked';
@@ -58,9 +62,23 @@ const DAY_LABEL = (p: Protocol) =>
 function ProtocolCard({ protocol }: { protocol: Protocol }) {
   const theme = useTheme();
   const routines = useAppStore((s) => s.routines);
+  const plans = useAppStore((s) => s.plans);
+  const experiments = useAppStore((s) => s.experiments);
+  const startTrial = useAppStore((s) => s.startTrial);
   const toggleProtocol = useAppStore((s) => s.toggleProtocol);
   const plus = useAppStore((s) => s.entitlement.plus);
   const active = routines.some((r) => r.protocolId === protocol.id && r.active);
+
+  // Beside the grade, never inside it. A practice somebody has kept for
+  // eleven weeks is not better evidenced than it was in week one, and a
+  // personal record that moved a published letter would turn this library
+  // into a preference engine wearing a lab coat.
+  const mine = useMemo(
+    () => personalResponse(protocol.id, routines, plans, todayKey()),
+    [protocol.id, routines, plans],
+  );
+  const history = regradesFor(protocol.id);
+  const trial = experiments.find((e) => e.protocolId === protocol.id && !e.outcome);
 
   // The scheduling reveal. Set only by this card's own Add, so it never
   // appears on a screen the person did not just act on, and cleared the
@@ -108,7 +126,33 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
             ? `Where it stops · ⚠︎ ${protocol.safety}`
             : 'Where it stops · no particular caution on this one, and it is still educational structure rather than advice.'}
         </AppText>
+        {/*
+          The grade's own history.
+
+          A grade with no history is an opinion. A grade that has moved, in
+          public, with the reason attached, is a claim somebody can check —
+          and of the seventeen that have moved, fourteen went down, which is
+          the half that costs us something to publish.
+        */}
+        {history.length > 0 ? (
+          <Disclosure title={`This grade changed · ${history[0].from} → ${history[history.length - 1].to}`}>
+            {history.map((r) => (
+              <AppText key={r.on} variant="caption" color="textSecondary">
+                {r.from} → {r.to}, {r.on}. {r.why}
+              </AppText>
+            ))}
+          </Disclosure>
+        ) : null}
       </View>
+
+      {/* What it has done for YOU, next to what the research says — two
+          different questions, and the second one is often the one that
+          decides whether a practice stays on your week. */}
+      {mine ? (
+        <AppText variant="caption" color="success">
+          Yours · {mine.line}
+        </AppText>
+      ) : null}
       <Button
         title={active ? 'On your plan — pause it' : 'Add to my plan'}
         variant={active ? 'ghost' : 'primary'}
@@ -137,6 +181,37 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
           </Disclosure>
           <Button title="Undo" variant="ghost" onPress={undo} />
         </View>
+      ) : trial ? (
+        <AppText variant="caption" color="textSecondary">
+          Running as a two-week trial. IntentNorth will ask you on {trial.reviewOn} whether you
+          noticed anything worth keeping it for.
+        </AppText>
+      ) : active && worthTesting(protocol.id) ? (
+        <>
+          <AppText variant="caption" color="success">
+            {plus
+              ? 'IntentNorth schedules this into your week automatically.'
+              : 'On your plan. Plus places it into your days; until then it is listed on its coach’s hub.'}
+          </AppText>
+          {/*
+            Offered, never required.
+
+            The review wanted thin-evidence practices to need an opt-in and
+            a stated reason before anybody could add one. That was declined:
+            expectancy is a real mechanism, a harmless practice somebody
+            finds meaningful has genuine value, and asking a person to
+            justify their own choice to software is exactly the framing the
+            research contract was rewritten to remove. The review date is
+            the half worth keeping — thin evidence is where "does this
+            actually do anything for me" is the only way to find out.
+          */}
+          <Button
+            title="Run it as a two-week trial"
+            variant="ghost"
+            hint="IntentNorth will come back in a fortnight and ask whether you noticed anything."
+            onPress={() => startTrial(protocol.id)}
+          />
+        </>
       ) : active ? (
         <AppText variant="caption" color="success">
           {plus

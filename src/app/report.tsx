@@ -15,6 +15,7 @@ import { buildWeekReport } from '@/features/review/weekReport';
 import { formatDateLong, todayKey } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
+import { timeBackFor } from '@/features/knowledge/timeBack';
 import { LockedCard } from '@/features/plus/Locked';
 import { track } from '@/lib/telemetry';
 
@@ -43,6 +44,8 @@ export default function WeekReportScreen() {
   const plus = useAppStore((s) => s.entitlement.plus);
   const report = useMemo(() => buildWeekReport(today, plans, goals), [today, plans, goals]);
   const records = useMemo(() => recentRecords(metrics, 7), [metrics]);
+  // Rotated on the week so it is never the same one twice running.
+  const timeBack = useMemo(() => timeBackFor(today), [today]);
   /**
    * How this week sits against this person's own history.
    *
@@ -187,6 +190,35 @@ export default function WeekReportScreen() {
               </Card>
             ))}
           </View>
+        </View>
+      ) : null}
+
+      {/*
+        The one thing you can stop.
+
+        Every library in this category only ever adds, which is the shape
+        of the problem this product exists to solve: somebody with nine
+        podcasts and forty saved protocols does not need a forty-first. It
+        is also the one thing no competitor will say, because a practice
+        you drop is a practice they cannot sell you.
+
+        One a week, rotated, with what the evidence actually found — never
+        smug, because the reader has been doing this in good faith on
+        somebody else's advice.
+      */}
+      {timeBack ? (
+        <View>
+          <SectionHeader title="One thing you could stop" />
+          <Card>
+            <AppText variant="body">{timeBack.claim}</AppText>
+            <AppText variant="secondary" style={styles.sub}>
+              {timeBack.finding}
+            </AppText>
+            <AppText variant="caption" color="textTertiary" style={styles.sub}>
+              {timeBack.minutesPerWeek ? `About ${timeBack.minutesPerWeek} minutes a week back. ` : ''}
+              Evidence {timeBack.evidenceLevel} · {timeBack.source}
+            </AppText>
+          </Card>
         </View>
       ) : null}
 

@@ -4,6 +4,8 @@
  * These types mirror the database schema in supabase/migrations. Keep them in
  * sync via docs/DATA_MODEL.md when either changes.
  */
+import type { Roster } from '@/features/roster/roster';
+
 
 export type LifeArea =
   | 'family'
@@ -47,8 +49,6 @@ export type PhysicalConstraint =
   | 'bloodSugar'
   | 'hormonal'
   | 'mentalHealth';
-
-import type { Roster } from '@/features/roster/roster';
 
 /** How a person's week is shaped — see features/onboarding/markets.ts. */
 export type WeekShapeKey =
