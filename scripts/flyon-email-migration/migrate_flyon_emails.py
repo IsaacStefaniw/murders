@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import csv
 import getpass
 import imaplib
 import json
@@ -32,14 +33,14 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
-from typing import Any, Callable, Iterable, Iterator, Optional
+from typing import Any, Iterable, Iterator, Optional
 
 GRAPH = "https://graph.microsoft.com/v1.0"
 LOGIN = "https://login.microsoftonline.com"
 SCOPES = "offline_access Mail.ReadWrite"
 
-DEFAULT_TERMS = ["flyon"]
 DEFAULT_STATE = os.path.expanduser("~/.flyon-email-migration/state.json")
+DEFAULT_REVIEW = os.path.expanduser("~/.flyon-email-migration/review.csv")
 DEFAULT_TOKENS = os.path.expanduser("~/.flyon-email-migration/tokens.json")
 
 
@@ -282,18 +283,182 @@ class GraphAccount:
 # --------------------------------------------------------------------------- #
 
 MESSAGE_FIELDS = (
-    "id,internetMessageId,subject,receivedDateTime,sentDateTime,isRead,"
-    "from,sender,toRecipients,ccRecipients,bccRecipients,bodyPreview,"
+    "id,internetMessageId,conversationId,subject,receivedDateTime,sentDateTime,isRead,"
+    "from,sender,toRecipients,ccRecipients,bccRecipients,replyTo,bodyPreview,"
     "hasAttachments,parentFolderId"
 )
 
 # Folders whose contents are not mail you want to carry over.
 SKIP_FOLDERS = {"deleteditems", "junkemail", "recoverableitemsdeletions", "conflicts", "syncissues"}
 
+STRONG, WEAK, THREAD, EXCLUDED, NO_MATCH = "strong", "weak", "thread", "excluded", "no-match"
 
-def build_matcher(terms: Iterable[str]) -> Callable[[str], bool]:
-    pattern = re.compile("|".join(re.escape(t) for t in terms), re.IGNORECASE)
-    return lambda text: bool(pattern.search(text))
+
+def domain_of(address: str) -> str:
+    return address.rpartition("@")[2].lower()
+
+
+def domain_matches(address: str, domains: Iterable[str]) -> bool:
+    """flyon.io matches billing@flyon.io and billing@mail.flyon.io, not notflyon.io."""
+    host = domain_of(address)
+    return any(host == d or host.endswith("." + d) for d in domains)
+
+
+class Rules:
+    """What counts as Flyon business mail, and what is merely personal.
+
+    Three tiers, because a business's mail does not all mention the business by
+    name — the accountant writes from their own domain, Stripe writes about
+    "your account", and a supplier thread wanders off into small talk:
+
+      strong  a Flyon address is on the message, or the counterparty is one of
+              your known business contacts, or a strong keyword is present.
+              Migrated without further question.
+      weak    a keyword turned up somewhere. Migrated unless an exclude rule
+              fires, and flagged for review in the report.
+      thread  not a match itself, but part of a conversation that has a strong
+              match in it. This is what catches the replies that say only
+              "sounds good" — a strong signal, but never overriding an exclude.
+    """
+
+    FIELDS = (
+        "business_addresses",
+        "business_domains",
+        "counterparties",
+        "strong_keywords",
+        "keywords",
+        "exclude_addresses",
+        "exclude_domains",
+        "exclude_keywords",
+        "exclude_folders",
+    )
+
+    def __init__(self, cfg: Optional[dict] = None):
+        cfg = cfg or {}
+        for field in self.FIELDS:
+            value = cfg.get(field) or []
+            if not isinstance(value, list):
+                die(f"rules: {field} must be a list")
+            setattr(self, field, [str(v).strip().lower().lstrip("@") for v in value if str(v).strip()])
+        if not any(getattr(self, f) for f in ("business_addresses", "business_domains", "keywords", "strong_keywords")):
+            self.keywords = ["flyon"]
+        self.thread_expansion = bool(cfg.get("thread_expansion", True))
+        self.exclusions_override_strong = bool(cfg.get("exclusions_override_strong", False))
+        self._strong_kw = self._compile(self.strong_keywords)
+        self._kw = self._compile(self.keywords)
+        self._exclude_kw = self._compile(self.exclude_keywords)
+
+    @staticmethod
+    def _compile(words: list[str]) -> Optional[re.Pattern]:
+        """Keywords match at a word start only.
+
+        So "flyon" catches flyon.io, flyonapp and Flyon's, but not the
+        notflyon.io that a lookalike sender would give you.
+        """
+        if not words:
+            return None
+        return re.compile(
+            "|".join(r"(?<![0-9a-z])" + re.escape(w) for w in words), re.IGNORECASE
+        )
+
+    @classmethod
+    def load(cls, path: Optional[str], extra_terms: Optional[list[str]] = None) -> "Rules":
+        cfg: dict = {}
+        if path:
+            if not os.path.exists(path):
+                die(f"rules file not found: {path}")
+            try:
+                with open(path) as fh:
+                    cfg = json.load(fh)
+            except json.JSONDecodeError as exc:
+                die(f"rules file {path} is not valid JSON: {exc}")
+            known = set(cls.FIELDS) | {"thread_expansion", "exclusions_override_strong"}
+            unknown = {k for k in cfg if k not in known and not k.startswith("_")}
+            if unknown:
+                log(f"warning: ignoring unknown rule key(s): {', '.join(sorted(unknown))}")
+        if extra_terms:
+            cfg = dict(cfg)
+            cfg["keywords"] = list(cfg.get("keywords") or []) + list(extra_terms)
+        return cls(cfg)
+
+    # -- what to ask Exchange for ----------------------------------------- #
+
+    def search_terms(self) -> list[str]:
+        terms = (
+            self.business_addresses
+            + self.business_domains
+            + self.counterparties
+            + self.strong_keywords
+            + self.keywords
+        )
+        return list(dict.fromkeys(terms))
+
+    # -- classification ---------------------------------------------------- #
+
+    @staticmethod
+    def participants(msg: dict) -> list[str]:
+        out = []
+        for key in ("from", "sender"):
+            addr = ((msg.get(key) or {}).get("emailAddress") or {}).get("address")
+            if addr:
+                out.append(addr.lower())
+        for key in ("toRecipients", "ccRecipients", "bccRecipients", "replyTo"):
+            for rec in msg.get(key) or []:
+                addr = (rec.get("emailAddress") or {}).get("address")
+                if addr:
+                    out.append(addr.lower())
+        return out
+
+    def classify(self, msg: dict, extra_text: str = "") -> tuple[str, str]:
+        addrs = self.participants(msg)
+        text = message_haystack(msg) + extra_text
+
+        strong: Optional[str] = None
+        for addr in addrs:
+            if addr in self.business_addresses:
+                strong = f"flyon address {addr}"
+                break
+            if self.business_domains and domain_matches(addr, self.business_domains):
+                strong = f"flyon domain {domain_of(addr)}"
+                break
+            if self.counterparties and (
+                addr in self.counterparties or domain_matches(addr, self.counterparties)
+            ):
+                strong = f"business contact {addr}"
+                break
+        if not strong and self._strong_kw:
+            hit = self._strong_kw.search(text)
+            if hit:
+                strong = f"keyword {hit.group(0)!r}"
+
+        excluded: Optional[str] = None
+        for addr in addrs:
+            if addr in self.exclude_addresses:
+                excluded = f"excluded address {addr}"
+                break
+            if self.exclude_domains and domain_matches(addr, self.exclude_domains):
+                excluded = f"excluded domain {domain_of(addr)}"
+                break
+        if not excluded and self._exclude_kw:
+            hit = self._exclude_kw.search(text)
+            if hit:
+                excluded = f"excluded keyword {hit.group(0)!r}"
+
+        weak = self._kw.search(text) if self._kw else None
+
+        if strong:
+            if excluded and self.exclusions_override_strong:
+                return EXCLUDED, excluded
+            return STRONG, strong
+        if excluded:
+            return EXCLUDED, excluded
+        if weak:
+            return WEAK, f"keyword {weak.group(0)!r}"
+        return NO_MATCH, ""
+
+    def folder_excluded(self, folder_path: str) -> bool:
+        low = folder_path.lower()
+        return any(f in low for f in self.exclude_folders)
 
 
 def message_haystack(msg: dict) -> str:
@@ -302,29 +467,30 @@ def message_haystack(msg: dict) -> str:
     for key in ("from", "sender"):
         addr = (msg.get(key) or {}).get("emailAddress") or {}
         parts += [addr.get("name") or "", addr.get("address") or ""]
-    for key in ("toRecipients", "ccRecipients", "bccRecipients"):
+    for key in ("toRecipients", "ccRecipients", "bccRecipients", "replyTo"):
         for rec in msg.get(key) or []:
             addr = rec.get("emailAddress") or {}
             parts += [addr.get("name") or "", addr.get("address") or ""]
     return "\n".join(parts)
 
 
-def walk_folders(account: GraphAccount) -> Iterator[dict]:
-    """Every mail folder, including nested ones."""
-    stack = list(account.paged("/me/mailFolders", **{"$top": "100"}))
+def walk_folders(account: GraphAccount) -> Iterator[tuple[dict, str]]:
+    """Every mail folder, with its full path, including nested ones."""
+    stack = [(f, f.get("displayName", "?")) for f in account.paged("/me/mailFolders", **{"$top": "100"})]
     while stack:
-        folder = stack.pop()
-        yield folder
+        folder, path = stack.pop()
+        yield folder, path
         if folder.get("childFolderCount"):
-            stack.extend(
-                account.paged(f"/me/mailFolders/{folder['id']}/childFolders", **{"$top": "100"})
-            )
+            for child in account.paged(
+                f"/me/mailFolders/{folder['id']}/childFolders", **{"$top": "100"}
+            ):
+                stack.append((child, f"{path}/{child.get('displayName', '?')}"))
 
 
-def discover_by_search(account: GraphAccount, terms: list[str]) -> dict[str, dict]:
+def discover_by_search(account: GraphAccount, rules: Rules) -> dict[str, dict]:
     """Mailbox-side search: fast, but Exchange caps a search at ~1000 hits per term."""
     found: dict[str, dict] = {}
-    for term in terms:
+    for term in rules.search_terms():
         log(f"searching mailbox for {term!r}")
         before = len(found)
         for msg in account.paged(
@@ -337,33 +503,99 @@ def discover_by_search(account: GraphAccount, terms: list[str]) -> dict[str, dic
 
 
 def discover_by_scan(
-    account: GraphAccount, terms: list[str], deep: bool, include_all_folders: bool
+    account: GraphAccount, rules: Rules, deep: bool, include_all_folders: bool
 ) -> dict[str, dict]:
     """Walk every folder and match locally. Slower, but nothing is capped."""
-    matches = build_matcher(terms)
     found: dict[str, dict] = {}
-    for folder in walk_folders(account):
-        name = folder.get("displayName", "?")
+    for folder, path in walk_folders(account):
         well_known = (folder.get("wellKnownName") or "").lower()
         if not include_all_folders and well_known in SKIP_FOLDERS:
-            log(f"skipping folder {name}")
+            log(f"skipping folder {path}")
+            continue
+        if rules.folder_excluded(path):
+            log(f"skipping excluded folder {path}")
             continue
         if not folder.get("totalItemCount"):
             continue
-        log(f"scanning {name} ({folder['totalItemCount']} items)")
+        log(f"scanning {path} ({folder['totalItemCount']} items)")
         hits = 0
         for msg in account.paged(
             f"/me/mailFolders/{folder['id']}/messages",
             **{"$select": MESSAGE_FIELDS, "$top": "100"},
         ):
-            hit = matches(message_haystack(msg))
-            if not hit and deep:
-                hit = matches(account.get_raw(f"/me/messages/{msg['id']}/$value").decode("utf-8", "replace"))
-            if hit:
+            body = ""
+            if deep:
+                body = account.get_raw(f"/me/messages/{msg['id']}/$value").decode("utf-8", "replace")
+            verdict, reason = rules.classify(msg, body)
+            if verdict in (STRONG, WEAK):
+                msg["_verdict"], msg["_reason"] = verdict, reason
                 found[msg["id"]] = msg
                 hits += 1
         log(f"  {hits} match")
     return found
+
+
+def classify_all(rules: Rules, candidates: dict[str, dict]) -> dict[str, dict]:
+    """Apply the include/exclude rules to whatever discovery turned up."""
+    kept: dict[str, dict] = {}
+    dropped = 0
+    for msg_id, msg in candidates.items():
+        verdict, reason = msg.get("_verdict"), msg.get("_reason")
+        if not verdict:
+            verdict, reason = rules.classify(msg)
+        if verdict in (STRONG, WEAK):
+            msg["_verdict"], msg["_reason"] = verdict, reason
+            kept[msg_id] = msg
+        else:
+            dropped += 1
+    if dropped:
+        log(f"{dropped} candidate(s) dropped as personal or unrelated")
+    return kept
+
+
+def expand_threads(account: GraphAccount, rules: Rules, kept: dict[str, dict]) -> dict[str, dict]:
+    """Pull in the rest of any conversation that has a strong match in it.
+
+    This is the catch-all: the reply that says only "sounds good, see you then"
+    never mentions Flyon, but it belongs with the thread that does.
+    """
+    conversations = {
+        msg["conversationId"]
+        for msg in kept.values()
+        if msg.get("_verdict") == STRONG and msg.get("conversationId")
+    }
+    if not conversations:
+        return kept
+    log(f"expanding {len(conversations)} conversation(s) with a strong match")
+    added = skipped = 0
+    for index, conversation in enumerate(sorted(conversations), 1):
+        if index % 25 == 0:
+            log(f"  {index}/{len(conversations)} conversations")
+        escaped = conversation.replace("'", "''")
+        try:
+            siblings = account.paged(
+                "/me/messages",
+                **{
+                    "$filter": f"conversationId eq '{escaped}'",
+                    "$select": MESSAGE_FIELDS,
+                    "$top": "50",
+                },
+            )
+            for msg in siblings:
+                if msg["id"] in kept:
+                    continue
+                verdict, reason = rules.classify(msg)
+                if verdict == EXCLUDED:
+                    skipped += 1
+                    continue
+                msg["_verdict"] = verdict if verdict in (STRONG, WEAK) else THREAD
+                msg["_reason"] = reason or "same thread as a Flyon message"
+                kept[msg["id"]] = msg
+                added += 1
+        except RuntimeError as exc:
+            log(f"  could not expand a conversation: {exc}")
+    log(f"  {added} message(s) added from threads, {skipped} left behind by exclude rules")
+    return kept
 
 
 def dedupe(messages: Iterable[dict]) -> list[dict]:
@@ -371,8 +603,84 @@ def dedupe(messages: Iterable[dict]) -> list[dict]:
     seen: dict[str, dict] = {}
     for msg in messages:
         key = msg.get("internetMessageId") or msg["id"]
-        seen.setdefault(key, msg)
+        current = seen.get(key)
+        if current is None:
+            seen[key] = msg
+        elif current.get("_verdict") != STRONG and msg.get("_verdict") == STRONG:
+            seen[key] = msg  # keep the copy with the clearest reason
     return sorted(seen.values(), key=lambda m: m.get("receivedDateTime") or "")
+
+
+def counterparty(msg: dict) -> str:
+    """The other end of the message — who it is from, or failing that, who to."""
+    addr = ((msg.get("from") or {}).get("emailAddress") or {}).get("address")
+    if addr:
+        return addr.lower()
+    for rec in msg.get("toRecipients") or []:
+        addr = (rec.get("emailAddress") or {}).get("address")
+        if addr:
+            return addr.lower()
+    return "(unknown)"
+
+
+def report_senders(messages: list[dict]) -> None:
+    """Who is in the candidate set, so the rules can be written from evidence."""
+    by_domain: dict[str, list[dict]] = {}
+    for msg in messages:
+        by_domain.setdefault(domain_of(counterparty(msg)) or "(none)", []).append(msg)
+    print(f"\n{'count':>6}  {'strong':>6}  domain / addresses")
+    print("-" * 78)
+    for domain, msgs in sorted(by_domain.items(), key=lambda kv: -len(kv[1])):
+        strong = sum(1 for m in msgs if m.get("_verdict") == STRONG)
+        addrs = sorted({counterparty(m) for m in msgs})
+        print(f"{len(msgs):>6}  {strong:>6}  {domain}")
+        for addr in addrs[:6]:
+            print(f"{'':>16}{addr}")
+        if len(addrs) > 6:
+            print(f"{'':>16}... and {len(addrs) - 6} more")
+    print(
+        "\nPut the business ones under \"counterparties\" and the personal ones under "
+        '"exclude_domains" / "exclude_addresses" in your rules file.'
+    )
+
+
+REVIEW_COLUMNS = ["keep", "verdict", "reason", "date", "counterparty", "subject", "message_id", "graph_id"]
+
+
+def write_review(path: str, messages: list[dict]) -> None:
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    with open(path, "w", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=REVIEW_COLUMNS)
+        writer.writeheader()
+        for msg in messages:
+            verdict = msg.get("_verdict", WEAK)
+            writer.writerow(
+                {
+                    "keep": "yes" if verdict in (STRONG, THREAD) else "review",
+                    "verdict": verdict,
+                    "reason": msg.get("_reason", ""),
+                    "date": (msg.get("receivedDateTime") or "")[:10],
+                    "counterparty": counterparty(msg),
+                    "subject": (msg.get("subject") or "")[:120],
+                    "message_id": msg.get("internetMessageId") or "",
+                    "graph_id": msg["id"],
+                }
+            )
+    log(f"review list written to {path}")
+
+
+def read_review(path: str) -> set[str]:
+    """Message keys the reviewer left marked 'yes'."""
+    if not os.path.exists(path):
+        die(f"review file not found: {path} (run without --execute first)")
+    keep: set[str] = set()
+    with open(path, newline="") as fh:
+        for row in csv.DictReader(fh):
+            if (row.get("keep") or "").strip().lower().startswith("y"):
+                keep.add(row.get("message_id") or row.get("graph_id") or "")
+    return keep
 
 
 # --------------------------------------------------------------------------- #
@@ -485,10 +793,9 @@ def parse_graph_time(value: Optional[str]) -> Optional[datetime]:
 
 
 def describe(msg: dict) -> str:
-    sender = ((msg.get("from") or {}).get("emailAddress") or {}).get("address", "?")
     date = (msg.get("receivedDateTime") or "")[:10]
-    subject = (msg.get("subject") or "(no subject)")[:70]
-    return f"{date}  {sender:<34.34}  {subject}"
+    subject = (msg.get("subject") or "(no subject)")[:62]
+    return f"{date}  {counterparty(msg):<32.32}  {subject}"
 
 
 def ensure_source_archive(account: GraphAccount, name: str) -> str:
@@ -500,35 +807,78 @@ def ensure_source_archive(account: GraphAccount, name: str) -> str:
 
 
 def migrate(args: argparse.Namespace) -> int:
+    rules = Rules.load(args.rules, args.term)
+    if args.no_thread_expansion:
+        rules.thread_expansion = False
+
     source = GraphAccount(args.client_id, args.tenant, args.token_file, "source")
     log(f"source mailbox: {source.whoami()}")
 
-    terms = args.term or DEFAULT_TERMS
-    if args.mode == "search":
-        found = discover_by_search(source, terms)
-    else:
-        found = discover_by_scan(source, terms, args.deep, args.include_all_folders)
+    log(f"matching on {len(rules.search_terms())} term(s); "
+        f"{len(rules.exclude_addresses) + len(rules.exclude_domains) + len(rules.exclude_keywords)} "
+        "exclude rule(s)")
 
-    messages = dedupe(found.values())
+    if args.mode == "search":
+        candidates = discover_by_search(source, rules)
+    else:
+        candidates = discover_by_scan(source, rules, args.deep, args.include_all_folders)
+
+    kept = classify_all(rules, candidates)
+    if rules.thread_expansion:
+        kept = expand_threads(source, rules, kept)
+
+    messages = dedupe(kept.values())
     if args.since:
         messages = [m for m in messages if (m.get("receivedDateTime") or "") >= args.since]
     if args.limit:
         messages = messages[: args.limit]
 
-    log(f"{len(messages)} distinct message(s) match {terms}")
+    tally = {v: sum(1 for m in messages if m.get("_verdict") == v) for v in (STRONG, THREAD, WEAK)}
+    log(
+        f"{len(messages)} distinct message(s): {tally[STRONG]} certain, "
+        f"{tally[THREAD]} from their threads, {tally[WEAK]} to review"
+    )
     if not messages:
+        return 0
+
+    if args.report_senders:
+        report_senders(messages)
         return 0
 
     if not args.execute:
         print("\n--- dry run: nothing will be copied or removed ---\n")
-        for msg in messages:
-            print("  " + describe(msg))
+        for verdict, heading in (
+            (STRONG, "certain — a Flyon address or business contact is on these"),
+            (THREAD, "part of a conversation that has a certain match in it"),
+            (WEAK, "keyword only — check these before executing"),
+        ):
+            group = [m for m in messages if m.get("_verdict") == verdict]
+            if not group:
+                continue
+            print(f"  [{verdict}] {heading}")
+            for msg in group:
+                print(f"    {describe(msg)}   ({msg.get('_reason', '')})")
+            print()
+        write_review(args.review_file, messages)
         print(
-            f"\n{len(messages)} message(s) would be copied to {args.dest_folder!r}"
+            f"{len(messages)} message(s) would be copied to {args.dest_folder!r}"
             f"{' and then ' + args.after + 'd at the source' if args.after != 'none' else ''}."
-            "\nRe-run with --execute to perform the move."
+            f"\n\nEdit the keep column in {args.review_file} (yes/no), then re-run with"
+            "\n--execute --use-review to move exactly what you approved,"
+            "\nor --execute alone to move everything listed above."
         )
         return 0
+
+    if args.use_review:
+        approved = read_review(args.review_file)
+        before = len(messages)
+        messages = [
+            m for m in messages
+            if (m.get("internetMessageId") or "") in approved or m["id"] in approved
+        ]
+        log(f"review file approves {len(messages)} of {before} message(s)")
+        if not messages:
+            return 0
 
     state = read_json(args.state_file, {})
     dest = build_destination(args)
@@ -621,13 +971,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""examples:
-  # see what would move (always start here)
-  python3 migrate_flyon_emails.py --dest-user me@gmail.com
+  # 1. who is this mail actually with? use it to write flyon-rules.json
+  python3 migrate_flyon_emails.py --dest-user me@gmail.com --report-senders
 
-  # actually move it, leaving the originals in Outlook
-  python3 migrate_flyon_emails.py --dest-user me@gmail.com --execute
+  # 2. see what the rules catch, and get a review CSV (nothing moves)
+  python3 migrate_flyon_emails.py --dest-user me@gmail.com --rules flyon-rules.json
 
-  # move it and file the originals away in Outlook under "Flyon (migrated)"
+  # 3. move exactly the rows you left marked keep=yes in that CSV
+  python3 migrate_flyon_emails.py --dest-user me@gmail.com --execute --use-review
+
+  # move everything the rules matched, and file the Outlook originals away
   python3 migrate_flyon_emails.py --dest-user me@gmail.com --execute --after archive
 
   # exhaustive folder-by-folder scan, matching the full message body
@@ -645,9 +998,28 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="'consumers' for outlook.com/hotmail/live (default), 'common' for work accounts",
     )
     p.add_argument(
+        "--rules",
+        default=os.environ.get("FLYON_RULES") or (
+            "flyon-rules.json" if os.path.exists("flyon-rules.json") else None
+        ),
+        help="JSON file describing what is Flyon business mail and what is not "
+        "(see flyon-rules.example.json). Env: FLYON_RULES",
+    )
+    p.add_argument(
         "--term",
         action="append",
-        help=f"search term, repeatable (default: {DEFAULT_TERMS})",
+        help="extra keyword on top of the rules file, repeatable (default: flyon)",
+    )
+    p.add_argument(
+        "--no-thread-expansion",
+        action="store_true",
+        help="do not pull in the rest of a conversation that has a certain match in it",
+    )
+    p.add_argument(
+        "--report-senders",
+        action="store_true",
+        help="list who the candidate mail is with, grouped by domain, and exit — "
+        "the quickest way to write the rules file",
     )
     p.add_argument(
         "--mode",
@@ -711,6 +1083,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="folder the originals move to with --after archive",
     )
 
+    p.add_argument(
+        "--review-file",
+        default=DEFAULT_REVIEW,
+        help="CSV of what matched and why, written on every dry run",
+    )
+    p.add_argument(
+        "--use-review",
+        action="store_true",
+        help="migrate only the rows you left marked keep=yes in the review file",
+    )
     p.add_argument("--state-file", default=DEFAULT_STATE, help="resume/progress log")
     p.add_argument("--token-file", default=DEFAULT_TOKENS, help="OAuth token cache (0600)")
     p.add_argument(
@@ -726,6 +1108,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         p.error("--dest-user (or DEST_IMAP_USER) is required for an IMAP destination")
     if args.deep and args.mode != "scan":
         p.error("--deep only applies to --mode scan")
+    if args.use_review and not args.execute:
+        p.error("--use-review applies to the migration itself; add --execute")
     if args.since:
         try:
             datetime.strptime(args.since, "%Y-%m-%d")
@@ -742,6 +1126,15 @@ def main(argv: list[str]) -> int:
     except KeyboardInterrupt:
         log("interrupted — re-run the same command to resume")
         return 130
+    except RuntimeError as exc:
+        message = str(exc)
+        if "AADSTS700016" in message:
+            die("Microsoft does not recognise that client ID — check MS_CLIENT_ID, "
+                "and that --tenant matches the account type (consumers vs common).")
+        if "AADSTS7000218" in message or "public client" in message:
+            die("the app registration has not enabled public client flows — "
+                "Authentication -> Allow public client flows -> Yes.")
+        die(message)
 
 
 if __name__ == "__main__":

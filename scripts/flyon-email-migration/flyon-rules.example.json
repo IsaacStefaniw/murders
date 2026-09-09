@@ -1,0 +1,53 @@
+{
+  "_comment": "Copy to flyon-rules.json and edit. Everything is matched case-insensitively; domains match their subdomains too (flyon.io covers mail.flyon.io).",
+
+  "business_addresses": [
+    "isaac@flyon.io",
+    "hello@flyon.io"
+  ],
+
+  "business_domains": [
+    "flyon.io",
+    "flyonapp.com"
+  ],
+
+  "counterparties": [
+    "accountant@somefirm.co.uk",
+    "@stripe.com",
+    "@shopify.com",
+    "@klaviyo.com",
+    "@companieshouse.gov.uk"
+  ],
+
+  "strong_keywords": [
+    "flyon"
+  ],
+
+  "keywords": [
+    "invoice",
+    "supplier",
+    "wholesale"
+  ],
+
+  "exclude_addresses": [
+    "mum@example.com"
+  ],
+
+  "exclude_domains": [
+    "facebookmail.com",
+    "strava.com",
+    "nhs.net"
+  ],
+
+  "exclude_keywords": [
+    "five-a-side",
+    "fantasy football"
+  ],
+
+  "exclude_folders": [
+    "Personal/Family"
+  ],
+
+  "thread_expansion": true,
+  "exclusions_override_strong": false
+}

@@ -2,7 +2,7 @@
 
 Moves every Flyon-related message out of a personal Outlook mailbox and into
 another account (Gmail, Fastmail, iCloud, a second Outlook — anything with IMAP,
-or Microsoft Graph).
+or Microsoft Graph), while leaving the rest of your personal mail where it is.
 
 Messages are transferred as their original RFC-822 MIME, so senders, recipients,
 attachments, threading headers and the received date all survive. The Outlook
@@ -56,30 +56,99 @@ export DEST_IMAP_USER=new.address@gmail.com
 export DEST_IMAP_PASSWORD='xxxx xxxx xxxx xxxx'   # or let the script prompt
 ```
 
+## What counts as Flyon mail
+
+Searching for the word "flyon" is both too narrow and too wide. It misses the
+accountant who writes from their own domain, the Stripe payout notice, the
+supplier thread that drifts into "sounds good, see you Tuesday" — and it sweeps
+up the friend who once asked how Flyon was going.
+
+So matching is rule-driven, in three tiers, defined in a JSON file (start from
+`flyon-rules.example.json`, copy it to `flyon-rules.json`):
+
+| Tier | What triggers it | What happens |
+| --- | --- | --- |
+| **certain** | a Flyon address is on the message (`business_addresses`), the counterparty is a Flyon domain (`business_domains`) or a known business contact (`counterparties`), or a `strong_keywords` hit | migrated |
+| **thread** | not a match itself, but part of a conversation containing a certain match | migrated — this is the catch-all |
+| **review** | a `keywords` hit and nothing else | migrated, but flagged for you to check |
+
+Against that, three exclusions — `exclude_addresses`, `exclude_domains`,
+`exclude_keywords` (plus `exclude_folders` in scan mode) — drop personal mail
+that would otherwise sneak in on a keyword. By default an exclusion beats a
+review-tier match but not a certain one, on the grounds that mail sent to your
+Flyon address is business mail whoever it came from. Set
+`"exclusions_override_strong": true` if you want the exclusion to win outright.
+
+Two details that matter in practice:
+
+- **Domains cover their subdomains.** `flyon.io` matches `billing@flyon.io` and
+  `receipts@mail.flyon.io`, and does not match `flyon.io.phish.example`.
+- **Keywords match at a word start.** `flyon` catches `flyon.io`, `flyonapp` and
+  `Flyon's`, but not `notflyon`.
+
+### Writing the rules from evidence, not memory
+
+You do not have to guess who you have been dealing with. Ask:
+
+```bash
+python3 migrate_flyon_emails.py --report-senders
+```
+
+```
+ count  strong  domain / addresses
+------------------------------------------------------------------------------
+    64      64  flyon.io
+                billing@flyon.io
+                isaac@flyon.io
+    31       0  etsy.com
+    12       0  strava.com
+```
+
+Business domains go under `counterparties`, personal ones under
+`exclude_domains`, and you converge in a couple of passes.
+
 ## Use
 
 Always look before you leap — with no `--execute`, the script only reports:
 
 ```bash
-python3 migrate_flyon_emails.py
+python3 migrate_flyon_emails.py --rules flyon-rules.json
 ```
 
 ```
 09:12:04  source mailbox: you@outlook.com
-09:12:05  searching mailbox for 'flyon'
-09:12:09    41 new (running total 41)
-09:12:09  38 distinct message(s) match ['flyon']
+09:12:05  matching on 9 term(s); 4 exclude rule(s)
+09:12:09  searching mailbox for 'flyon.io'
+09:12:14  17 candidate(s) dropped as personal or unrelated
+09:12:15  expanding 23 conversation(s) with a strong match
+09:12:31    19 message(s) added from threads, 2 left behind by exclude rules
+09:12:31  118 distinct message(s): 84 certain, 19 from their threads, 15 to review
 
 --- dry run: nothing will be copied or removed ---
 
-  2023-04-11  billing@flyon.io                    Your Flyon subscription
+  [strong] certain — a Flyon address or business contact is on these
+    2023-04-11  billing@flyon.io                  Your Flyon subscription   (flyon domain flyon.io)
   ...
+  [weak] keyword only — check these before executing
+    2023-08-02  shop@etsy.com                     Your invoice   (keyword 'invoice')
+
+review list written to ~/.flyon-email-migration/review.csv
 ```
 
-When the list looks right:
+Every dry run writes that CSV: one row per message with `keep`, the tier, the
+reason it matched, the date, the counterparty and the subject. Certain and
+thread rows are pre-filled `keep=yes`, review rows say `review`. Open it in a
+spreadsheet, set each `keep` to yes or no, and then move exactly what you
+approved:
 
 ```bash
-# copy everything into a "Flyon" folder/label on the new account
+python3 migrate_flyon_emails.py --execute --use-review
+```
+
+Or, once the rules are tuned and the dry run looks right, skip the CSV:
+
+```bash
+# copy everything the rules matched into a "Flyon" folder/label
 python3 migrate_flyon_emails.py --execute
 
 # copy, then file the Outlook originals under "Flyon (migrated)"
@@ -97,7 +166,12 @@ each append, as a second line of defence.
 ### Useful flags
 
 ```bash
---term flyon --term flyon.io      # add search terms (repeatable; default: flyon)
+--rules flyon-rules.json          # the include/exclude rules (env: FLYON_RULES)
+--term flyon --term flyon.io      # extra keywords on top of the rules file
+--report-senders                  # who is this mail with? then exit
+--use-review                      # migrate only the rows marked keep=yes
+--review-file ./review.csv        # where that CSV lives
+--no-thread-expansion             # do not pull in the rest of a matching conversation
 --mode scan                       # walk every folder instead of asking Exchange to search
 --mode scan --deep                # ...and match against full message bodies, not previews
 --include-all-folders             # scan mode: include Deleted Items and Junk too
@@ -122,8 +196,13 @@ transfers the whole mailbox, so pair it with `--since` on a large one.
 If completeness matters more than time, run search first, then scan: the state
 file means the second run only picks up what the first one missed.
 
+Thread expansion runs after either mode, so a conversation only needs one
+message to surface for the whole thread to come across.
+
 ## Notes
 
+- The rules file is matched case-insensitively throughout; addresses and
+  domains may be written with or without a leading `@`.
 - Read/unread state is preserved. Outlook categories and folder structure are
   not — everything lands in one destination folder, which is what you want when
   the point is to consolidate.
