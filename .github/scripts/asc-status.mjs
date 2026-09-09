@@ -125,7 +125,18 @@ for (const s of subs?.data ?? []) {
     for (const [rel, n] of kinds) console.log(`      items: ${rel} × ${n}`);
   }
   const iapItems = (kinds.get('inAppPurchaseV2') ?? 0) + (kinds.get('subscription') ?? 0);
-  if (iapItems === 0 && (a.state === 'UNRESOLVED_ISSUES' || a.state === 'WAITING_FOR_REVIEW' || a.state === 'IN_REVIEW')) {
+  /*
+    Any submission that is not finished counts.
+
+    This used to check only UNRESOLVED_ISSUES, WAITING_FOR_REVIEW and
+    IN_REVIEW — so when a fresh READY_FOR_REVIEW submission sat there with
+    no purchases in it, the run printed "no in-app purchase is part of this
+    submission" and then ended with "All 3 products would reach the
+    paywall, and are in the submission." A check that contradicts itself
+    two lines apart is worse than no check, and this one exists precisely
+    because a false all-clear on this question already cost a review cycle.
+  */
+  if (iapItems === 0 && a.state !== 'COMPLETE' && a.state !== 'CANCELING') {
     submissionMissingPurchases = true;
   }
   if (iapItems === 0) {
