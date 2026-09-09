@@ -1,0 +1,46 @@
+# Submit 1.0 for review — the products first, then the version.
+#
+# The last resort before the browser. reviewSubmissionItems will not take
+# an in-app purchase, but Apple has separate resources for submitting the
+# products themselves (inAppPurchaseSubmissions, subscriptionSubmissions),
+# and this tries those.
+#
+# Dry run unless the box is ticked. The final submit needs its own box on
+# top of that, because it is the one call that puts work in front of a
+# reviewer.
+name: Submit 1.0 for review
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "WRITE to App Store Connect (leave off for a dry run)"
+        type: boolean
+        default: false
+      submit:
+        description: "Send it for review (only with WRITE on)"
+        type: boolean
+        default: false
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Restore App Store Connect API key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+      - name: Submit
+        env:
+          EXPO_ASC_API_KEY_PATH: ${{ runner.temp }}/AuthKey.p8
+          EXPO_ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          CONFIRM: ${{ inputs.confirm && 'yes' || 'no' }}
+          SUBMIT: ${{ inputs.confirm && inputs.submit && 'yes' || 'no' }}
+        run: |
+          set -o pipefail
+          node .github/scripts/asc-submit.mjs | tee "$GITHUB_STEP_SUMMARY"
