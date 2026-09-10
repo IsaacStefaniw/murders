@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
+import { Chip } from '@/components/chip';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
@@ -14,6 +15,8 @@ import {
 } from '@/features/modalities/meals/rotation';
 import { addDays, todayKey, weekdayOf } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
+import { AMOUNTS_WRITTEN_FOR, batchPlan } from '@/features/modalities/meals/batch';
+import { DISHES } from '@/features/modalities/meals/food';
 import { useAppStore } from '@/state/store';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -63,6 +66,30 @@ export default function MealsSession() {
     () => mealPlan?.dinners ?? suggestAllowedWeek(today, prefs),
   );
   const [saved, setSaved] = useState(false);
+  /*
+    How many evenings they are actually willing to cook.
+
+    The week was planned as seven dinners and quietly assumed seven
+    evenings of cooking, which almost nobody has. Two or three cooks and
+    eating from them is what people already do; the app just never asked,
+    so its shopping list and its plan were both built for a week that was
+    not happening.
+  */
+  const [cookSessions, setCookSessions] = useState(0);
+  /*
+    How many the dinners feed.
+
+    Asked rather than assumed. `Dish.amounts` are written for two and their
+    own comment says scaling to the household is "a decision about how much
+    the app should presume" — so two is the default, which changes nothing,
+    and anyone cooking for one or for four says so.
+  */
+  const [eaters, setEaters] = useState(AMOUNTS_WRITTEN_FOR);
+  const byTitle = useMemo(() => new Map(DISHES.map((d) => [d.title, d])), []);
+  const batch = useMemo(
+    () => (cookSessions > 0 ? batchPlan({ dinners, cookSessions, eaters }, byTitle) : null),
+    [cookSessions, dinners, eaters, byTitle],
+  );
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/today' as never));
 
@@ -147,6 +174,53 @@ export default function MealsSession() {
         ))}
       </View>
 
+      {/* Cooking sessions, asked after the week exists rather than before:
+          the answer changes how the week is grouped and how much the
+          shopping list buys, and it is far easier to answer looking at
+          seven named dinners than at a blank screen. */}
+      <AppText variant="caption" color="textTertiary" style={styles.sub}>
+        How many evenings will you actually cook?
+      </AppText>
+      <View style={styles.cookRow}>
+        {[0, 1, 2, 3].map((n) => (
+          <Chip
+            key={n}
+            label={n === 0 ? 'Every night' : n === 1 ? 'Once — one big cook' : `${n} times`}
+            selected={cookSessions === n}
+            onPress={() => setCookSessions(n)}
+          />
+        ))}
+      </View>
+      {cookSessions > 0 ? (
+        <>
+          <AppText variant="caption" color="textTertiary" style={styles.sub}>
+            How many does dinner feed?
+          </AppText>
+          <View style={styles.cookRow}>
+            {[1, 2, 3, 4].map((n) => (
+              <Chip
+                key={n}
+                label={n === 1 ? 'Just me' : n === 4 ? '4 or more' : String(n)}
+                selected={eaters === n}
+                onPress={() => setEaters(n)}
+              />
+            ))}
+          </View>
+        </>
+      ) : null}
+      {batch ? (
+        <View style={styles.stack}>
+          <AppText variant="body">{batch.line}</AppText>
+          {batch.runs.map((run) => (
+            <AppText key={run.days.join('-')} variant="caption" color="textTertiary">
+              {run.days.map((d) => WEEKDAYS[d]).join(', ')} — {run.title}
+              {run.servings > 1 ? ` · cook ${run.servings} portions` : ''}
+              {run.factor > 1 ? ` · shop ×${run.factor}` : ''}
+            </AppText>
+          ))}
+        </View>
+      ) : null}
+
       <Button
         title={saved ? 'Saved — on your Today screen ✓' : 'Lock in the week'}
         disabled={saved}
@@ -197,4 +271,5 @@ const styles = StyleSheet.create({
   dayName: { minWidth: 86 },
   meal: { flex: 1, fontWeight: '500' },
   save: { marginTop: Spacing.xl },
+  cookRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm, marginBottom: Spacing.md },
 });
