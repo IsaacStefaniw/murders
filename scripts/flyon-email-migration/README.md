@@ -22,10 +22,11 @@ is shared with anyone else.
 1. <https://portal.azure.com> → **Microsoft Entra ID** → **App registrations** →
    **New registration**.
 2. Name it anything (`flyon-migration`). For **Supported account types** pick
-   *Personal Microsoft accounts only* if the mailbox is `@outlook.com`,
-   `@hotmail.com` or `@live.com`; pick *Accounts in any organizational directory
-   and personal Microsoft accounts* if it might be a work/school account. Leave
-   the redirect URI blank. Register.
+   **Accounts in any organizational directory and personal Microsoft accounts**.
+   Choose that even if the source is a plain `@outlook.com` mailbox: when the
+   destination is a Microsoft 365 domain, the *same* registration has to sign in
+   both a personal and a work account, and the personal-only option cannot.
+   Leave the redirect URI blank. Register.
 3. **Authentication** → *Advanced settings* → **Allow public client flows** →
    **Yes** → Save. (This enables the device-code sign-in; without it the script
    cannot log in.)
@@ -35,7 +36,12 @@ is shared with anyone else.
 
 ```bash
 export MS_CLIENT_ID=<the application (client) id>
-# work/school mailbox instead of outlook.com? also: export MS_TENANT=common
+# work/school mailbox as the SOURCE instead of outlook.com? also: export MS_TENANT=common
+```
+
+```powershell
+# PowerShell
+$env:MS_CLIENT_ID = "<the application (client) id>"
 ```
 
 The script prints a code and a URL on first run; you sign in once in a browser
@@ -60,7 +66,15 @@ nslookup -type=mx yourbusiness.com.au      # or: dig +short MX yourbusiness.com.
 
 Microsoft 365 matters here: Exchange Online turned off basic-auth IMAP the same
 way personal Outlook did, so a business Microsoft mailbox needs `--dest graph`,
-not an IMAP password.
+not an IMAP password. You sign in twice on the first run — once for the source
+mailbox, once for the destination — and both refresh tokens are cached.
+
+One limit comes with that route: Graph refuses a request body over 4 MB, and
+MIME is base64-encoded on the way up, so messages larger than about 3 MB cannot
+be uploaded. Rather than dropping them, the script writes those out as `.eml`
+files (`--overflow-dir`, default `~/.flyon-email-migration/too-large`), leaves
+the Outlook originals untouched, and tells you at the end. Drag them into the
+new mailbox in Outlook to finish the job.
 
 ```bash
 # IMAP destination
@@ -123,27 +137,34 @@ Two details that matter in practice:
 ### A worked pass, start to finish
 
 ```bash
-export MS_CLIENT_ID=<your app registration>       # source: the personal Outlook
-export DEST_IMAP_USER=you@yourbusiness.com.au     # destination (IMAP case)
+export MS_CLIENT_ID=<your app registration>
+
+# a Microsoft 365 destination; for IMAP use --dest-user + DEST_IMAP_PASSWORD instead
+DEST="--dest graph --dest-tenant common --dest-user you@yourbusiness.com.au"
 
 # 1. seed the rules from your two addresses
-python3 migrate_flyon_emails.py --init-rules --me you@outlook.com
+python3 migrate_flyon_emails.py --init-rules --me you@outlook.com \
+    --dest-user you@yourbusiness.com.au
 
 # 2. see who the mail is actually with
-python3 migrate_flyon_emails.py --report-senders
+python3 migrate_flyon_emails.py $DEST --report-senders
 
 # 3. edit flyon-rules.json: business domains -> counterparties,
 #    personal ones -> exclude_domains
 
 # 4. dry run — prints the three tiers and writes the review CSV
-python3 migrate_flyon_emails.py
+python3 migrate_flyon_emails.py $DEST
 
 # 5. set keep=yes/no in ~/.flyon-email-migration/review.csv, then move it
-python3 migrate_flyon_emails.py --execute --use-review
+python3 migrate_flyon_emails.py $DEST --execute --use-review
 
 # 6. once you trust it, sweep the rest and tidy the source
-python3 migrate_flyon_emails.py --mode scan --execute --after archive
+python3 migrate_flyon_emails.py $DEST --mode scan --execute --after archive
 ```
+
+On Windows, `.\run.ps1` replaces `python3 migrate_flyon_emails.py` throughout,
+and `$DEST` becomes `$DEST = "--dest","graph","--dest-tenant","common","--dest-user","you@yourbusiness.com.au"`
+splatted as `.\run.ps1 @DEST --report-senders`.
 
 ### Writing the rules from evidence, not memory
 
@@ -232,6 +253,7 @@ each append, as a second line of defence.
 --report-senders                  # who is this mail with? then exit
 --use-review                      # migrate only the rows marked keep=yes
 --review-file ./review.csv        # where that CSV lives
+--overflow-dir ./too-large        # where >3 MB messages are saved as .eml (Graph)
 --no-thread-expansion             # do not pull in the rest of a matching conversation
 --mode scan                       # walk every folder instead of asking Exchange to search
 --mode scan --deep                # ...and match against full message bodies, not previews
@@ -242,6 +264,45 @@ each append, as a second line of defence.
 --dest-dedupe-folder "[Gmail]/All Mail"   # check all of Gmail, not just the new label
 --dest graph --dest-client-id <id>        # destination is another Microsoft account
 ```
+
+## Running it on another machine
+
+The script is one file and imports nothing outside the standard library, so
+moving it is copying it. Nothing is left behind on the old machine except
+`~/.flyon-email-migration/` (tokens, progress log, review CSV) — that directory
+is per-machine, and a fresh one just means signing in again and starting the
+progress log from scratch. The destination is checked for each `Message-ID`
+before every append, so a re-run on a new machine still will not duplicate mail.
+
+### Windows
+
+```powershell
+# 1. Python, if it is not already there
+winget install Python.Python.3.12       # then reopen PowerShell
+
+# 2. the tool
+git clone https://github.com/IsaacStefaniw/murders.git
+cd murders\scripts\flyon-email-migration
+
+# 3. your app registration
+$env:MS_CLIENT_ID = "<the application (client) id>"
+
+# 4. run it — run.ps1 finds Python and forwards every argument
+.\run.ps1 --init-rules --me you@outlook.com --dest-user you@yourbusiness.com.au
+.\run.ps1 --dest graph --dest-user you@yourbusiness.com.au --report-senders
+```
+
+`run.ps1` is a convenience only; `py -3 migrate_flyon_emails.py ...` does exactly
+the same thing. If PowerShell blocks the script, either run the `py -3` form or
+allow it for that window with
+`Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`.
+
+Paths behave as you would expect: `~/.flyon-email-migration` is
+`C:\Users\<you>\.flyon-email-migration`, and the review CSV opens in Excel.
+
+### macOS and Linux
+
+`python3 migrate_flyon_emails.py ...` — nothing to install.
 
 ## Choosing a mode
 
@@ -262,6 +323,8 @@ message to surface for the whole thread to come across.
 
 ## Notes
 
+- Graph's 4 MB request limit applies only to a `--dest graph` destination; an
+  IMAP destination takes messages of any size the server accepts.
 - The rules file is matched case-insensitively throughout; addresses and
   domains may be written with or without a leading `@`.
 - Read/unread state is preserved. Outlook categories and folder structure are

@@ -35,12 +35,25 @@ import urllib.request
 from datetime import datetime, timezone
 from typing import Any, Iterable, Iterator, Optional
 
+# Windows consoles still default to a legacy code page; the dashes and arrows in
+# this script's output would raise UnicodeEncodeError there.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, OSError, ValueError):
+            pass
+
 GRAPH = "https://graph.microsoft.com/v1.0"
 LOGIN = "https://login.microsoftonline.com"
 SCOPES = "offline_access Mail.ReadWrite"
 
 DEFAULT_STATE = os.path.expanduser("~/.flyon-email-migration/state.json")
 DEFAULT_REVIEW = os.path.expanduser("~/.flyon-email-migration/review.csv")
+DEFAULT_OVERFLOW = os.path.expanduser("~/.flyon-email-migration/too-large")
+
+# How the user invokes Python on the machine they are actually sitting at.
+PY = "py -3" if os.name == "nt" else "python3"
 DEFAULT_TOKENS = os.path.expanduser("~/.flyon-email-migration/tokens.json")
 
 
@@ -259,6 +272,17 @@ class GraphAccount:
                 "Content-Type": content_type,
             },
             data=data,
+        )
+
+    def patch(self, path: str, body: dict) -> Any:
+        return http(
+            "PATCH",
+            GRAPH + path,
+            headers={
+                "Authorization": f"Bearer {self.token()}",
+                "Content-Type": "application/json",
+            },
+            data=json.dumps(body).encode(),
         )
 
     def delete(self, path: str) -> None:
@@ -706,12 +730,13 @@ def init_rules(path: str, own: list[str], dest_user: Optional[str]) -> int:
     }
     write_private_json(path, cfg)
     log(f"wrote {path}")
+    script = os.path.basename(__file__)
     print(
         "\nNext:\n"
-        f"  1. python3 {os.path.basename(__file__)} --rules {path} --report-senders\n"
+        f"  1. {PY} {script} --rules {path} --report-senders\n"
         "  2. add the business domains you see to \"counterparties\", the personal\n"
         "     ones to \"exclude_domains\"\n"
-        f"  3. python3 {os.path.basename(__file__)} --rules {path}   (dry run + review CSV)"
+        f"  3. {PY} {script} --rules {path}   (dry run + review CSV)"
     )
     return 0
 
@@ -816,10 +841,24 @@ class ImapDestination(Destination):
 
 
 class GraphDestination(Destination):
-    """Second Microsoft account — same MIME, uploaded through Graph."""
+    """Microsoft 365 or another Outlook account — same MIME, uploaded through Graph.
 
-    def __init__(self, account: GraphAccount, folder: str):
+    Graph caps a request body at 4 MB and MIME is base64-encoded on the way up,
+    so anything over about 3 MB of raw message cannot go this way. Those are
+    written out as .eml files instead of being silently dropped.
+    """
+
+    max_bytes = 3_000_000
+
+    def __init__(self, account: GraphAccount, folder: str, expect_address: Optional[str] = None):
         self.account = account
+        signed_in = account.whoami()
+        log(f"destination mailbox: {signed_in}")
+        if expect_address and signed_in.lower() != expect_address.lower():
+            log(
+                f"WARNING: you asked for {expect_address} but signed in as {signed_in}. "
+                "Ctrl-C now if that is the wrong mailbox."
+            )
         self.folder_id = self._ensure_folder(folder)
 
     def _ensure_folder(self, name: str) -> str:
@@ -840,11 +879,17 @@ class GraphDestination(Destination):
         return bool(res.get("value"))
 
     def append(self, mime: bytes, received: Optional[datetime], seen: bool) -> None:
-        self.account.post(
+        created = self.account.post(
             f"/me/mailFolders/{self.folder_id}/messages",
             base64.b64encode(mime),
             content_type="text/plain",
         )
+        # MIME carries the date but not your read state; Graph files it unread.
+        if seen and isinstance(created, dict) and created.get("id"):
+            try:
+                self.account.patch(f"/me/messages/{created['id']}", {"isRead": True})
+            except RuntimeError:
+                pass  # cosmetic only — never fail a delivered message over this
 
     def close(self) -> None:
         pass
@@ -868,6 +913,17 @@ def describe(msg: dict, own: Iterable[str] = ()) -> str:
     date = (msg.get("receivedDateTime") or "")[:10]
     subject = (msg.get("subject") or "(no subject)")[:62]
     return f"{date}  {counterparty(msg, own):<32.32}  {subject}"
+
+
+def save_eml(directory: str, msg: dict, mime: bytes) -> str:
+    """Write a message out as .eml — importable by dragging it into Outlook."""
+    os.makedirs(directory, exist_ok=True)
+    subject = re.sub(r"[^A-Za-z0-9 _.-]", "_", msg.get("subject") or "no subject")
+    stem = f"{(msg.get('receivedDateTime') or '')[:10]}_{subject[:60].strip(' .')}_{msg['id'][-8:]}"
+    path = os.path.join(directory, stem.strip(" .") + ".eml")
+    with open(path, "wb") as fh:
+        fh.write(mime)
+    return path
 
 
 def ensure_source_archive(account: GraphAccount, name: str) -> str:
@@ -962,6 +1018,8 @@ def migrate(args: argparse.Namespace) -> int:
     )
 
     copied = skipped = failed = 0
+    oversize: list[str] = []
+    size_limit = getattr(dest, "max_bytes", None)
     try:
         for index, msg in enumerate(messages, 1):
             key = msg.get("internetMessageId") or msg["id"]
@@ -976,6 +1034,12 @@ def migrate(args: argparse.Namespace) -> int:
                     skipped += 1
                 else:
                     mime = source.get_raw(f"/me/messages/{msg['id']}/$value")
+                    if size_limit and len(mime) > size_limit:
+                        path = save_eml(args.overflow_dir, msg, mime)
+                        log(f"  {len(mime) / 1e6:.1f} MB — too big for Graph, saved to {path}")
+                        state[key] = {"copied": False, "reason": "too-large", "eml": path}
+                        oversize.append(path)
+                        continue  # the source original stays exactly where it is
                     dest.append(
                         mime,
                         parse_graph_time(msg.get("receivedDateTime")),
@@ -1007,7 +1071,14 @@ def migrate(args: argparse.Namespace) -> int:
     finally:
         dest.close()
 
-    log(f"done — {copied} copied, {skipped} skipped, {failed} failed")
+    log(f"done — {copied} copied, {skipped} skipped, {failed} failed, {len(oversize)} too large")
+    if oversize:
+        print(
+            f"\n{len(oversize)} message(s) exceeded the 4 MB Graph upload limit and were "
+            f"written to\n  {args.overflow_dir}\n"
+            "Their Outlook originals were left untouched. To finish those: open the new\n"
+            "mailbox in Outlook and drag the .eml files into the target folder."
+        )
     log(f"progress recorded in {args.state_file} (re-running resumes from here)")
     return 1 if failed else 0
 
@@ -1016,12 +1087,11 @@ def build_destination(args: argparse.Namespace) -> Destination:
     if args.dest == "graph":
         account = GraphAccount(
             args.dest_client_id or args.client_id,
-            args.dest_tenant or args.tenant,
+            args.dest_tenant,
             args.token_file,
             "destination",
         )
-        log(f"destination mailbox: {account.whoami()}")
-        return GraphDestination(account, args.dest_folder)
+        return GraphDestination(account, args.dest_folder, args.dest_user)
 
     password = args.dest_password or os.environ.get("DEST_IMAP_PASSWORD")
     if not password:
@@ -1155,7 +1225,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help='folder searched for already-migrated Message-IDs (Gmail: "[Gmail]/All Mail")',
     )
     p.add_argument("--dest-client-id", help="Azure client ID for a Graph destination")
-    p.add_argument("--dest-tenant", help="tenant for a Graph destination")
+    p.add_argument(
+        "--dest-tenant",
+        default="common",
+        help="tenant for a Graph destination (default: common — a work/school "
+        "mailbox is never in the 'consumers' tenant)",
+    )
 
     p.add_argument(
         "--after",
@@ -1178,6 +1253,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--use-review",
         action="store_true",
         help="migrate only the rows you left marked keep=yes in the review file",
+    )
+    p.add_argument(
+        "--overflow-dir",
+        default=DEFAULT_OVERFLOW,
+        help="where messages too large for Graph are saved as .eml",
     )
     p.add_argument("--state-file", default=DEFAULT_STATE, help="resume/progress log")
     p.add_argument("--token-file", default=DEFAULT_TOKENS, help="OAuth token cache (0600)")

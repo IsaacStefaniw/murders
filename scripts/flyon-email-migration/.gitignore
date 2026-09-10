@@ -5,3 +5,7 @@ flyon-rules.json
 
 # Review CSVs list subjects and correspondents.
 review*.csv
+
+# Python bytecode
+__pycache__/
+*.pyc
