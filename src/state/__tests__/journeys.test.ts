@@ -175,6 +175,47 @@ describe('journey: recording what actually happened', () => {
     expect(item.evidence?.source).toBe('manual');
   });
 
+  it('lands on the day it happened, not the day it was remembered', () => {
+    // The case this exists for: a sauna on Tuesday, recalled on Thursday.
+    // Before QuickLog could pass a date, the only day anything could be
+    // logged against was today, so the week the adaptation engine planned
+    // around was missing every session nobody logged in the moment.
+    onboard();
+    const tuesday = addDays(todayKey(), -2);
+    const endedAt = new Date(`${tuesday}T19:30:00`).toISOString();
+    const id = useAppStore.getState().logCompletedActivity({
+      title: 'Sauna',
+      area: 'health',
+      durationMin: 20,
+      date: tuesday,
+      endedAt,
+      note: 'logged later, for Tuesday',
+    });
+
+    const onTuesday = useAppStore.getState().ensurePlan(tuesday).items.find((i) => i.id === id);
+    expect(onTuesday).toBeDefined();
+    expect(onTuesday!.status).toBe('completed');
+    expect(onTuesday!.date).toBe(tuesday);
+    // And emphatically not on today, which is where it used to go.
+    expect(useAppStore.getState().ensurePlan(todayKey()).items.some((i) => i.id === id)).toBe(false);
+  });
+
+  it('records the past day’s completion event, so counts see that week', () => {
+    onboard();
+    const before = useAppStore.getState().planEvents.length;
+    const tuesday = addDays(todayKey(), -2);
+    useAppStore.getState().logCompletedActivity({
+      title: 'Workout',
+      area: 'health',
+      durationMin: 45,
+      date: tuesday,
+      endedAt: new Date(`${tuesday}T18:00:00`).toISOString(),
+    });
+    const events = useAppStore.getState().planEvents;
+    expect(events.length).toBe(before + 1);
+    expect(events[events.length - 1].date).toBe(tuesday);
+  });
+
   it('records the completion event so streaks and counts can see it', () => {
     onboard();
     const before = useAppStore.getState().planEvents.length;

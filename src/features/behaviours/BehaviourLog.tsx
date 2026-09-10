@@ -5,7 +5,12 @@
  *
  * It does not stamp the log with `now`. People reach for the app after the
  * moment, not during it, and the time is the single most valuable field —
- * the whole pattern engine is built on it. So the first question is when.
+ * the whole pattern engine is built on it. So the first question is when,
+ * and it reaches back a week rather than three hours. It used to offer
+ * nothing older than three hours, which contradicted this very paragraph:
+ * a drink on Tuesday could not be recorded on Thursday, so Tuesday simply
+ * never happened as far as the app was concerned. See `whenPicker.ts` for
+ * why an older day is chosen as a part of the day rather than a clock time.
  *
  * It does not ask for a quantity. Detail is free text. A number here would
  * become a total, a total would become a chart, and the chart would be a
@@ -34,7 +39,13 @@ import {
   type MomentNote,
 } from '@/features/behaviours/patterns';
 import { EVIDENCE_LABELS, protocolById } from '@/features/knowledge/protocols';
-import { toHHMM } from '@/lib/dates';
+import {
+  dayChoices,
+  occurredAtFrom,
+  timeChoicesFor,
+  whenSummary,
+  type TimeChoice,
+} from '@/features/behaviours/whenPicker';
 import { useAppStore } from '@/state/store';
 import type { BehaviourEvent, BehaviourIntention } from '@/types/domain';
 
@@ -43,15 +54,6 @@ const SIZES: { value: NonNullable<BehaviourEvent['size']>; label: string }[] = [
   { value: 'usual', label: 'About usual' },
   { value: 'more', label: 'More than usual' },
 ];
-
-/** Offsets offered for "when", in minutes back from now. */
-const WHEN_OFFSETS = [0, 30, 60, 120, 180];
-
-const whenLabel = (offsetMin: number, now: Date): string => {
-  if (offsetMin === 0) return 'Just now';
-  const at = new Date(now.getTime() - offsetMin * 60000);
-  return toHHMM(at.getHours() * 60 + at.getMinutes());
-};
 
 interface Props {
   intention: BehaviourIntention;
@@ -67,14 +69,20 @@ export function BehaviourLog({ intention, onDone }: Props) {
   const toggleProtocol = useAppStore((s) => s.toggleProtocol);
 
   const [now] = useState(() => new Date());
-  const [offsetMin, setOffsetMin] = useState(0);
+  const [offsetDays, setOffsetDays] = useState(0);
+  const days = useMemo(() => dayChoices(now), [now]);
+  const times = useMemo(() => timeChoicesFor(offsetDays, now), [offsetDays, now]);
+  // Held by key rather than by object so switching days keeps the choice
+  // where the new day offers the same one, and falls back where it does not.
+  const [timeKey, setTimeKey] = useState<string>(() => timeChoicesFor(0, now)[0]?.key ?? 'recent-0');
+  const time: TimeChoice = times.find((t) => t.key === timeKey) ?? times[0];
   const [detail, setDetail] = useState('');
   const [size, setSize] = useState<BehaviourEvent['size']>();
   const [note, setNote] = useState<MomentNote | null>(null);
 
   const occurredAt = useMemo(
-    () => new Date(now.getTime() - offsetMin * 60000).toISOString(),
-    [now, offsetMin],
+    () => occurredAtFrom(now, offsetDays, time),
+    [now, offsetDays, time],
   );
 
   // The pattern as it stands BEFORE this log, so the response describes the
@@ -155,18 +163,43 @@ export function BehaviourLog({ intention, onDone }: Props) {
       </AppText>
 
       <AppText variant="caption" color="textTertiary" style={styles.label}>
-        When?
+        Which day?
       </AppText>
       <View style={styles.chips}>
-        {WHEN_OFFSETS.map((o) => (
+        {days.map((d) => (
           <Chip
-            key={o}
-            label={whenLabel(o, now)}
-            selected={offsetMin === o}
-            onPress={() => setOffsetMin(o)}
+            key={d.offsetDays}
+            label={d.label}
+            selected={offsetDays === d.offsetDays}
+            onPress={() => {
+              setOffsetDays(d.offsetDays);
+              // The new day may not offer the chosen time — an exact clock
+              // time only exists for today — so land on something valid
+              // rather than silently recording the first chip in the list.
+              const next = timeChoicesFor(d.offsetDays, now);
+              if (!next.some((t) => t.key === timeKey)) setTimeKey(next[0].key);
+            }}
           />
         ))}
       </View>
+
+      <AppText variant="caption" color="textTertiary" style={styles.label}>
+        {offsetDays === 0 ? 'When?' : 'Roughly when?'}
+      </AppText>
+      <View style={styles.chips}>
+        {times.map((t) => (
+          <Chip
+            key={t.key}
+            label={t.label}
+            selected={time?.key === t.key}
+            onPress={() => setTimeKey(t.key)}
+          />
+        ))}
+      </View>
+      <AppText variant="caption" color="textTertiary">
+        {`Recording: ${whenSummary(days[offsetDays], time)}.`}
+        {time?.approximate ? ' Near enough is fine — the pattern is what matters.' : ''}
+      </AppText>
 
       <AppText variant="caption" color="textTertiary" style={styles.label}>
         What was it? (optional)
