@@ -24,6 +24,7 @@ import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { NO_ENTITLEMENT, runningRoutines, type Entitlement } from '@/features/plus/entitlement';
 import { PERSIST_VERSION, migratePersisted, pruneHistory } from '@/state/hygiene';
+import { ritualKey, type RitualEntry, type RitualKind } from '@/features/cadence/rituals';
 import {
   EMPTY_FOOD_PREFERENCES,
   type EnjoymentRating,
@@ -206,6 +207,24 @@ export interface AppState {
    */
   voicePreference: string | null;
   setVoicePreference: (identifier: string | null) => void;
+
+  /**
+   * Answered month, week and day rituals, keyed `kind:periodKey`.
+   *
+   * Deliberately not routines. A routine cannot recur less often than
+   * weekly, so a monthly review placed as one would be that review twelve
+   * times over — the limitation the pathway ladders ran into. A ritual is
+   * computed from the date instead, and stored here once it is answered or
+   * passed on. Passing on is recorded too, because "asked and declined" and
+   * "never asked" have to look different or the app would ask again.
+   */
+  rituals: Record<string, RitualEntry>;
+  answerRitual: (
+    kind: RitualKind,
+    periodKey: string,
+    answers: Record<string, string>,
+  ) => void;
+  skipRitual: (kind: RitualKind, periodKey: string) => void;
   moveItem: (
     date: string,
     itemId: string,
@@ -552,6 +571,7 @@ const initialData = {
   clockOffsetMs: 0,
   plusNudgeDismissedAt: null as string | null,
   voicePreference: null as string | null,
+  rituals: {} as Record<string, RitualEntry>,
 };
 
 /** Derive Training v2 inputs from everything IntentNorth already knows. */
@@ -975,6 +995,29 @@ export const useAppStore = create<AppState>()(
          * a number for them would be worse than counting nothing.
          */
         setVoicePreference: (identifier) => set({ voicePreference: identifier }),
+
+        answerRitual: (kind, periodKey, answers) =>
+          set({
+            rituals: {
+              ...get().rituals,
+              [ritualKey(kind, periodKey)]: {
+                answers,
+                completedAt: new Date().toISOString(),
+              },
+            },
+          }),
+
+        skipRitual: (kind, periodKey) =>
+          set({
+            rituals: {
+              ...get().rituals,
+              [ritualKey(kind, periodKey)]: {
+                answers: {},
+                completedAt: new Date().toISOString(),
+                skipped: true,
+              },
+            },
+          }),
 
         recordPracticeMetric: (item) => {
           const title = item.title.toLowerCase();

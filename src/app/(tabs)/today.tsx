@@ -39,6 +39,7 @@ import { BudgetCard } from '@/features/budget/BudgetCard';
 import { TrialReview } from '@/features/knowledge/TrialReview';
 import { commitmentBudget, mayOffer } from '@/features/budget/commitment';
 import { QuickLog } from '@/features/today/QuickLog';
+import { RitualCard } from '@/features/cadence/RitualCard';
 import { displacedLine } from '@/features/planner/displaced';
 import { useAppStore } from '@/state/store';
 import type { PlanItem } from '@/types/domain';
@@ -258,6 +259,11 @@ export default function Today() {
           <AppText variant="secondary">Thirty seconds. Three priorities, one intention.</AppText>
         </Card>
       ) : null}
+
+      {/* The week and the month, when either is at a turn. The day is not
+          here — the morning check-in above already sets it up. Renders
+          nothing on an ordinary Wednesday. */}
+      <RitualCard />
 
       <SectionHeader title="Now" color="must" />
       {nowItem ? (
