@@ -7,10 +7,14 @@
  * a driver. The first rung of the desk ladder — the day has an end — is not
  * available to them at all.
  *
- * Most rungs are DORMANT until the research candidates merge. That is
- * deliberate: the ladder is encoded as written so it is correct on the day
- * the content lands, and `isDormant` skips what does not exist yet rather
- * than offering an empty step.
+ * Written while most of its rungs were DORMANT, which was deliberate: the
+ * ladder was encoded as the research wrote it so it would be correct on the
+ * day the content landed, and `isDormant` skipped what did not exist yet
+ * rather than offering an empty step.
+ *
+ * The content has since landed. Every rung on all three of these is live,
+ * and a test in `nextRung.test.ts` holds that true — so if a rung here ever
+ * goes dark again it is a deletion from the library, not a pending merge.
  */
 
 import type { Ladder } from '@/features/paths/ladder';
