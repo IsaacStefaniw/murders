@@ -89,8 +89,15 @@ export default function MeditateSession() {
   // that removed it — falls back rather than failing silent.
   const available = voices.some((v) => v.identifier === chosenVoiceId);
   const preferredVoiceId = (available ? chosenVoiceId : null) ?? autoVoiceId;
-  /** The last cue spoken, so a re-render never repeats a line mid-breath. */
-  const spokenRef = useRef<string | null>(null);
+  /**
+   * The last cue spoken, so a re-render never repeats a line mid-breath.
+   *
+   * Keyed on `atSec`, which is what makes a cue that cue. It used to key on
+   * the text, which silently swallowed any line a script said twice — no
+   * script does today, and a test now pins that, but the guard should not
+   * depend on a coincidence in the content.
+   */
+  const spokenRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!startedAt) return;
@@ -131,23 +138,32 @@ export default function MeditateSession() {
   // Speak each cue once, as it arrives. A lower rate and pitch than the
   // system default: guidance read at conversational speed pulls attention
   // forward, which is the opposite of the job.
+  //
+  // Both lines are spoken. The detail is where the reason lives — "You are
+  // not managing it. You are watching it." — and the whole premise of
+  // speaking is that the eyes are closed, so a second line that only ever
+  // reached the screen was written for nobody. Seventeen of the eighty-nine
+  // cues carry one. expo-speech queues utterances, so two calls arrive as
+  // two sentences with a breath between them rather than one run-on line.
   useEffect(() => {
     if (!startedAt || !voiceOn || !cue?.text) return;
-    if (spokenRef.current === cue.text) return;
-    spokenRef.current = cue.text;
-    const text = cue.text;
-    Speech.speak(text, {
-      rate: 0.82,
-      pitch: 0.92,
-      voice: preferredVoiceId ?? undefined,
-      // A stored voice the phone no longer has, or one the engine refuses,
-      // fails without a sound. Say the line in the default voice rather
-      // than leave a person sitting in silence wondering if it started.
-      onError: () => {
-        if (preferredVoiceId) Speech.speak(text, { rate: 0.82, pitch: 0.92 });
-      },
-    });
-  }, [cue?.text, startedAt, voiceOn, preferredVoiceId]);
+    if (spokenRef.current === cue.atSec) return;
+    spokenRef.current = cue.atSec;
+    const parts = [cue.text, cue.detail].filter((p): p is string => Boolean(p));
+    for (const part of parts) {
+      Speech.speak(part, {
+        rate: 0.82,
+        pitch: 0.92,
+        voice: preferredVoiceId ?? undefined,
+        // A stored voice the phone no longer has, or one the engine refuses,
+        // fails without a sound. Say the line in the default voice rather
+        // than leave a person sitting in silence wondering if it started.
+        onError: () => {
+          if (preferredVoiceId) Speech.speak(part, { rate: 0.82, pitch: 0.92 });
+        },
+      });
+    }
+  }, [cue?.atSec, cue?.text, cue?.detail, startedAt, voiceOn, preferredVoiceId]);
 
   // Leaving mid-session must not leave a voice talking to an empty room.
   useEffect(() => () => { void Speech.stop(); }, []);
@@ -255,7 +271,14 @@ export default function MeditateSession() {
           <Chip
             label={voiceOn ? 'Voice on' : 'Voice off'}
             selected={voiceOn}
-            onPress={() => setVoiceOn((v) => !v)}
+            // Switching it off silences the sample already playing. A voice
+            // that keeps talking after you turn the voice off reads as the
+            // control being broken, and it is the one control on this screen
+            // a person reaches for in a hurry.
+            onPress={() => {
+              if (voiceOn) void Speech.stop();
+              setVoiceOn((v) => !v);
+            }}
           />
         </View>
         {voiceOn && !voicesReady ? (
@@ -309,6 +332,8 @@ export default function MeditateSession() {
           title="Begin"
           onPress={() => {
             const t = Date.now();
+            // Nothing has been said in this sit yet.
+            spokenRef.current = null;
             setStartedAt(t);
             setNow(t);
           }}
