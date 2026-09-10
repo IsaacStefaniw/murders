@@ -17,6 +17,7 @@ import { MoneyHub } from '@/features/money/MoneyHub';
 import { NutritionHub } from '@/features/nutrition/NutritionHub';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { LevelCard } from '@/features/paths/LevelCard';
+import { NextRungCard } from '@/features/paths/NextRungCard';
 import { DeferredQuestions } from '@/features/onboarding/DeferredQuestions';
 import { TrainingHub } from '@/features/training/TrainingHub';
 import { WorkHub } from '@/features/work/WorkHub';
@@ -265,6 +266,14 @@ export default function PathHub() {
           />
         </>
       ) : null}
+
+      {/* The next rung, from the research ladder for this pathway.
+          Six of the seven have one; money does not, and NextRungCard
+          renders nothing there rather than inventing an order. This sits
+          above "Yours, specifically" on purpose: the single next thing
+          outranks the standing description of the week. */}
+      <SectionHeader title="What comes next" />
+      <NextRungCard path={def.id} answers={entry.answers} />
 
       <SectionHeader title="Yours, specifically" />
       <View style={styles.stack}>
