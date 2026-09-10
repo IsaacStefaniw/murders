@@ -115,38 +115,63 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       note: 'Fewer movements, lighter loads, a technical focus. Finishing every session able to do it again is the whole target.',
     },
     developing: {
+      /*
+        This rung used to add an easy aerobic session, and it never once
+        reached anybody: the training pathway already prescribes zone-2
+        work, so `withLadder` correctly dropped it as a duplicate and the
+        rung silently added nothing. Four levels, three of which changed
+        the plan by zero — while LEVEL_BLURB went on promising that
+        something specific changed at each one.
+
+        The replacement comes from the research ladder's rung 3, which is
+        the cheapest rung in the pillar: nothing new goes in the week, the
+        sets already happening just get honest. Most people train slightly
+        easier than they think, and adding volume before fixing that only
+        adds fatigue.
+      */
       routines: [
         {
-          covers: ['zone2'],
-          title: 'Easy aerobic session — conversational pace',
-          durationMin: 30,
-          days: WEEKEND,
-          preferredStart: '08:00',
-          preferredEnd: '11:00',
+          covers: ['add-one-to-your-estimate'],
+          title: 'You have one more than you think',
+          durationMin: 5,
+          days: [1, 4],
+          preferredStart: '07:00',
+          preferredEnd: '19:00',
           area: 'health',
-          energy: 'morning',
-          tier: 'should',
+          energy: 'any',
+          tier: 'could',
         },
       ],
       milestones: ['Twelve sessions logged with weights', 'One full four-week block finished'],
       note: 'Barbell work comes in and easy, steady cardio starts. This is the piece most lifters skip, and it pays the longest.',
     },
     established: {
+      /*
+        Also a duplicate, and dropped for the same reason as the rung below
+        it: a second aerobic session is still zone-2 work, which the
+        pathway already prescribes. Two of training's three upward steps
+        added nothing at all.
+
+        Rung 4 of the research ladder is what belongs here — the tissue
+        work, which is only worth reaching once the sets are honest. It is
+        also genuinely additive rather than a relabelling, which the
+        aerobic session never was.
+      */
       routines: [
         {
-          covers: ['zone2'],
-          title: 'Second aerobic session',
-          durationMin: 40,
-          days: [3],
-          preferredStart: '17:30',
-          preferredEnd: '19:30',
+          covers: ['load-the-tendons'],
+          title: 'Slow and heavy, through the full range',
+          durationMin: 15,
+          days: [2],
+          preferredStart: '07:00',
+          preferredEnd: '19:00',
           area: 'health',
-          energy: 'evening',
+          energy: 'any',
           tier: 'could',
         },
       ],
       milestones: ['A peak week completed as written', 'A heavy top set on the lift you care about'],
-      note: 'Full volume and intensity, a peak week, and a heavy top set. The second easy session is what lets the hard one stay hard.',
+      note: 'Full volume and intensity, a peak week, and a heavy top set — with the tendons loaded deliberately, because tissue lags behind muscle once training is going well.',
     },
     advanced: {
       routines: [
@@ -541,23 +566,32 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       note: 'One outing in the diary before the week starts. A plan made on Sunday beats a good intention on Saturday.',
     },
     developing: {
+      /*
+        The one-at-a-time practice was correctly dropped here — every age
+        build already carries it under its own name — which left this rung
+        adding nothing to anybody's week.
+
+        The research ladder's rung 1 goes here instead, and it is the
+        highest-leverage thing in the whole family block: what predicts how
+        children do is the conflict they are exposed to, not the household
+        structure. It costs five minutes and it is a standing rule rather
+        than an activity, so it fits a rung that must not add an evening.
+      */
       routines: [
         {
-          // The teenage and under-five builds already carry the one-at-a-
-          // time practice under their own names.
-          covers: ['one-on-one-child', 'teen-side-by-side', 'child-led-play'],
-          title: 'One-on-one time — one child, no phone',
-          durationMin: 45,
-          days: [4],
-          preferredStart: '16:30',
-          preferredEnd: '18:30',
+          covers: ['keep-it-between-the-two-of-you'],
+          title: 'Keep it between the two of you',
+          durationMin: 5,
+          days: [0],
+          preferredStart: '19:00',
+          preferredEnd: '21:00',
           area: 'family',
           energy: 'evening',
-          tier: 'should',
+          tier: 'could',
         },
       ],
       milestones: ['A weekly adventure that repeats', 'One-on-one time with each child'],
-      note: 'A weekly adventure, and regular one-on-one time with each child rather than time with all of them at once.',
+      note: 'A weekly adventure, regular one-on-one time, and the disagreements kept away from them — the last of which matters more to how they do than the structure of the household.',
     },
     established: {
       routines: [
