@@ -101,3 +101,51 @@ Straight, warm, never sneering at somebody for taking something. A person
 who has bought a supplement made a reasonable attempt to look after
 themselves, and the answer should respect that even when the evidence is
 thin.
+
+---
+
+## Round two outcome — 2026-09-10
+
+Eight entries existed from round one. The brief asked for 8–12; this round
+took it to twelve and closed the three gaps the brief named by name.
+
+**Added**
+
+| id | grade | why this grade |
+| --- | --- | --- |
+| `electrolytes-who-needs-them` | D | Systematic reviews find minimal evidence that sodium taken during exercise improves endurance performance. Where electrolyte drinks help is holding hydration through *prolonged* continuous exercise, and there the reviews favour weaker, lower-sugar formulations. For an hour indoors it is salt and sugar added to a diet already high in both. The genuine cases — heat, efforts past an hour or two, repeated sauna, heavy salty sweating — are stated as the genuine cases. |
+| `b12-who-should-test` | B | A named guideline with named risk groups, so the education is well-founded even though the supplement is not recommended. Screening average-risk adults is explicitly not recommended; checking is warranted for a specific list. A borderline result routes to a second, more specific blood test rather than to a bottle. |
+| `creatine-and-the-brain` | C | Two honest literatures that disagree. A 2024 randomised trial found better processing speed and working memory across a night without sleep, with the predicted change in brain energy chemistry. A 2024 systematic review concluded the research does not support the theoretical basis for an effect on thinking generally. C is where that sits. |
+| `multivitamin-what-the-reviews-found` | D | The US Preventive Services Task Force found the evidence insufficient to say whether multivitamins help or harm for preventing heart disease or cancer in healthy adults, and recommended *against* two single ingredients — beta-carotene and vitamin E — for that purpose. |
+
+The brief asked for at least two "heavily marketed and the evidence does not
+support it" entries. Electrolytes and multivitamins are those two, alongside
+magnesium from round one. Grade spread across the twelve is now A2 B5 C2 D3.
+
+**Declined, and why**
+
+- **Iron as a supplement.** Round one wrote the "test first" education and
+  that stands. Australia has both common deficiency and a high rate of the
+  inherited iron-overload condition; this needs a result.
+- **B12 as a supplement.** Same rule. The entry added here is the testing
+  education, not an amount to take. Nerve damage can precede any change in
+  a blood count, which makes guessing worse than useless.
+- **Vitamin D beyond the existing test-first entry.** The large trials have
+  been much less impressive than the observational work. The honest version
+  is already written and did not need a second card arguing with it.
+- **Creatine's female-specific literature.** The brief named it. Read, and
+  declined for now: the trials are small and heterogeneous, and there is no
+  position stand to anchor an amount to. Writing it would have meant
+  inventing guidance, which rule 1 forbids. Worth revisiting when a society
+  publishes something.
+- **Anything requiring a blood result or a professional to decide** — thyroid,
+  zinc, testosterone — stays out, per the standing rule.
+- **Rapamycin, the NAD precursors, resveratrol and hormone therapy** remain
+  excluded and the guard test still enforces it by substring.
+
+**Constraint worth recording for the next round:** the guard test bans the
+substrings `dose`, `stack`, `prescri` and the excluded compound names inside
+this file — including the diabetes medicine most associated with B12
+depletion. The B12 entry therefore describes it as "some diabetes and reflux
+medicines", which is both compliant and better for a lay reader. Do not
+reach for the drug name and then weaken the test to allow it.

@@ -91,13 +91,13 @@ test("the library figures on the page match the library in the app", async () =>
   const strong = grades.A + grades.B;
   const weaker = total - strong;
 
-  assert.equal(total, 317, "protocol count changed — update the page copy too");
-  assert.equal(strong, 115, "A/B count changed — update the page copy too");
-  assert.equal(safety, 278, "safety-line count changed — update the page copy too");
-  assert.equal(people, 249, "attribution count changed — update the page copy too");
+  assert.equal(total, 321, "protocol count changed — update the page copy too");
+  assert.equal(strong, 116, "A/B count changed — update the page copy too");
+  assert.equal(safety, 282, "safety-line count changed — update the page copy too");
+  assert.equal(people, 255, "attribution count changed — update the page copy too");
 
-  // The page leads with the weaker count rather than the A/B one now — "202 of
-  // the 317 are Mixed or weaker" says more than "115 graded A or B", because a
+  // The page leads with the weaker count rather than the A/B one now — "205 of
+  // the 321 are Mixed or weaker" says more than "116 graded A or B", because a
   // reader can tell what the first one costs us to admit. The data check above
   // still pins all four figures; this checks what the page actually states.
   for (const figure of [String(total), String(weaker), String(safety), String(people)]) {
@@ -106,15 +106,15 @@ test("the library figures on the page match the library in the app", async () =>
   // The grade breakdown is spelled out in words; those must agree too.
   assert.match(html, new RegExp(`${grades.A === 15 ? "Fifteen" : grades.A} practices are grade A`, "i"));
   assert.ok(
-    html.includes(`two hundred and two`) && weaker === 202,
+    html.includes(`two hundred and five`) && weaker === 205,
     "the weaker-evidence count in the copy must match the data",
   );
 });
 
 test("the page never implies the whole library is strongly evidenced", async () => {
   const html = await renderHome();
-  // The failure mode this guards is "317 evidence-based practices" as a bare
-  // boast. 202 of them are C or below, and the page has to carry that.
+  // The failure mode this guards is "321 evidence-based practices" as a bare
+  // boast. 205 of them are C or below, and the page has to carry that.
   assert.doesNotMatch(html, /\d+ (strongly|well|rigorously) evidenced/i);
   assert.match(html, /C, D or E/, "the weaker grades must be named on the page");
 });

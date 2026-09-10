@@ -38,8 +38,8 @@ Not "we have content". **Every practice carries its evidence grade and its
 safety line, and we publish the weak ones.**
 
 The numbers are verified against `src/features/knowledge/protocols.ts`:
-317 protocols, nine pillars, graded A 15 · B 100 · C 120 · D 70 · E 12, 278
-safety lines, 249 people credited. One hundred and fifteen are A or B. **Two
+321 protocols, nine pillars, graded A 15 · B 100 · C 120 · D 70 · E 12, 282
+safety lines, 255 people credited. One hundred and fifteen are A or B. **Two
 hundred and two are C or weaker, and we say so on the page.**
 
 That last sentence is the asset. Every competitor in this category presents
@@ -90,7 +90,7 @@ idea is worse than three good ones.
 **Replaces:** nothing. This is new, and it goes where the library section is.
 
 **Beat 1.** A wall of practices, dense, filterable, alive — not a list of
-three. The density *is* the message: 317 is a number you should feel before
+three. The density *is* the message: 321 is a number you should feel before
 you read it.
 **Beat 2.** One is chosen. Its grade badge and its safety line stay attached as
 it moves. They are not a footnote; they travel with the practice.
@@ -167,7 +167,7 @@ Six, drawn from what has actually gone wrong on this site.
 
 ## 5. Conversion craft, applied honestly
 
-- **Costly signals over adjectives.** "202 of 317 are C-grade or weaker" does
+- **Costly signals over adjectives.** "205 of 321 are C-grade or weaker" does
   more than any superlative, because a liar would not say it.
 - **Specificity as proof.** "9:45pm, because the slip window is after 10pm"
   outperforms "smart reminders" and cannot be written by a competitor who does

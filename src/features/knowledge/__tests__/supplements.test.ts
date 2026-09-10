@@ -19,7 +19,7 @@ describe('the supplements group', () => {
     }
   });
 
-  it('covers the brief: creatine, protein powder, vitamin D, omega-3, caffeine, magnesium, melatonin, iron', () => {
+  it('covers the brief: creatine, protein powder, vitamin D, omega-3, caffeine, magnesium, melatonin, iron, electrolytes, B12, creatine for the brain, multivitamins', () => {
     const ids = SUPPLEMENT_PROTOCOLS.map((p) => p.id);
     expect(ids).toEqual([
       'creatine-monohydrate',
@@ -30,6 +30,15 @@ describe('the supplements group', () => {
       'magnesium-honest',
       'melatonin-timing',
       'iron-test-before-you-take',
+      // Round two: the three gaps the brief named — electrolytes for the
+      // sauna audience, B12 as education rather than a bottle, and the
+      // creatine literature that is not about strength — plus the second
+      // "heavily marketed, evidence does not support it" entry the brief
+      // asked for.
+      'electrolytes-who-needs-them',
+      'b12-who-should-test',
+      'creatine-and-the-brain',
+      'multivitamin-what-the-reviews-found',
     ]);
   });
 
@@ -93,6 +102,12 @@ describe('the supplements group', () => {
     expect(grade('creatine-monohydrate')).toBe('A');
     expect(grade('magnesium-honest')).toBe('D');
     expect(grade('melatonin-timing')).toBe('C');
+    // The two entries the brief wanted graded against their marketing.
+    expect(grade('electrolytes-who-needs-them')).toBe('D');
+    expect(grade('multivitamin-what-the-reviews-found')).toBe('D');
+    // Two literatures that disagree is a C, not an A borrowed from the
+    // strength card sharing its first word.
+    expect(grade('creatine-and-the-brain')).toBe('C');
     const grades = new Set(SUPPLEMENT_PROTOCOLS.map((p) => p.evidenceLevel));
     expect(grades.size).toBeGreaterThanOrEqual(3);
   });

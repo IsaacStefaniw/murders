@@ -43,7 +43,7 @@ then moves it when your week moves and tells you why.
 
 ## Do not say
 
-- **The number of practices.** "317 practices" does not sound impressive
+- **The number of practices.** "321 practices" does not sound impressive
   to a customer and invites the wrong comparison. Say what the practices
   are instead: graded A to E for how strong the evidence is, with the
   sources named and where each one stops. The efficacy and the research
@@ -60,7 +60,7 @@ then moves it when your week moves and tells you why.
 | Surface | Change |
 |---|---|
 | Hero film | `docs/film/film10-50s-heard-it.py` — the fifty-second cut built on this problem. Replaces the thirty-second "four apps" cut. |
-| Website hero | Headline and sub-line should carry the podcast moment and the one-sentence product. The "317 practices" tile goes; a line about grading and sources takes its place. Option: *"You heard it on a podcast. Here's the week."* |
+| Website hero | Headline and sub-line should carry the podcast moment and the one-sentence product. The "321 practices" tile goes; a line about grading and sources takes its place. Option: *"You heard it on a podcast. Here's the week."* |
 | App Store description | Keep the graded-library paragraph, drop the counts from the promotional text. |
 | Paywall and library copy in the app | Already moved off counts in the overhaul; the library card leads with the grade, the source and the safety line. |
 | Outreach emails | The "hear it, forget it" line is the opener for founders, HR and podcasts alike. |

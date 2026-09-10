@@ -186,9 +186,9 @@ test("reps in reserve never returns, from anywhere", async () => {
   // The evidence rating is the organising idea rather than a section, so the
   // promise has to be in the first viewport with the number that costs us
   // something to publish.
-  assert.match(html, /202 of 317/, "the admission that makes the rating credible");
+  assert.match(html, /205 of 321/, "the admission that makes the rating credible");
   // The costly signal is the whole reason the first pillar works.
-  assert.match(html, /202 of them|202 of the 317/, "the honesty that makes the ratings credible");
+  assert.match(html, /205 of them|205 of the 321/, "the honesty that makes the ratings credible");
   // A reader has to be told what a rating means, not shown a letter.
   for (const word of ["Strong", "Good", "Mixed", "Thin", "Practice"]) {
     assert.match(html, new RegExp(`>${word}<`), `the rating scale lost "${word}"`);

@@ -71,7 +71,7 @@ export function ProtocolGradingMotion() {
               <b>{row.n}</b>
             </div>
           ))}
-          <p>202 of 317 are C or weaker. That is on the page because it is true.</p>
+          <p>205 of 321 are C or weaker. That is on the page because it is true.</p>
         </div>
       </div>
 
@@ -110,7 +110,7 @@ export function ProtocolGradingMotion() {
       </div>
 
       <figcaption className="iosm-sr-only" id="iosm-library-description">
-        A diagram of the practice library: 317 protocols graded A to E — 15 A, 100 B, 120 C, 70 D and
+        A diagram of the practice library: 321 protocols graded A to E — 15 A, 100 B, 120 C, 70 D and
         12 E — with one, Morning light at grade B, chosen and placed. Two captures of the
         application\u2019s own week screen show it before the practice was added, with fifteen items
         planned, and after, with sixteen and Morning light at 7:25am between breakfast and training.
