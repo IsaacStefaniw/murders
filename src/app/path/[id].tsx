@@ -18,6 +18,7 @@ import { NutritionHub } from '@/features/nutrition/NutritionHub';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { LevelCard } from '@/features/paths/LevelCard';
 import { NextRungCard } from '@/features/paths/NextRungCard';
+import { StopProgramme } from '@/features/behaviours/StopProgramme';
 import { DeferredQuestions } from '@/features/onboarding/DeferredQuestions';
 import { TrainingHub } from '@/features/training/TrainingHub';
 import { WorkHub } from '@/features/work/WorkHub';
@@ -244,7 +245,15 @@ export default function PathHub() {
       ) : null}
       {def.id === 'money' ? <MoneyHub /> : null}
       {def.id === 'work' ? <WorkHub /> : null}
-      {def.id === 'recovery' ? <MindHub /> : null}
+      {def.id === 'recovery' ? (
+        <>
+          {/* The arc, above the mind practices: somebody who logged four
+              events this week is asking what they are doing about it, not
+              which meditation to try. */}
+          <StopProgramme />
+          <MindHub />
+        </>
+      ) : null}
 
       {/* The ladder, on every pathway. It was described in LEVEL_BLURB for
           all seven and rendered on the training hub alone, so six
