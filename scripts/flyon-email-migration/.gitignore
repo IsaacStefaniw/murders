@@ -1,0 +1,7 @@
+# Your real rules file names your mailboxes and your contacts. This repository
+# is public — keep it local. Generate it with --init-rules.
+flyon-rules.json
+*.local.json
+
+# Review CSVs list subjects and correspondents.
+review*.csv

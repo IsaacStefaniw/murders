@@ -322,6 +322,7 @@ class Rules:
     """
 
     FIELDS = (
+        "own_addresses",
         "business_addresses",
         "business_domains",
         "counterparties",
@@ -342,6 +343,7 @@ class Rules:
             setattr(self, field, [str(v).strip().lower().lstrip("@") for v in value if str(v).strip()])
         if not any(getattr(self, f) for f in ("business_addresses", "business_domains", "keywords", "strong_keywords")):
             self.keywords = ["flyon"]
+        self.own = set(self.own_addresses)
         self.thread_expansion = bool(cfg.get("thread_expansion", True))
         self.exclusions_override_strong = bool(cfg.get("exclusions_override_strong", False))
         self._strong_kw = self._compile(self.strong_keywords)
@@ -362,7 +364,12 @@ class Rules:
         )
 
     @classmethod
-    def load(cls, path: Optional[str], extra_terms: Optional[list[str]] = None) -> "Rules":
+    def load(
+        cls,
+        path: Optional[str],
+        extra_terms: Optional[list[str]] = None,
+        extra_own: Optional[list[str]] = None,
+    ) -> "Rules":
         cfg: dict = {}
         if path:
             if not os.path.exists(path):
@@ -376,9 +383,12 @@ class Rules:
             unknown = {k for k in cfg if k not in known and not k.startswith("_")}
             if unknown:
                 log(f"warning: ignoring unknown rule key(s): {', '.join(sorted(unknown))}")
-        if extra_terms:
+        if extra_terms or extra_own:
             cfg = dict(cfg)
-            cfg["keywords"] = list(cfg.get("keywords") or []) + list(extra_terms)
+            if extra_terms:
+                cfg["keywords"] = list(cfg.get("keywords") or []) + list(extra_terms)
+            if extra_own:
+                cfg["own_addresses"] = list(cfg.get("own_addresses") or []) + list(extra_own)
         return cls(cfg)
 
     # -- what to ask Exchange for ----------------------------------------- #
@@ -433,6 +443,8 @@ class Rules:
 
         excluded: Optional[str] = None
         for addr in addrs:
+            if addr in self.own:
+                continue  # your own mailboxes are on everything; they decide nothing
             if addr in self.exclude_addresses:
                 excluded = f"excluded address {addr}"
                 break
@@ -611,28 +623,34 @@ def dedupe(messages: Iterable[dict]) -> list[dict]:
     return sorted(seen.values(), key=lambda m: m.get("receivedDateTime") or "")
 
 
-def counterparty(msg: dict) -> str:
-    """The other end of the message — who it is from, or failing that, who to."""
-    addr = ((msg.get("from") or {}).get("emailAddress") or {}).get("address")
-    if addr:
-        return addr.lower()
-    for rec in msg.get("toRecipients") or []:
-        addr = (rec.get("emailAddress") or {}).get("address")
-        if addr:
-            return addr.lower()
-    return "(unknown)"
+def counterparty(msg: dict, own: Iterable[str] = ()) -> str:
+    """The other end of the message.
+
+    Your own addresses are skipped, so a sent message reports who it went to
+    rather than reporting you to yourself.
+    """
+    own = set(own)
+    sender = ((msg.get("from") or {}).get("emailAddress") or {}).get("address", "").lower()
+    if sender and sender not in own:
+        return sender
+    for key in ("toRecipients", "ccRecipients"):
+        for rec in msg.get(key) or []:
+            addr = (rec.get("emailAddress") or {}).get("address", "").lower()
+            if addr and addr not in own:
+                return addr
+    return sender or "(unknown)"
 
 
-def report_senders(messages: list[dict]) -> None:
+def report_senders(messages: list[dict], own: Iterable[str] = ()) -> None:
     """Who is in the candidate set, so the rules can be written from evidence."""
     by_domain: dict[str, list[dict]] = {}
     for msg in messages:
-        by_domain.setdefault(domain_of(counterparty(msg)) or "(none)", []).append(msg)
+        by_domain.setdefault(domain_of(counterparty(msg, own)) or "(none)", []).append(msg)
     print(f"\n{'count':>6}  {'strong':>6}  domain / addresses")
     print("-" * 78)
     for domain, msgs in sorted(by_domain.items(), key=lambda kv: -len(kv[1])):
         strong = sum(1 for m in msgs if m.get("_verdict") == STRONG)
-        addrs = sorted({counterparty(m) for m in msgs})
+        addrs = sorted({counterparty(m, own) for m in msgs})
         print(f"{len(msgs):>6}  {strong:>6}  {domain}")
         for addr in addrs[:6]:
             print(f"{'':>16}{addr}")
@@ -644,10 +662,64 @@ def report_senders(messages: list[dict]) -> None:
     )
 
 
+FREE_MAIL = {
+    "gmail.com", "googlemail.com", "outlook.com", "hotmail.com", "hotmail.co.uk",
+    "live.com", "live.com.au", "msn.com", "yahoo.com", "yahoo.com.au", "icloud.com",
+    "me.com", "mac.com", "aol.com", "proton.me", "protonmail.com", "fastmail.com",
+    "bigpond.com", "optusnet.com.au", "iinet.net.au", "internode.on.net",
+}
+
+
+def init_rules(path: str, own: list[str], dest_user: Optional[str]) -> int:
+    """Write a starter rules file from the addresses you are moving between."""
+    if os.path.exists(path):
+        die(f"{path} already exists — edit it, or point --rules somewhere else")
+
+    own = [a.lower() for a in own if a]
+    business_addresses: list[str] = []
+    business_domains: list[str] = []
+    if dest_user and domain_of(dest_user) not in FREE_MAIL:
+        business_addresses.append(dest_user.lower())
+        business_domains.append(domain_of(dest_user))
+        stem = domain_of(dest_user).split(".")[0]
+    else:
+        stem = "flyon"
+
+    cfg = {
+        "_comment": (
+            "Your addresses stay here, not in the repository. Run --report-senders "
+            "to see who your mail is actually with, then move business domains into "
+            "counterparties and personal ones into exclude_domains."
+        ),
+        "own_addresses": sorted(set(own) | set(business_addresses)),
+        "business_addresses": business_addresses,
+        "business_domains": business_domains,
+        "counterparties": [],
+        "strong_keywords": [stem],
+        "keywords": [],
+        "exclude_addresses": [],
+        "exclude_domains": [],
+        "exclude_keywords": [],
+        "exclude_folders": [],
+        "thread_expansion": True,
+        "exclusions_override_strong": False,
+    }
+    write_private_json(path, cfg)
+    log(f"wrote {path}")
+    print(
+        "\nNext:\n"
+        f"  1. python3 {os.path.basename(__file__)} --rules {path} --report-senders\n"
+        "  2. add the business domains you see to \"counterparties\", the personal\n"
+        "     ones to \"exclude_domains\"\n"
+        f"  3. python3 {os.path.basename(__file__)} --rules {path}   (dry run + review CSV)"
+    )
+    return 0
+
+
 REVIEW_COLUMNS = ["keep", "verdict", "reason", "date", "counterparty", "subject", "message_id", "graph_id"]
 
 
-def write_review(path: str, messages: list[dict]) -> None:
+def write_review(path: str, messages: list[dict], own: Iterable[str] = ()) -> None:
     directory = os.path.dirname(path)
     if directory:
         os.makedirs(directory, exist_ok=True)
@@ -662,7 +734,7 @@ def write_review(path: str, messages: list[dict]) -> None:
                     "verdict": verdict,
                     "reason": msg.get("_reason", ""),
                     "date": (msg.get("receivedDateTime") or "")[:10],
-                    "counterparty": counterparty(msg),
+                    "counterparty": counterparty(msg, own),
                     "subject": (msg.get("subject") or "")[:120],
                     "message_id": msg.get("internetMessageId") or "",
                     "graph_id": msg["id"],
@@ -792,10 +864,10 @@ def parse_graph_time(value: Optional[str]) -> Optional[datetime]:
         return None
 
 
-def describe(msg: dict) -> str:
+def describe(msg: dict, own: Iterable[str] = ()) -> str:
     date = (msg.get("receivedDateTime") or "")[:10]
     subject = (msg.get("subject") or "(no subject)")[:62]
-    return f"{date}  {counterparty(msg):<32.32}  {subject}"
+    return f"{date}  {counterparty(msg, own):<32.32}  {subject}"
 
 
 def ensure_source_archive(account: GraphAccount, name: str) -> str:
@@ -807,7 +879,10 @@ def ensure_source_archive(account: GraphAccount, name: str) -> str:
 
 
 def migrate(args: argparse.Namespace) -> int:
-    rules = Rules.load(args.rules, args.term)
+    own = list(args.me or [])
+    if args.dest_user:
+        own.append(args.dest_user)
+    rules = Rules.load(args.rules, args.term, own)
     if args.no_thread_expansion:
         rules.thread_expansion = False
 
@@ -842,7 +917,7 @@ def migrate(args: argparse.Namespace) -> int:
         return 0
 
     if args.report_senders:
-        report_senders(messages)
+        report_senders(messages, rules.own)
         return 0
 
     if not args.execute:
@@ -857,9 +932,9 @@ def migrate(args: argparse.Namespace) -> int:
                 continue
             print(f"  [{verdict}] {heading}")
             for msg in group:
-                print(f"    {describe(msg)}   ({msg.get('_reason', '')})")
+                print(f"    {describe(msg, rules.own)}   ({msg.get('_reason', '')})")
             print()
-        write_review(args.review_file, messages)
+        write_review(args.review_file, messages, rules.own)
         print(
             f"{len(messages)} message(s) would be copied to {args.dest_folder!r}"
             f"{' and then ' + args.after + 'd at the source' if args.after != 'none' else ''}."
@@ -893,7 +968,7 @@ def migrate(args: argparse.Namespace) -> int:
             if state.get(key, {}).get("copied"):
                 skipped += 1
                 continue
-            log(f"[{index}/{len(messages)}] {describe(msg)}")
+            log(f"[{index}/{len(messages)}] {describe(msg, rules.own)}")
             try:
                 if dest.has(key):
                     log("  already at the destination — skipping")
@@ -1006,6 +1081,17 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "(see flyon-rules.example.json). Env: FLYON_RULES",
     )
     p.add_argument(
+        "--init-rules",
+        action="store_true",
+        help="write a starter rules file from --me and --dest-user, then exit",
+    )
+    p.add_argument(
+        "--me",
+        action="append",
+        help="an address of yours, repeatable — the source mailbox, any alias. "
+        "Keeps you from being reported as your own counterparty",
+    )
+    p.add_argument(
         "--term",
         action="append",
         help="extra keyword on top of the rules file, repeatable (default: flyon)",
@@ -1102,6 +1188,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     )
 
     args = p.parse_args(argv)
+    if args.init_rules:
+        return args
     if not args.client_id:
         p.error("--client-id (or MS_CLIENT_ID) is required — see the README for the 5-minute setup")
     if args.dest == "imap" and not args.dest_user:
@@ -1121,6 +1209,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
+    if args.init_rules:
+        return init_rules(args.rules or "flyon-rules.json", args.me or [], args.dest_user)
     try:
         return migrate(args)
     except KeyboardInterrupt:

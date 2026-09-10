@@ -44,17 +44,51 @@ and the refresh token is cached in `~/.flyon-email-migration/tokens.json`
 
 ### 2. Credentials for the new mailbox
 
-| Destination | Host | Password to use |
-| --- | --- | --- |
-| Gmail | `imap.gmail.com` | an [app password](https://myaccount.google.com/apppasswords) (needs 2-Step Verification on, and IMAP enabled in Gmail → Settings → Forwarding and POP/IMAP) |
-| iCloud | `imap.mail.me.com` | an app-specific password from appleid.apple.com |
-| Fastmail | `imap.fastmail.com` | an app password from Settings → Privacy & Security |
-| Another Outlook | — | use `--dest graph` instead, with its own client ID |
+Which transport the destination needs depends on who runs its mail. For a
+business domain, check first:
 
 ```bash
-export DEST_IMAP_USER=new.address@gmail.com
-export DEST_IMAP_PASSWORD='xxxx xxxx xxxx xxxx'   # or let the script prompt
+nslookup -type=mx yourbusiness.com.au      # or: dig +short MX yourbusiness.com.au
 ```
+
+| What the MX records say | Transport | Credential |
+| --- | --- | --- |
+| `*.mail.protection.outlook.com` — Microsoft 365 | `--dest graph --dest-tenant common` | the same app registration, if you set it to *any organizational directory and personal Microsoft accounts*; otherwise a second one in the business tenant |
+| `*.google.com` / `googlemail.com` — Google Workspace | IMAP, `imap.gmail.com` | an [app password](https://myaccount.google.com/apppasswords) (2-Step Verification on; IMAP allowed for the user in the Workspace admin console) |
+| a host's own server (cPanel, Fastmail, Zoho, …) | IMAP, the host's server | the mailbox password, or an app password where the host issues them |
+| iCloud | IMAP, `imap.mail.me.com` | an app-specific password from appleid.apple.com |
+
+Microsoft 365 matters here: Exchange Online turned off basic-auth IMAP the same
+way personal Outlook did, so a business Microsoft mailbox needs `--dest graph`,
+not an IMAP password.
+
+```bash
+# IMAP destination
+export DEST_IMAP_USER=you@yourbusiness.com.au
+export DEST_IMAP_PASSWORD='xxxx xxxx xxxx xxxx'   # or let the script prompt
+
+# Microsoft 365 destination instead
+#   --dest graph --dest-tenant common --dest-user you@yourbusiness.com.au
+```
+
+### 3. Your rules file
+
+Generate it — it names your mailboxes and your contacts, so it stays on your
+machine and is gitignored (this repository is public):
+
+```bash
+python3 migrate_flyon_emails.py --init-rules \
+    --me you@outlook.com --dest-user you@yourbusiness.com.au
+```
+
+That seeds `own_addresses` (both of your mailboxes), `business_addresses` and
+`business_domains` (the new domain) and the `flyon` keyword, which is enough for
+a first `--report-senders` pass.
+
+`own_addresses` earns its place: your own address is on every message, so it is
+never treated as the counterparty in reports, and it can never trip an exclude
+rule — a `exclude_domains: ["outlook.com"]` entry silences other people's
+outlook.com mail, not your own sent items.
 
 ## What counts as Flyon mail
 
@@ -85,6 +119,31 @@ Two details that matter in practice:
   `receipts@mail.flyon.io`, and does not match `flyon.io.phish.example`.
 - **Keywords match at a word start.** `flyon` catches `flyon.io`, `flyonapp` and
   `Flyon's`, but not `notflyon`.
+
+### A worked pass, start to finish
+
+```bash
+export MS_CLIENT_ID=<your app registration>       # source: the personal Outlook
+export DEST_IMAP_USER=you@yourbusiness.com.au     # destination (IMAP case)
+
+# 1. seed the rules from your two addresses
+python3 migrate_flyon_emails.py --init-rules --me you@outlook.com
+
+# 2. see who the mail is actually with
+python3 migrate_flyon_emails.py --report-senders
+
+# 3. edit flyon-rules.json: business domains -> counterparties,
+#    personal ones -> exclude_domains
+
+# 4. dry run — prints the three tiers and writes the review CSV
+python3 migrate_flyon_emails.py
+
+# 5. set keep=yes/no in ~/.flyon-email-migration/review.csv, then move it
+python3 migrate_flyon_emails.py --execute --use-review
+
+# 6. once you trust it, sweep the rest and tidy the source
+python3 migrate_flyon_emails.py --mode scan --execute --after archive
+```
 
 ### Writing the rules from evidence, not memory
 
@@ -166,7 +225,9 @@ each append, as a second line of defence.
 ### Useful flags
 
 ```bash
+--init-rules --me you@outlook.com # write a starter rules file, then exit
 --rules flyon-rules.json          # the include/exclude rules (env: FLYON_RULES)
+--me you@outlook.com              # another address of yours (repeatable)
 --term flyon --term flyon.io      # extra keywords on top of the rules file
 --report-senders                  # who is this mail with? then exit
 --use-review                      # migrate only the rows marked keep=yes
