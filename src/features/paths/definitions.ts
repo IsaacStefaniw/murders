@@ -255,7 +255,7 @@ export const PATHS: Record<PathId, PathDefinition> = {
         plan.goal.milestones = [...(plan.goal.milestones ?? []), { id: newId('ms'), title: `A heavier ${lift} than you started with`, done: false }];
       }
       if (answers.want === 'muscle') {
-        plan.goal.milestones = [...(plan.goal.milestones ?? []), { id: newId('ms'), title: 'Every accessory set logged for a whole block', done: false }];
+        plan.goal.milestones = [...(plan.goal.milestones ?? []), { id: newId('ms'), title: 'Every set of the smaller exercises logged, four weeks straight', done: false }];
       }
       return withLadder('training', plan, answers, profile);
     },

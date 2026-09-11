@@ -215,7 +215,7 @@ says so instead of silently failing.
 
 ## Promotional text (170)
 
-> Seven coaches, one profile. A training block built from your own lifts, a library that grades its own evidence, and nothing you enter ever leaves your phone.
+> Seven coaches, one profile. A four-week plan built from your own lifts, a library that grades its own evidence, and nothing you enter ever leaves your phone.
 
 ## Description (4,000)
 
@@ -233,13 +233,13 @@ overwhelms. It now leads with the reader's own experience instead.
 > Answer twelve questions once. Seven coaches — training, food, habits and urges, work, money, your relationship and your family — build one week from the same set of answers, and place it around the work, sleep and commitments you already have. Every line on today's plan carries the reason it is there.
 >
 > WHAT ACTUALLY HAPPENS
-> The plan fits the week you have, not an ideal one. Move something and it learns where it really belongs. Have a bad week and nothing scolds you. Say a session was too easy and the next block changes. Connect Apple Health, read-only, and a short night quietly changes today's session: the main work stays, the accessories rest.
+> The plan fits the week you have, not an ideal one. Move something and it learns where it really belongs. Have a bad week and nothing scolds you. Say a session was too easy and the next block changes. Connect Apple Health, read-only, and a short night quietly changes today's session: the main work stays, the smaller exercises rest.
 >
 > A LIBRARY THAT GRADES ITS OWN EVIDENCE
 > 321 practices, each rated A to E for the strength of the research behind it — 255 researchers and practitioners named for the ones their teaching popularised. 282 carry a plain-words safety line. Most of it is not an A, and it says so, because little of what anyone can teach you about your own life is.
 >
 > TRAINING BUILT FROM YOUR OWN LIFTS
-> Four-week blocks — build, build, progress, deload — sized to your days, your equipment and what you actually lift. Log a set and the next target follows a rule you can read. Four levels, earned from your log rather than claimed. 5,376 distinct programmes from the builder's own inputs; no two people get the same one.
+> Four-week blocks — build, build, progress, then an easier week — sized to your days, your equipment and what you actually lift. Log a set and the next target follows a rule you can read. Four levels, earned from your log rather than claimed. 5,376 distinct programmes from the builder's own inputs; no two people get the same one.
 >
 > THE REST OF A LIFE
 > Guided breathing. Seven spoken meditations, in a voice you choose. A weekly review that ends in one decision. A money ladder with one step live at a time. Rituals that survive a bad week, and a weekend that actually happens.
@@ -361,7 +361,7 @@ costs days.
 
 ## What's New (1.0.0)
 
-> First release. Seven coaches working from one profile: training blocks built from your own lifts, a graded evidence library, habit and urge support that stays free, guided breathing and spoken meditation, and a weekly review. Everything stays on your phone.
+> First release. Seven coaches working from one profile: four-week plans built from your own lifts, a graded evidence library, habit and urge support that stays free, guided breathing and spoken meditation, and a weekly review. Everything stays on your phone.
 
 ## Age rating — questionnaire answers
 

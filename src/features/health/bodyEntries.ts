@@ -58,7 +58,7 @@ export const BODY_ENTRIES: Entry[] = [
   },
   {
     key: 'body.vo2max',
-    label: 'Cardio fitness (VO₂max)',
+    label: 'Cardio fitness',
     unit: 'ml/kg/min',
     hint: 'From a watch or a test. Decides whether the plan carries intervals.',
     min: 10,

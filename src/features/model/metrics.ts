@@ -55,7 +55,7 @@ export const METRICS: MetricDefinition[] = [
    * runs, so it moves slowly and is approximate — treated as a trend, never
    * as a test result.
    */
-  { key: 'body.vo2max', label: 'Cardio fitness (VO₂max)', unit: 'ml/kg/min', domain: 'training', direction: 'higher' },
+  { key: 'body.vo2max', label: 'Cardio fitness', unit: 'ml/kg/min', domain: 'training', direction: 'higher' },
   /**
    * Height, so waist-to-height and BMI can be computed rather than asked
    * for. Recorded once and effectively constant; 'steady' keeps a

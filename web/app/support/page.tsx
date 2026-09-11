@@ -68,7 +68,7 @@ export default function SupportPage() {
 
       <h2>My programme is too hard, or too easy</h2>
       <p>
-        Open the pathway — Training, for example — and use the control at the bottom
+        Open the area — Training, for example — and use the control at the bottom
         of the level card to step the programme down. Nothing is lost by doing that;
         the level is a description of the block being built, not a verdict on you.
       </p>

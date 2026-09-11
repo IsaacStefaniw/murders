@@ -243,7 +243,7 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
     advanced: {
       routines: [
         {
-          title: 'Phase review — intake against the training block',
+          title: 'Phase review — intake against the four-week plan',
           durationMin: 20,
           days: SUNDAY,
           preferredStart: '17:00',

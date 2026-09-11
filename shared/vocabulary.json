@@ -1,0 +1,55 @@
+{
+  "note": [
+    "The single vocabulary list. web/tests/plain-language.test.mjs and",
+    "src/features/copy/__tests__/jargon.test.ts both read this file, so the",
+    "website and the app cannot drift apart silently — which they had.",
+    "",
+    "Before this file existed the two lists shared exactly one term.",
+    "'deload', 'rung', 'accessories' and 'training block' were banned on the",
+    "site as unreadable by a first-time reader, and shipping in app copy the",
+    "same person reads every morning.",
+    "",
+    "TIERS, per surface:",
+    "  everywhere - banned in all user-visible text on that surface.",
+    "  prominent  - banned in titles, buttons, headings and onboarding;",
+    "               allowed in body and summary text.",
+    "  allowed    - not checked on that surface.",
+    "",
+    "The tier may differ per surface, and where it does the reason is in",
+    "'why'. A website visitor is a stranger who leaves; an app user has",
+    "onboarded and reads the same words daily. Precision that earns its place",
+    "in an app summary does not earn it in a hero. Every divergence is here,",
+    "in one file, on purpose."
+  ],
+  "banned": [
+    { "term": "Upper A",            "web": "everywhere", "app": "everywhere", "why": "the name of a gym session, not a thing anyone else says" },
+    { "term": "phased week",        "web": "everywhere", "app": "everywhere", "why": "invented compound; say what the weeks do" },
+    { "term": "operating profile",  "web": "everywhere", "app": "everywhere", "why": "we mean 'your profile'" },
+    { "term": "operating system",   "web": "everywhere", "app": "everywhere", "why": "we are not one; nobody shops for one" },
+    { "term": "one slice",          "web": "everywhere", "app": "everywhere", "why": "means nothing outside our own heads" },
+    { "term": "arbitration",        "web": "everywhere", "app": "everywhere", "why": "nobody says this about their week" },
+    { "term": "autoregulat",        "web": "everywhere", "app": "everywhere", "why": "not a word in general use" },
+    { "term": "specialist depth",   "web": "everywhere", "app": "everywhere", "why": "means nothing to a reader" },
+    { "term": "prescription",       "web": "everywhere", "app": "everywhere", "why": "product-truth boundary, not just readability: never claim to prescribe" },
+    { "term": "prescribed",         "web": "everywhere", "app": "everywhere", "why": "say 'full' or 'the programmed' — a program, never a prescription" },
+    { "term": "SDNN",               "web": "everywhere", "app": "everywhere", "why": "a watch's internal name; say 'heart-rate variability (HRV)'" },
+    { "term": "Life Operating Plan","web": "everywhere", "app": "everywhere", "why": "say 'your plan'" },
+    { "term": "connect an account", "web": "everywhere", "app": "everywhere", "why": "there is no account" },
+    { "term": "the aerobic base",   "web": "everywhere", "app": "everywhere", "why": "say 'the easy, steady work'" },
+    { "term": "Your HRV is",        "web": "everywhere", "app": "everywhere", "why": "spell it out: heart-rate variability (HRV)" },
+    { "term": "Build web-preview",  "web": "allowed",    "app": "everywhere", "why": "the build tag is hidden on web" },
+
+    { "term": "deload",             "web": "everywhere", "app": "prominent",  "why": "training jargon; say 'an easier week'. Allowed in an app summary that has already said what it means, never in a heading." },
+    { "term": "accessories",        "web": "everywhere", "app": "prominent",  "why": "training jargon; say 'the smaller exercises'. Same rule as deload." },
+    { "term": "accessory",          "web": "everywhere", "app": "prominent",  "why": "training jargon; say 'the smaller exercises'. Same rule as deload." },
+    { "term": "training block",     "web": "everywhere", "app": "prominent",  "why": "say 'four-week plan'. Allowed in an app body line, never in a title." },
+    { "term": "rung",               "web": "everywhere", "app": "prominent",  "why": "metaphor stacked on a metaphor; say 'level'. It is a real app mechanic, so body text may use it — a screen must never be titled with it." },
+    { "term": "pathway",            "web": "everywhere", "app": "prominent",  "why": "our internal word for an area of someone's life" },
+    { "term": "Zone 2",             "web": "everywhere", "app": "prominent",  "why": "a third of reviewers stopped on 'Zone 2' in a title; it belongs in the summary" },
+    { "term": "VO₂",                "web": "everywhere", "app": "prominent",  "why": "say 'Hard intervals'; VO₂ max belongs in the summary" }
+  ],
+  "allowedOnceDefined": [
+    { "term": "protocol", "taughtBy": "a protocol is|protocols are|practices we call protocols" },
+    { "term": "coach",    "taughtBy": "each coach is|a coach is|the coaches are" }
+  ]
+}
