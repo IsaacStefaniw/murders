@@ -76,6 +76,27 @@ happened and nobody noticed for three days.
 
 ---
 
+## The guardrails, and where to add the next one
+
+A rule that lives only in a document decays. Each of these is a failing build.
+When a new failure is found, the fix and its guardrail go in the same commit.
+
+| Guardrail | Enforces |
+|---|---|
+| `shared/vocabulary.json` | The one banned-word list. A tier per surface, so the site and the app cannot drift apart silently — they had, sharing exactly one term. |
+| `web/tests/plain-language.test.mjs` | That list against all six routes. Exemptions are per route and per term and must state a reason. |
+| `src/features/copy/__tests__/jargon.test.ts` | That list against app copy. Extracts string literals and JSX text; `${...}` is code, not copy. |
+| `src/features/copy/__tests__/appStore.test.ts` | The App Store listing: vocabulary, Apple's field limits, no AI claim the build cannot run. |
+| `src/features/__tests__/claims.test.ts` | Copy never runs ahead of the code. Reads `docs/PRODUCT.md` from disk. |
+| `src/features/knowledge/__tests__/publishedCounts.test.ts` | Published figures are the figures in the library. |
+| `src/features/docs/__tests__/docLifecycle.test.ts` | One live document per question; archived files carry their header and no stale path survives. |
+| `web/tests/rendered-html.test.mjs` and siblings | The ten product-truth boundaries in `web/CLAUDE.md`. |
+
+**Editing a doc is not editing the thing.** `docs/APP_STORE.md` is a copy of the
+listing; App Store Connect needs the same edit. `app/evidence/library.json` is
+regenerated from `src/features/knowledge/protocols.*.ts`; an edit there is
+overwritten by the next build.
+
 ## Before any push
 
 ```bash
