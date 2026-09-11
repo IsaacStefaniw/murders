@@ -1,0 +1,99 @@
+# State — what is true right now
+
+Rewritten at every session handover. Never appended to; it has no history
+section. Git holds the history and `docs/DECISIONS.md` holds the reasons.
+
+**Last rewritten:** 11 September 2026, at the handover out of the long app
+session (29 Aug – 10 Sep, 554k context, $2,497).
+See `docs/SESSION_PROTOCOL.md` for why and when this happens.
+
+---
+
+## 1. Where the work is
+
+| | |
+|---|---|
+| Trunk | `claude/rename-murders-folder-goh5q0` @ `aee1c91` — **this is the trunk, despite the name** |
+| `master` | `5bb9f6c`, dated 2020. Unrelated history, 88 behind. Dead — do not target it. |
+| App version | 1.0.0, build 18, three IAP products `WAITING_FOR_REVIEW` |
+| Tests | 175 test files under `src/`, 11 guardrail tests under `web/tests/` |
+| Docs | 148 markdown files under `docs/` — see §5 before reading any of them |
+
+The branch name is a leftover from an August task. `ADR-001` records that
+renaming the GitHub repo is an owner action Isaac has to do from Settings.
+Until then the misleading name is load-bearing: changing it breaks deploys.
+
+## 2. Live branches, and which hold unmerged work
+
+Verified against `git ls-remote` on 11 Sep, not from a local tracking ref
+(a stale one misreported this once already).
+
+| Branch | State |
+|---|---|
+| `claude/iap-sandbox-testing-issue-bnslwi` | **Fully merged.** 23 behind, 0 ahead. Its four purchase fixes are in the trunk. |
+| `claude/research-recovery` | **Fully merged.** 62 behind, 0 ahead. |
+| `claude/website-journey-powershell-nite39` | **17 commits stranded.** GA4 switched on, SEO scoreboard, and the home-page rewrite ("states the idea, not the scoreboard"). Not in the trunk. |
+| `claude/flyon-emails-migration-srf6f4` | 4 ahead. Standalone migration script, unrelated to the app. |
+
+## 3. In flight, and who it waits on
+
+Both of these wait on **Isaac**, not on a session. Each is a context window
+decaying at full price until it is answered.
+
+1. **IAP product verification.** Four code faults are fixed and merged
+   (`Promise.all` race, retry with backoff, error diagnostics, entitlement
+   poll — `src/lib/purchases.ts`). Nobody has confirmed the three products
+   are configured correctly in App Store Connect. **Needs: an App Store
+   Connect API key**, then the status workflow in `.github/scripts/asc-status.mjs`.
+2. **Website home-page rewrite.** 17 commits stranded on the website branch.
+   **Needs two answers:** which of four sections to cut, and whether to deploy
+   the rewrite now or hold it so one deploy carries both changes.
+
+## 4. Decided — do not re-argue
+
+`docs/DECISIONS.md` is the record. The four that get re-litigated most:
+
+- **ADR-002** — the scheduling engine is deterministic TypeScript. LLMs
+  prioritise and explain; they never emit a schedule.
+- **ADR-003** — local-first on device. Supabase only when env vars exist.
+- **Monetisation rev 3** — people pay from day one, in 1.0. No free week, no
+  grandfathering. Earlier sections of `MONETISATION.md` describe a free week
+  and are explicitly superseded by its §10.
+- **The word "prescription"** is out of user-facing copy, with one reviewed
+  exception in the films. `web/tests/plain-language.test.mjs` and
+  `src/features/copy/__tests__/jargon.test.ts` both enforce it.
+
+## 5. What to read, in order — and what not to
+
+This is the most important section in the file. `docs/` holds 148 markdown
+files, most of them point-in-time review records whose findings are already
+implemented. **A session that reads the wrong six is worse off than one that
+read none**, because it will act confidently on a superseded review.
+
+**Read these, in this order:**
+
+1. `docs/STATE.md` — this file
+2. `docs/DECISIONS.md` — the reasons, so they are not re-derived
+3. `docs/PRODUCT.md` — what the product is. Load-bearing: `claims.test.ts`
+   reads it from disk and fails the build on drift.
+4. `docs/PROBLEM_STATEMENT.md` — the problem, the hero copy and the film
+5. `web/CLAUDE.md` — if touching the website. Encodes failures, not preferences.
+6. `docs/DEVELOPMENT_PUSH.md` — the current worklist (Waves 0–4)
+
+**Do not read unless a task names them.** Every review document
+(`*_REVIEW*.md`, `QA_REPORT.md`, `OVERHAUL_REPORT.md`) is a record of a pass
+already implemented. They describe open issues that are closed and copy that
+has since been rewritten. `docs/DOC_LIFECYCLE.md` carries the disposition of
+each one.
+
+## 6. Checks before any push
+
+```bash
+npm run lint && npm run typecheck && npm test     # app
+cd web && npm run lint && npm test                # website
+cd web && npm run test:layout                     # only if layout changed
+```
+
+If `test:layout` cannot run, say that it did not run. Do not report the
+change as checked. That rule is in `web/CLAUDE.md` and it is there because
+it was broken once.
