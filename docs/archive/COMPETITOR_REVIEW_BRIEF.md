@@ -1,8 +1,15 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/COMPETITIVE_REVIEW_3.md`.
+>
+> The brief that commissioned the third sweep. The sweep exists; the brief is spent.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # Competitor review brief, for a session with real web access
 
 Written 2026-09-07 for a separate session whose network can reach vendor
-sites and the App Store. The last two sweeps (`docs/COMPETITIVE_REVIEW.md`,
-`docs/COMPETITIVE_REVIEW_2.md`) were done from a container whose proxy
+sites and the App Store. The last two sweeps (`docs/archive/COMPETITIVE_REVIEW.md`,
+`docs/archive/COMPETITIVE_REVIEW_2.md`) were done from a container whose proxy
 blocked every vendor site and apps.apple.com, so their prices and trial
 mechanics are search-sourced and marked unverified. This brief is the
 verified pass. Its output feeds two live decisions: whether Plus gets a
@@ -82,7 +89,7 @@ the trial allows it, not as a feature-list reader.
    tier, how long, card up front or not, and what the paywall says on the
    day the trial ends. Our round-three review found a free week or a free
    first Plus session was the single most requested change among people
-   who said "maybe" to paying (`docs/USABILITY_REVIEW.md`, round three).
+   who said "maybe" to paying (`docs/archive/USABILITY_REVIEW.md`, round three).
    Isaac's current model is pay from day one (`docs/MONETISATION.md`
    revision 3). The review should say, with the field's numbers, what a
    free week would cost and buy.
@@ -106,17 +113,17 @@ the trial allows it, not as a feature-list reader.
 4. Five things to build over the air before growth, each with what it
    closes and a cost guess in days; five that need a native build; three
    things to say louder because nobody else has them. Check these against
-   `docs/COMPETITIVE_REVIEW_2.md` sections 3 to 5 and say what changed.
+   `docs/archive/COMPETITIVE_REVIEW_2.md` sections 3 to 5 and say what changed.
 5. What the last two sweeps got wrong, cell by cell.
 6. Sources, one URL per claim.
 
 ## What already exists, so nothing is repeated
 
-- `docs/COMPETITIVE_REVIEW.md` and `docs/COMPETITIVE_REVIEW_2.md`: the two
+- `docs/archive/COMPETITIVE_REVIEW.md` and `docs/archive/COMPETITIVE_REVIEW_2.md`: the two
   earlier sweeps. Read them; do not restate them.
-- `docs/USABILITY_REVIEW.md` and `docs/review/round3-report.md`: what a
+- `docs/archive/USABILITY_REVIEW.md` and `docs/review/round3-report.md`: what a
   hundred personas said about our paywall and price.
-- `docs/COACH_VALUE_REVIEW.md`: what each coach does now, so the
+- `docs/archive/COACH_VALUE_REVIEW.md`: what each coach does now, so the
   comparison is against the current build, not last week's.
 
 Done when Isaac can read the pricing table and the three answers in five

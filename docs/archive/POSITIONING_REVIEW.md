@@ -1,3 +1,10 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/PROBLEM_STATEMENT.md`.
+>
+> Self-declared superseded in part on 2026-09-04. The problem statement and film script here were rewritten after review; the glossary and five-second test survive in the live docs.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # Positioning review — why people cannot tell what we sell
 
 > **Superseded in part, 2026-09-04.** The problem statement and the film script

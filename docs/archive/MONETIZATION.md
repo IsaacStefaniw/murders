@@ -1,6 +1,13 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/MONETISATION.md`.
+>
+> CONTRADICTS CURRENT POLICY. Describes a long trial and a free "complete lived week". Revision 3 of MONETISATION.md reversed that: people pay from day one, in 1.0. It also sells an "AI coach" that src/features/__tests__/claims.test.ts forbids, and calls /upgrade an unwired scaffold when StoreKit has shipped.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # Monetization — the paywall arc
 
-Grounded in the Aug-2026 research in docs/CEO_BRIEF.md: long personalised
+Grounded in the Aug-2026 research in docs/archive/CEO_BRIEF.md: long personalised
 assessments before the paywall convert dramatically better than early
 gates (Noom's quiz→program-build→paywall converts >10% of completers vs a
 2.7% category median); value-first onboarding beats paywall-at-launch by

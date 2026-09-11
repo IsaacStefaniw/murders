@@ -1,3 +1,10 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/PROBLEM_STATEMENT.md`.
+>
+> Five cold readers, 2026-09-04. The findings drove the plain-language work and are enforced by web/tests/plain-language.test.mjs.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # Five readers, none of whom had heard of us
 
 Five reviewers read the home page cold on 4 Sep 2026 — no context, no source,

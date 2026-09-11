@@ -84,7 +84,7 @@ In priority order.
 ## 5. The audience, in their own words
 
 Five reviewers, briefed only on who they were. Full transcripts in
-`docs/AUDIENCE_REVIEW.md`; the useful summary is below.
+`docs/archive/AUDIENCE_REVIEW.md`; the useful summary is below.
 
 | | Who | Verdict |
 |---|---|---|

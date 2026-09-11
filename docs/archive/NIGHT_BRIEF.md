@@ -1,3 +1,10 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/DEVELOPMENT_PUSH.md`.
+>
+> A single night's worklist, 2026-09-07. Spent.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # Night brief — six waves to shippable
 
 Written for myself, to be executed unattended. The test for every change:

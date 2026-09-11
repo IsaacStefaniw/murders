@@ -1,11 +1,11 @@
 # Creative brief — three claims, three sequences
 
 For the website session, from the website session. Written 4 Sep 2026 against
-Isaac's positioning note and the sweep in `docs/COMPETITIVE_REVIEW.md`.
+Isaac's positioning note and the sweep in `docs/archive/COMPETITIVE_REVIEW.md`.
 
 **One caveat stated up front.** This sandbox has no outbound network, so no
 competitor site was opened to write this. Everything said about the market
-below comes from the sourced sweep in `COMPETITIVE_REVIEW.md`, not from
+below comes from the sourced sweep in `docs/archive/COMPETITIVE_REVIEW.md`, not from
 looking. Where a claim about a competitor matters to a decision, it is marked
 so it can be checked before anyone acts on it.
 

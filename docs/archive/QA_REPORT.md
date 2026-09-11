@@ -1,9 +1,16 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/DEVELOPMENT_PUSH.md`.
+>
+> Workstream C, 2026-09-06. Every row was turned into a jest test, which is now the live record. Reading this for open issues will mislead — they are closed.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # QA report: functionality and deep QA (Workstream C)
 
 Written 2026-09-06 on `claude/rename-murders-folder-goh5q0`. Covers the
 work from commit `8c6f8c1` (the brief, 908 tests) to `ef4de29` (the
 baseline fix). Four area passes ran in parallel, one per half day as
-section 7 of `docs/REVIEW_BRIEF.md` asks: scheduler and planner, training,
+section 7 of `docs/archive/REVIEW_BRIEF.md` asks: scheduler and planner, training,
 pathways with interview, entitlement, meals and goals, and the store with
 persistence, health, behaviours, check-ins, metrics, notifications, backup,
 the accessibility floor and the copy guard. Every row below was written as

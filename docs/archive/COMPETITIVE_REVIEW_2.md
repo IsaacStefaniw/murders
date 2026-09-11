@@ -1,7 +1,14 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/COMPETITIVE_REVIEW_3.md`.
+>
+> Second sweep, 2026-09-06, still unverified — egress blocked apps.apple.com and every vendor site. Section 5 of the third sweep corrects it cell by cell.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # Competitive review, second sweep
 
 Written 2026-09-06 on `claude/rename-murders-folder-goh5q0` for Workstream A of
-`docs/REVIEW_BRIEF.md`. It extends `docs/COMPETITIVE_REVIEW.md` (2026-09-04),
+`docs/archive/REVIEW_BRIEF.md`. It extends `docs/archive/COMPETITIVE_REVIEW.md` (2026-09-04),
 checks what in it has become false, and reads IntentNorth from the code, not
 from older documents.
 
@@ -510,7 +517,7 @@ Athlytic and Gentler Streak also personalise, so it is not unique, but
 
 ## 6. What changed since the last sweep
 
-Things in `docs/COMPETITIVE_REVIEW.md` (2026-09-04) that are now false,
+Things in `docs/archive/COMPETITIVE_REVIEW.md` (2026-09-04) that are now false,
 checked against the code at this commit and the sources below.
 
 | Claim in the last sweep | Now |

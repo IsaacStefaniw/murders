@@ -1,9 +1,9 @@
 # Competitive review, third sweep — the verified pass
 
-Written 2026-09-07 against `docs/COMPETITOR_REVIEW_BRIEF.md`, from a session
+Written 2026-09-07 against `docs/archive/COMPETITOR_REVIEW_BRIEF.md`, from a session
 that could reach apps.apple.com/au, every vendor site that allows fetching,
 and the vendors' help centres. It does not restate
-`docs/COMPETITIVE_REVIEW.md` or `docs/COMPETITIVE_REVIEW_2.md`; section 5
+`docs/archive/COMPETITIVE_REVIEW.md` or `docs/archive/COMPETITIVE_REVIEW_2.md`; section 5
 says, cell by cell, where they were wrong.
 
 **What this pass could and could not do.** Every price below is the one the
@@ -45,7 +45,7 @@ branch head.
 | 5 Free | Nothing: "doesn't have a free forever plan and doesn't plan to" [V] | Nothing [V] | Lite: 5 agents, habits, 1 calendar, 1-week range [V] | Timeline, all-day tasks, subtasks, notes, widgets, energy monitor, "can always be downloaded and used for free" [V] | Nothing [V] | Interview, first insight, day's shape, every urge/reset/lapse tool, breathing and two-minute sits, five practices per area, full view of every coach, backup. |
 | 6 Paywall | No App Store purchase [S]; web US$22/mo or US$17/mo billed yearly (US$204) [V]; 14-day trial, "doesn't ask for your credit card until your trial is over" [V] | IAP Monthly **A$69.99**, Annual **A$499.99** [S]; "Start your 7-day free trial today!" [S]; a US$1 card hold at signup [V] | Web: Starter US$10, Business US$15 per seat/mo annual; 14 days, no card, drops to Lite [V] | IAP Monthly A$4.99 / A$11.99, Yearly A$14.99 / A$29.99 / A$34.99, Lifetime **A$129.99** [S]; 3-day trial that converts unless cancelled 24 h before [V] | IAP Weekly A$7.99, Monthly A$24.99 / A$49.99, Yearly A$199.99 / A$399.99 [S]; 7-day trial [V] | A$14.99 / A$89.99 / A$249 [brief]; paywall after first insight; 7-day intro offer on annual is optional in App Store Connect (`docs/APP_STORE.md`). |
 | 7 Single feature | None; "No lifetime deals" [V] | Credit top-ups only [V] | "Attendee User" packs US$8–32/mo [V] | None | None | None; app-wide entitlement. |
-| 8 Never pays, a month in | Locked out [V] | Locked out [V] | Lite forever [V] | Free planner keeps working [V] | Locked out [V] | Day's shape, urge tools, library titles; nothing degrades (`docs/USABILITY_REVIEW.md`, month-in screens). |
+| 8 Never pays, a month in | Locked out [V] | Locked out [V] | Lite forever [V] | Free planner keeps working [V] | Locked out [V] | Day's shape, urge tools, library titles; nothing degrades (`docs/archive/USABILITY_REVIEW.md`, month-in screens). |
 | 9 Evidence | None [V] | None [V] | None [V] | None [V] | None [V] | A–E on every practice, source named, safety line. |
 | 10 Privacy [S] | Data Linked to You: email, user content, identifiers, usage, diagnostics; account required | Linked: email, name, usage, crash; Not Linked: device ID for third-party ads; account required | n/a | Linked: email, user content; Not Linked: purchases, user ID, usage, diagnostics, photos; account not stated | Linked: email, name, usage, diagnostics, emails or text messages, user ID | Device ID only, not linked (`docs/APP_STORE.md`); no account. |
 | 11 Better than us | Planned-vs-actual time on every task [V] | Reads the real calendar, reschedules in seconds [V] | Habit rule with ideal time and window on the real calendar [V] | Timeline, widgets and Live Activities free [S,V] | Calendar, tasks and agenda in one desktop-class tool | |
@@ -460,8 +460,8 @@ the top of the first screenshot.
 
 ## 5. What the last two sweeps got wrong, cell by cell
 
-"Sweep 1" is `docs/COMPETITIVE_REVIEW.md` (2026-09-04); "sweep 2" is
-`docs/COMPETITIVE_REVIEW_2.md` (2026-09-06). Both were written without access
+"Sweep 1" is `docs/archive/COMPETITIVE_REVIEW.md` (2026-09-04); "sweep 2" is
+`docs/archive/COMPETITIVE_REVIEW_2.md` (2026-09-06). Both were written without access
 to the App Store; this table is what changes when it is read.
 
 | App | Sweep said | Verified now |
@@ -533,5 +533,5 @@ Benchmarks:
 
 Internal:
 
-- `docs/COMPETITIVE_REVIEW.md`, `docs/COMPETITIVE_REVIEW_2.md`, `docs/MONETISATION.md` (revision 3), `docs/APP_STORE.md`, `docs/USABILITY_REVIEW.md` (round three table), `docs/review/round3-report.md` (top changes asked for), `docs/PROBLEM_STATEMENT.md`
+- `docs/archive/COMPETITIVE_REVIEW.md`, `docs/archive/COMPETITIVE_REVIEW_2.md`, `docs/MONETISATION.md` (revision 3), `docs/APP_STORE.md`, `docs/archive/USABILITY_REVIEW.md` (round three table), `docs/review/round3-report.md` (top changes asked for), `docs/PROBLEM_STATEMENT.md`
 - Code at this branch head: `src/features/plus/entitlement.ts`, `src/features/training/swap.ts`, `src/app/session/workout.tsx`, `src/lib/scheduling/engine.ts`, `src/features/knowledge/protocols.ts`

@@ -3,7 +3,7 @@
 Isaac's direction, 2026-09-04, after seeing the thirty-second film. This
 is the reference for the film, the website and the store listing. Where an
 earlier document says something different (`docs/FILM_BRIEF.md` §3,
-`docs/POSITIONING_REVIEW.md` §"The message"), this one wins.
+`docs/archive/POSITIONING_REVIEW.md` §"The message"), this one wins.
 
 ## The problem, in the customer's words
 
@@ -51,7 +51,7 @@ then moves it when your week moves and tells you why.
 - **"Protocols."** People hear hospitals. Practices, or simply what the
   expert said.
 - **"Life operating system", "operating plan", "the ladder", "pathways",
-  "arbitration".** See the glossary in `docs/POSITIONING_REVIEW.md`.
+  "arbitration".** See the glossary in `docs/archive/POSITIONING_REVIEW.md`.
 - **A problem the customer does not have.** No four-apps opener, no
   "dashboard" language, no "optimise".
 

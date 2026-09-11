@@ -1,3 +1,10 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/DEVELOPMENT_PUSH.md`.
+>
+> Record of the thousand-reviewer overhaul loop, 2026-09-04. The changes shipped. The banned vocabulary it produced lives in src/features/copy/__tests__/jargon.test.ts.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # The overhaul — a thousand reviewers, twice
 
 Written 2026-09-04. Isaac asked for a complete overhaul of the app before

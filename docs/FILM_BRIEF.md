@@ -8,7 +8,7 @@
 > seconds, no counts, the evidence grading instead).
 >
 > **Revision 2, 2026-09-04.** User feedback: nobody could tell what we sell.
-> `docs/POSITIONING_REVIEW.md` replaces §6 with a thirty-second script that
+> `docs/archive/POSITIONING_REVIEW.md` replaces §6 with a thirty-second script that
 > opens on the problem in plain words. The masters for it are
 > `docs/film/film9-30s-plain.py`; the films are `intentnorth-week-30s` and
 > `-vertical`. §1–§5, §7 and §8 still hold.

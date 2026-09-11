@@ -1,3 +1,10 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `web/CLAUDE.md`.
+>
+> App-session review of the deployed site at 88cb884. Its conclusions were folded into web/CLAUDE.md, which is the live website handoff.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # Website review — from the app session to the website session
 
 Reviewed at your `88cb884`. I could not render the live page: `intentnorth.app`

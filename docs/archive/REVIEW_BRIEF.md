@@ -1,3 +1,10 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/DEVELOPMENT_PUSH.md`.
+>
+> The brief that commissioned Workstreams A, B and C. All three delivered; their reports are archived beside this.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # Review brief — competitors, usability, functionality, deep QA
 
 For the session that picks this up. Written 2026-09-05 at commit `67e94f9`
@@ -5,9 +12,9 @@ on `claude/rename-murders-folder-goh5q0`. Everything here is on that
 branch; nothing in this brief lives anywhere else.
 
 > **Status, 2026-09-06.** This brief has been run once, in the session
-> that wrote it. Deliverables on the branch: `docs/COMPETITIVE_REVIEW_2.md`,
-> `docs/USABILITY_REVIEW.md` with `docs/review/round3-report.md`, and
-> `docs/QA_REPORT.md`. Tests went from 908 to 1,524. Thirty-three fixes
+> that wrote it. Deliverables on the branch: `docs/archive/COMPETITIVE_REVIEW_2.md`,
+> `docs/archive/USABILITY_REVIEW.md` with `docs/review/round3-report.md`, and
+> `docs/archive/QA_REPORT.md`. Tests went from 908 to 1,524. Thirty-three fixes
 > landed in nine commits from `671a2f7` to the head. What is still open is
 > listed in the three reports; the next session starts from those open
 > lists, not from section 4 again, and re-runs only what it changes.
@@ -50,7 +57,7 @@ These are Isaac's standing rules. They do not bend for a good reason.
    under `web/`, `cd web && npm test`. A red gate is not committed.
 9. **Words.** `src/features/copy/__tests__/jargon.test.ts` bans the terms
    a thousand reviewers could not follow. Read the glossary in
-   `docs/POSITIONING_REVIEW.md` and `docs/PROBLEM_STATEMENT.md` before
+   `docs/archive/POSITIONING_REVIEW.md` and `docs/PROBLEM_STATEMENT.md` before
    writing any copy. No counts of practices; the grading is the point.
 10. **Nothing non-media under `web/public/`.**
 
@@ -134,7 +141,7 @@ add a scenario when you find one by hand.
 
 ## 3. What has already been done, so you do not do it again
 
-Read `docs/OVERHAUL_REPORT.md` first. A thousand reviewers, then a hundred,
+Read `docs/archive/OVERHAUL_REPORT.md` first. A thousand reviewers, then a hundred,
 and what changed between them. Since that report, on this branch:
 
 - The example day (`/example-day`) runs the full pipeline with every coach.
@@ -177,7 +184,7 @@ Run them in this order. Each has a deliverable and a definition of done.
 
 ### A. Competitor review (one day)
 
-`docs/COMPETITIVE_REVIEW.md` is the last sweep, with sources. Do not
+`docs/archive/COMPETITIVE_REVIEW.md` is the last sweep, with sources. Do not
 repeat it; extend it, and check whether anything in it has become false.
 
 **The set.** One deep pass on each of these, as a paying user for the
@@ -201,7 +208,7 @@ skipped session), what is free, what the paywall says and when it appears,
 and the one thing it does better than IntentNorth. Then the reverse: the one
 thing IntentNorth does that it cannot.
 
-**Deliverable.** `docs/COMPETITIVE_REVIEW_2.md`: a matrix of the eight
+**Deliverable.** `docs/archive/COMPETITIVE_REVIEW_2.md`: a matrix of the eight
 categories against twelve dimensions, five things to build over the air
 before growth with a cost and a file, five things that need a native build,
 and three things to say louder because nobody else has them. Every claim
@@ -263,7 +270,7 @@ personas with the same tags, and compare against round two in
 `paywall_too_early` (44% in round two, before the card moved to the second
 day) and `free_tier_unclear` (23%).
 
-**Deliverable.** `docs/USABILITY_REVIEW.md`: findings ranked by how many of
+**Deliverable.** `docs/archive/USABILITY_REVIEW.md`: findings ranked by how many of
 the twelve hit them, each with a screenshot, the persona, the step, the
 expected and the actual. Fixes for everything small pushed to the branch
 with tests. The round-three report under `docs/review/round3-report.md`
@@ -361,7 +368,7 @@ Add the scenario to the simulation when it is a scheduler or pathway
 behaviour. Commit per area with a message that says what was wrong and
 what is now true, in the style of the branch's history.
 
-**Deliverable.** `docs/QA_REPORT.md`: the scenario tables per area with
+**Deliverable.** `docs/archive/QA_REPORT.md`: the scenario tables per area with
 pass, fixed or open against each row; the count of tests before and after;
 every open row with a reproduction and the reason it is open. The tests
 themselves, on the branch.
@@ -411,9 +418,9 @@ decisions and belong in the report as proposals.
 Three documents on the branch when you are done, plus this brief updated
 with what changed:
 
-- `docs/COMPETITIVE_REVIEW_2.md`
-- `docs/USABILITY_REVIEW.md` and `docs/review/round3-report.md`
-- `docs/QA_REPORT.md`
+- `docs/archive/COMPETITIVE_REVIEW_2.md`
+- `docs/archive/USABILITY_REVIEW.md` and `docs/review/round3-report.md`
+- `docs/archive/QA_REPORT.md`
 
 And one summary to Isaac, short, in this order: what is fixed, what is
 open and why, the round-three numbers against rounds one and two, the three
@@ -439,8 +446,8 @@ push; the website session is active on the same branch.
 
 - [ ] On the branch, at or after `67e94f9`, gates green before starting
 - [ ] Web export served, one screenshot per route captured and readable
-- [ ] `docs/OVERHAUL_REPORT.md`, `docs/PROBLEM_STATEMENT.md`,
-      `docs/POSITIONING_REVIEW.md`, `docs/COMPETITIVE_REVIEW.md`,
+- [ ] `docs/archive/OVERHAUL_REPORT.md`, `docs/PROBLEM_STATEMENT.md`,
+      `docs/archive/POSITIONING_REVIEW.md`, `docs/archive/COMPETITIVE_REVIEW.md`,
       `docs/MARKETS.md`, `docs/RELEASE.md`, `web/CLAUDE.md` read
 - [ ] Section 0 acknowledged in the first message to Isaac
 - [ ] A, B, C, D each with its deliverable on the branch

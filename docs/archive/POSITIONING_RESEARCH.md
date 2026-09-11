@@ -1,3 +1,10 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/PROBLEM_STATEMENT.md`.
+>
+> Positioning input for the website session, consumed. The problem statement is the live reference.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # The research corpus as a selling point
 
 Positioning input for the website session. **Copy and argument only — no

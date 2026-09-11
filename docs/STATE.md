@@ -17,7 +17,7 @@ See `docs/SESSION_PROTOCOL.md` for why and when this happens.
 | `master` | `5bb9f6c`, dated 2020. Unrelated history, 88 behind. Dead — do not target it. |
 | App version | 1.0.0, build 18, three IAP products `WAITING_FOR_REVIEW` |
 | Tests | 175 test files under `src/`, 11 guardrail tests under `web/tests/` |
-| Docs | 148 markdown files under `docs/` — see §5 before reading any of them |
+| Docs | 149 markdown files: 37 live in `docs/`, 15 in `docs/archive/`, rest under `research/` and `review/` &mdash; see &sect;5 |
 
 The branch name is a leftover from an August task. `ADR-001` records that
 renaming the GitHub repo is an owner action Isaac has to do from Settings.
@@ -48,6 +48,23 @@ decaying at full price until it is answered.
 2. **Website home-page rewrite.** 17 commits stranded on the website branch.
    **Needs two answers:** which of four sections to cut, and whether to deploy
    the rewrite now or hold it so one deploy carries both changes.
+
+## 3a. The trunk is red
+
+Two tests fail on `aee1c91`, the current trunk head, and have since a merge
+on 9–10 September. Verified on a clean checkout with nothing else applied.
+
+- `src/features/integration/__tests__/seam4.behaviour.test.ts` — "the
+  interview's behaviour becomes an intention and a running coach". No plan
+  item carries a `routineId` from the interview's own routines.
+- `src/state/__tests__/actions.test.ts`
+
+2,291 of 2,293 tests pass, which is how this went unnoticed: the suite looks
+healthy at a glance. Nobody was watching the exit code.
+
+**Fix these before shipping anything else from the trunk.** A red trunk means
+every later session inherits a failure it did not cause and cannot tell from
+its own.
 
 ## 4. Decided — do not re-argue
 
@@ -80,11 +97,12 @@ read none**, because it will act confidently on a superseded review.
 5. `web/CLAUDE.md` — if touching the website. Encodes failures, not preferences.
 6. `docs/DEVELOPMENT_PUSH.md` — the current worklist (Waves 0–4)
 
-**Do not read unless a task names them.** Every review document
-(`*_REVIEW*.md`, `QA_REPORT.md`, `OVERHAUL_REPORT.md`) is a record of a pass
-already implemented. They describe open issues that are closed and copy that
-has since been rewritten. `docs/DOC_LIFECYCLE.md` carries the disposition of
-each one.
+**Do not read `docs/archive/`.** Fifteen documents moved there on 11 Sep:
+the review records, the spent briefs and the superseded models. Each carries a
+header naming what replaced it. They describe open issues that are closed and
+copy that has since been rewritten, and one of them (`MONETIZATION.md`)
+contradicts current pricing policy outright. `docs/DOC_LIFECYCLE.md` carries
+the disposition of every file and the rule for future ones.
 
 ## 6. Checks before any push
 

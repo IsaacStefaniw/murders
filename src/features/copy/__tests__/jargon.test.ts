@@ -5,7 +5,7 @@ import path from 'path';
  * The words a thousand reviewers did not understand, kept out of the
  * screens for good.
  *
- * Round one of the persona review (docs/OVERHAUL_REPORT.md) flagged these
+ * Round one of the persona review (docs/archive/OVERHAUL_REPORT.md) flagged these
  * more than any others. Each has a plain replacement in the copy now; this
  * test is what stops the old term drifting back in through a new screen.
  * Comments and identifiers are allowed to keep them — only string literals

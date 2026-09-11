@@ -5,13 +5,13 @@ appear in the frame — a disclaimer, a changed end card, a different CTA —
 is changed HERE and re-rendered once. Compositing it onto a finished encode
 instead costs a generation of quality.
 
-The brief every master answers to is `docs/FILM_BRIEF.md`; the current cut follows the thirty-second script in `docs/POSITIONING_REVIEW.md`, which supersedes the brief's storyboard.
+The brief every master answers to is `docs/FILM_BRIEF.md`; the current cut follows the thirty-second script in `docs/archive/POSITIONING_REVIEW.md`, which supersedes the brief's storyboard.
 
 | Master | Output | Size | Length |
 |---|---|---|---|
 | `film10-50s-heard-it.py` (MODE=landscape / vertical) | `intentnorth-heard-50s`, `-vertical` | 1920×1080, 1080×1920 | ~50s — **current**, per docs/PROBLEM_STATEMENT.md |
 | `film9-30s-plain.py` (MODE=landscape / vertical) | `intentnorth-week-30s`, `-vertical` | 1920×1080, 1080×1920 | ~31s — superseded: the four-apps opener was not the customer's problem |
-| `film7-45s-intent.py` | `intentnorth-intent-45s` | 1920×1080 | ~47s — superseded, see docs/POSITIONING_REVIEW.md |
+| `film7-45s-intent.py` | `intentnorth-intent-45s` | 1920×1080 | ~47s — superseded, see docs/archive/POSITIONING_REVIEW.md |
 | `film8-18s-vertical.py` | `intentnorth-intent-18s-vertical` | 1080×1920 | ~19s |
 | `film5-45s-landscape.py`, `film6-16s-vertical.py` | the previous cut, kept for the record | | |
 

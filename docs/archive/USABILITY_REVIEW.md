@@ -1,6 +1,13 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/DEVELOPMENT_PUSH.md`.
+>
+> Workstream B, walked 2026-09-06. Findings implemented; the screenshots it names never lived in the repo.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # Usability review
 
-Workstream B of `docs/REVIEW_BRIEF.md`, section 4B. Branch
+Workstream B of `docs/archive/REVIEW_BRIEF.md`, section 4B. Branch
 `claude/rename-murders-folder-goh5q0`, walked on 2026-09-06 against the served
 web export of the build at `671a2f7` and re-checked after the fixes below.
 

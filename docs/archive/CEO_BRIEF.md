@@ -1,3 +1,10 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/MONETISATION.md`.
+>
+> August 2026 conversion research, consumed into the monetisation model and superseded by the revision 3 decision.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # CEO Brief — INTENT as life's co-pilot
 
 ## Vision
@@ -28,7 +35,7 @@ nothing about the user's actual calendar, family, capacity, or other
 goals. INTENT holds the seam: one evidence base + one calendar + one
 learning loop across all domains. That is the defensible position.
 
-## Monetization (design now, wire later — docs/MONETIZATION.md)
+## Monetization (design now, wire later — docs/archive/MONETIZATION.md)
 
 - **Free**: full interview, one active path, Today/Plan/adaptation, all
   sessions, 7-day-week experience complete. The free tier must be good

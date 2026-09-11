@@ -1,4 +1,4 @@
-"""The thirty-second film a stranger can follow, per docs/POSITIONING_REVIEW.md.
+"""The thirty-second film a stranger can follow, per docs/archive/POSITIONING_REVIEW.md.
 
 Problem first, in plain words, then one idea per beat and one readable
 line per screen with the rest of the UI allowed to blur. Nothing on the

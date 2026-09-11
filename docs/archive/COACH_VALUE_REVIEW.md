@@ -1,3 +1,10 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/DEVELOPMENT_PUSH.md`.
+>
+> Seven parallel coach audits, 2026-09-07. The top changes shipped on the branch; the open decisions moved into the development push.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # Coach value review
 
 Written 2026-09-07 on `claude/rename-murders-folder-goh5q0` (head `f0dc4f4`).

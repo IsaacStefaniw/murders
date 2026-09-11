@@ -1,3 +1,10 @@
+> **ARCHIVED — a record, not guidance.**
+> Superseded by `docs/COMPETITIVE_REVIEW_3.md`.
+>
+> First sweep, 2026-09-04, unverified (the container could not reach vendor sites). The third sweep checked every cell against the Australian App Store and says where this was wrong.
+>
+> Do not act on this document. See `docs/DOC_LIFECYCLE.md`.
+
 # Competitive review — where IntentNorth stands, and what to build next
 
 Written 2026-09-04 from a full sweep of the codebase (47,139 lines of
