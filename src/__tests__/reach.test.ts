@@ -87,7 +87,7 @@ const EXEMPT = [
  *                 makes is a guess about a week it cannot observe.
  *   location      Undecided for 1.0. If it is out, delete it.
  *
- * See docs/LAUNCH_BRIEF.md §6.
+ * See docs/BEFORE_LAUNCH.md §1.
  */
 const KNOWN_STRANDED = [
   'features/health/dailyAsk.ts',
