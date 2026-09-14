@@ -31,7 +31,23 @@ export function buildWeeklyChanges(input: {
   const items: PlanItem[] = weekDates
     .flatMap((d) => input.plans[d]?.items ?? [])
     .filter((i) => !i.fixed);
-  const resolved = items.filter((i) => i.status === 'completed' || i.status === 'skipped');
+  /**
+   * An untouched item is the loudest signal, not the absent one.
+   *
+   * This used to count only items marked `completed` or `skipped`, which
+   * quietly assumed somebody who does not do a thing tells the app so.
+   * They do not. The person drowning in a plan is precisely the one who
+   * never taps "skip" — they stop opening it — so their items stay
+   * `planned` and were invisible to the one mechanism built to rescue
+   * them. In a six-month simulation that produced two deactivations in
+   * twenty-six weeks for a persona completing 27% of her week.
+   *
+   * The week being reviewed is over, so anything still `planned` is a
+   * thing that did not happen. It counts.
+   */
+  const resolved = items.filter(
+    (i) => i.status === 'completed' || i.status === 'skipped' || i.status === 'planned',
+  );
   const completed = resolved.filter((i) => i.status === 'completed');
 
   const noticed: string[] = [];
@@ -56,8 +72,10 @@ export function buildWeeklyChanges(input: {
     .filter((r) => !(connectionAreas.has(r.area) && (activeByArea.get(r.area) ?? 0) <= 1))
     .map((r) => {
       const own = resolved.filter((i) => i.routineId === r.id);
-      const skips = own.filter((i) => i.status === 'skipped').length;
-      return { routine: r, obs: own.length, skipRate: own.length ? skips / own.length : 0 };
+      // Skipped and never-touched are the same outcome for this purpose:
+      // the thing did not happen. Only a completion counts against it.
+      const missed = own.filter((i) => i.status !== 'completed').length;
+      return { routine: r, obs: own.length, skipRate: own.length ? missed / own.length : 0 };
     })
     .filter((x) => x.obs >= 2 && x.skipRate >= 0.6)
     .sort((a, b) => b.skipRate - a.skipRate);

@@ -16,6 +16,7 @@ import { evidenceRankFor, withProtocolBounds } from '@/features/knowledge/protoc
 import { profileForDate } from '@/features/roster/roster';
 import { durationMinutes, toHHMM, toMinutes, weekdayOf } from '@/lib/dates';
 import type { DailyPlan, Goal, LifeProfile, PlanItem, Routine, Weekday } from '@/types/domain';
+import { RESERVED_FREE_FRACTION } from '@/features/planner/load';
 
 const LUNCH_START = 12 * 60;
 const LUNCH_END = 13 * 60 + 30;
@@ -259,9 +260,10 @@ export function generateDailyPlan(
     calendarEvents.length > 0
       ? { blocks: calendarEvents, uncarved: [] }
       : carveWorkDay(profile, date, sized);
-  // Capacity governs slack: minimal keeps a third of free time untouched.
-  const reservedFreeFraction =
-    profile.capacity === 'minimal' ? 0.35 : profile.capacity === 'push' ? 0.2 : 0.25;
+  // Capacity governs slack. The table lives in `load.ts` because the same
+  // gears are now moved by the completion servo, and two copies of it
+  // would drift the moment either was tuned.
+  const reservedFreeFraction = RESERVED_FREE_FRACTION[profile.capacity ?? 'steady'];
   const plan = buildDailyPlan({
     date,
     wakeTime: profile.wakeTime,

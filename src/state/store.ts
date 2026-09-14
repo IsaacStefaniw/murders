@@ -127,6 +127,11 @@ import type {
   WorkoutLog,
 } from '@/types/domain';
 import { makeCount, type WeeklyCount } from '@/features/behaviours/weekly';
+import {
+  effectiveCapacity,
+  type Capacity,
+  type WeekCapacityOverride,
+} from '@/features/planner/load';
 
 export interface AppState {
   hydrated: boolean;
@@ -152,6 +157,17 @@ export interface AppState {
    * build.
    */
   weeklyCounts: WeeklyCount[];
+
+  /**
+   * Weeks the person set the size of themselves.
+   *
+   * Plan volume otherwise moves on its own, aiming at a completion rate
+   * rather than a number of items (features/planner/load.ts). This is the
+   * override, and it always wins: the servo exists to stop somebody
+   * drowning, not to tell them what they can handle.
+   */
+  weekCapacities: WeekCapacityOverride[];
+  setWeekCapacity: (weekStart: string, capacity: Capacity) => void;
   /** Upsert — one figure per behaviour per week, correctable. */
   setWeeklyCount: (behaviour: BehaviourKey, weekStart: string, count: number) => void;
   reflections: Reflection[];
@@ -669,6 +685,7 @@ const initialData = {
   behaviourIntentions: [] as BehaviourIntention[],
   behaviourEvents: [] as BehaviourEvent[],
   weeklyCounts: [] as WeeklyCount[],
+  weekCapacities: [] as WeekCapacityOverride[],
   reflections: [] as Reflection[],
   suggestions: [] as Suggestion[],
   experiments: [] as Experiment[],
@@ -1007,7 +1024,18 @@ export const useAppStore = create<AppState>()(
           // measured sessions is absent from the map and keeps the length
           // it was created with, so a new plan is unchanged by this.
           const learned = learnedDurationMinutes(Object.values(plans).flatMap((p) => p.items));
-          const { unplaced, moved, energy, ...plan } = generateDailyPlan(profile, running, date, [], goals, learned);
+          // The size of THIS week, which is the person's choice where they
+          // made one and the completion servo's where they did not. Applied
+          // as a profile for the date, the same way a roster already is.
+          const gear = effectiveCapacity({
+            stated: profile.capacity ?? 'steady',
+            overrides: get().weekCapacities,
+            plans,
+            date,
+          });
+          const forWeek =
+            gear.capacity === profile.capacity ? profile : { ...profile, capacity: gear.capacity };
+          const { unplaced, moved, energy, ...plan } = generateDailyPlan(forWeek, running, date, [], goals, learned);
           // What did not fit is the visible half of arbitration. It used to
           // be destructured into `_unplaced` and dropped on the floor, which
           // meant the engine made the product's defining decision and then
@@ -1443,6 +1471,16 @@ export const useAppStore = create<AppState>()(
           record(eventFor(item, date, 'completed', { evidence: item.evidence }));
           get().assessGoals();
           return item.id;
+        },
+
+        setWeekCapacity: (weekStart, capacity) => {
+          const others = get().weekCapacities.filter((c) => c.weekStart !== weekStart);
+          set({
+            weekCapacities: [...others, { weekStart, capacity, setAt: new Date().toISOString() }],
+          });
+          // The week the person just resized should look resized.
+          const today = todayKey();
+          for (let i = 0; i <= 6; i++) get().regeneratePlan(addDays(today, i));
         },
 
         setWeeklyCount: (behaviour, weekStart, count) => {

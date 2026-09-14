@@ -175,6 +175,16 @@ export function WellbeingCard() {
           {BAND_LABEL[week.band]} on the American Heart Association&apos;s scale, where 75 and above
           is high and under 50 is low.
         </AppText>
+      ) : week.counted.length > 0 ? (
+        /* Readable, but not enough of the construct to carry its categories.
+           The band is published for the mean of eight; naming it off one or
+           two would be the app inventing a verdict out of coverage. */
+        <AppText variant="caption" color="textSecondary">
+          Not enough of the eight yet to say where this sits overall — the Association&apos;s
+          high/intermediate/low scale is defined across all eight, and naming it off{' '}
+          {week.counted.length === 1 ? 'one' : week.counted.length} would be reading more than we
+          measured. Each one below stands on its own published threshold.
+        </AppText>
       ) : (
         <AppText variant="caption" color="textSecondary">
           Plan a session, log a night&apos;s sleep, or add your height and weight, and this starts

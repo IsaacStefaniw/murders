@@ -90,6 +90,16 @@ export interface Component {
 
 export const CATEGORY_CUTOFFS = { intermediate: 50, high: 75 } as const;
 
+/**
+ * How much of the eight has to be readable before a band is named at all.
+ *
+ * Four is half the construct, and half is already a stretch — it is the
+ * point at which the observed mean stops being a number about one or two
+ * things and starts to resemble the quantity the categories were drawn
+ * for. Below it the app reports components and nothing else.
+ */
+export const BAND_MIN_COMPONENTS = 4;
+
 /* ── The published scoring tables ─────────────────────────────────────── */
 
 /** Minutes a week of moderate-intensity activity. AHA, Life's Essential 8. */
@@ -588,8 +598,38 @@ export function weekHealth(input: WeekInputs): WeekHealth {
       ? null
       : counted.reduce((sum, c) => sum + (c.score ?? 0), 0) / counted.length;
 
+  /**
+   * The band is withheld until enough of the construct is readable.
+   *
+   * Walking the real app on a fresh account, the Progress tab opened with:
+   * "0 across the 1 of 8 we can see — Low on the American Heart
+   * Association's scale, where 75 and above is high and under 50 is low."
+   *
+   * Day one. One component. Activity scored zero because the week had been
+   * planned two minutes earlier and nothing had happened yet. And from
+   * that, under a medical body's name, the app told a brand-new person
+   * their cardiovascular health was Low.
+   *
+   * Two things are wrong and only one is about the copy.
+   *
+   * The categories 0-49 / 50-74 / 75-100 are published for the mean of
+   * EIGHT components. Applying them to a mean of one and printing the
+   * Association's name beside the result is exactly what this module's own
+   * header forbids — "it is not a Life's Essential 8 score and must never
+   * be presented as one". The header was right and the card broke it.
+   *
+   * And the four the app cannot see include the three blood measures,
+   * which is not a random quarter missing: it is a biased sample, weighted
+   * against the components that carry the most risk. A partial mean is not
+   * a noisier estimate of the whole. It is a different quantity.
+   *
+   * So: no band under half the construct, and the card says what it read
+   * instead. Below that the components speak for themselves, in their own
+   * units, against their own published thresholds — which is what they
+   * could always do and what nobody needed a composite for.
+   */
   const band =
-    composite === null
+    composite === null || counted.length < BAND_MIN_COMPONENTS
       ? null
       : composite >= CATEGORY_CUTOFFS.high
         ? 'high'
@@ -608,8 +648,10 @@ export function weekHealth(input: WeekInputs): WeekHealth {
 
   const headline =
     composite === null
-      ? 'Nothing observed yet'
-      : `${Math.round(composite)} across the ${counted.length} of 8 we can see`;
+      ? 'Nothing read yet'
+      : counted.length < BAND_MIN_COMPONENTS
+        ? `${counted.length} of the 8 readable so far`
+        : `${Math.round(composite)} across the ${counted.length} of 8 we can see`;
 
   return { components, observed, counted, composite, band, headline, biggestGap };
 }

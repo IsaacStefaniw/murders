@@ -11,6 +11,7 @@ import { dayCountLine } from '@/features/planner/dayCount';
 import { describeCycle } from '@/features/roster/roster';
 import { PlanItemRow } from '@/features/today/plan-item-row';
 import { buildWeekShape } from '@/features/review/weekShape';
+import { WeekSizeCard } from '@/features/planner/WeekSizeCard';
 import { QuickAdd } from '@/features/today/QuickAdd';
 import { addDays, formatDateLong, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
@@ -55,6 +56,11 @@ export default function Plan() {
         Week
       </AppText>
       <AppText variant="title">The week ahead</AppText>
+
+      {/* How big this week is, before what is in it. A plan you cannot
+          resize is one you abandon in a bad fortnight — see
+          features/planner/load.ts for the persona this exists for. */}
+      <WeekSizeCard />
 
       {/* What the week is FOR, before the seven days that make it up. The
           tab used to open straight onto Monday, which is a calendar rather

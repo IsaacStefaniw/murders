@@ -182,6 +182,9 @@ export default function Today() {
     (i) => meaningful(i) && i.id !== nowItem?.id && toMinutes(i.start) >= EVENING_START,
   );
   const doneCount = plan.items.filter((i) => i.status === 'completed').length;
+  // Items whose window has passed with no answer either way. The day is
+  // not "complete" while these are sitting there being asked about.
+  const unresolvedCount = overdueItems.filter((i) => i.status === 'planned').length;
   // The tap-a-row hint is only true when there is a row. On a free day, or
   // on the free tier where the sessions are shown locked, it pointed at
   // nothing and read as a bug.
@@ -300,13 +303,34 @@ export default function Today() {
         </Card>
       ) : (
         <Card>
+          {/*
+            "Complete" has to mean complete.
+
+            This branch fires whenever nothing is running and nothing is
+            still ahead — which includes the evening of a day whose items
+            came and went untouched. It used to say "Day complete — 0 of 1
+            done. Nothing left that needs you." directly above an "Earlier
+            — did it happen?" section asking about that very item. Two
+            blocks on one screen, contradicting each other, and the one in
+            the larger type was the one that was wrong.
+
+            Nothing here scolds. An unanswered day is reported as
+            unanswered, which is also the honest prompt for the section
+            below it.
+          */}
           <AppText variant="heading">
             {meaningfulCount === 0
               ? 'An open day.'
-              : `Day complete — ${doneCount} of ${meaningfulCount} done.`}
+              : unresolvedCount > 0
+                ? `${doneCount} of ${meaningfulCount} done.`
+                : `Day complete — ${doneCount} of ${meaningfulCount} done.`}
           </AppText>
           {meaningfulCount > 0 ? (
-            <AppText variant="secondary">Nothing left that needs you.</AppText>
+            <AppText variant="secondary">
+              {unresolvedCount > 0
+                ? `${unresolvedCount} ${unresolvedCount === 1 ? 'thing is' : 'things are'} still unanswered below.`
+                : 'Nothing left that needs you.'}
+            </AppText>
           ) : null}
           {/* The moment someone most wants to put something on the day is
               the moment the day is clear. There was no way to. */}

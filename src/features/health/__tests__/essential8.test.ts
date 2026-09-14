@@ -220,15 +220,16 @@ describe('the week composite', () => {
   });
 
   it('never presents itself as a Life’s Essential 8 score', () => {
-    // 30 minutes = 40, never smoked = 100, mean 70 — and the headline says
-    // out loud that it is two of eight, because half the construct missing
-    // is half the construct missing.
+    // Two of eight readable. The headline no longer leads with a mean at
+    // all here: two components is not an estimate of eight, so it reports
+    // coverage and lets the components speak below.
     const out = weekHealth(week({
       plans: plansOf(item({ start: '07:00', end: '07:30', sessionType: 'workout' })),
       nicotine: 'never',
     }));
-    expect(out.headline).toBe('70 across the 2 of 8 we can see');
+    expect(out.headline).toBe('2 of the 8 readable so far');
     expect(out.headline).not.toMatch(/Essential/i);
+    expect(out.band).toBeNull();
   });
 
   it('holds activity back rather than scoring an unwatched week as a zero', () => {
@@ -264,22 +265,48 @@ describe('the week composite', () => {
     expect(blood.every((c) => c.score === null && c.blocked)).toBe(true);
   });
 
-  it('bands on the published cutoffs', () => {
-    // Activity only: 150 min = 100 = high.
-    const high = weekHealth(week({
+  it('withholds the band until half the construct is readable', () => {
+    // The day-one failure this guards: a fresh account read ONE component
+    // — activity, zero because the week was planned minutes ago — and the
+    // card said "Low on the American Heart Association's scale". The
+    // categories are published for the mean of eight, and a mean of one is
+    // not a noisier estimate of that, it is a different quantity.
+    const oneComponent = weekHealth(week({
       plans: plansOf(item({ start: '07:00', end: '09:30', sessionType: 'workout' })),
     }));
+    expect(oneComponent.counted).toHaveLength(1);
+    expect(oneComponent.band).toBeNull();
+    expect(oneComponent.headline).not.toMatch(/American Heart|scale/i);
+  });
+
+  it('bands on the published cutoffs once four are readable', () => {
+    const metrics = (weightKg: number) => [
+      { id: 'h', key: 'body.height', value: 180, at: `${TODAY}T00:00:00.000Z`, source: 'user' as const },
+      { id: 'w', key: 'body.weight', value: weightKg, at: `${TODAY}T00:00:00.000Z`, source: 'user' as const },
+      { id: 's', key: 'sleep.hours', value: 8, at: `${TODAY}T00:00:00.000Z`, source: 'user' as const },
+    ];
+    // activity 100, nicotine 100, sleep 100, BMI 100 → 100 → high.
+    const high = weekHealth(week({
+      plans: plansOf(item({ start: '07:00', end: '09:30', sessionType: 'workout' })),
+      nicotine: 'never',
+      metrics: metrics(70),
+    }));
+    expect(high.counted).toHaveLength(4);
     expect(high.band).toBe('high');
 
-    // Activity only: 60 min = 60 = intermediate.
+    // activity 40, nicotine 50, sleep 100, BMI 100 → 72.5 → intermediate.
     const mid = weekHealth(week({
-      plans: plansOf(item({ start: '07:00', end: '08:00', sessionType: 'workout' })),
+      plans: plansOf(item({ start: '07:00', end: '07:30', sessionType: 'workout' })),
+      nicotine: 'quit1to5y',
+      metrics: metrics(70),
     }));
     expect(mid.band).toBe('intermediate');
 
-    // Activity only: 30 min = 40 = low.
+    // activity 40, nicotine 0, sleep 100, BMI 30 → 42.5 → low.
     const low = weekHealth(week({
       plans: plansOf(item({ start: '07:00', end: '07:30', sessionType: 'workout' })),
+      nicotine: 'smokesNow',
+      metrics: metrics(105),
     }));
     expect(low.band).toBe('low');
   });
@@ -290,7 +317,7 @@ describe('the week composite', () => {
     const out = weekHealth(week());
     expect(out.composite).toBeNull();
     expect(out.band).toBeNull();
-    expect(out.headline).toBe('Nothing observed yet');
+    expect(out.headline).toBe('Nothing read yet');
   });
 
   it('points at the observed component with the most published room', () => {
