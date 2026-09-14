@@ -58,6 +58,11 @@ jobs:
           # concealed feature is a 2.3.1 problem worse than the one it would
           # be avoiding. A build either has the markers or does not.
           EXPO_PUBLIC_MARKERS: ${{ inputs.markers && '1' || '' }}
+          # Stamped so a tester can read the build off the Settings screen
+          # and match it against the one they were told to look for. Until
+          # now this was unset, so BUILD_TAG read 'dev' and the line was
+          # blank in every build that ever shipped.
+          EXPO_PUBLIC_BUILD_TAG: ${{ github.run_number }}-${{ inputs.markers && 'm' || 'r' }}
         run: npx eas-cli@latest build --platform ios --profile production --non-interactive
       - name: Submit to TestFlight
         if: ${{ inputs.submit }}

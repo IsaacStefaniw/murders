@@ -53,12 +53,44 @@ function surfaceLabel(update: UpdateInfo | null): string {
   return update ? 'iPhone app' : 'iPhone app (development)';
 }
 
+/**
+ * What the update check actually checked.
+ *
+ * "You are on the latest version" was wrong in a way that cost a tester
+ * twenty minutes: it checks for an over-the-air JavaScript update to THIS
+ * build, and says nothing about whether a newer build is waiting in
+ * TestFlight. Somebody who had just installed one build, read this, and
+ * went looking for a feature that was in the next one had been told, quite
+ * reasonably, that they already had everything.
+ *
+ * The message now names what it looked at.
+ */
 const UPDATE_RESULT_LABEL: Record<CheckResult, string> = {
   applied: 'Restarting into the new version…',
-  'up-to-date': 'You are on the latest version.',
+  'up-to-date':
+    'No over-the-air update for this build. A newer BUILD may still be waiting in TestFlight or the App Store — this only checks for updates to the one you have.',
   unavailable: 'This build cannot receive updates.',
   failed: 'Could not check right now — try again on a better connection.',
 };
+
+/**
+ * Which build this actually is, at the top where it can be found.
+ *
+ * The mechanism already existed — EXPO_PUBLIC_BUILD_TAG, inlined at bundle
+ * time — and the release workflow never set it, so it read 'dev' and the
+ * line rendered empty in every build that has ever shipped. "Which build
+ * am I on?" was therefore unanswerable from inside the app, which is half
+ * of why a tester spent twenty minutes looking for a screen that was in
+ * the next build.
+ *
+ * Deliberately NOT expo-application: a new native module moves the
+ * expo-updates runtime fingerprint, which would cut every installed build
+ * off from over-the-air updates. A string inlined into the JS bundle costs
+ * nothing and answers the question.
+ */
+function buildLine(): string {
+  return BUILD_TAG === 'dev' ? 'Development build' : `Build ${BUILD_TAG}`;
+}
 
 export default function Settings() {
   const router = useRouter();
@@ -237,6 +269,10 @@ export default function Settings() {
           {profile.trainingDaysPerWeek}× a week
         </AppText>
       </Card>
+
+      <AppText variant="caption" color="textTertiary" style={styles.buildLine}>
+        {buildLine()}
+      </AppText>
 
       {/* Placed directly under Profile because it is the answer to "why
           does the app think that about me" — and because a question that
@@ -491,8 +527,7 @@ export default function Settings() {
       <Card>
         <AppText variant="heading">{surfaceLabel(update)}</AppText>
         <AppText variant="caption" color="textTertiary">
-          {describeUpdate(update)}
-          {BUILD_TAG === 'dev' ? '' : ` · build ${BUILD_TAG}`}
+          {describeUpdate(update)} · {buildLine().toLowerCase()}
         </AppText>
         {update ? (
           <>
@@ -528,6 +563,7 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   familyLabel: { marginTop: Spacing.md, marginBottom: Spacing.xs },
   note: { marginTop: Spacing.md },
+  buildLine: { marginTop: Spacing.xs, marginBottom: Spacing.sm },
   resetCard: { marginTop: Spacing.md, gap: Spacing.md },
   resetActions: { flexDirection: 'row', gap: Spacing.sm, alignItems: 'center' },
   grow: { flexGrow: 1 },
