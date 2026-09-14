@@ -77,8 +77,21 @@ export interface InterviewStep {
    * a correct first week without the answer — that is the whole test, and
    * it is what keeps the spine at nine rather than creeping back to
    * twenty-eight.
+   *
+   * A PREDICATE where the test depends on what they have already said.
+   * Walking the real app turned up the case: rank Family first, watch the
+   * interview reply "when two things want the same hour, family wins", and
+   * get a first week with nothing family-shaped in it — because every
+   * family routine is gated on `household`, and `household` was deferred
+   * to a coach the person may never open.
+   *
+   * The spine's test is not "is this question important". It is "can the
+   * scheduler build a correct first week without it", and for somebody who
+   * has just said family matters most, the answer is no. So the question
+   * earns its place in the spine exactly when the person has made it
+   * load-bearing, and stays out of everybody else's.
    */
-  core?: boolean;
+  core?: boolean | ((answers: InterviewAnswers) => boolean);
   /** Where this is asked instead, when it is not core. */
   deferTo?: DeferTarget;
   /**
@@ -199,6 +212,16 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
   },
   {
     id: 'household',
+    // In the spine for anyone who just said family or relationship is one
+    // of the things that matters most — every family and couple routine in
+    // buildPlan is gated on this answer, so without it their top priority
+    // produces an empty week. Deferred to the family coach for everyone
+    // else, exactly as before.
+    core: (a) => {
+      const picked = a.priorities;
+      const list = Array.isArray(picked) ? picked : picked ? [picked] : [];
+      return list.includes('family') || list.includes('relationship');
+    },
     deferTo: 'family',
     kind: 'multi',
     prompt: () => "Who's at home with you?",
@@ -884,12 +907,17 @@ export function placeholderFor(
  * script — tests, and the settings screen where someone can choose to
  * answer everything at once.
  */
+/** Whether a step is in the spine for this particular answer set. */
+export function isCore(step: InterviewStep, answers: InterviewAnswers): boolean {
+  return typeof step.core === 'function' ? step.core(answers) : step.core === true;
+}
+
 export function activeSteps(
   answers: InterviewAnswers,
   scope: 'core' | 'all' = 'core',
 ): InterviewStep[] {
   return INTERVIEW_STEPS.filter(
-    (s) => (scope === 'all' || s.core) && !s.skipIf?.(answers),
+    (s) => (scope === 'all' || isCore(s, answers)) && !s.skipIf?.(answers),
   );
 }
 
@@ -903,7 +931,7 @@ export function deferredSteps(
 ): InterviewStep[] {
   return INTERVIEW_STEPS.filter(
     (s) =>
-      !s.core &&
+      !isCore(s, answers) &&
       s.deferTo === target &&
       !s.skipIf?.(answers) &&
       (answers[s.id] === undefined ||
