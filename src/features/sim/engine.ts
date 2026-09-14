@@ -26,6 +26,8 @@ import {
   type ManualMove,
 } from '@/lib/scheduling/adaptation';
 import { HABIT_PROTOCOL } from '@/features/onboarding/buildPlan';
+import { PATHS } from '@/features/paths/definitions';
+import { dedupeRoutines } from '@/features/planner/mergeRoutines';
 import { addDays, toHHMM, toMinutes } from '@/lib/dates';
 import type { DailyPlan, Goal, LifeArea, PlanItem, Routine, Suggestion } from '@/types/domain';
 import type { GroundTruth, SimUser, Slot } from './personas';
@@ -94,6 +96,23 @@ export interface SimOptions {
   goalRescue?: boolean;
   /** Wire the proactive underserved-goal detector (ablate with false). */
   goalDirection?: boolean;
+  /**
+   * Start the pathways the answers already justify, as `plan-review.tsx`
+   * does on the real approval screen.
+   *
+   * Default FALSE, which preserves every existing baseline — but false is
+   * not what a real user gets. `buildLifeOperatingPlan` returns
+   * `pathStarts` for nutrition, money and recovery whenever the interview
+   * justified them, the approval screen calls `startPath` on each, and
+   * until now this engine dropped them on the floor. Six months of
+   * simulated life therefore ran with three of the seven coaches switched
+   * off, and the cohort numbers were measuring a thinner product than the
+   * one that ships.
+   *
+   * Run it both ways and the difference is what those coaches are worth,
+   * which is a question worth being able to answer with a number.
+   */
+  startPaths?: boolean;
 }
 
 function emptyWeek(): WeekMetrics {
@@ -136,6 +155,20 @@ export function runUser(
     createdAt: `${startDate}T08:00:00.000Z`,
     milestones: g.milestones?.map((m) => ({ ...m })),
   }));
+
+  // The same thing the approval screen does, in the same order.
+  if (opts.startPaths) {
+    for (const start of user.plan.pathStarts) {
+      const build = PATHS[start.id].build(start.answers, profile);
+      goals.push({
+        ...build.goal,
+        createdAt: `${startDate}T08:00:00.000Z`,
+        milestones: build.goal.milestones?.map((m) => ({ ...m })),
+      });
+      routines.push(...build.routines.map((r) => ({ ...r })));
+    }
+    routines = dedupeRoutines(routines);
+  }
   const goalRescue = opts.goalRescue !== false;
   const goalDirection = opts.goalDirection !== false;
   const lastStallNudgeDay: Record<string, number> = {};
