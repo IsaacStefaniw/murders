@@ -8,7 +8,6 @@
     "scheme": "intentos",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.isaacstefaniw.intentos",
       "supportsTablet": false,
       "infoPlist": {

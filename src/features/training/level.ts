@@ -111,6 +111,22 @@ export function trainingEvidence(
   logs: WorkoutLog[],
   metrics: MetricObservation[],
   profile?: Pick<LifeProfile, 'weightKg' | 'sexAtBirth' | 'age'> | null,
+  /**
+   * The clock to read the lifts against.
+   *
+   * `latestMaxes` and `measuredTrainingLevel` both take one — a baseline
+   * ages, so which rung a reading justifies depends on when you ask — and
+   * this function was the one in the chain that did not, quietly falling
+   * back to the real clock. Its own test built lifts against a fixed date
+   * and then asked without one, so the test passed or failed depending on
+   * how long after 5 September 2026 it happened to run. It passed on the
+   * tenth and failed on the fourteenth.
+   *
+   * A user-facing consequence, not only a test one: the level somebody is
+   * shown could differ between two sessions on the same data, with nothing
+   * in between but the date.
+   */
+  now: Date = new Date(),
 ): LevelEvidence {
   const performed = logs.filter((l) => l.sets.length > 0);
   return {
@@ -121,7 +137,7 @@ export function trainingEvidence(
     // that wait was a proxy for. Both still sit behind the volume gate.
     standardsMet:
       trainingStandard(metrics).met ||
-      (profile ? meetsAdvancedStandard(latestMaxes(metrics), profile) : false),
+      (profile ? meetsAdvancedStandard(latestMaxes(metrics, now), profile) : false),
   };
 }
 

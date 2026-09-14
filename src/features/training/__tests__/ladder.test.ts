@@ -103,10 +103,13 @@ describe('trainingEvidence', () => {
       session('strength.squat.e1rm', 175, 0),
       session('strength.deadlift.e1rm', 215, 0),
     ];
-    expect(trainingEvidence([], strong, man).standardsMet).toBe(true);
+    // Read against the same clock the lifts were dated from. Without it
+    // this asked the real one, so the test aged out: it passed while the
+    // baselines were fresh and failed once they were not.
+    expect(trainingEvidence([], strong, man, NOW).standardsMet).toBe(true);
     // Without a profile the strength route is shut and the training-age
     // route (three baselined, two improved over eight weeks) is not met.
-    expect(trainingEvidence([], strong, null).standardsMet).toBe(false);
+    expect(trainingEvidence([], strong, null, NOW).standardsMet).toBe(false);
   });
 
   it('counts sessions and weeks from the log, not from the metrics', () => {
