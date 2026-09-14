@@ -27,7 +27,7 @@ const TODAY = '2026-09-14';
 function input(over: Partial<AskInputs> = {}): AskInputs {
   return {
     today: TODAY,
-    healthConnected: false,
+    nightsRecorded: [],
     activeHabits: [],
     hasStandingHabit: false,
     metrics: [],
@@ -40,12 +40,31 @@ describe('what is worth asking today', () => {
   it('asks nothing of somebody the app can already read', () => {
     // The expected outcome for most people on most days, and the design
     // working rather than failing.
-    expect(asksFor(input({ healthConnected: true }))).toEqual([]);
+    expect(asksFor(input({ nightsRecorded: [TODAY] }))).toEqual([]);
   });
 
-  it('never asks for sleep that Apple Health is already supplying', () => {
-    expect(asksFor(input({ healthConnected: true })).map((a) => a.id)).not.toContain('sleepTiming');
-    expect(asksFor(input({ healthConnected: false })).map((a) => a.id)).toContain('sleepTiming');
+  it('gates on having LAST NIGHT, not on whether Health is connected', () => {
+    // Connected does not mean supplying sleep: no watch, a watch not worn,
+    // sleep tracking off. And it is not a property of the account at all —
+    // somebody who usually wears a watch and forgot last night has a hole
+    // in exactly the series this is building.
+    expect(asksFor(input({ nightsRecorded: [TODAY] })).map((a) => a.id)).not.toContain(
+      'sleepTiming',
+    );
+    expect(asksFor(input({ nightsRecorded: [] })).map((a) => a.id)).toContain('sleepTiming');
+    // Has a long history, missed last night: still asked.
+    expect(
+      asksFor(input({ nightsRecorded: ['2026-09-11', '2026-09-12', '2026-09-13'] })).map(
+        (a) => a.id,
+      ),
+    ).toContain('sleepTiming');
+  });
+
+  it('asks for the two times, not for how long they slept', () => {
+    // Duration cannot see irregular timing at all — see sleepTiming.ts.
+    const ask = asksFor(input()).find((a) => a.id === 'sleepTiming')!;
+    expect(ask.prompt).toMatch(/fall asleep.*wake/i);
+    expect(ask.why).toMatch(/two times, not the hours between/i);
   });
 
   it('asks about habits only while somebody has one running', () => {
@@ -71,11 +90,11 @@ describe('what is worth asking today', () => {
   it('never asks more than two things at once', () => {
     // Three every day was the proposal, and three every day is noise.
     const worst = asksFor(
-      input({ healthConnected: false, hasStandingHabit: true, lastSelfRatedHealth: '2026-01-01' }),
+      input({ hasStandingHabit: true, lastSelfRatedHealth: '2026-01-01' }),
     );
     expect(worst.length).toBeLessThanOrEqual(3);
     // And on any ordinary day, at most two.
-    const ordinary = asksFor(input({ healthConnected: false, hasStandingHabit: true }));
+    const ordinary = asksFor(input({ hasStandingHabit: true }));
     expect(ordinary.length).toBeLessThanOrEqual(2);
   });
 
@@ -119,15 +138,17 @@ describe('sleep regularity', () => {
     expect(erratic.sdHours).toBeGreaterThan(steady.sdHours);
   });
 
-  it('is a reading, not a score — it has no hazard coefficient', () => {
-    // The published effect sizes belong to the Sleep Regularity Index,
-    // computed from minute-by-minute accelerometry. This measures the
-    // variability of DURATION, which is a weaker cousin, so it is shown
-    // rather than scored.
+  it('is the superseded measure, and says so rather than being scored', () => {
+    // The duration version is never scored. The published effect sizes
+    // belong to the index computed from CLOCK TIMES, which lives in
+    // sleepTiming.ts and is the component the instrument actually reads —
+    // this one is the fallback for somebody with months of Health duration
+    // data and no answered bed times.
     const reading = readPace({ age: 45, sexAtBirth: 'male' });
-    expect(reading.components.map((c) => c.id)).not.toContain('sleepRegularity');
+    const component = reading.components.find((c) => c.id === 'sleepRegularity')!;
+    expect(component.logHazard).toBeNull();
     expect(REGULARITY_NOTE).toMatch(/weaker cousin/i);
-    expect(REGULARITY_NOTE).toMatch(/shown as a reading rather than scored/i);
+    expect(REGULARITY_NOTE).toMatch(/computes the real thing instead/i);
   });
 });
 

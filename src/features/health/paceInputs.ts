@@ -13,6 +13,7 @@ import { activityMinutes, nicotineFromLogs } from '@/features/health/essential8'
 import { functionMetricKey } from '@/features/health/functionTests';
 import type { PaceInputs } from '@/features/health/pace';
 import { negativeHabitsFrom } from '@/features/health/negativeHabits';
+import { sleepRegularityIndex, type SleepNight } from '@/features/health/sleepTiming';
 import { selfReportedFrom } from '@/features/health/selfReport';
 import type { MetricObservation } from '@/features/model/metrics';
 import type { InterviewAnswers } from '@/features/onboarding/script';
@@ -37,6 +38,8 @@ export interface PaceSources {
   behaviourEvents: BehaviourEvent[];
   nicotineStatus: NicotineStatus | null;
   interviewAnswers: InterviewAnswers | undefined;
+  /** Answered or imported bed/wake times, newest last. */
+  sleepNights: SleepNight[];
   today: string;
 }
 
@@ -75,5 +78,6 @@ export function paceInputsFrom(s: PaceSources): PaceInputs {
       nicotineFromLogs(s.behaviourIntentions, s.behaviourEvents, s.today),
     ...selfReportedFrom(s.interviewAnswers),
     ...negativeHabitsFrom(s.interviewAnswers),
+    sleepRegularity: sleepRegularityIndex(s.sleepNights, s.today),
   };
 }

@@ -178,7 +178,7 @@ describe('one reading', () => {
 
   it('counts coverage, so a two-component reading cannot pass as a whole one', () => {
     const out = readPace(inputs({ balanceSeconds: 12, gaitMs: 1.0 }));
-    expect(out.coverage).toEqual({ observed: 2, total: 8 });
+    expect(out.coverage).toEqual({ observed: 2, total: 9 });
   });
 
   it('will not read grip without the sex the thresholds are specific to', () => {
@@ -320,7 +320,7 @@ describe('the headline figure', () => {
     // in this category is a confident numeral with the width stripped off.
     const h = paceHeadline(strong, 45)!;
     expect(h.plusMinus).toBeGreaterThan(0);
-    expect(h.coverage.total).toBe(8);
+    expect(h.coverage.total).toBe(9);
     expect(h.qualifier).toMatch(/give or take/i);
     expect(h.qualifier).toMatch(/not a biological age/i);
   });

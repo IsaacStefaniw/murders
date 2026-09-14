@@ -40,11 +40,29 @@
  * mortality than duration, across 60,977 UK Biobank participants and more
  * than ten million hours of accelerometry.
  *
- * That finding is the whole argument for a nightly touch. Regularity
- * cannot be recovered from a survey — "do you sleep regularly?" is not the
- * same measurement — and it cannot be computed from one night. It needs a
+ * The two CLOCK TIMES are the point, not the duration between them. Two
+ * people can average seven and a half hours with identical variability
+ * while one sleeps eleven-to-seven every night and the other alternates
+ * ten-to-six and one-to-nine. The second is the irregular one and duration
+ * cannot see it at all. See `sleepTiming.ts`.
+ *
+ * That is the whole argument for a nightly touch. Regularity cannot be
+ * recovered from a survey — "do you sleep regularly?" is not the same
+ * measurement — and it cannot be computed from one night. It needs a
  * series, which is exactly what a daily question builds and nothing else
  * in the instrument does.
+ *
+ * ── AND "CONNECTED" WAS NEVER THE RIGHT QUESTION ────────────────────────
+ *
+ * The first version of this gated on whether Apple Health was connected,
+ * which is wrong in the common case. Plenty of people have Health on with
+ * no Watch, or a Watch they do not wear to bed, or sleep tracking off —
+ * connected does not mean supplying sleep. Worse, it is not even a
+ * property of the account: somebody who usually wears a watch and forgot
+ * last night has a hole in exactly the series this is trying to build.
+ *
+ * So the gate is per-NIGHT and asks the only question that matters: do we
+ * have last night? If not, ask. If yes, say nothing.
  */
 
 import type { MetricObservation } from '@/features/model/metrics';
@@ -65,8 +83,14 @@ export const SELF_RATED_HEALTH_EVERY_DAYS = 30;
 
 export interface AskInputs {
   today: string;
-  /** True where Apple Health is supplying sleep, which removes the ask. */
-  healthConnected: boolean;
+  /**
+   * Nights the app already holds, as date keys.
+   *
+   * Not "is Health connected" — see the header. A watch that was not worn
+   * leaves a hole in the series whatever the account setting says, and the
+   * hole is the thing worth asking about.
+   */
+  nightsRecorded: string[];
   /** Behaviours the person currently has running, if any. */
   activeHabits: string[];
   /** Whether they said they currently smoke or drink above the low band. */
@@ -86,12 +110,14 @@ export interface AskInputs {
 export function asksFor(input: AskInputs): DailyAsk[] {
   const out: DailyAsk[] = [];
 
-  // Sleep: only where the phone is not already answering it.
-  if (!input.healthConnected) {
+  // Sleep: asked for the night we do not have, whatever the reason we do
+  // not have it. A watch left on the nightstand and a watch never bought
+  // leave the same gap.
+  if (!input.nightsRecorded.includes(input.today)) {
     out.push({
       id: 'sleepTiming',
-      prompt: 'When did you go to bed, and when did you get up?',
-      why: 'Two numbers, and they give both how long you slept and how steady your timing is. Steadiness turns out to predict more than length does.',
+      prompt: 'When did you fall asleep, and when did you wake?',
+      why: 'The two times, not the hours between them. How steady your timing is predicts more than how long you sleep — and it is the one thing here that cannot be worked out later from an average.',
     });
   }
 
@@ -123,35 +149,27 @@ export function asksFor(input: AskInputs): DailyAsk[] {
 
 /* ── Sleep regularity ─────────────────────────────────────────────────── */
 
-/** Nights needed before regularity means anything. */
+/**
+ * Superseded by `sleepTiming.ts`, and kept for one reason.
+ *
+ * This computes the variability of how LONG somebody sleeps, which was the
+ * best available while the app only stored `sleep.hours`. It is a different
+ * and weaker quantity than the published index — see the header of
+ * `sleepTiming.ts` for why duration cannot see irregular timing at all.
+ *
+ * It stays because somebody with months of Apple Health duration data and
+ * no answered bed times still has something worth showing, and a fallback
+ * that says less is better than a blank. It is never scored.
+ */
 export const REGULARITY_MIN_NIGHTS = 7;
 
 export interface SleepRegularity {
   /** Standard deviation of nightly sleep duration, in hours. */
   sdHours: number;
   nights: number;
-  /** How it reads, in plain words. */
   band: 'steady' | 'variable' | 'erratic';
 }
 
-/**
- * Regularity, as far as the app can currently see it.
- *
- * An honest limitation stated up front: the published Sleep Regularity
- * Index is computed from minute-by-minute accelerometry and measures how
- * much two consecutive days OVERLAP in when you were asleep. What the app
- * holds is nightly duration, so this computes the variability of DURATION
- * instead — a weaker cousin of the real thing, and not the same measure.
- *
- * It is worth having anyway: duration irregularity has its own UK Biobank
- * analyses against cardiovascular outcomes, and somebody whose nights run
- * five, nine, six, ten hours is telling the app something real that an
- * average of seven and a half completely hides.
- *
- * It does NOT get a hazard coefficient in `pace.ts`, because the published
- * effect sizes belong to the index we are not computing. It is shown as a
- * reading, with what it is and is not stated beside it.
- */
 export function sleepRegularity(
   metrics: MetricObservation[],
   today: string,
@@ -178,4 +196,4 @@ export function sleepRegularity(
 }
 
 export const REGULARITY_NOTE =
-  'Windred and colleagues (Sleep, 2024) found sleep regularity a stronger predictor of all-cause mortality than sleep duration, across 60,977 people and more than ten million hours of accelerometry. Their measure compares when you were asleep from one day to the next; this one compares how LONG, which is a weaker cousin of it — so it is shown as a reading rather than scored.';
+  'This is how much the LENGTH of your nights varies, which is a weaker cousin of the published measure — that one compares when you were asleep from one day to the next. Answer the two bed-and-wake times for a few nights and the app computes the real thing instead. Shown as a reading rather than scored.';

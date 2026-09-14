@@ -87,6 +87,11 @@ import {
 } from '@/features/health/essential8';
 import { GRIP_LOW } from '@/features/health/functionTests';
 import {
+  SRI_PROVENANCE,
+  sriLogHazard,
+  type SleepRegularityIndex,
+} from '@/features/health/sleepTiming';
+import {
   DRINKING_LABEL,
   DRINKING_PROVENANCE,
   SMOKING_DETAIL,
@@ -349,6 +354,13 @@ export interface PaceInputs {
    */
   smoking?: SmokingStatus;
   drinking?: DrinkingBand;
+  /**
+   * Sleep regularity, computed from answered bed and wake times.
+   *
+   * The one component that needs a SERIES rather than a reading, which is
+   * the whole case for asking two clock times each morning.
+   */
+  sleepRegularity?: SleepRegularityIndex | null;
 }
 
 export interface PaceReading {
@@ -552,6 +564,24 @@ export function readPace(input: PaceInputs): PaceReading {
         input.drinking === 'high' || input.drinking === 'veryHigh'
           ? 'The pooled data puts the lowest all-cause mortality at about ten standard drinks a week — the same number the Australian guideline names. Coming down toward it is where the years in this component are.'
           : undefined,
+    },
+    {
+      id: 'sleepRegularity',
+      label: 'Sleep regularity',
+      // Self-reported, because it is built from answered clock times and a
+      // one-block model of the night, where the study used accelerometry.
+      // Both simplifications flatter, so it takes the wider interval.
+      source: input.sleepRegularity ? 'self-reported' : null,
+      measures:
+        'How closely your sleep timing matches from one day to the next — not how long you sleep, which is a different thing and a weaker predictor.',
+      provenance: SRI_PROVENANCE,
+      logHazard: input.sleepRegularity ? sriLogHazard(input.sleepRegularity.band) : null,
+      detail: input.sleepRegularity
+        ? `${Math.round(input.sleepRegularity.sri)} out of 100 — ${input.sleepRegularity.band}`
+        : 'Not enough nights yet',
+      blocked: input.sleepRegularity
+        ? undefined
+        : 'Needs a week of bed and wake times. It is the one thing here that cannot be worked out later from an average.',
     },
     {
       id: 'le8',

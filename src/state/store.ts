@@ -23,11 +23,12 @@ import type { NicotineStatus } from '@/features/health/essential8';
 import { paceHeadline, readPace } from '@/features/health/pace';
 import { paceInputsFrom } from '@/features/health/paceInputs';
 import { snapshotOf, type PaceSnapshot } from '@/features/health/snapshot';
+import type { SleepNight } from '@/features/health/sleepTiming';
 import { applicableRoutines, protocolById, routineApplies, toRoutine } from '@/features/knowledge/protocols';
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { NO_ENTITLEMENT, runningRoutines, type Entitlement } from '@/features/plus/entitlement';
-import { MAX_PACE_SNAPSHOTS, PERSIST_VERSION, migratePersisted, pruneHistory } from '@/state/hygiene';
+import { MAX_PACE_SNAPSHOTS, MAX_SLEEP_NIGHTS, PERSIST_VERSION, migratePersisted, pruneHistory } from '@/state/hygiene';
 import { ritualKey, type RitualEntry, type RitualKind } from '@/features/cadence/rituals';
 import {
   EMPTY_FOOD_PREFERENCES,
@@ -418,6 +419,17 @@ export interface AppState {
    * came from. That is everything `progress.ts` needs to tell somebody
    * getting healthier apart from the app measuring them better.
    */
+  /**
+   * Answered bed and wake times, one per morning.
+   *
+   * Kept apart from the sleep.hours metric stream because the two clock
+   * times are the measurement and the duration between them is derived —
+   * storing only the duration is what made the first regularity build
+   * measure the wrong thing.
+   */
+  sleepNights: SleepNight[];
+  recordSleepNight: (bedMin: number, wakeMin: number, date?: string) => void;
+
   paceSnapshots: PaceSnapshot[];
   /**
    * Take a reading now and file it.
@@ -655,6 +667,7 @@ const initialData = {
   foodPreferencesAsked: false,
   notifications: DEFAULT_NOTIFICATION_SETTINGS as NotificationSettings,
   nicotineStatus: null as NicotineStatus | null,
+  sleepNights: [] as SleepNight[],
   paceSnapshots: [] as PaceSnapshot[],
   healthConnectedAt: null as string | null,
   healthLastSyncAt: null as string | null,
@@ -1516,6 +1529,20 @@ export const useAppStore = create<AppState>()(
 
         setNicotineStatus: (nicotineStatus) => set({ nicotineStatus }),
 
+        recordSleepNight: (bedMin, wakeMin, date) => {
+          const key = date ?? todayKey();
+          // One per morning: a correction replaces rather than appends.
+          const kept = get().sleepNights.filter((n) => n.date !== key);
+          const nights = [...kept, { date: key, bedMin, wakeMin }]
+            .sort((a, b) => a.date.localeCompare(b.date))
+            .slice(-MAX_SLEEP_NIGHTS);
+          set({ sleepNights: nights });
+          // Duration still goes to the metric stream, so Essential 8 and
+          // everything already reading sleep.hours keep working unchanged.
+          const minutes = wakeMin > bedMin ? wakeMin - bedMin : 1440 - bedMin + wakeMin;
+          get().addMetric('sleep.hours', Math.round((minutes / 60) * 10) / 10, 'logged');
+        },
+
         snapshotPace: () => {
           const state = get();
           const date = todayKey();
@@ -1530,6 +1557,7 @@ export const useAppStore = create<AppState>()(
               behaviourEvents: state.behaviourEvents,
               nicotineStatus: state.nicotineStatus,
               interviewAnswers: state.interviewAnswers,
+              sleepNights: state.sleepNights,
               today: date,
             }),
           );

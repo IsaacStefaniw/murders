@@ -30,6 +30,8 @@ export const MAX_WORKOUT_LOGS = 500;
  * scale of months — two years of history is ample and costs almost nothing.
  */
 export const MAX_PACE_SNAPSHOTS = 200;
+/** Bed and wake times. A year of nights is tiny and worth keeping. */
+export const MAX_SLEEP_NIGHTS = 400;
 export const MAX_RESOLVED_SUGGESTIONS = 200;
 
 const KEPT_ITEM_KEYS: (keyof PlanItem)[] = [
