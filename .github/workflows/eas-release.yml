@@ -14,6 +14,12 @@ on:
         description: Submit to TestFlight after building
         type: boolean
         default: true
+      markers:
+        description: >-
+          Include the markers instrument (pace-of-ageing). Leave OFF for any
+          build going to App Review — see src/features/health/flag.ts.
+        type: boolean
+        default: false
 
 jobs:
   ios:
@@ -48,6 +54,10 @@ jobs:
           EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           EXPO_APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           EXPO_APPLE_TEAM_TYPE: INDIVIDUAL
+          # Decided at build time rather than by a hidden in-app toggle: a
+          # concealed feature is a 2.3.1 problem worse than the one it would
+          # be avoiding. A build either has the markers or does not.
+          EXPO_PUBLIC_MARKERS: ${{ inputs.markers && '1' || '' }}
         run: npx eas-cli@latest build --platform ios --profile production --non-interactive
       - name: Submit to TestFlight
         if: ${{ inputs.submit }}

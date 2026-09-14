@@ -27,6 +27,7 @@ import { computeCohortMetrics, shareableSummary } from '@/features/analytics/coh
 import { BodyNumbers } from '@/features/health/BodyNumbers';
 import { WellbeingCard } from '@/features/health/WellbeingCard';
 import { FunctionTestList } from '@/features/health/FunctionTests';
+import { MARKERS_ENABLED } from '@/features/health/flag';
 import { PaceCard } from '@/features/health/PaceCard';
 import { WeeklyReviewPanel } from '@/features/review/WeeklyReviewPanel';
 import { WorkNumbers } from '@/features/work/WorkNumbers';
@@ -144,11 +145,18 @@ export default function Data() {
       </AppText>
       <AppText variant="title">What the numbers say</AppText>
 
-      <SectionHeader title="Your markers" />
-      <PaceCard />
+      {/* Held out of the build that goes to App Review. See flag.ts: the
+          riskiest feature in the product does not belong in the version
+          whose only job is to get 1.0 approved. */}
+      {MARKERS_ENABLED ? (
+        <>
+          <SectionHeader title="Your markers" />
+          <PaceCard />
 
-      <SectionHeader title="The four tests" />
-      <FunctionTestList />
+          <SectionHeader title="The four tests" />
+          <FunctionTestList />
+        </>
+      ) : null}
 
       <SectionHeader title="Your week, against a published measure" />
       <WellbeingCard />
