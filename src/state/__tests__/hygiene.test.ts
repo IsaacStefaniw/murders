@@ -66,7 +66,7 @@ describe('caps', () => {
   });
 
   it('pruneHistory returns only the keys that changed', () => {
-    const patch = pruneHistory({ plans: { [today]: plan(today) }, behaviourEvents: [], reflections: [], workoutLogs: [], suggestions: [] }, today);
+    const patch = pruneHistory({ plans: { [today]: plan(today) }, behaviourEvents: [], reflections: [], workoutLogs: [], cardioLogs: [], suggestions: [] }, today);
     expect(patch).toEqual({});
   });
 });

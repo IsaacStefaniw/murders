@@ -55,6 +55,7 @@
  */
 
 import { protocolById } from '@/features/knowledge/protocols';
+import { isVigorous, type CardioLog } from '@/features/training/cardio';
 import type { MetricObservation } from '@/features/model/metrics';
 import type { BehaviourEvent, BehaviourIntention, DailyPlan, Routine } from '@/types/domain';
 import { addDays } from '@/lib/dates';
@@ -156,12 +157,17 @@ export function bmiScore(bmi: number): number {
  * training pillar and is not on the list below of training-pillar practices
  * that are preparation, mobility, recovery or planning rather than effort.
  *
- * Two known ways this UNDERSTATES, both deliberate:
- *  - The published table pays vigorous minutes double. The app does not
- *    know intensity, so every counted minute is scored as moderate.
- *  - Activity the app never saw — a walk to the shops, a weekend hike —
- *    cannot be counted. The card says so rather than implying the number
- *    is a measure of the week rather than of the week the app watched.
+ * The published table pays VIGOROUS minutes double, and a cardio log is
+ * the one place the app knows intensity — the person said so when they
+ * logged it. So a hard or all-out cardio session counts twice, and
+ * everything else counts once. A gym session is counted as moderate
+ * whatever it felt like, because nobody told the app otherwise and
+ * guessing upward is the one direction that can mislead.
+ *
+ * One known way this still UNDERSTATES, deliberately: activity the app
+ * never saw — a walk to the shops, a weekend hike — cannot be counted. The
+ * card says so rather than implying the number measures the week rather
+ * than the week the app watched.
  *
  * Understating is the safe direction. It can prompt somebody to move more;
  * it cannot tell somebody they have done enough when they have not.
@@ -221,6 +227,7 @@ export function activityMinutes(
   plans: Record<string, DailyPlan>,
   routines: Routine[],
   today: string,
+  cardioLogs: CardioLog[] = [],
 ): number | null {
   const from = addDays(today, -6);
   let minutes = 0;
@@ -235,6 +242,15 @@ export function activityMinutes(
       const [eh, em] = item.end.split(':').map(Number);
       minutes += Math.max(0, eh * 60 + em - (sh * 60 + sm));
     }
+  }
+  // A logged cardio session already put a completed block on the day, so
+  // its minutes are counted once above. This adds only the SECOND helping
+  // the published table gives vigorous work — counting the whole session
+  // again here would double it twice.
+  for (const log of cardioLogs) {
+    if (log.date < from || log.date > today) continue;
+    watched = true;
+    if (isVigorous(log.effort)) minutes += log.durationMin;
   }
   return watched ? minutes : null;
 }
@@ -303,6 +319,7 @@ export function nicotineFromLogs(
 export interface WeekInputs {
   plans: Record<string, DailyPlan>;
   routines: Routine[];
+  cardioLogs?: CardioLog[];
   metrics: MetricObservation[];
   intentions: BehaviourIntention[];
   events: BehaviourEvent[];
@@ -325,7 +342,7 @@ export interface WeekHealth {
 export function weekHealth(input: WeekInputs): WeekHealth {
   const { plans, routines, metrics, intentions, events, today } = input;
 
-  const minutes = activityMinutes(plans, routines, today);
+  const minutes = activityMinutes(plans, routines, today, input.cardioLogs ?? []);
   const sleepHours = meanThisWeek(metrics, 'sleep.hours', today);
   const weightKg = latest(metrics, 'body.weight');
   const heightCm = latest(metrics, 'body.height');
@@ -341,7 +358,7 @@ export function weekHealth(input: WeekInputs): WeekHealth {
         minutes === null
           ? 'No week to read yet'
           : `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} of training the app watched this week`,
-      why: 'The component with the most room to move for most people. The published table pays full marks at 150 minutes a week and pays something for anything above zero — the step from nothing to a little is worth more than the step from a lot to more. Only sessions the app saw are counted, and mobility, sauna and warm-ups are not counted as activity, so a real week is usually better than this number.',
+      why: 'The component with the most room to move for most people. The published table pays full marks at 150 minutes a week and pays something for anything above zero — the step from nothing to a little is worth more than the step from a lot to more. Hard cardio counts double, as the table says it should. Only sessions the app saw are counted, and mobility, sauna and warm-ups are not counted as activity, so a real week is usually better than this number.',
       blocked:
         minutes === null
           ? 'Nothing was planned this week, so there is no week to read. This scores from the first session you plan or log.'

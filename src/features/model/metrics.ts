@@ -9,6 +9,7 @@
  * each definition declares which goal it serves via its domain.
  */
 
+import { CARDIO_ACTIVITIES } from '@/features/training/cardio';
 import { newId } from '@/lib/dates';
 
 export type MetricDirection = 'higher' | 'lower' | 'steady';
@@ -83,6 +84,40 @@ export const METRICS: MetricDefinition[] = [
    */
   { key: 'recovery.saunaMinutes', label: 'Sauna minutes', unit: 'min/wk', domain: 'sleep', direction: 'higher' },
   { key: 'recovery.coldExposures', label: 'Cold exposures', unit: '/wk', domain: 'sleep', direction: 'higher' },
+  /**
+   * Cardio. A jog, a row, a ride — everything that is not a lift.
+   *
+   * Minutes are one definition; distance and pace are one PER ACTIVITY,
+   * generated below, because a run and a row share nothing but a unit. Put
+   * a 5:00/km run and a rowing pace on one chart and you have drawn a line
+   * that means nothing and invited somebody to read it as progress.
+   *
+   * Pace is 'lower' — fewer seconds per kilometre is faster — which the
+   * trend engine needs to be told, or six months of getting quicker reads
+   * as six months of decline.
+   */
+  { key: 'cardio.minutes', label: 'Cardio minutes', unit: 'min', domain: 'training', direction: 'higher' },
+  ...CARDIO_ACTIVITIES.filter((a) => a.unit === 'km').flatMap<MetricDefinition>((a) => [
+    {
+      key: `cardio.${a.id}.km`,
+      label: `${a.label} distance`,
+      unit: 'km',
+      domain: 'training',
+      direction: 'higher',
+      decimals: 1,
+    },
+    ...(a.pace
+      ? [
+          {
+            key: `cardio.${a.id}.paceSecPerKm`,
+            label: `${a.label} pace`,
+            unit: 's/km',
+            domain: 'training' as const,
+            direction: 'lower' as const,
+          },
+        ]
+      : []),
+  ]),
 ];
 
 export const metricDef = (key: string): MetricDefinition | undefined =>

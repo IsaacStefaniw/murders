@@ -120,6 +120,7 @@ export function WellbeingCard() {
   const metrics = useAppStore((s) => s.metrics);
   const intentions = useAppStore((s) => s.behaviourIntentions);
   const events = useAppStore((s) => s.behaviourEvents);
+  const cardioLogs = useAppStore((s) => s.cardioLogs);
   const stated = useAppStore((s) => s.nicotineStatus);
   const setNicotineStatus = useAppStore((s) => s.setNicotineStatus);
   const today = todayKey();
@@ -129,13 +130,14 @@ export function WellbeingCard() {
       weekHealth({
         plans,
         routines,
+        cardioLogs,
         metrics,
         intentions,
         events,
         today,
         nicotine: stated ?? undefined,
       }),
-    [plans, routines, metrics, intentions, events, today, stated],
+    [plans, routines, cardioLogs, metrics, intentions, events, today, stated],
   );
   const alcohol = useMemo(
     () => alcoholWeek(intentions, events, today),

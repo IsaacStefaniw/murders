@@ -13,6 +13,8 @@ import { Spacing } from '@/constants/theme';
 import { estimate1Rm, latest, metricDef, trend } from '@/features/model/metrics';
 import { QuestionCard } from '@/features/model/QuestionCard';
 import { LevelCard } from '@/features/paths/LevelCard';
+import { HiitPicker } from '@/features/training/HiitPicker';
+import { LogCardio } from '@/features/training/LogCardio';
 import { weekOf } from '@/features/training/programme';
 import { useAppStore } from '@/state/store';
 import { strengthBaseline } from '@/features/training/baseline';
@@ -280,6 +282,11 @@ export function TrainingHub() {
             title="Start today's session"
             onPress={() => router.push('/session/workout' as never)}
           />
+          {/* Planned for you, changeable by you — both halves of what
+              Isaac asked for. Only appears on a block that carries
+              conditioning at all. */}
+          {programme.inputs.goal === 'fitter' ? <HiitPicker /> : null}
+          <LogCardio />
         </View>
       ) : (
         <View style={styles.stack}>

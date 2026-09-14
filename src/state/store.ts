@@ -36,6 +36,12 @@ import {
   type NotificationSettings,
 } from '@/features/notifications/schedule';
 import { observationsFrom } from '@/features/training/log';
+import {
+  cardioObservations,
+  cardioSummary,
+  type CardioEffort,
+  type CardioLog,
+} from '@/features/training/cardio';
 import { swapKey } from '@/features/training/swap';
 import {
   baselinesFrom,
@@ -287,6 +293,27 @@ export interface AppState {
     note?: string;
   }) => string;
 
+  /**
+   * Cardio logs — a jog, a row, a ride.
+   *
+   * Kept beside workoutLogs rather than inside them because they measure
+   * different things: a lift is sets and load, a run is distance and
+   * effort, and forcing one into the other's shape loses whichever it was
+   * not built for. Logging one also puts a completed block on the day, so
+   * a run the app did not plan still makes the day read as it was.
+   */
+  cardioLogs: CardioLog[];
+  logCardio: (input: {
+    activity: string;
+    durationMin: number;
+    effort: CardioEffort;
+    date?: string;
+    distanceKm?: number;
+    note?: string;
+    hiitId?: string;
+  }) => string;
+  removeCardioLog: (id: string) => void;
+
   addGoal: (goal: Goal, routines: Routine[]) => void;
   /** Toggle a knowledge-base protocol on the plan. Returns true if now active. */
   toggleProtocol: (protocolId: string) => boolean;
@@ -409,6 +436,16 @@ export interface AppState {
   sessionSwaps: Record<string, number>;
   swapSession: (date: string, index: number | null) => void;
   exerciseSwaps: Record<string, string>;
+  /**
+   * The interval session chosen from the HIIT library, or null for the
+   * block's own default. Isaac: "HIIT should be planned but then also
+   * selectable or changeable. Have different HIIT options as well."
+   *
+   * A preference, not an override: a constraint that rules out hard
+   * intervals still rules them out, and the deload week is still easy pace.
+   */
+  hiitChoice: string | null;
+  setHiitChoice: (id: string | null) => void;
   swapExercise: (programmeId: string, sessionTitle: string, from: string, to: string | null) => void;
 
   /**
@@ -564,6 +601,7 @@ const initialData = {
   >,
   metrics: [] as MetricObservation[],
   workoutLogs: [] as WorkoutLog[],
+  cardioLogs: [] as CardioLog[],
   foodPreferences: EMPTY_FOOD_PREFERENCES as FoodPreferences,
   foodPreferencesAsked: false,
   notifications: DEFAULT_NOTIFICATION_SETTINGS as NotificationSettings,
@@ -576,6 +614,7 @@ const initialData = {
   trainingProgramme: null as TrainingProgramme | null,
   sessionSwaps: {} as Record<string, number>,
   exerciseSwaps: {} as Record<string, string>,
+  hiitChoice: null as string | null,
   interviewAnswers: {} as InterviewAnswers,
   lastOpenedAt: null as string | null,
   previousOpenAt: null as string | null,
@@ -848,8 +887,8 @@ export const useAppStore = create<AppState>()(
         },
 
         pruneHistory: () => {
-          const { plans, behaviourEvents, reflections, workoutLogs, suggestions } = get();
-          const patch = pruneHistory({ plans, behaviourEvents, reflections, workoutLogs, suggestions }, todayKey());
+          const { plans, behaviourEvents, reflections, workoutLogs, cardioLogs, suggestions } = get();
+          const patch = pruneHistory({ plans, behaviourEvents, reflections, workoutLogs, cardioLogs, suggestions }, todayKey());
           if (Object.keys(patch).length > 0) set(patch);
         },
 
@@ -1275,6 +1314,41 @@ export const useAppStore = create<AppState>()(
           return item.id;
         },
 
+        logCardio: (input) => {
+          const date = input.date ?? todayKey();
+          const log: CardioLog = {
+            id: newId('cl'),
+            date,
+            activity: input.activity,
+            durationMin: input.durationMin,
+            distanceKm: input.distanceKm,
+            effort: input.effort,
+            note: input.note,
+            hiitId: input.hiitId,
+            createdAt: new Date().toISOString(),
+          };
+          set({ cardioLogs: [...get().cardioLogs, log] });
+          // Into the same metric stream as everything else, so a jog shows
+          // on Data beside a bench press instead of living in its own silo.
+          for (const o of cardioObservations(log)) get().addMetric(o.key, o.value, o.note);
+          // And onto the day, so a run the app did not plan still makes the
+          // day read as it actually was. sessionType 'workout' is what marks
+          // it as physical activity everywhere downstream.
+          get().logCompletedActivity({
+            date,
+            title: cardioSummary(log),
+            area: 'health',
+            durationMin: input.durationMin,
+            sessionType: 'workout',
+            note: 'cardio logged',
+          });
+          return log.id;
+        },
+
+        removeCardioLog: (id) => {
+          set({ cardioLogs: get().cardioLogs.filter((l) => l.id !== id) });
+        },
+
         addGoal: (goal, routines) => {
           set({
             goals: [...get().goals, goal],
@@ -1479,7 +1553,7 @@ export const useAppStore = create<AppState>()(
           const inputs = deriveTrainingInputs(profile, paths.training?.answers, goals, level);
           set({
             trainingProgramme: buildProgramme(
-              { ...inputs, pushHarder: pushing },
+              { ...inputs, pushHarder: pushing, hiitId: get().hiitChoice ?? undefined },
               baselinesFrom(metrics),
             ),
           });
@@ -1498,6 +1572,14 @@ export const useAppStore = create<AppState>()(
           if (to == null || to === from) delete next[key];
           else next[key] = to;
           set({ exerciseSwaps: next });
+        },
+
+        setHiitChoice: (id) => {
+          set({ hiitChoice: id });
+          // Rebuilt now rather than next block: somebody who has just
+          // picked a session expects to see it on this week's plan, not in
+          // four weeks' time.
+          if (get().trainingProgramme) get().buildTrainingBlock();
         },
 
         setPathIntensityPush: (path, push) => {

@@ -12,6 +12,7 @@
  */
 
 import { estimate1Rm, type MetricObservation } from '@/features/model/metrics';
+import { hiitById } from '@/features/training/hiit';
 import { strengthBaseline } from '@/features/training/baseline';
 import type { PathLevel } from '@/features/paths/level';
 import { newId } from '@/lib/dates';
@@ -87,6 +88,16 @@ export interface TrainingInputs {
   focusArea?: FocusArea;
   /** What the conditioning session is built for in a fitter block. */
   distance?: Distance;
+  /**
+   * The interval session the person picked, from `features/training/hiit`.
+   *
+   * Isaac: "HIIT should be planned but then also selectable or changeable."
+   * Absent means the block plans its own default, which is what it always
+   * did; present means they chose, and the choice wins. It is still vetoed
+   * by a constraint the same way the default is — a preference does not
+   * outrank `rulesOutHardIntervals`.
+   */
+  hiitId?: string;
   age?: number;
   /** What the body will not do right now. Swaps movements, never removes. */
   constraints?: PhysicalConstraint[];
@@ -689,14 +700,43 @@ function conditioningSession(
   constraints: PhysicalConstraint[] | undefined,
   sessionMin: number,
   age?: number,
+  hiitId?: string,
 ): ProgrammeSession {
   const vetoed = rulesOutHardIntervals(constraints);
   const easyOnly = phase === 'deload' || vetoed;
+  // A chosen session from the library, where they chose one and it is not
+  // a week or a constraint that rules intervals out. The veto and the
+  // deload still win: a preference is not a reason to run hard intervals
+  // beside a heart condition, or in the week built to let everything catch
+  // up.
+  const chosen = !easyOnly && hiitId ? hiitById(hiitId) : undefined;
   let exercises: PrescribedExercise[];
   if (easyOnly) {
     const minutes = Math.max(10, Math.min(distance === '10k' ? 30 : 20, sessionMin));
     exercises = [
       { name: 'Cardio: easy pace, talking the whole way', sets: 1, reps: `${minutes} min`, restSec: 0, minutesPerSet: minutes },
+    ];
+  } else if (chosen) {
+    const roundMin = Math.max(1, Math.round((chosen.workSec + chosen.restSec) / 60));
+    exercises = [
+      { name: 'Cardio: easy pace to warm up', sets: 1, reps: `${chosen.warmupMin} min, talking pace`, restSec: 0, minutesPerSet: chosen.warmupMin },
+      chosen.rounds > 0
+        ? {
+            name: `Cardio: ${chosen.name.toLowerCase()}`,
+            // The peak week adds one round, the same week the lifting peaks.
+            sets: chosen.rounds + (week === 3 ? 1 : 0),
+            reps: chosen.shape,
+            restSec: 0,
+            minutesPerSet: roundMin,
+          }
+        : {
+            name: `Cardio: ${chosen.name.toLowerCase()}`,
+            sets: 1,
+            reps: chosen.shape,
+            restSec: 0,
+            minutesPerSet: Math.max(10, chosen.totalMin - chosen.warmupMin - chosen.cooldownMin),
+          },
+      { name: 'Cardio: easy pace to cool down', sets: 1, reps: `${chosen.cooldownMin} min`, restSec: 0, minutesPerSet: chosen.cooldownMin, accessory: true },
     ];
   } else {
     const block = INTERVALS[distance];
@@ -716,7 +756,9 @@ function conditioningSession(
       ? 'Easy pace only — hard intervals do not belong beside what you told us you are managing. Talking pace the whole way.'
       : phase === 'deload'
         ? 'Deload — easy pace only. Light means light; the fitness lands here.'
-        : 'Built from two practices in your library: easy cardio at talking pace, and hard intervals in the middle. Hard means hard for you, not a number; skip it when unwell.',
+        : chosen
+          ? `${chosen.effort} ${chosen.recovery} Skip it when unwell.`
+          : 'Built from two practices in your library: easy cardio at talking pace, and hard intervals in the middle. Hard means hard for you, not a number; skip it when unwell.',
   };
 }
 
@@ -948,6 +990,7 @@ export function buildProgramme(
           inputs.constraints,
           inputs.sessionMin,
           inputs.age,
+          inputs.hiitId,
         ),
       );
     }

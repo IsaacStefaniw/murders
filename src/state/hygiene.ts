@@ -14,6 +14,7 @@
  * an old item's guidance, focus or move history, so those are what a
  * compacted item drops.
  */
+import type { CardioLog } from '@/features/training/cardio';
 import { addDays } from '@/lib/dates';
 import type { BehaviourEvent, DailyPlan, PlanItem, Reflection, Suggestion, WorkoutLog } from '@/types/domain';
 
@@ -89,6 +90,7 @@ export type HistorySlice = {
   behaviourEvents: BehaviourEvent[];
   reflections: Reflection[];
   workoutLogs: WorkoutLog[];
+  cardioLogs: CardioLog[];
   suggestions: Suggestion[];
 };
 
@@ -103,6 +105,8 @@ export function pruneHistory(state: HistorySlice, today: string): Partial<Histor
   if (re !== state.reflections) patch.reflections = re;
   const wl = capList(state.workoutLogs, MAX_WORKOUT_LOGS);
   if (wl !== state.workoutLogs) patch.workoutLogs = wl;
+  const cl = capList(state.cardioLogs, MAX_WORKOUT_LOGS);
+  if (cl !== state.cardioLogs) patch.cardioLogs = cl;
   const su = capSuggestions(state.suggestions);
   if (su !== state.suggestions) patch.suggestions = su;
   return patch;
@@ -123,7 +127,7 @@ export function migratePersisted(persisted: unknown, fromVersion: number): unkno
     // Nothing structural changed between 0 and 1. Lists that should be
     // arrays but were somehow persisted as something else are reset,
     // which is the one failure mode a bad early write could leave behind.
-    for (const key of ['goals', 'routines', 'planEvents', 'behaviourIntentions', 'behaviourEvents', 'reflections', 'suggestions', 'metrics', 'workoutLogs']) {
+    for (const key of ['goals', 'routines', 'planEvents', 'behaviourIntentions', 'behaviourEvents', 'reflections', 'suggestions', 'metrics', 'workoutLogs', 'cardioLogs']) {
       if (key in state && !Array.isArray(state[key])) state[key] = [];
     }
     if ('plans' in state && (typeof state.plans !== 'object' || state.plans === null || Array.isArray(state.plans))) state.plans = {};

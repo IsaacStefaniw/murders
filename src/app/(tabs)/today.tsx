@@ -32,6 +32,7 @@ import {
   weekdayOf,
 } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
+import { LogCardio } from '@/features/training/LogCardio';
 import { LogDidIt } from '@/features/today/LogDidIt';
 import { WelcomeBack } from '@/features/today/WelcomeBack';
 import { WhyToday } from '@/features/today/WhyToday';
@@ -596,6 +597,12 @@ export default function Today() {
       <QuickLog />
       <View style={styles.didIt}>
         <LogDidIt date={date} />
+      </View>
+      {/* Cardio is its own entry rather than a title in the general one:
+          a run without its distance and its effort is a list of the word
+          "Run", and six months of that tells nobody anything. */}
+      <View style={styles.didIt}>
+        <LogCardio date={date} />
       </View>
 
       {lookAheadHighlight ? (
