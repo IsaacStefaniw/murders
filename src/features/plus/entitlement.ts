@@ -13,6 +13,7 @@
  * feeds it purchases; the store keeps the result; screens read it.
  */
 import type { Protocol } from '@/features/knowledge/protocols';
+import type { PathId } from '@/features/paths/definitions';
 import type { Routine } from '@/types/domain';
 import { weekdayOf } from '@/lib/dates';
 
@@ -134,8 +135,14 @@ export function splitLibrary(
  * hardest moment" is a promise on the website and in the app, and this is
  * the one place it is enforced.
  */
-export function isAlwaysFreeRoutine(r: Routine, recoveryGoalId?: string): boolean {
+export function isAlwaysFreeRoutine(
+  r: Routine,
+  recoveryGoalId?: string,
+  freeCoachGoalId?: string,
+): boolean {
   if (recoveryGoalId && r.goalId === recoveryGoalId) return true;
+  // One coach runs, free, forever — see FREE_COACH_FOR.
+  if (freeCoachGoalId && r.goalId === freeCoachGoalId) return true;
   // A habit the person told the interview they already have is theirs, not
   // the coaches': it is placed on the free day so the day has rows and the
   // walk they already take is never behind a lock. Isaac's call, after the
@@ -150,8 +157,15 @@ export function isAlwaysFreeProtocol(protocolId: string): boolean {
 }
 
 /** The routines the engine places today: all of them with Plus, the free ones without. */
-export function runningRoutines(routines: Routine[], plus: boolean, recoveryGoalId?: string): Routine[] {
-  return plus ? routines : routines.filter((r) => isAlwaysFreeRoutine(r, recoveryGoalId));
+export function runningRoutines(
+  routines: Routine[],
+  plus: boolean,
+  recoveryGoalId?: string,
+  freeCoachGoalId?: string,
+): Routine[] {
+  return plus
+    ? routines
+    : routines.filter((r) => isAlwaysFreeRoutine(r, recoveryGoalId, freeCoachGoalId));
 }
 
 /**
@@ -160,11 +174,67 @@ export function runningRoutines(routines: Routine[], plus: boolean, recoveryGoal
  * of what it would do with their day. The always-free routines are not
  * here: they ran.
  */
-export function sessionsPlusWouldRun(routines: Routine[], dateKey: string, recoveryGoalId?: string): Routine[] {
+export function sessionsPlusWouldRun(
+  routines: Routine[],
+  dateKey: string,
+  recoveryGoalId?: string,
+  freeCoachGoalId?: string,
+): Routine[] {
   const weekday = weekdayOf(dateKey);
   return routines
-    .filter((r) => r.active !== false && r.days.includes(weekday) && !isAlwaysFreeRoutine(r, recoveryGoalId))
+    .filter(
+      (r) =>
+        r.active !== false &&
+        r.days.includes(weekday) &&
+        !isAlwaysFreeRoutine(r, recoveryGoalId, freeCoachGoalId),
+    )
     .sort((a, b) => a.preferredStart.localeCompare(b.preferredStart));
+}
+
+/* ── The one coach that runs free ─────────────────────────────────────── */
+
+/**
+ * Which coach a person gets for nothing, forever, chosen by what they
+ * said matters most.
+ *
+ * The free tier used to be: urge tools, plus any habit they already had.
+ * Both are right and neither is a coach — so a new user with no existing
+ * habits finished a twelve-question interview, landed on Today, and read
+ * "YOUR COACHES BUILT 1 SESSION FOR TODAY" above a locked card. The app
+ * announced that it had done the work and then charged to show it.
+ *
+ * Every reviewer on the panel independently called this the worst moment
+ * in the product. The growth read was the plainest: you are charging for
+ * proof of value before value has been proven, to people whose objection
+ * is not the price but whether the thing knows anything.
+ *
+ * So the line moves. Not "does a coach run" — that has to be provable for
+ * free. It is now BREADTH and CONTINUITY: one coach runs properly, and
+ * Plus is all seven at once, plus the levels, the history, the
+ * projections and Apple Health shaping the day.
+ *
+ * The free one is chosen rather than assigned, by the first priority the
+ * person ranked, because that is the question they have already answered
+ * and the answer they will recognise. Where their top priority maps to no
+ * coach — growth, enjoyment — training is the fallback: it is the pathway
+ * with the most built behind it and the one most likely to produce a
+ * session on day one.
+ */
+export const FREE_COACH_FOR: Record<string, PathId> = {
+  health: 'training',
+  family: 'family',
+  relationship: 'relationship',
+  work: 'work',
+  admin: 'money',
+};
+
+/** The coach that runs free, from the person's own ranking. */
+export function freeCoachFor(priorities: readonly string[] | undefined): PathId {
+  for (const p of priorities ?? []) {
+    const coach = FREE_COACH_FOR[p];
+    if (coach) return coach;
+  }
+  return 'training';
 }
 
 /** Guided sits longer than a reset are Plus. Two minutes is always free. */

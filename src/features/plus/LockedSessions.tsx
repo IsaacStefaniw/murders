@@ -19,17 +19,24 @@ export function LockedSessions({
   routines,
   date,
   recoveryGoalId,
+  freeCoachGoalId,
 }: {
   routines: Routine[];
   date: string;
   recoveryGoalId?: string;
+  freeCoachGoalId?: string;
 }) {
   const router = useRouter();
-  const sessions = sessionsPlusWouldRun(routines, date, recoveryGoalId);
+  const sessions = sessionsPlusWouldRun(routines, date, recoveryGoalId, freeCoachGoalId);
   if (sessions.length === 0) return null;
   return (
     <View>
-      <SectionHeader title={`Your coaches built ${sessions.length} ${sessions.length === 1 ? 'session' : 'sessions'} for today`} />
+      {/* "Your coaches built N sessions" over a locked card announced work
+          the app then charged to show. One coach now runs free, so this
+          section is honestly about the OTHERS — what the rest would add. */}
+      <SectionHeader
+        title={`${sessions.length} more ${sessions.length === 1 ? 'session' : 'sessions'} from your other coaches`}
+      />
       <View style={styles.stack}>
         {sessions.map((r) => (
           <Card key={r.id} onPress={() => router.push('/upgrade' as never)} accessibilityLabel={`${r.title}, locked`}>
@@ -48,7 +55,7 @@ export function LockedSessions({
         ))}
       </View>
       <Button
-        title="Run my day with Plus"
+        title="Run every coach with Plus"
         onPress={() => router.push('/upgrade' as never)}
         style={styles.cta}
         hint="Opens IntentNorth Plus"

@@ -23,7 +23,19 @@
 
 import type { Routine } from '@/types/domain';
 
-/** The identity a routine competes on. Null means it never collides. */
+/**
+ * The identity a routine competes on. Null means it never collides.
+ *
+ * Deliberately NOT falling back to the title: the colliding routines are
+ * titled differently by design ("Strength workout" vs "Training that
+ * sticks"), so a title key would miss every case it was added for while
+ * merging things that merely share a name. Tried, measured, reverted.
+ *
+ * The consequence is that an UNTAGGED routine can be added for ever —
+ * which is how a household with kids ended up with three Saturday-morning
+ * family blocks. The fix is to tag them, not to weaken the key, and
+ * `familyDuplicates.test.ts` asserts no pathway routine is anonymous.
+ */
 export function routineKey(r: Routine): string | null {
   if (r.protocolId) return `protocol:${r.protocolId}`;
   if (r.sessionType) return `session:${r.sessionType}`;

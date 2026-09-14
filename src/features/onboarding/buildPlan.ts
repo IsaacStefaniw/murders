@@ -407,6 +407,9 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
       id: newId('r'),
       title: 'Family adventure',
       area: 'family',
+      // The same practice the family coach schedules. Without the id the
+      // two could never dedupe and a household got both Saturdays.
+      protocolId: 'family-adventure',
       days: wantsMoreKidTime ? [0, 6] : [6],
       durationMin: 90,
       preferredStart: '09:30',

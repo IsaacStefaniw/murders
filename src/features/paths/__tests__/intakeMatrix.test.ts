@@ -324,9 +324,18 @@ describe('the family intake', () => {
   });
 
   it('every good-weekend answer puts a different Saturday on the plan', () => {
+    // Found by its slot rather than by its lack of a protocol id, which is
+    // how this used to be located. The weekend block now carries
+    // `family-adventure` — it IS that practice, shaped by preference — so
+    // that it can dedupe against the generic outing instead of shipping
+    // beside it. Three Saturday mornings on one Saturday was the bug.
     const titles = new Set(
       ['outdoors', 'slow', 'people', 'making'].map(
-        (goodWeekend) => PATHS.family.build({ goodWeekend }, base).routines.find((r) => r.days.join() === '6' && !r.protocolId)?.title,
+        (goodWeekend) =>
+          PATHS.family
+            .build({ goodWeekend }, base)
+            .routines.find((r) => r.days.join() === '6' && r.protocolId === 'family-adventure')
+            ?.title,
       ),
     );
     expect(titles.size).toBe(4);

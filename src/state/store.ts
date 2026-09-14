@@ -27,7 +27,9 @@ import type { SleepNight } from '@/features/health/sleepTiming';
 import { applicableRoutines, protocolById, routineApplies, toRoutine } from '@/features/knowledge/protocols';
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
-import { NO_ENTITLEMENT, runningRoutines, type Entitlement } from '@/features/plus/entitlement';
+import { NO_ENTITLEMENT, runningRoutines, type Entitlement,
+  freeCoachFor,
+} from '@/features/plus/entitlement';
 import { MAX_PACE_SNAPSHOTS, MAX_SLEEP_NIGHTS, PERSIST_VERSION, migratePersisted, pruneHistory } from '@/state/hygiene';
 import { ritualKey, type RitualEntry, type RitualKind } from '@/features/cadence/rituals';
 import {
@@ -1018,7 +1020,17 @@ export const useAppStore = create<AppState>()(
           // Anatomy first: a routine that does not apply to this body is
           // never planned, whatever the entitlement says.
           const applicable = applicableRoutines(routines, profile.sexAtBirth);
-          const running = runningRoutines(applicable, entitlement.plus, get().paths.recovery?.goalId);
+          // One coach runs free, chosen by the person's own top priority —
+          // see entitlement.freeCoachFor. Without this a new user finished
+          // the interview and met a locked card under a heading announcing
+          // the coaches had built them something.
+          const freeCoachGoalId = get().paths[freeCoachFor(profile.priorities)]?.goalId;
+          const running = runningRoutines(
+            applicable,
+            entitlement.plus,
+            get().paths.recovery?.goalId,
+            freeCoachGoalId,
+          );
           // What these sessions actually take this person, drawn from
           // their own finished blocks. A routine with fewer than three
           // measured sessions is absent from the map and keeps the length

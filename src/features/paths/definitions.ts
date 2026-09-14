@@ -1050,9 +1050,23 @@ export const PATHS: Record<PathId, PathDefinition> = {
       };
       const wk = answers.goodWeekend ? weekendShape[answers.goodWeekend] : undefined;
       if (wk) {
+        // This IS the weekend family block, shaped by what they said they
+        // enjoy — so it REPLACES the generic outing rather than sitting
+        // beside it. Both used to ship, on the same Saturday morning,
+        // because the tailored one carried no protocol id and so could
+        // never be recognised as the same practice.
+        //
+        // Removed before the push rather than deduped after it:
+        // `dedupeRoutines` is first-wins, and the generic one is added
+        // first, so leaving it in place would silently discard the
+        // tailored block instead.
+        for (let i = routines.length - 1; i >= 0; i--) {
+          if (routines[i].protocolId === 'family-adventure') routines.splice(i, 1);
+        }
         routines.push({
           id: newId('r'),
           goalId: plan.goal.id,
+          protocolId: 'family-adventure',
           title: wk.title,
           area: 'family',
           days: [6],
