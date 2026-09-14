@@ -87,6 +87,18 @@ import {
   type NicotineStatus,
 } from '@/features/health/essential8';
 import { GRIP_LOW } from '@/features/health/functionTests';
+import {
+  SELF_RATED_HEALTH_PROVENANCE,
+  SELF_REPORT_SE_MULTIPLIER,
+  WALKING_PACE_PROVENANCE,
+  selfRatedHealthLogHazard,
+  walkingPaceLogHazard,
+  type SelfRatedHealth,
+  type WalkingPace,
+} from '@/features/health/selfReport';
+
+/** Re-exported so callers get the whole instrument from one module. */
+export { SELF_REPORT_SE_MULTIPLIER };
 
 /**
  * False only once the coefficients below are fitted on our own cohort
@@ -132,9 +144,23 @@ export interface Provenance {
   caveat: string;
 }
 
+/**
+ * Where a component's value came from.
+ *
+ * The distinction is load-bearing, not bookkeeping. A self-reported
+ * walking pace and a measured gait speed answer the same question with
+ * different precision, and when the measured one arrives it REPLACES the
+ * proxy rather than averaging with it. The number then moves — and that
+ * movement is better knowledge, not a healthier person. `progress.ts`
+ * exists to keep those two apart.
+ */
+export type ComponentSource = 'measured' | 'self-reported';
+
 export interface PaceComponent {
   id: string;
   label: string;
+  /** Null where the component could not be read at all. */
+  source: ComponentSource | null;
   /** What this component is measuring, in the person's terms. */
   measures: string;
   provenance: Provenance;
@@ -165,6 +191,14 @@ export interface PaceComponent {
   detail: string;
   /** Why it cannot be read, where it cannot. */
   blocked?: string;
+  /**
+   * What measuring this properly would buy, where it is currently a proxy.
+   *
+   * The honest version of a nudge: it says what changes, and `progress.ts`
+   * then refuses to report the resulting movement as somebody getting
+   * healthier.
+   */
+  upgradeTo?: string;
 }
 
 /* ── The published effects, one function each ─────────────────────────── */
@@ -276,6 +310,15 @@ export interface PaceInputs {
   sleepHours?: number | null;
   bmi?: number | null;
   nicotine?: NicotineStatus | null;
+  /**
+   * What they told us before anything was measured.
+   *
+   * Isaac: "people are not starting from 0." Somebody opening this app is
+   * not unmeasured, they are unasked — and two questions carry most of
+   * what can be had for free.
+   */
+  selfRatedHealth?: SelfRatedHealth;
+  walkingPace?: WalkingPace;
 }
 
 export interface PaceReading {
@@ -312,6 +355,7 @@ export function readPace(input: PaceInputs): PaceReading {
   const components: PaceComponent[] = [
     {
       id: 'grip',
+      source: input.gripKg != null && sex ? 'measured' : null,
       label: 'Grip strength',
       measures:
         'Whole-body strength read through the hand — a proxy for physiological reserve, and an unreasonably good one.',
@@ -336,6 +380,7 @@ export function readPace(input: PaceInputs): PaceReading {
     },
     {
       id: 'balance',
+      source: input.balanceSeconds != null ? 'measured' : null,
       label: 'Ten-second stand',
       measures: 'Balance — what decides whether a trip becomes a fall.',
       provenance: {
@@ -355,9 +400,13 @@ export function readPace(input: PaceInputs): PaceReading {
     {
       id: 'gait',
       label: 'Walking speed',
+      // Measured beats asked, and never averages with it. Two instruments
+      // answering the same question with different precision should not be
+      // blended — the better one simply takes over.
+      source: input.gaitMs != null ? 'measured' : input.walkingPace ? 'self-reported' : null,
       measures:
         'Heart, lungs, legs, joints, balance and nervous system, integrated into one number.',
-      provenance: {
+      provenance: input.gaitMs != null ? {
         study: 'Studenski and colleagues, 2011',
         journal: 'JAMA',
         sample: '34,485 older adults pooled from 9 cohorts, 17,528 deaths',
@@ -366,13 +415,42 @@ export function readPace(input: PaceInputs): PaceReading {
         grade: 'A',
         caveat:
           'Derived in older adults. It carries much less information below about 65, and this reading is weak for a younger person.',
-      },
-      logHazard: input.gaitMs != null ? gaitLogHazard(input.gaitMs) : null,
-      detail: input.gaitMs != null ? `${input.gaitMs.toFixed(2)} m/s` : 'Not measured',
-      blocked: input.gaitMs == null ? 'Needs four metres of floor and a timer.' : undefined,
+      } : WALKING_PACE_PROVENANCE,
+      logHazard:
+        input.gaitMs != null
+          ? gaitLogHazard(input.gaitMs)
+          : input.walkingPace
+            ? walkingPaceLogHazard(input.walkingPace)
+            : null,
+      detail:
+        input.gaitMs != null
+          ? `${input.gaitMs.toFixed(2)} m/s, measured`
+          : input.walkingPace
+            ? `${input.walkingPace === 'steady' ? 'steady' : input.walkingPace} pace, as you described it`
+            : 'Not measured',
+      blocked:
+        input.gaitMs != null || input.walkingPace
+          ? undefined
+          : 'Tell us your usual walking pace, or measure it over four metres.',
+      upgradeTo:
+        input.gaitMs == null && input.walkingPace
+          ? 'Timing yourself over four metres replaces this with the measured version and narrows the interval.'
+          : undefined,
+    },
+    {
+      id: 'selfRatedHealth',
+      label: 'How your health feels to you',
+      source: input.selfRatedHealth ? 'self-reported' : null,
+      measures:
+        'Your own judgement of your health. It looks like small talk and it is the single most striking finding in this instrument — people know something about themselves that no lab result contains.',
+      provenance: SELF_RATED_HEALTH_PROVENANCE,
+      logHazard: input.selfRatedHealth ? selfRatedHealthLogHazard(input.selfRatedHealth) : null,
+      detail: input.selfRatedHealth ? capitalise(input.selfRatedHealth) : 'Not asked yet',
+      blocked: input.selfRatedHealth ? undefined : 'One question, and it never needs measuring.',
     },
     {
       id: 'fitness',
+      source: input.vo2max != null && input.age != null ? 'measured' : null,
       label: 'Cardiorespiratory fitness',
       measures: 'The capacity the whole system is built on.',
       provenance: {
@@ -393,6 +471,7 @@ export function readPace(input: PaceInputs): PaceReading {
     },
     {
       id: 'le8',
+      source: le8 != null ? 'measured' : null,
       label: 'Cardiovascular health behaviours',
       measures:
         'Activity, sleep, body mass and nicotine — the four of Life’s Essential 8 this app can see.',
@@ -494,6 +573,8 @@ export const UNREAD_COMPONENT_YEARS = 2.5;
  */
 export const MEASUREMENT_SE_YEARS = 1.2;
 
+
+
 /** Log-hazard to years, via the Gompertz doubling time. */
 const YEARS_PER_LOG_HAZARD = MRDT_YEARS / Math.LN2;
 
@@ -527,10 +608,12 @@ export interface PaceHeadline {
 export function paceHeadline(reading: PaceReading, age: number | undefined): PaceHeadline | null {
   if (age == null || reading.yearsEquivalent === null) return null;
 
-  // 1. Component estimation error, in log-hazard space.
+  // 1. Component estimation error, in log-hazard space, widened where the
+  //    value was asked rather than measured.
   let varianceLog = 0;
   for (const c of reading.observed) {
-    const se = Math.abs(c.logHazard ?? 0) * GRADE_RELATIVE_SE[c.provenance.grade];
+    const widen = c.source === 'self-reported' ? SELF_REPORT_SE_MULTIPLIER : 1;
+    const se = Math.abs(c.logHazard ?? 0) * GRADE_RELATIVE_SE[c.provenance.grade] * widen;
     varianceLog += se ** 2;
   }
   const sumLog = reading.observed.reduce((sum, c) => sum + (c.logHazard ?? 0), 0);
@@ -545,7 +628,12 @@ export function paceHeadline(reading: PaceReading, age: number | undefined): Pac
   //    reference, because a measurement is not certain for coming out
   //    average.
   const observedCount = reading.coverage.observed;
-  const measuredVar = observedCount * MEASUREMENT_SE_YEARS ** 2;
+  const measuredVar = reading.observed.reduce(
+    (v, c) =>
+      v +
+      (MEASUREMENT_SE_YEARS * (c.source === 'self-reported' ? SELF_REPORT_SE_MULTIPLIER : 1)) ** 2,
+    0,
+  );
 
   // 4. What we could not see. Quadrature again: four unknowns are not four
   //    times as uncertain as one.
@@ -667,6 +755,10 @@ export function paceOverTime(
     spanDays,
     confidence: sorted.length >= 5 && spanDays >= 365 ? 'moderate' : 'low',
   };
+}
+
+function capitalise(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 function daysBetween(a: string, b: string): number {

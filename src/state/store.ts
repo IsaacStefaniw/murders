@@ -20,11 +20,14 @@ import { assessGoal } from '@/features/goals/composer';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { detectGoalUnderserved } from '@/features/goals/underserved';
 import type { NicotineStatus } from '@/features/health/essential8';
+import { paceHeadline, readPace } from '@/features/health/pace';
+import { paceInputsFrom } from '@/features/health/paceInputs';
+import { snapshotOf, type PaceSnapshot } from '@/features/health/snapshot';
 import { applicableRoutines, protocolById, routineApplies, toRoutine } from '@/features/knowledge/protocols';
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { NO_ENTITLEMENT, runningRoutines, type Entitlement } from '@/features/plus/entitlement';
-import { PERSIST_VERSION, migratePersisted, pruneHistory } from '@/state/hygiene';
+import { MAX_PACE_SNAPSHOTS, PERSIST_VERSION, migratePersisted, pruneHistory } from '@/state/hygiene';
 import { ritualKey, type RitualEntry, type RitualKind } from '@/features/cadence/rituals';
 import {
   EMPTY_FOOD_PREFERENCES,
@@ -401,6 +404,30 @@ export interface AppState {
   nicotineStatus: NicotineStatus | null;
   setNicotineStatus: (status: NicotineStatus) => void;
 
+  /**
+   * Dated snapshots of the markers reading, so movement can be attributed
+   * rather than merely displayed.
+   *
+   * Stored rather than recomputed because the inputs are scattered — some
+   * in the metric stream, some in interview answers, some in the plan — and
+   * reconstructing what the instrument would have said last March means
+   * replaying all three. A snapshot at the moments the reading actually
+   * changes is cheaper and exact.
+   *
+   * Kept small on purpose: component id, its log hazard and where the value
+   * came from. That is everything `progress.ts` needs to tell somebody
+   * getting healthier apart from the app measuring them better.
+   */
+  paceSnapshots: PaceSnapshot[];
+  /**
+   * Take a reading now and file it.
+   *
+   * Called at the moments the instrument actually changes — a function
+   * test recorded, the interview finished — rather than on a timer. A
+   * snapshot a day when nothing moved would bury the two that matter.
+   */
+  snapshotPace: () => void;
+
   /** Apple Health — read-only vitals feeding the same metric stream. */
   healthConnectedAt: string | null;
   healthLastSyncAt: string | null;
@@ -628,6 +655,7 @@ const initialData = {
   foodPreferencesAsked: false,
   notifications: DEFAULT_NOTIFICATION_SETTINGS as NotificationSettings,
   nicotineStatus: null as NicotineStatus | null,
+  paceSnapshots: [] as PaceSnapshot[],
   healthConnectedAt: null as string | null,
   healthLastSyncAt: null as string | null,
   healthHistoryReadAt: null as string | null,
@@ -853,6 +881,12 @@ export const useAppStore = create<AppState>()(
 
         completeOnboarding: ({ profile, goals, routines, behaviourIntentions, answers }) => {
           set({ onboarded: true, profile, goals, routines, behaviourIntentions, interviewAnswers: answers ?? {} });
+          // The day-one baseline. Isaac: "people are not starting from 0" —
+          // and without a snapshot here there is nothing for later progress
+          // to be measured against, so the first real measurement would
+          // look like the beginning rather than an improvement on what they
+          // already told us.
+          get().snapshotPace();
           get().regeneratePlan(todayKey());
         },
 
@@ -1481,6 +1515,36 @@ export const useAppStore = create<AppState>()(
         },
 
         setNicotineStatus: (nicotineStatus) => set({ nicotineStatus }),
+
+        snapshotPace: () => {
+          const state = get();
+          const date = todayKey();
+          const reading = readPace(
+            paceInputsFrom({
+              profile: state.profile,
+              metrics: state.metrics,
+              plans: state.plans,
+              routines: state.routines,
+              cardioLogs: state.cardioLogs,
+              behaviourIntentions: state.behaviourIntentions,
+              behaviourEvents: state.behaviourEvents,
+              nicotineStatus: state.nicotineStatus,
+              interviewAnswers: state.interviewAnswers,
+              today: date,
+            }),
+          );
+          if (reading.observed.length === 0) return;
+          const headline = paceHeadline(reading, state.profile?.age);
+          // One a day. Somebody doing all four tests in a sitting should
+          // produce a single before-and-after, not four.
+          const withoutToday = state.paceSnapshots.filter((s) => s.date !== date);
+          set({
+            paceSnapshots: [
+              ...withoutToday,
+              { ...snapshotOf(reading, headline?.plusMinus ?? null), date },
+            ].slice(-MAX_PACE_SNAPSHOTS),
+          });
+        },
 
         markFoodPreferencesAsked: () => set({ foodPreferencesAsked: true }),
 

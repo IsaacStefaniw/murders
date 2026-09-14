@@ -673,6 +673,55 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     ],
   },
   {
+    /**
+     * The two highest-value questions in the interview, and they look like
+     * small talk.
+     *
+     * Isaac: "people are not starting from 0." Somebody arriving here is
+     * carrying decades of history, and these two answers capture more of
+     * it than anything else we could ask without equipment. Self-rated
+     * health predicted mortality across 22 pooled cohorts after adjusting
+     * for comorbidity and function; self-reported walking pace separated
+     * outcomes across 420,727 people in UK Biobank.
+     *
+     * Both are `deferTo: 'recovery'` rather than core: they change what
+     * the markers screen can SHOW on day one, not what gets built into the
+     * plan, and nobody should be blocked at signup by a question about
+     * mortality research.
+     */
+    id: 'selfRatedHealth',
+    deferTo: 'recovery',
+    optional: true,
+    kind: 'single',
+    prompt: () => 'In general, how would you say your health is?',
+    reveal: (a) =>
+      a.selfRatedHealth
+        ? 'Worth knowing that this single question predicts health outcomes better than most blood tests do. You know something about yourself a lab result does not.'
+        : null,
+    options: [
+      { value: 'excellent', label: 'Excellent' },
+      { value: 'good', label: 'Good' },
+      { value: 'fair', label: 'Fair' },
+      { value: 'poor', label: 'Poor' },
+    ],
+  },
+  {
+    id: 'walkingPace',
+    deferTo: 'recovery',
+    optional: true,
+    kind: 'single',
+    prompt: () => 'And your usual walking pace — not your best, just how you normally walk?',
+    reveal: (a) =>
+      a.walkingPace
+        ? 'That gives us a mobility reading from day one. Walking pace pulls the heart, lungs, legs and balance into one answer, and you can replace it with a measured one any time.'
+        : null,
+    options: [
+      { value: 'slow', label: 'Slow' },
+      { value: 'steady', label: 'Steady, average' },
+      { value: 'brisk', label: 'Brisk' },
+    ],
+  },
+  {
     id: 'mind',
     deferTo: 'recovery',
     kind: 'multi',

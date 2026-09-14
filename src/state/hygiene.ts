@@ -25,6 +25,11 @@ export const KEEP_PLAN_DAYS = 730;
 export const MAX_BEHAVIOUR_EVENTS = 2000;
 export const MAX_REFLECTIONS = 730;
 export const MAX_WORKOUT_LOGS = 500;
+/**
+ * Marker snapshots. One a day at most, and the instrument moves on the
+ * scale of months — two years of history is ample and costs almost nothing.
+ */
+export const MAX_PACE_SNAPSHOTS = 200;
 export const MAX_RESOLVED_SUGGESTIONS = 200;
 
 const KEPT_ITEM_KEYS: (keyof PlanItem)[] = [

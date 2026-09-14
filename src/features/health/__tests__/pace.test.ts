@@ -178,7 +178,7 @@ describe('one reading', () => {
 
   it('counts coverage, so a two-component reading cannot pass as a whole one', () => {
     const out = readPace(inputs({ balanceSeconds: 12, gaitMs: 1.0 }));
-    expect(out.coverage).toEqual({ observed: 2, total: 5 });
+    expect(out.coverage).toEqual({ observed: 2, total: 6 });
   });
 
   it('will not read grip without the sex the thresholds are specific to', () => {
@@ -309,7 +309,7 @@ describe('the headline figure', () => {
     // in this category is a confident numeral with the width stripped off.
     const h = paceHeadline(strong, 45)!;
     expect(h.plusMinus).toBeGreaterThan(0);
-    expect(h.coverage.total).toBe(5);
+    expect(h.coverage.total).toBe(6);
     expect(h.qualifier).toMatch(/give or take/i);
     expect(h.qualifier).toMatch(/not a biological age/i);
   });
@@ -341,6 +341,8 @@ describe('the headline figure', () => {
     // Five components at the test-retest floor is about ±5 years, and
     // nothing may promise better than that.
     const floor = Math.round(1.96 * Math.sqrt(5) * MEASUREMENT_SE_YEARS);
+    // Five measured markers; self-rated health stays unasked in this case,
+    // so coverage is 5 of 6 and the floor is the measured-marker floor.
     for (const age of [30, 45, 68]) {
       const h = paceHeadline(
         readPace(inputs({ age, gripKg: 50, balanceSeconds: 30, gaitMs: 1.3, vo2max: 48, activityMinutes: 200, sleepHours: 7.5, bmi: 23, nicotine: 'never' })),

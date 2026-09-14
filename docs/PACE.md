@@ -135,7 +135,89 @@ build when broken.
   older adults" is a true sentence about thirty years of work), forbidden
   about ours until `PROVISIONAL` is false.
 
-## 5. What calibration actually requires
+## 5. Day one: the questionnaire
+
+*"Can the pre questionnaire help you land in this bucket then? and show
+improvements... people are not starting from 0."*
+
+That is the correction the instrument needed. Somebody opening the app is
+not **unmeasured**, they are **unasked** — they arrive carrying thirty
+years of training or thirty years of smoking, and greeting that with
+"nothing measured yet" is both useless and untrue.
+
+Two questions carry most of what can be had for free, and both look like
+small talk:
+
+| Question | Source | Effect |
+|---|---|---|
+| **Self-rated health** — "in general, how would you say your health is?" | DeSalvo 2006, *J Gen Intern Med* — 22 pooled cohorts | vs excellent: good 1.23, fair 1.44, **poor 1.92** — and it survives adjustment for comorbidity, function, cognition and depression |
+| **Usual walking pace** — slow / steady / brisk | Yates & Celis-Morales 2017, *Eur Heart J* — 420,727 UK Biobank participants | slow vs brisk 1.31–2.16 depending on body-mass tertile |
+
+Self-rated health is the most striking finding in the module: one
+question, no equipment, and it outperforms much of what a longevity panel
+measures. People know something about themselves that no lab result
+contains.
+
+Walking pace is a **proxy** for the measured gait test, which means
+somebody has a mobility reading from day one.
+
+Four levels of self-rated health, not the usual five — DeSalvo reports
+pooled risks for exactly excellent / good / fair / poor, and interpolating
+a fifth would put an invented number beside four real ones.
+
+### 5.1 Proxies are proxies
+
+Every questionnaire component is marked `self-reported` and carries a
+wider interval (`SELF_REPORT_SE_MULTIPLIER = 1.6`). When the measured
+version arrives it **replaces** the proxy rather than averaging with it —
+two instruments answering the same question at different precision should
+not be blended; the better one takes over.
+
+## 6. Showing improvement without lying about it
+
+This is the one trap in the feature, and it has its own module
+(`progress.ts`).
+
+**The scenario.** Somebody answers two questions at signup and reads 48. A
+fortnight later they buy a dynamometer, do the four tests, and read 43.
+
+Nothing about them changed. They did not get five years younger in a
+fortnight. The figure moved because the instrument stopped guessing.
+Reporting that as *"you improved by 5 years"* would be a lie the person
+has no way of catching — and a lie with a particular shape: flattering,
+arriving early, and caused entirely by the user doing something the app
+asked them to do. That is the exact structure of a metric built to make
+people feel good rather than to tell them anything.
+
+**So every movement is attributed.** Between any two readings each
+component moved for exactly one of three reasons, kept separate all the
+way to the screen:
+
+| Kind | Meaning | May be called improvement? |
+|---|---|---|
+| `sharper` | Was blank and now has a value, **or** was asked and is now measured | **No** |
+| `changed` | Same component, same kind of measurement, different value | **Yes** — the only case |
+| `lost` | Had a value, no longer does | No — and shown rather than silently widening the interval |
+
+The headline splits into `yearsFromChange` and `yearsFromMeasurement`,
+which sum to the total. Only the first is ever congratulated.
+
+One case was found by a test and is worth noting: somebody can measure two
+new markers that both read *at reference*. The figure does not move at all,
+so the naive copy is "nothing has moved" — true about the number, wrong
+about the reading, because the interval just got tighter. Measuring more
+and finding nothing wrong is a result, and the copy now says what it
+bought.
+
+### 6.1 Why this is also the better product
+
+*"You are 2 years better on the markers, and 3 years of the move is just
+us knowing more"* is a sentence almost no health app would write. It is
+also the sentence that makes the 2 believable. An app that has visibly
+refused to take credit for the 3 has earned the right to be believed about
+the 2.
+
+## 7. What calibration actually requires
 
 From `CALIBRATION_REQUIREMENTS`, in code so the distance to done is visible
 to anyone reading the module.
@@ -152,7 +234,7 @@ to anyone reading the module.
    the data is looked at.
 6. Enough people, for long enough. **This is years, not quarters.**
 
-## 6. The presentation decision
+## 8. The presentation decision
 
 **Decided: a headline number.** Isaac chose it over showing components
 alone or a heavily qualified composite.

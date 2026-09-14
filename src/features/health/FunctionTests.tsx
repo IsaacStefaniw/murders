@@ -31,6 +31,7 @@ import { useAppStore } from '@/state/store';
 
 function TestRunner({ test }: { test: FunctionTest }) {
   const addMetric = useAppStore((s) => s.addMetric);
+  const snapshotPace = useAppStore((s) => s.snapshotPace);
   const metrics = useAppStore((s) => s.metrics);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
@@ -107,6 +108,10 @@ function TestRunner({ test }: { test: FunctionTest }) {
               disabled={!valid}
               onPress={() => {
                 addMetric(key, parsed, test.name);
+                // File a reading straight after, so the movement this test
+                // causes is attributable later — and attributed to better
+                // measurement rather than to the person having changed.
+                snapshotPace();
                 setValue('');
                 setOpen(false);
               }}

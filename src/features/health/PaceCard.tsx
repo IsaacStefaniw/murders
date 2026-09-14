@@ -6,12 +6,14 @@ import { Card } from '@/components/card';
 import { Disclosure } from '@/components/disclosure';
 import { AppText } from '@/components/text';
 import { Radius, Spacing } from '@/constants/theme';
-import { activityMinutes, nicotineFromLogs } from '@/features/health/essential8';
-import { FUNCTION_TESTS, functionMetricKey } from '@/features/health/functionTests';
+import { FUNCTION_TESTS } from '@/features/health/functionTests';
 import { paceHeadline, paceShareText, readPace } from '@/features/health/pace';
+import { paceInputsFrom } from '@/features/health/paceInputs';
+import { paceProgress } from '@/features/health/progress';
+import { readingFromSnapshot } from '@/features/health/snapshot';
 import { useTheme } from '@/hooks/use-theme';
 import { shareText } from '@/lib/share';
-import { addDays, todayKey } from '@/lib/dates';
+import { todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 
 /**
@@ -45,57 +47,55 @@ export function PaceCard() {
   const intentions = useAppStore((s) => s.behaviourIntentions);
   const events = useAppStore((s) => s.behaviourEvents);
   const stated = useAppStore((s) => s.nicotineStatus);
+  const answers = useAppStore((s) => s.interviewAnswers);
+  const snapshots = useAppStore((s) => s.paceSnapshots);
   const [shared, setShared] = useState(false);
   const today = todayKey();
 
-  const latest = useMemo(() => {
-    const pick = (key: string) => {
-      let best: { value: number; at: string } | null = null;
-      for (const m of metrics) {
-        if (m.key !== key) continue;
-        if (!best || m.at > best.at) best = { value: m.value, at: m.at };
-      }
-      return best?.value;
-    };
-    const meanWeek = (key: string) => {
-      const from = addDays(today, -6);
-      const vs = metrics
-        .filter((m) => m.key === key && m.at.slice(0, 10) >= from && m.at.slice(0, 10) <= today)
-        .map((m) => m.value);
-      return vs.length > 0 ? vs.reduce((a, b) => a + b, 0) / vs.length : null;
-    };
-    const weight = pick('body.weight');
-    const height = pick('body.height');
-    return {
-      gripKg: pick(functionMetricKey('gripStrength')),
-      balanceSeconds: pick(functionMetricKey('oneLegStand')),
-      gaitMs: pick(functionMetricKey('gaitSpeed')),
-      vo2max: pick('body.vo2max'),
-      sleepHours: meanWeek('sleep.hours'),
-      bmi: weight && height ? weight / (height / 100) ** 2 : null,
-    };
-  }, [metrics, today]);
-
-  const reading = useMemo(
+  const inputs = useMemo(
     () =>
-      readPace({
-        age: profile?.age,
-        sexAtBirth: profile?.sexAtBirth,
-        ...latest,
-        activityMinutes: activityMinutes(plans, routines, today, cardioLogs),
-        nicotine: stated ?? nicotineFromLogs(intentions, events, today),
+      paceInputsFrom({
+        profile: profile ?? null,
+        metrics,
+        plans,
+        routines,
+        cardioLogs,
+        behaviourIntentions: intentions,
+        behaviourEvents: events,
+        nicotineStatus: stated,
+        interviewAnswers: answers,
+        today,
       }),
-    [profile, latest, plans, routines, cardioLogs, today, stated, intentions, events],
+    [profile, metrics, plans, routines, cardioLogs, intentions, events, stated, answers, today],
   );
+
+  const reading = useMemo(() => readPace(inputs), [inputs]);
 
   const headline = useMemo(
     () => paceHeadline(reading, profile?.age),
     [reading, profile?.age],
   );
 
-  const untested = FUNCTION_TESTS.filter(
-    (t) => latest[t.id as keyof typeof latest] == null && t.id !== 'sitToStand',
-  );
+  /**
+   * Movement since the earliest snapshot, split into what actually changed
+   * and what is only us knowing more.
+   *
+   * The split is the point. A person who answers two questions at signup
+   * and then does the four tests a fortnight later will see the figure
+   * move several years, and none of that is them getting healthier.
+   */
+  const progress = useMemo(() => {
+    if (snapshots.length < 2) return null;
+    const first = readingFromSnapshot(snapshots[0], reading);
+    return paceProgress(first, reading);
+  }, [snapshots, reading]);
+
+  const MEASURED: Record<string, number | null | undefined> = {
+    gripStrength: inputs.gripKg,
+    oneLegStand: inputs.balanceSeconds,
+    gaitSpeed: inputs.gaitMs,
+  };
+  const untested = FUNCTION_TESTS.filter((t) => t.id in MEASURED && MEASURED[t.id] == null);
 
   if (!headline) {
     return (
@@ -104,7 +104,7 @@ export function PaceCard() {
         <AppText variant="caption" color="textSecondary" style={styles.gap}>
           {profile?.age == null
             ? 'Add your age in your profile and this starts reading.'
-            : 'Nothing measured yet. The four tests below take about ten minutes between them, and three of the four need no equipment at all.'}
+            : 'Two questions would start this off — how your health feels to you, and your usual walking pace. Both are in your recovery answers, both take a second, and between them they carry more evidence than most of what a longevity panel measures.'}
         </AppText>
       </Card>
     );
@@ -163,6 +163,36 @@ export function PaceCard() {
         </View>
       ) : null}
 
+      {progress ? (
+        <View style={styles.progress}>
+          <AppText variant="label" color="textSecondary">
+            Since you started
+          </AppText>
+          <AppText variant="body" style={styles.gap}>
+            {progress.headline}
+          </AppText>
+          {progress.movements.length > 0 ? (
+            <Disclosure title="What moved, and why">
+              {progress.movements.map((m) => (
+                <View key={m.id} style={styles.movement}>
+                  <AppText variant="body">
+                    {m.label} — {m.real ? 'changed' : 'measured better'}
+                  </AppText>
+                  <AppText variant="caption" color="textSecondary">
+                    {m.detail}
+                  </AppText>
+                  <AppText variant="caption" color="textTertiary">
+                    {m.real
+                      ? `Worth ${Math.abs(m.years).toFixed(1)} ${Math.abs(m.years) < 1.05 ? 'year' : 'years'} ${m.years < 0 ? 'better' : 'worse'} on the figure. This one is you.`
+                      : `Shifted the figure ${Math.abs(m.years).toFixed(1)} ${Math.abs(m.years) < 1.05 ? 'year' : 'years'} — but that is the instrument knowing more, not you being different.`}
+                  </AppText>
+                </View>
+              ))}
+            </Disclosure>
+          ) : null}
+        </View>
+      ) : null}
+
       <Disclosure title={`The ${reading.observed.length} studies behind this`}>
         {reading.observed.map((c) => (
           <View key={c.id} style={styles.component}>
@@ -170,9 +200,15 @@ export function PaceCard() {
               {c.label} — {c.detail}
             </AppText>
             <AppText variant="caption" color="textSecondary">
+              {c.source === 'self-reported' ? 'You told us this. ' : ''}
               {c.provenance.study}, {c.provenance.journal}. {c.provenance.sample}.{' '}
               {c.provenance.effect}.
             </AppText>
+            {c.upgradeTo ? (
+              <AppText variant="caption" color="accent">
+                {c.upgradeTo}
+              </AppText>
+            ) : null}
             <AppText variant="caption" color="textTertiary">
               Grade {c.provenance.grade}. {c.provenance.caveat}
             </AppText>
@@ -224,5 +260,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
   },
   component: { marginTop: Spacing.sm, gap: 2 },
+  progress: { marginTop: Spacing.md },
+  movement: { marginTop: Spacing.sm, gap: 2 },
   actions: { marginTop: Spacing.md },
 });
