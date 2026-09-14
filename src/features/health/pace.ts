@@ -82,11 +82,21 @@
 import {
   activityScore,
   bmiScore,
-  nicotineScore,
   sleepScore,
   type NicotineStatus,
 } from '@/features/health/essential8';
 import { GRIP_LOW } from '@/features/health/functionTests';
+import {
+  DRINKING_LABEL,
+  DRINKING_PROVENANCE,
+  SMOKING_DETAIL,
+  SMOKING_PROVENANCE,
+  drinkingLogHazard,
+  smokingLogHazard,
+  yearsFromQuitting,
+  type DrinkingBand,
+  type SmokingStatus,
+} from '@/features/health/negativeHabits';
 import {
   SELF_RATED_HEALTH_PROVENANCE,
   SELF_REPORT_SE_MULTIPLIER,
@@ -199,6 +209,19 @@ export interface PaceComponent {
    * healthier.
    */
   upgradeTo?: string;
+  /**
+   * The years available here, stated as a gain rather than a deficit.
+   *
+   * Set only where the evidence supports a number for CHANGING, not merely
+   * for being. Smoking has one because cessation has been measured
+   * directly and repeatedly; grip strength does not, because nobody has
+   * shown that training grip moves mortality.
+   *
+   * This is the field that makes asking about smoking a kindness rather
+   * than an accusation — it is the only place in the app that says how big
+   * the prize is, and it cannot say that without having asked.
+   */
+  opportunity?: string;
 }
 
 /* ── The published effects, one function each ─────────────────────────── */
@@ -319,6 +342,13 @@ export interface PaceInputs {
    */
   selfRatedHealth?: SelfRatedHealth;
   walkingPace?: WalkingPace;
+  /**
+   * The two nobody wants to ask. They are also the two most moveable
+   * things here — see `negativeHabits.ts` for why asking is the kind
+   * thing rather than the unkind one.
+   */
+  smoking?: SmokingStatus;
+  drinking?: DrinkingBand;
 }
 
 export interface PaceReading {
@@ -344,13 +374,33 @@ export interface PaceReading {
 export function readPace(input: PaceInputs): PaceReading {
   const sex = input.sexAtBirth === 'male' || input.sexAtBirth === 'female' ? input.sexAtBirth : null;
 
+  // Nicotine is deliberately NOT in here. Essential 8 scores it as one
+  // component of eight, which after averaging and attenuation values a
+  // lifetime of smoking at about a year. The direct literature says ten.
+  // It is scored on its own evidence below and left out here so it is not
+  // counted twice. See negativeHabits.ts.
   const le8Parts: number[] = [];
   if (input.activityMinutes != null) le8Parts.push(activityScore(input.activityMinutes));
   if (input.sleepHours != null) le8Parts.push(sleepScore(input.sleepHours));
   if (input.bmi != null) le8Parts.push(bmiScore(input.bmi));
-  if (input.nicotine) le8Parts.push(nicotineScore(input.nicotine));
   const le8 =
     le8Parts.length > 0 ? le8Parts.reduce((a, b) => a + b, 0) / le8Parts.length : null;
+
+  // Asked beats inferred. Somebody who told us gets their answer used; the
+  // behaviour log is only the fallback for somebody who did not.
+  const smoking: SmokingStatus | undefined =
+    input.smoking ??
+    (input.nicotine === 'smokesNow'
+      ? 'current'
+      : input.nicotine === 'inhaledNicotine'
+        ? 'vapeOnly'
+        : input.nicotine === 'never'
+          ? 'never'
+          : input.nicotine === 'quit5y'
+            ? 'quitLongAgo'
+            : input.nicotine === 'quit1to5y'
+              ? 'quitRecently'
+              : undefined);
 
   const components: PaceComponent[] = [
     {
@@ -468,6 +518,40 @@ export function readPace(input: PaceInputs): PaceReading {
       detail: input.vo2max != null ? `${input.vo2max.toFixed(1)} ml/kg/min (estimated)` : 'Not measured',
       blocked:
         input.vo2max == null ? 'Comes from Apple Health after some outdoor walks or runs.' : undefined,
+    },
+    {
+      id: 'nicotine',
+      label: 'Smoking',
+      source: smoking ? (input.smoking ? 'self-reported' : 'measured') : null,
+      measures:
+        'The largest single moveable thing in this instrument, in both directions. It is also the only component where the number worth showing somebody is the one they would GAIN.',
+      provenance: SMOKING_PROVENANCE,
+      logHazard: smoking ? smokingLogHazard(smoking) : null,
+      detail: smoking ? SMOKING_DETAIL[smoking] : 'Not asked yet',
+      blocked: smoking
+        ? undefined
+        : 'One question. It matters more than anything else here, and the app will not guess at it.',
+      opportunity:
+        smoking === 'current'
+          ? `Smoking costs about a decade against never having smoked. ${yearsFromQuitting(input.age)}`
+          : smoking === 'quitRecently'
+            ? 'Most of the excess falls away over the first decade after stopping, so this one improves on its own as that time passes.'
+            : undefined,
+    },
+    {
+      id: 'alcohol',
+      label: 'Alcohol',
+      source: input.drinking ? 'self-reported' : null,
+      measures:
+        'How much, across a usual week. Inside this instrument rather than beside it, because pace is assembled from many studies and alcohol arrives with a large one of its own.',
+      provenance: DRINKING_PROVENANCE,
+      logHazard: input.drinking ? drinkingLogHazard(input.drinking) : null,
+      detail: input.drinking ? DRINKING_LABEL[input.drinking] : 'Not asked yet',
+      blocked: input.drinking ? undefined : 'One question, in standard drinks across a usual week.',
+      opportunity:
+        input.drinking === 'high' || input.drinking === 'veryHigh'
+          ? 'The pooled data puts the lowest all-cause mortality at about ten standard drinks a week — the same number the Australian guideline names. Coming down toward it is where the years in this component are.'
+          : undefined,
     },
     {
       id: 'le8',
@@ -794,7 +878,6 @@ export const FORBIDDEN_CLAIMS = [
   'reverse your age',
   'reverse ageing',
   'you will live',
-  'life expectancy',
   'clinically proven',
   'medically proven',
 ] as const;
@@ -817,4 +900,10 @@ export const FORBIDDEN_SELF_CLAIMS = [
   'accurate to',
   'precise',
   'your true',
+  // "Drinking above 350g cost four to five years of life expectancy at 40"
+  // is a correct summary of what Wood and colleagues measured across
+  // 599,912 people. "Your life expectancy is 82" is a claim about one
+  // person that nothing here can support. Same words, and the difference
+  // is entirely whether the sentence is about a cohort or about you.
+  'life expectancy',
 ] as const;

@@ -178,7 +178,7 @@ describe('one reading', () => {
 
   it('counts coverage, so a two-component reading cannot pass as a whole one', () => {
     const out = readPace(inputs({ balanceSeconds: 12, gaitMs: 1.0 }));
-    expect(out.coverage).toEqual({ observed: 2, total: 6 });
+    expect(out.coverage).toEqual({ observed: 2, total: 8 });
   });
 
   it('will not read grip without the sex the thresholds are specific to', () => {
@@ -269,6 +269,17 @@ describe('what this instrument may never do', () => {
     }
   });
 
+  it('permits an epidemiological finding it may not claim about a person', () => {
+    // Both halves matter. Wood's life-expectancy figures are what the paper
+    // measured and belong in its provenance; "your life expectancy is 82"
+    // is a claim about one person that nothing here supports.
+    const reading = readPace(inputs({ drinking: 'veryHigh' }));
+    const alcohol = reading.components.find((c) => c.id === 'alcohol')!;
+    expect(alcohol.provenance.effect).toContain('life expectancy');
+    expect(FORBIDDEN_SELF_CLAIMS).toContain('life expectancy');
+    expect(FORBIDDEN_CLAIMS).not.toContain('life expectancy');
+  });
+
   it('never claims validation for ITSELF, while still describing others\u2019', () => {
     // The distinction is the point. "The SPPB is validated in older adults"
     // is a true sentence about thirty years of other people's work.
@@ -309,7 +320,7 @@ describe('the headline figure', () => {
     // in this category is a confident numeral with the width stripped off.
     const h = paceHeadline(strong, 45)!;
     expect(h.plusMinus).toBeGreaterThan(0);
-    expect(h.coverage.total).toBe(6);
+    expect(h.coverage.total).toBe(8);
     expect(h.qualifier).toMatch(/give or take/i);
     expect(h.qualifier).toMatch(/not a biological age/i);
   });

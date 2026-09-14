@@ -706,6 +706,67 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     ],
   },
   {
+    /**
+     * The one that matters most, and the one an app is most tempted to
+     * leave out for fear of seeming judgemental.
+     *
+     * Leaving it out is the worse failure. Before this, the app only knew
+     * somebody smoked if they had ALREADY decided to quit and set up an
+     * intention — so a person who smokes and is not yet ready to stop was
+     * invisible on the largest modifiable component there is.
+     *
+     * The reveal leads with what stopping RETURNS rather than with what
+     * smoking costs, because that is the honest emphasis: the cessation
+     * evidence is the most hopeful finding in the whole instrument, and it
+     * is the only number here that a person can move by a decade.
+     */
+    id: 'smokingStatus',
+    deferTo: 'recovery',
+    optional: true,
+    kind: 'single',
+    prompt: () => 'Do you smoke, or have you?',
+    reveal: (a) =>
+      a.smokingStatus === 'current' || a.smokingStatus === 'vapeOnly'
+        ? 'Thank you for being straight about it. Nothing here will nag you — but this is the one thing on the list where stopping is worth years rather than months, and the app can now show you how many.'
+        : a.smokingStatus === 'quitRecently' || a.smokingStatus === 'quitLongAgo'
+          ? 'That counts for a great deal. Most of the excess risk falls away over the decade after stopping, so this keeps improving on its own.'
+          : null,
+    options: [
+      { value: 'never', label: 'Never have' },
+      { value: 'quitLongAgo', label: 'Stopped, over ten years ago' },
+      { value: 'quitRecently', label: 'Stopped, in the last ten years' },
+      { value: 'vapeOnly', label: 'I vape, not smoke' },
+      { value: 'current', label: 'I smoke' },
+    ],
+  },
+  {
+    /**
+     * Bands rather than a number, and a usual week rather than last week.
+     *
+     * `BehaviourLog` refuses a quantity on purpose — a logged drink must
+     * never become a tally somebody is failing. This is a different thing:
+     * one standing answer about a usual week, which is exactly what the
+     * pooled cohort asked its 599,912 drinkers. It is a measurement, not a
+     * running total, and nothing counts up from it.
+     */
+    id: 'drinkingBand',
+    deferTo: 'recovery',
+    optional: true,
+    kind: 'single',
+    prompt: () => 'And in a usual week, roughly how many standard drinks?',
+    reveal: (a) =>
+      a.drinkingBand === 'high' || a.drinkingBand === 'veryHigh'
+        ? 'Worth knowing that the largest pooled study of this — 599,912 drinkers — put the lowest risk at about ten a week, which is the same number the Australian guideline lands on. Nothing here counts your drinks; this is one answer about a usual week.'
+        : null,
+    options: [
+      { value: 'none', label: 'I don’t drink' },
+      { value: 'lowRisk', label: 'Up to 10' },
+      { value: 'moderate', label: '11 to 20' },
+      { value: 'high', label: '21 to 35' },
+      { value: 'veryHigh', label: 'More than 35' },
+    ],
+  },
+  {
     id: 'walkingPace',
     deferTo: 'recovery',
     optional: true,

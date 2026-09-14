@@ -131,9 +131,14 @@ build when broken.
   biological age is*, *reverse your age*, *you will live*, *life
   expectancy*, *clinically proven*.
 - **`FORBIDDEN_SELF_CLAIMS`** — *validated*, *proven*, *precise*, *your
-  true*. Permitted about published instruments ("the SPPB is validated in
-  older adults" is a true sentence about thirty years of work), forbidden
-  about ours until `PROVISIONAL` is false.
+  true*, *life expectancy*. Permitted about published research, forbidden
+  about the person. "The SPPB is validated in older adults" is a true
+  sentence about thirty years of work; "our score is validated" is a lie.
+  "Drinking above 350g cost four to five years of life expectancy at 40" is
+  what Wood measured across 599,912 people; "your life expectancy is 82" is
+  a claim about one person that nothing here supports. Same words — the
+  difference is entirely whether the sentence is about a cohort or about
+  you.
 
 ## 5. Day one: the questionnaire
 
@@ -165,7 +170,71 @@ Four levels of self-rated health, not the usual five — DeSalvo reports
 pooled risks for exactly excellent / good / fair / poor, and interpolating
 a fifth would put an invented number beside four real ones.
 
-### 5.1 Proxies are proxies
+### 5.1 The negative habits
+
+*"Don't forget to ask negative habits as well?"*
+
+The largest hole in the day-one reading. The app only knew somebody smoked
+if they had **already** decided to quit and set up a behaviour intention —
+so a person who smokes twenty a day and is not yet ready to stop read as
+*"nicotine: not known"*, on the single largest modifiable component there
+is.
+
+| Question | Source | Effect |
+|---|---|---|
+| **Smoking** — never / stopped >10y / stopped <10y / vape only / current | Jha 2013, *NEJM* — >200,000 US adults | Smokers lost about **a decade**. Quitting at 25–34, 35–44, 45–54 returned about **10, 9 and 6 years**; stopping before 40 avoided ~90% of the excess |
+| **Alcohol** — bands of standard drinks per usual week | Wood 2018, *The Lancet* — 599,912 drinkers, 83 prospective studies | Lowest all-cause mortality at ~100g/week. Above that: 100–200g ≈ 6 months, 200–350g ≈ 1–2 years, >350g ≈ **4–5 years** |
+
+**Why asking is the kind thing.** `catalog.ts` settled this argument in
+this codebase already: *"withholding something true because a reader might
+mishear it is condescension, not care"*, and *"say what the behaviour DOES,
+never that it IS bad"*.
+
+There is a second and stronger reason. These are the **most moveable**
+components by a wide margin. Grip strength shifts over months of training
+and buys a year or two. Stopping smoking before forty recovers about
+nine-tenths of a decade — the largest number anywhere in this module, and
+it is a number of years **gained**.
+
+So for a smoker this is not a penalty they did not ask for. It is the only
+place in the app that quantifies the size of the prize, and it cannot do
+that without asking. The `opportunity` field on a component exists for
+exactly this, and it is rendered **above** the studies disclosure rather
+than inside it.
+
+`opportunity` is set only where the evidence supports a number for
+*changing*, not merely for *being*. Smoking has one; **grip strength does
+not**, because nobody has shown that training grip moves mortality.
+
+### 5.2 Two filing decisions that follow
+
+**Nicotine left the Essential 8 sub-score.** Life's Essential 8 scores
+nicotine as one component of eight, so after averaging and attenuation a
+lifetime of smoking was worth about a year. The direct literature says ten.
+Using the weaker of two available numbers because it happened to arrive
+inside a composite we already had would be a filing decision producing a
+factual error. Nicotine is now scored on its own evidence, and the
+Essential 8 component reads **3 of 8** rather than 4. A test asserts the
+sub-score is identical whether or not smoking was disclosed, so it cannot
+be counted twice.
+
+**Alcohol is inside pace but still beside Essential 8.** Not a reversal.
+The `essential8.ts` rule exists because alcohol is not an AHA component and
+smuggling it in would make our composite wear their name. Pace is our own
+instrument, explicitly assembled from many studies, and alcohol arrives
+with its own 599,912-person citation. Same rule, both times.
+
+### 5.3 Where the vaping figure comes from, honestly
+
+There is **no long-term mortality cohort for vaping** — it has not existed
+long enough for one, and anyone quoting a hazard ratio for it is quoting
+something that does not exist. Life's Essential 8 places inhaled nicotine
+at 25 of 100, which is a considered judgement by a scientific panel rather
+than a finding. The figure here mirrors that judgement and its caveat says
+so in those words. It is the weakest thing in the instrument and is labelled
+as such.
+
+### 5.4 Proxies are proxies
 
 Every questionnaire component is marked `self-reported` and carries a
 wider interval (`SELF_REPORT_SE_MULTIPLIER = 1.6`). When the measured

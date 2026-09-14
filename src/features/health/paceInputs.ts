@@ -12,6 +12,7 @@
 import { activityMinutes, nicotineFromLogs } from '@/features/health/essential8';
 import { functionMetricKey } from '@/features/health/functionTests';
 import type { PaceInputs } from '@/features/health/pace';
+import { negativeHabitsFrom } from '@/features/health/negativeHabits';
 import { selfReportedFrom } from '@/features/health/selfReport';
 import type { MetricObservation } from '@/features/model/metrics';
 import type { InterviewAnswers } from '@/features/onboarding/script';
@@ -73,5 +74,6 @@ export function paceInputsFrom(s: PaceSources): PaceInputs {
       s.nicotineStatus ??
       nicotineFromLogs(s.behaviourIntentions, s.behaviourEvents, s.today),
     ...selfReportedFrom(s.interviewAnswers),
+    ...negativeHabitsFrom(s.interviewAnswers),
   };
 }

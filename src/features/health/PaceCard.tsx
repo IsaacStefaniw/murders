@@ -97,6 +97,9 @@ export function PaceCard() {
   };
   const untested = FUNCTION_TESTS.filter((t) => t.id in MEASURED && MEASURED[t.id] == null);
 
+  /** Components where the evidence supports a number for CHANGING. */
+  const opportunities = reading.components.filter((c) => c.opportunity);
+
   if (!headline) {
     return (
       <Card>
@@ -193,6 +196,26 @@ export function PaceCard() {
         </View>
       ) : null}
 
+      {/* The gain, before the studies and before anything else optional.
+          For somebody who smokes this is the most useful sentence in the
+          app, and putting it under a disclosure would bury the one number
+          here that a person can move by a decade. */}
+      {opportunities.length > 0 ? (
+        <View style={styles.progress}>
+          <AppText variant="label" color="textSecondary">
+            Where the years are
+          </AppText>
+          {opportunities.map((c) => (
+            <View key={c.id} style={styles.movement}>
+              <AppText variant="body">{c.label}</AppText>
+              <AppText variant="caption" color="textSecondary">
+                {c.opportunity}
+              </AppText>
+            </View>
+          ))}
+        </View>
+      ) : null}
+
       <Disclosure title={`The ${reading.observed.length} studies behind this`}>
         {reading.observed.map((c) => (
           <View key={c.id} style={styles.component}>
@@ -207,6 +230,11 @@ export function PaceCard() {
             {c.upgradeTo ? (
               <AppText variant="caption" color="accent">
                 {c.upgradeTo}
+              </AppText>
+            ) : null}
+            {c.opportunity ? (
+              <AppText variant="caption" color="accent">
+                {c.opportunity}
               </AppText>
             ) : null}
             <AppText variant="caption" color="textTertiary">
