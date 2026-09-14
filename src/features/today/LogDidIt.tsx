@@ -7,6 +7,8 @@ import { Chip } from '@/components/chip';
 import { Field } from '@/components/field';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
+import { dayChoices } from '@/features/behaviours/whenPicker';
+import { addDays } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 import type { LifeArea } from '@/types/domain';
 
@@ -48,7 +50,10 @@ export function LogDidIt({ date }: { date: string }) {
   const [title, setTitle] = useState('');
   const [area, setArea] = useState<LifeArea>('health');
   const [durationMin, setDurationMin] = useState(30);
+  /** Which day it happened — see LogCardio for why this is not today-only. */
+  const [dayBack, setDayBack] = useState(0);
   const [saved, setSaved] = useState<string | null>(null);
+  const days = dayChoices(new Date());
 
   /**
    * Your own routines first, minus anything already on today's plan —
@@ -69,7 +74,7 @@ export function LogDidIt({ date }: { date: string }) {
     sessionType?: Parameters<typeof logCompletedActivity>[0]['sessionType'],
   ) => {
     logCompletedActivity({
-      date,
+      date: addDays(date, -dayBack),
       title: itemTitle,
       area: itemArea,
       durationMin: minutes,
@@ -78,7 +83,8 @@ export function LogDidIt({ date }: { date: string }) {
       sessionType,
       note: 'logged after the fact',
     });
-    setSaved(itemTitle);
+    setSaved(dayBack > 0 ? `${itemTitle} — ${days[dayBack].label.toLowerCase()}` : itemTitle);
+    setDayBack(0);
     setTitle('');
     setOpen(false);
   };
@@ -131,6 +137,22 @@ export function LogDidIt({ date }: { date: string }) {
           placeholder="e.g. Walked the dog"
           returnKeyType="done"
         />
+      </View>
+
+      <View style={styles.section}>
+        <AppText variant="caption" color="textTertiary">
+          When?
+        </AppText>
+        <View style={styles.chips}>
+          {days.map((d) => (
+            <Chip
+              key={d.offsetDays}
+              label={d.label}
+              selected={dayBack === d.offsetDays}
+              onPress={() => setDayBack(d.offsetDays)}
+            />
+          ))}
+        </View>
       </View>
 
       <View style={styles.section}>

@@ -122,6 +122,51 @@ export function TrainingHub() {
   );
   // Named plainly, because "we cannot assess you" is only useful with the
   // reason attached.
+  /**
+   * The weight-and-reps form, defined once and rendered in two places:
+   * beside the placement card when the app cannot place somebody yet, and
+   * in its own section further down for everybody else.
+   *
+   * It used to exist only in the second place — below the whole programme
+   * — while the card at the top said "add your lifts" with no way to. That
+   * is how a 130 kg bench ended up on a foundation block.
+   */
+  const liftEntry = () => (
+    <View style={styles.inputRow}>
+      <Field
+        label={`${LIFTS.find((l) => l.key === logLift)?.label ?? 'Lift'} weight in kilograms`}
+        showLabel={false}
+        value={weight}
+        onChangeText={setWeight}
+        keyboardType="numeric"
+        placeholder="kg"
+        width={84}
+      />
+      <Field
+        label="Repetitions completed"
+        showLabel={false}
+        value={reps}
+        onChangeText={setReps}
+        keyboardType="numeric"
+        placeholder="reps"
+        width={84}
+      />
+      <Button
+        title="Save"
+        hint="Estimates your one-rep max from this set and adds it to your numbers."
+        disabled={!Number(weight) || !Number(reps)}
+        onPress={() => {
+          if (!logLift) return;
+          const e1rm = saveLift(logLift, Number(weight), Number(reps));
+          setWeight('');
+          setReps('');
+          setLogLift(null);
+          void e1rm;
+        }}
+      />
+    </View>
+  );
+
   const missingForBand: string[] = [];
   if (!profile?.weightKg) missingForBand.push('your bodyweight');
   if (profile?.sexAtBirth !== 'male' && profile?.sexAtBirth !== 'female') {
@@ -211,6 +256,27 @@ export function TrainingHub() {
                 ? `Add ${missingForBand.join(' and ')} and IntentNorth can place your lifts and start you at the right level rather than the first one.`
                 : 'Log a main lift and IntentNorth can place you.'}
             </AppText>
+            {/* The copy above told people to add their lifts and then left
+                them to find the form at the bottom of the page, under the
+                whole programme. That is how an experienced lifter ends up
+                on a foundation block: not a banding error, just a question
+                nobody was given a way to answer. */}
+            <View style={styles.liftEntryHere}>
+              <AppText variant="caption" color="textTertiary">
+                One normal set of each is enough — a weight and the reps you got.
+              </AppText>
+              <View style={styles.chips}>
+                {LIFTS.map((l) => (
+                  <Chip
+                    key={l.key}
+                    label={l.label}
+                    selected={logLift === l.key}
+                    onPress={() => setLogLift(logLift === l.key ? null : l.key)}
+                  />
+                ))}
+              </View>
+              {logLift ? liftEntry() : null}
+            </View>
           </>
         )}
       </Card>
@@ -380,40 +446,7 @@ export function TrainingHub() {
           />
         ))}
       </View>
-      {logLift ? (
-        <View style={styles.inputRow}>
-          <Field
-            label={`${LIFTS.find((l) => l.key === logLift)?.label ?? 'Lift'} weight in kilograms`}
-            showLabel={false}
-            value={weight}
-            onChangeText={setWeight}
-            keyboardType="numeric"
-            placeholder="kg"
-            width={84}
-          />
-          <Field
-            label="Repetitions completed"
-            showLabel={false}
-            value={reps}
-            onChangeText={setReps}
-            keyboardType="numeric"
-            placeholder="reps"
-            width={84}
-          />
-          <Button
-            title="Save"
-            hint="Estimates your one-rep max from this set and adds it to your numbers."
-            disabled={!Number(weight) || !Number(reps)}
-            onPress={() => {
-              const e1rm = saveLift(logLift, Number(weight), Number(reps));
-              setWeight('');
-              setReps('');
-              setLogLift(null);
-              void e1rm;
-            }}
-          />
-        </View>
-      ) : null}
+      {logLift ? liftEntry() : null}
       <AppText variant="caption" color="textTertiary" style={styles.hint}>
         One normal set is enough. IntentNorth works out what you could lift once, and tracks
         whether it is going up.
@@ -427,6 +460,7 @@ const styles = StyleSheet.create({
   liftBands: { gap: Spacing.sm, marginTop: Spacing.md, marginBottom: Spacing.md },
   liftBandRow: { gap: 2 },
   bandCard: { gap: Spacing.xs },
+  liftEntryHere: { marginTop: Spacing.md, gap: Spacing.xs },
   stack: { gap: Spacing.sm },
   row: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
   grow: { flexGrow: 1 },

@@ -238,6 +238,18 @@ export default function Settings() {
         </AppText>
       </Card>
 
+      {/* Placed directly under Profile because it is the answer to "why
+          does the app think that about me" — and because a question that
+          was never asked is the most common reason it thinks something
+          wrong. */}
+      <Card onPress={() => router.push('/answers' as never)} accessibilityLabel="About you">
+        <AppText variant="heading">About you</AppText>
+        <AppText variant="caption" color="textTertiary">
+          Every question the app can ask, and what you have told it. Answer the ones it never got
+          round to — including how much lifting you have already done.
+        </AppText>
+      </Card>
+
       <SectionHeader title="IntentNorth Plus" />
       <Card onPress={() => router.push('/upgrade' as never)} accessibilityLabel="IntentNorth Plus">
         <AppText variant="heading">

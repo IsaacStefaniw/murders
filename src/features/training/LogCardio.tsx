@@ -7,6 +7,7 @@ import { Chip } from '@/components/chip';
 import { Field } from '@/components/field';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
+import { dayChoices } from '@/features/behaviours/whenPicker';
 import {
   CARDIO_ACTIVITIES,
   EFFORT_DESCRIPTION,
@@ -15,6 +16,7 @@ import {
   isVigorous,
   type CardioEffort,
 } from '@/features/training/cardio';
+import { addDays, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 
 /**
@@ -43,7 +45,15 @@ export function LogCardio({ date, onDone }: { date?: string; onDone?: () => void
   const [durationMin, setDurationMin] = useState(30);
   const [distance, setDistance] = useState('');
   const [effort, setEffort] = useState<CardioEffort>('steady');
+  /**
+   * Which day it happened. People log on Sunday evening what they did on
+   * Saturday morning, and an app that can only record today quietly
+   * teaches them not to bother — or worse, to file it under the wrong day
+   * and put a hole in the week it belongs to.
+   */
+  const [dayBack, setDayBack] = useState(0);
   const [saved, setSaved] = useState<string | null>(null);
+  const days = dayChoices(new Date());
 
   const def = cardioActivity(activity);
   const km = Number.parseFloat(distance);
@@ -51,13 +61,16 @@ export function LogCardio({ date, onDone }: { date?: string; onDone?: () => void
 
   const commit = () => {
     logCardio({
-      date,
+      date: date ?? addDays(todayKey(), -dayBack),
       activity,
       durationMin,
       distanceKm: hasDistance ? km : undefined,
       effort,
     });
-    setSaved(`${def?.label ?? activity}, ${durationMin} min`);
+    setSaved(
+      `${def?.label ?? activity}, ${durationMin} min${dayBack > 0 ? ` — ${days[dayBack].label.toLowerCase()}` : ''}`,
+    );
+    setDayBack(0);
     setDistance('');
     setOpen(false);
     onDone?.();
@@ -94,6 +107,25 @@ export function LogCardio({ date, onDone }: { date?: string; onDone?: () => void
           />
         ))}
       </View>
+
+      {/* Only offered where the caller has not already fixed the day. */}
+      {!date ? (
+        <View style={styles.section}>
+          <AppText variant="caption" color="textTertiary">
+            When?
+          </AppText>
+          <View style={styles.chips}>
+            {days.map((d) => (
+              <Chip
+                key={d.offsetDays}
+                label={d.label}
+                selected={dayBack === d.offsetDays}
+                onPress={() => setDayBack(d.offsetDays)}
+              />
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.section}>
         <AppText variant="caption" color="textTertiary">
