@@ -19,9 +19,7 @@ import { strengthBaseline } from '@/features/training/baseline';
 import { latestMaxes } from '@/features/training/level';
 import {
   assessStrength,
-  BAND_LABEL,
-  COMPARISON_CLASS,
-  generalPopulationNote,
+  participationLine,
   strengthProfile,
   type StrengthLift,
 } from '@/features/training/standards';
@@ -163,7 +161,7 @@ export function TrainingHub() {
                 the arithmetic — it is silent about "against whom", and the
                 reader supplies the worst answer. */}
             <AppText variant="label" color="textTertiary">
-              Your lifts {COMPARISON_CLASS}
+              Your lifts
             </AppText>
             <AppText variant="heading">{shape.headline}</AppText>
             <AppText variant="secondary" style={styles.shapeDetail}>
@@ -175,23 +173,29 @@ export function TrainingHub() {
               {shape.lifts.map((l) => (
                 <View key={l.lift} style={styles.liftBandRow}>
                   <AppText variant="body">{LIFT_LABEL[l.lift]}</AppText>
-                  <AppText variant="caption" color="textTertiary">
-                    {BAND_LABEL[l.band]} · {l.ratio.toFixed(2)}× bodyweight
-                  </AppText>
-                  {/* The other comparison, where it is well enough
-                      established to state. Most people mean this one. */}
-                  {generalPopulationNote(l.lift, l.ratio, profile ?? {}) ? (
-                    <AppText variant="caption" color="accent">
-                      {generalPopulationNote(l.lift, l.ratio, profile ?? {})}
+                  <AppText variant="body">{l.ratio.toFixed(2)}× bodyweight</AppText>
+                  {/* The lift described, not the person graded. */}
+                  {l.context ? (
+                    <AppText variant="caption" color="textTertiary">
+                      {l.context.line}
                     </AppText>
                   ) : null}
                 </View>
               ))}
             </View>
-            <AppText variant="caption" color="textTertiary">
-              These bands come from voluntary submissions to lifting sites, so they place
-              you among people who already train — a harder room than the general
-              population. Useful for placing a lift, not a score and not a target.
+            {/* The one population fact that is actually measured, rather
+                than a percentile nobody has the data to compute. */}
+            {participationLine(profile ?? {}) ? (
+              <AppText variant="caption" color="textTertiary">
+                {participationLine(profile ?? {})}
+              </AppText>
+            ) : null}
+            <AppText variant="caption" color="textTertiary" style={styles.shapeDetail}>
+              There is no percentile here on purpose. Nobody has one-rep-max tested a
+              representative sample of adults on these lifts, so every published figure
+              comes from people who already lift and chose to record it. The marks above
+              are theirs, and they are a description of a lift rather than a grade for
+              you.
             </AppText>
           </>
         ) : (

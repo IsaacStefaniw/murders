@@ -1,93 +1,103 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
 import {
-  COMPARISON_CLASS,
-  generalPopulationNote,
+  liftContext,
+  NOT_STRENGTH_TRAINING,
+  participationLine,
   strengthProfile,
 } from '@/features/training/standards';
 import type { LifeProfile } from '@/types/domain';
 
-const man = (weightKg: number, age = 35) =>
+const man = (weightKg: number, age = 37) =>
   ({ weightKg, sexAtBirth: 'male', age }) as LifeProfile;
 
-/** Isaac's lifts, which the app called "Beginner". */
+/** Isaac's lifts. The scale called two of these "Beginner". */
 const ISAAC = { bench: 130, squat: 120, deadlift: 140 };
+const HIM = man(88);
 
-describe('a person is not one word', () => {
-  it('never leads with the weakest lift for an uneven profile', () => {
-    const p = strengthProfile(ISAAC, man(90));
-    expect(p.even).toBe(false);
-    // The bug: the median of [intermediate, beginner, beginner] is
-    // "beginner", and that is what a 130 kg bench used to be called.
+describe('a person is not graded', () => {
+  it('never leads with a verdict', () => {
+    const p = strengthProfile(ISAAC, HIM);
+    expect(p.headline).toBe('Your bench is your strongest lift');
     expect(p.headline.toLowerCase()).not.toContain('beginner');
-    expect(p.headline).toContain('bench');
+    expect(p.headline.toLowerCase()).not.toContain('intermediate');
   });
 
-  it('leads with the general population, which is the question being asked', () => {
-    // 1.44x at 90 kg and 1.63x at 80 kg are both the top tenth of men.
-    // "Intermediate bench" is a true sentence about a room of powerlifters
-    // and it is not what anybody wants to know.
-    expect(strengthProfile(ISAAC, man(90)).headline).toBe('Your bench is in the top tenth of men');
-    expect(strengthProfile(ISAAC, man(80)).headline).toBe('Your bench is in the top tenth of men');
-  });
-
-  it('falls back to the lift shape where no population reading exists', () => {
-    // Women and the non-bench lifts have no general-population figure we
-    // are willing to state, so the shape is what is left.
-    const woman = { weightKg: 70, sexAtBirth: 'female', age: 35 } as LifeProfile;
-    expect(strengthProfile(ISAAC, woman).headline).toMatch(/bench$/);
-  });
-
-  it('names the gap as the thing to train, not as a verdict', () => {
-    const detail = strengthProfile(ISAAC, man(90)).detail;
+  it('names the gap as the thing to train, not as a judgement', () => {
+    const { detail } = strengthProfile(ISAAC, HIM);
     expect(detail).toContain('squat');
-    expect(detail).toContain('deadlift');
     expect(detail).toMatch(/worth training/);
     expect(detail).toMatch(/uneven profile is the normal one/);
   });
 
-  it('returns every lift with its own band, strongest first', () => {
-    const { lifts } = strengthProfile(ISAAC, man(90));
-    expect(lifts.map((l) => l.lift)).toEqual(['bench', 'deadlift', 'squat']);
-    expect(lifts[0].ratio).toBeCloseTo(130 / 90, 2);
-  });
-
-  it('still gives one word when the lifts genuinely agree', () => {
-    // 0.80x, 1.11x, 1.44x at 90 kg — all three inside the bottom band.
-    const even = strengthProfile({ bench: 72, squat: 100, deadlift: 130 }, man(90));
-    expect(even.even).toBe(true);
-    expect(even.headline).toBe('Beginner');
-    expect(even.detail).toMatch(/All 3 of your main lifts/);
+  it('returns every lift with its own context, strongest first', () => {
+    const { lifts } = strengthProfile(ISAAC, HIM);
+    expect(lifts[0].lift).toBe('bench');
+    expect(lifts[0].ratio).toBeCloseTo(130 / 88, 2);
+    expect(lifts.every((l) => l.context !== null)).toBe(true);
   });
 
   it('says so when there is nothing to place', () => {
-    expect(strengthProfile({}, man(90)).headline).toBe('Not enough to say yet');
-  });
-
-  it('places nothing without a bodyweight to divide by', () => {
-    expect(strengthProfile(ISAAC, { sexAtBirth: 'male' } as LifeProfile).lifts).toEqual([]);
+    expect(strengthProfile({}, HIM).headline).toBe('Not enough to say yet');
+    expect(
+      strengthProfile(ISAAC, { sexAtBirth: 'male' } as LifeProfile).headline,
+    ).toBe('Not enough to say yet');
   });
 });
 
-describe('against whom', () => {
-  it('names the comparison class, which the screen used to leave out', () => {
-    expect(COMPARISON_CLASS).toContain('people who train');
+describe('against whom — said only as far as the data goes', () => {
+  it('describes the lift instead of grading the person', () => {
+    // The deadlift that used to come back as "Beginner", a word anybody
+    // would read as "has never been to a gym".
+    const dl = liftContext('deadlift', 140, HIM)!;
+    expect(dl.line).not.toMatch(/beginner/i);
+    expect(dl.line).toMatch(/marks trained lifters are measured against/);
+    // No band word anywhere in what a person reads.
+    for (const word of ['beginner', 'intermediate', 'advanced', 'elite']) {
+      expect(dl.line.toLowerCase()).not.toContain(word);
+    }
+    expect(dl.next?.band).toBe('intermediate');
   });
 
-  it('orients a bench against the general population too', () => {
-    // 1.44x — Isaac at 90 kg. Mid-pack among lifters, top tenth of men.
-    expect(generalPopulationNote('bench', 130 / 90, { sexAtBirth: 'male' })).toMatch(/top ten percent/);
-    expect(generalPopulationNote('bench', 1.8, { sexAtBirth: 'male' })).toMatch(/top one percent/);
-    expect(generalPopulationNote('bench', 1.05, { sexAtBirth: 'male' })).toMatch(/above the median/);
-    expect(generalPopulationNote('bench', 0.8, { sexAtBirth: 'male' })).toMatch(/about one times/);
+  it('names the next mark, so a number has somewhere to go', () => {
+    const bench = liftContext('bench', 130, HIM)!;
+    expect(bench.passed).toBe('intermediate');
+    expect(bench.next?.band).toBe('advanced');
+    expect(bench.next?.ratio).toBeCloseTo(1.5, 2);
   });
 
-  it('claims nothing where the sources do not support a claim', () => {
-    // The female figures disagree by a factor of two and all trace back to
-    // lifting culture rather than population testing. Silence beats a
-    // number invented to make the feature symmetrical.
-    expect(generalPopulationNote('bench', 1.4, { sexAtBirth: 'female' })).toBeNull();
-    // And no general-population claim for squat or deadlift at all: most
-    // adults have never attempted a one-rep max on either.
-    expect(generalPopulationNote('squat', 2.0, { sexAtBirth: 'male' })).toBeNull();
-    expect(generalPopulationNote('deadlift', 2.5, { sexAtBirth: 'male' })).toBeNull();
+  it('states the participation figure, which IS measured', () => {
+    // AIHW 2022, a representative national survey — unlike every lifting
+    // table, which is people who lift and chose to record it.
+    expect(NOT_STRENGTH_TRAINING.male).toBe(0.71);
+    expect(NOT_STRENGTH_TRAINING.female).toBe(0.76);
+    expect(participationLine(HIM)).toMatch(/71% of Australian men/);
+    expect(participationLine(HIM)).toMatch(/self-selected/);
+  });
+
+  it('claims no percentile against the general population, ever', () => {
+    // Three attempts at one were wrong the same way: the reference class
+    // was always lifters, right down to the "untrained" row. Nobody has
+    // one-rep-max tested a representative sample of adults and nobody can,
+    // so any figure would be invented. This stops it growing back.
+    const source = readFileSync(join(__dirname, '..', 'standards.ts'), 'utf8');
+    expect(source).not.toMatch(/percentile:/);
+    expect(source).toMatch(/data does not exist/);
+  });
+
+  it('refuses to place a lift without a bodyweight or a sex', () => {
+    expect(liftContext('bench', 130, { weightKg: 88 } as LifeProfile)).toBeNull();
+    expect(liftContext('bench', 130, { sexAtBirth: 'male' } as LifeProfile)).toBeNull();
+  });
+
+  it('adjusts the marks for age rather than holding a 60-year-old to 25', () => {
+    // Compared at the SAME mark: a 60-year-old's third bar sits lower than
+    // a 30-year-old's. (An earlier version of this test compared whichever
+    // mark each had reached, which are different bars and prove nothing.)
+    const older = liftContext('bench', 40, man(88, 60))!;
+    const younger = liftContext('bench', 40, man(88, 30))!;
+    expect(older.next!.band).toBe(younger.next!.band);
+    expect(older.next!.ratio).toBeLessThan(younger.next!.ratio);
   });
 });

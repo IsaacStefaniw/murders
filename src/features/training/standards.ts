@@ -209,8 +209,14 @@ export const LIFT_NAME: Record<StrengthLift, string> = {
 };
 
 export interface StrengthProfile {
-  /** Each lift there is a number for, strongest band first. */
-  lifts: { lift: StrengthLift; band: StrengthBand; ratio: number }[];
+  /** Each lift there is a number for, strongest first. */
+  lifts: {
+    lift: StrengthLift;
+    band: StrengthBand;
+    ratio: number;
+    /** The lift described rather than the person graded. */
+    context: LiftContext | null;
+  }[];
   strongest: StrengthBand | null;
   weakest: StrengthBand | null;
   /** True where every banded lift sits in the same band. */
@@ -239,19 +245,6 @@ const list = (names: string[]): string =>
  * with and it points at what to train next. So an even profile gets its
  * band as the headline and an uneven one gets its shape.
  */
-/** The headline form of the general-population reading, where there is one. */
-function populationHeadline(
-  lift: StrengthLift,
-  ratio: number,
-  profile: Pick<LifeProfile, 'sexAtBirth'>,
-): string | null {
-  if (lift !== 'bench' || profile.sexAtBirth !== 'male') return null;
-  if (ratio >= 1.75) return 'Your bench is in the top one percent of men';
-  if (ratio >= 1.25) return 'Your bench is in the top tenth of men';
-  if (ratio >= 1.0) return 'Your bench is above the median for men';
-  return null;
-}
-
 export function strengthProfile(
   maxes: LiftMaxes,
   profile: Pick<LifeProfile, 'weightKg' | 'sexAtBirth' | 'age'>,
@@ -261,7 +254,9 @@ export function strengthProfile(
     const e1rm = maxes[lift];
     if (e1rm === undefined || weightKg <= 0) return [];
     const band = bandForLift(lift, e1rm, profile);
-    return band ? [{ lift, band, ratio: e1rm / weightKg }] : [];
+    return band
+      ? [{ lift, band, ratio: e1rm / weightKg, context: liftContext(lift, e1rm, profile) }]
+      : [];
   }).sort((a, b) => bandRank(b.band) - bandRank(a.band) || b.ratio - a.ratio);
 
   if (lifts.length === 0) {
@@ -298,13 +293,15 @@ export function strengthProfile(
     is 1.48× — two hundredths under our "advanced" bar, and the top tenth
     of men. Leading with the band buries the meaningful half.
   */
+  // No headline verdict. The strongest lift is named, and the reading is
+  // left to the per-lift lines, which describe rather than grade.
   const top = lifts[0];
-  const general = populationHeadline(top.lift, top.ratio, profile);
+  const general = `Your ${LIFT_NAME[top.lift]} is your strongest lift`;
 
   return {
     lifts, strongest, weakest, even,
     headline: general ?? `${BAND_LABEL[strongest]} ${list(ahead)}`,
-    detail: `Your ${list(ahead)} ${ahead.length > 1 ? 'sit' : 'sits'} at ${BAND_LABEL[strongest].toLowerCase()} and your ${list(behind)} at ${BAND_LABEL[weakest].toLowerCase()}, relative to bodyweight. That gap is the thing worth training, not a verdict on you — an uneven profile is the normal one.`,
+    detail: `Your ${list(ahead)} ${ahead.length > 1 ? 'are' : 'is'} ahead of your ${list(behind)}, relative to bodyweight. That gap is the thing worth training, not a verdict on you — an uneven profile is the normal one.`,
   };
 }
 
@@ -312,21 +309,122 @@ export function strengthProfile(
 export const COMPARISON_CLASS = 'among people who train and log their lifts';
 
 /**
- * An orienting fact about the general population, where one is well
- * enough established to state.
+ * Retired: superseded by `populationPlace`.
  *
- * Only bench, and only for men, because that is where the sources agree.
- * See the header: the female figures disagree by a factor of two, so
- * nothing is claimed for them rather than something being made up.
+ * This was a bench-only, men-only sentence bolted onto a scale that still
+ * described a gym. The scale itself was the problem, so the sentence went
+ * with it.
  */
-export function generalPopulationNote(
+
+
+/* ── Where a lift sits, said only as far as the evidence goes ────────── */
+
+/**
+ * WHY THERE IS NO PERCENTILE HERE, AND WHY THERE WILL NOT BE ONE.
+ *
+ * Three attempts at this were wrong in the same direction, each time by
+ * failing to interrogate the reference class.
+ *
+ * First the screen printed the MEDIAN band over an uneven profile, so a
+ * 130 kg bench came out "Beginner". Then it named the comparison class but
+ * kept a scale whose bottom rung is a trained novice. Then it built a
+ * percentile on top of that scale, using the untrained row as an anchor --
+ * and that row is itself a lifting-table construct meaning "an untrained
+ * person about to start a barbell programme who has been shown the
+ * movement", not a man of forty-five who has never held a barbell and
+ * could not perform a competent squat at all.
+ *
+ * The honest finding is that the data does not exist. Nobody has one-rep-
+ * max tested a representative sample of adults on these lifts and nobody
+ * is going to, because you cannot max-test people who have never trained.
+ * EVERY figure available comes from people who lift and chose to record
+ * it. A percentile against the general population would therefore be
+ * invented, however carefully, and the app does not invent numbers.
+ *
+ * What IS measured is who trains at all, and that is stated below. It is
+ * enough to place somebody honestly without a decimal place.
+ */
+
+/**
+ * Australians aged 18-64 NOT doing the recommended two days a week of
+ * muscle-strengthening activity, by sex. AIHW, 2022.
+ *
+ * A representative national survey rather than a self-selected sample,
+ * which is what makes it usable where the lifting tables are not.
+ * Non-compliance rises further with age.
+ */
+export const NOT_STRENGTH_TRAINING = { male: 0.71, female: 0.76 } as const;
+
+/**
+ * The marks, named by position rather than by a word about a person.
+ *
+ * "Past the beginner mark" still contains the word that started all of
+ * this. A lifter's table has four bars on it; calling them the first,
+ * second, third and top places a lift precisely and labels nobody.
+ */
+export const MARK_LABEL: Record<StrengthBand, string> = {
+  beginner: 'first',
+  intermediate: 'second',
+  advanced: 'third',
+  elite: 'top',
+};
+
+export interface LiftContext {
+  ratio: number;
+  /** The threshold just cleared, and the next one, in lifters' terms. */
+  passed: StrengthBand | null;
+  next: { band: StrengthBand; ratio: number } | null;
+  /** What the screen says. No verdict on the person. */
+  line: string;
+}
+
+/**
+ * One lift, described rather than graded.
+ *
+ * States the ratio, which threshold it has passed among people who lift,
+ * and what the next one is — so the number is placed without anybody being
+ * labelled. "Past the intermediate mark for trained lifters" is a fact
+ * about a lift. "Beginner" was a word about a person.
+ */
+export function liftContext(
   lift: StrengthLift,
-  ratio: number,
-  profile: Pick<LifeProfile, 'sexAtBirth'>,
-): string | null {
-  if (lift !== 'bench' || profile.sexAtBirth !== 'male') return null;
-  if (ratio >= 1.75) return 'Against men in general that is around the top one percent.';
-  if (ratio >= 1.25) return 'Against men in general that is around the top ten percent.';
-  if (ratio >= 1.0) return 'Against men in general that is above the median, which is about one times bodyweight.';
-  return 'The median man in his twenties or thirties benches about one times his bodyweight.';
+  e1rmKg: number,
+  profile: Pick<LifeProfile, 'weightKg' | 'sexAtBirth' | 'age'>,
+): LiftContext | null {
+  const { weightKg, sexAtBirth } = profile;
+  if (!weightKg || weightKg <= 0 || e1rmKg <= 0) return null;
+  if (sexAtBirth !== 'male' && sexAtBirth !== 'female') return null;
+
+  const table = (sexAtBirth === 'female' ? FEMALE : MALE)[lift];
+  const allowance = ageAllowance(profile.age);
+  const ratio = e1rmKg / weightKg;
+
+  let passed: StrengthBand | null = null;
+  let next: { band: StrengthBand; ratio: number } | null = null;
+  for (const band of BAND_ORDER) {
+    const bar = table[band] * allowance;
+    if (ratio >= bar) passed = band;
+    else {
+      next = { band, ratio: bar };
+      break;
+    }
+  }
+
+  const line = passed
+    ? `Past the ${MARK_LABEL[passed]} of four marks trained lifters are measured against` +
+      (next ? `; the ${MARK_LABEL[next.band]} is ${next.ratio.toFixed(2)}×.` : ', which is the highest.')
+    : next
+      ? `Approaching the first of four marks trained lifters are measured against, which is ${next.ratio.toFixed(2)}×.`
+      : '';
+
+  return { ratio, passed, next, line };
+}
+
+/** The one thing about the general population that is actually measured. */
+export function participationLine(profile: Pick<LifeProfile, 'sexAtBirth'>): string | null {
+  const sex = profile.sexAtBirth;
+  if (sex !== 'male' && sex !== 'female') return null;
+  const pct = Math.round(NOT_STRENGTH_TRAINING[sex] * 100);
+  const people = sex === 'female' ? 'women' : 'men';
+  return `${pct}% of Australian ${people} aged 18–64 do no strength training twice a week, so the marks below describe a small, self-selected group rather than the population.`;
 }
