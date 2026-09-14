@@ -53,6 +53,15 @@ import { knockOnLine } from '@/features/today/dragMath';
 
 const EVENING_START = 17 * 60;
 
+/**
+ * How long a block stays startable after its window closes, in minutes.
+ *
+ * An hour, because that is roughly the span in which "I am running late"
+ * is still true and "did it happen?" is still rude. Past it, the day has
+ * moved on and the honest thing is to ask.
+ */
+const OVERDUE_GRACE_MIN = 60;
+
 /** Items worth a person's attention — generic work blocks are calendar noise. */
 const meaningful = (i: PlanItem) => i.title !== 'Work';
 
@@ -169,13 +178,36 @@ export default function Today() {
   // Unresolved ones need an honest answer (the adaptation engine needs the
   // skip data as much as the user needs closure); resolved ones stay put so
   // follow-ups — like the milestone write-back — have somewhere to live.
-  const overdueItems = plan.items.filter(
+  const pastWindow = plan.items.filter(
     (i) =>
       meaningful(i) &&
       i.id !== nowItem?.id &&
       toMinutes(i.end) <= now &&
       toMinutes(i.start) < EVENING_START,
   );
+  /**
+   * A thing you can still do is not a thing to account for.
+   *
+   * Isaac, on his own phone at 7:00am, looking at a 6:40am habit: "what
+   * does this mean?" The block had run out of its window ten minutes
+   * earlier and the app had already moved it under "EARLIER — DID IT
+   * HAPPEN?", at the top of the screen, with a Start button underneath.
+   * Past tense in the header and a present-tense action in the card.
+   *
+   * There is no honest reason a ten-minute practice at 6:40 is a matter of
+   * record at 6:51. So a block that has only just slipped stays a block:
+   * it keeps its actions and says it is still open. It becomes a ledger
+   * question once the day has genuinely moved on.
+   *
+   * The card sitting under that header said, in its own evidence line,
+   * "missing one day did not measurably set people back". The app should
+   * not be harder on somebody than the research it is quoting at them.
+   */
+  const slippedItems = pastWindow.filter(
+    (i) => i.status === 'planned' && now - toMinutes(i.end) < OVERDUE_GRACE_MIN,
+  );
+  const slipped = new Set(slippedItems.map((i) => i.id));
+  const overdueItems = pastWindow.filter((i) => !slipped.has(i.id));
   const upcoming = pending.filter((i) => i.id !== nowItem?.id && toMinutes(i.start) > now);
   const nextItems = upcoming.filter((i) => toMinutes(i.start) < EVENING_START).slice(0, 3);
   const tonightItems = plan.items.filter(
@@ -189,7 +221,11 @@ export default function Today() {
   // on the free tier where the sessions are shown locked, it pointed at
   // nothing and read as a bug.
   const hasTappableRow =
-    !!nowItem || overdueItems.length > 0 || nextItems.length > 0 || tonightItems.length > 0;
+    !!nowItem ||
+    slippedItems.length > 0 ||
+    overdueItems.length > 0 ||
+    nextItems.length > 0 ||
+    tonightItems.length > 0;
   // True only until the very first thing is ever ticked off, across every
   // day the app has planned.
   // Not memoised: it sits after an early return, and `.some()` stops at
@@ -426,7 +462,7 @@ export default function Today() {
 
       {overdueItems.length > 0 ? (
         <View>
-          <SectionHeader title="Earlier — did it happen?" />
+          <SectionHeader title="Earlier today" />
           <View style={styles.stack}>
             {overdueItems.map((item) => (
               <DragToMove
@@ -452,6 +488,43 @@ export default function Today() {
                 setMoveId(null);
                 }}
                 moveOnOpen={moveId === item.id}
+                />
+              </DragToMove>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {/* Just slipped, still yours to do. Above Next, because it is the
+          nearest thing in time and the one most likely to still happen. */}
+      {slippedItems.length > 0 ? (
+        <View>
+          <SectionHeader title="Still open" />
+          <View style={styles.stack}>
+            {slippedItems.map((item) => (
+              <DragToMove
+                key={item.id}
+                item={item}
+                profile={profile}
+                enabled={!item.fixed}
+                onDragging={setDragging}
+                onDrop={(start) => dropAt(item.id, start)}
+                onHold={() => {
+                  setExpandedId(item.id);
+                  setMoveId(item.id);
+                }}
+              >
+                <PlanItemRow
+                  item={item}
+                  plan={plan}
+                  profile={profile}
+                  date={date}
+                  expanded={expandedId === item.id}
+                  onToggle={() => {
+                    setExpandedId(expandedId === item.id ? null : item.id);
+                    setMoveId(null);
+                  }}
+                  moveOnOpen={moveId === item.id}
                 />
               </DragToMove>
             ))}
