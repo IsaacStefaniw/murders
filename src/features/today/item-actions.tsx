@@ -60,6 +60,7 @@ export function ItemActions({
   const moveItem = useAppStore((s) => s.moveItem);
   const moveItemToDate = useAppStore((s) => s.moveItemToDate);
   const shortenItem = useAppStore((s) => s.shortenItem);
+  const updateRoutine = useAppStore((s) => s.updateRoutine);
   const goals = useAppStore((s) => s.goals);
 
   const setMilestoneDone = useAppStore((s) => s.setMilestoneDone);
@@ -334,6 +335,30 @@ export function ItemActions({
               finish();
             }}
           />
+          {/*
+            Stopping it, as opposed to skipping it.
+
+            Every option here was about one day: skip it, move it, make it
+            shorter. The routine behind it kept generating the block every
+            week, so the honest answer to "how do I get rid of this?" was
+            "you can't, from here" — the control existed only on the
+            routines screen, two taps into another tab, which is not where
+            anybody is standing when they decide they are done with
+            something.
+
+            It only appears for items a routine generates. A one-off has
+            nothing to turn off, and skipping it is already the end of it.
+          */}
+          {item.routineId ? (
+            <Chip
+              label="Stop scheduling this"
+              onPress={() => {
+                setItemStatus(date, item.id, 'skipped');
+                updateRoutine(item.routineId!, { active: false });
+                finish();
+              }}
+            />
+          ) : null}
           <Chip label="Cancel" onPress={() => setMode('idle')} />
         </View>
       </View>

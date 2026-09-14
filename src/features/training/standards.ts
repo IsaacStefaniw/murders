@@ -7,13 +7,31 @@
  * genuinely heavy arrived at "foundation" and was handed a beginner's
  * programme, which is the "this is too easy" complaint at its root.
  *
- * WHAT THESE NUMBERS ARE. Ratios of estimated one-rep max to bodyweight,
- * approximating the population tables that lifting sites publish from
- * voluntary submissions. That is their whole provenance: self-selected
- * people who chose to enter a number. They are useful for saying "this is
- * roughly where you sit", and they are not clinical data, not normative,
- * and not a target anybody is failing to meet. The app bands with them and
- * never scores anyone against them.
+ * WHAT THESE NUMBERS ARE, AND WHO THEY COMPARE YOU TO. Ratios of estimated
+ * one-rep max to bodyweight, approximating the tables lifting sites publish
+ * from voluntary submissions. That is their whole provenance: self-selected
+ * people who lift and chose to type a number in. They are useful for saying
+ * "this is roughly where you sit AMONG PEOPLE WHO TRAIN", and they are not
+ * clinical data, not normative, and not a target anybody is failing to meet.
+ *
+ * THE COMPARISON CLASS IS THE WHOLE POINT, AND THE APP USED TO HIDE IT.
+ * A screen that prints "Beginner" over a 130 kg bench is not wrong about
+ * the arithmetic; it is silent about the question "against whom", and the
+ * reader supplies the worst answer. Against people who train, 1.5× is the
+ * advanced bar. Against adults in general, roughly 1.0× bench is the median
+ * man in his twenties or thirties, about 1.25× is near the ninetieth
+ * percentile, and 1.75× is close to the ninety-ninth — so our "advanced"
+ * bar sits inside the middle 50% of competitive powerlifters while most
+ * adult men cannot press their own bodyweight once.
+ *
+ * Both comparisons are legitimate and they answer different questions. The
+ * app now names which one it is making, every time it makes one.
+ *
+ * The general-population figures above are quoted for men only, and that is
+ * a gap rather than a choice: the sources for women disagree with each
+ * other by a factor of two and all of them trace back to the same lifting
+ * culture rather than to population testing. Inventing the female number to
+ * make the feature symmetrical would be worse than saying it is missing.
  *
  * WHY SEX IS REQUIRED. The male and female tables differ by roughly a
  * third on upper-body lifts, which is more than the gap between two whole
@@ -104,13 +122,25 @@ export function bandForLift(
 }
 
 /**
- * One band from several lifts.
+ * One band from several lifts — for PROGRAMMING, not for telling somebody
+ * who they are.
  *
  * The middle, not the best. A single strong deadlift is common in people
  * whose pressing is untrained, and programming them as advanced across the
  * board on the strength of it is how someone gets hurt. Taking the lower
  * of the two middle values keeps one outlier from carrying the answer
  * while still letting genuine all-round strength through.
+ *
+ * That is right for choosing loads and wrong for a headline, and the hub
+ * used it for both. Isaac benches 130 kg, squats 120 and deadlifts 140 —
+ * a press-dominant profile with legs behind it — and the middle of those
+ * three is the bottom band, so the app called a man with a 130 kg bench a
+ * beginner. Nobody who benches 130 kg is a beginner at lifting. They are
+ * experienced with lagging legs, which is a different sentence and a more
+ * useful one.
+ *
+ * So this stays as it is and `strengthProfile` below is what the screen
+ * reads instead.
  */
 export function overallBand(bands: (StrengthBand | null)[]): StrengthBand | null {
   const known = bands.filter((b): b is StrengthBand => b !== null);
@@ -167,4 +197,114 @@ export function meetsAdvancedStandard(
 ): boolean {
   const { band } = assessStrength(maxes, profile);
   return band !== null && bandRank(band) >= bandRank('advanced');
+}
+
+/* ── What the screen says, as opposed to what the programme uses ──────── */
+
+export const LIFT_NAME: Record<StrengthLift, string> = {
+  bench: 'bench',
+  squat: 'squat',
+  deadlift: 'deadlift',
+  ohp: 'overhead press',
+};
+
+export interface StrengthProfile {
+  /** Each lift there is a number for, strongest band first. */
+  lifts: { lift: StrengthLift; band: StrengthBand; ratio: number }[];
+  strongest: StrengthBand | null;
+  weakest: StrengthBand | null;
+  /** True where every banded lift sits in the same band. */
+  even: boolean;
+  /** The headline. Never one word for an uneven profile. */
+  headline: string;
+  /** The coaching sentence under it. */
+  detail: string;
+}
+
+const list = (names: string[]): string =>
+  names.length <= 1
+    ? (names[0] ?? '')
+    : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+
+/**
+ * The person's strength as a shape rather than a score.
+ *
+ * The hub used to print one word — the median band — over the caption
+ * "from the middle of your bench, squat, deadlift". For anybody whose
+ * lifts are uneven that word is the lowest one, and the lowest word for a
+ * man benching 130 kg was "Beginner".
+ *
+ * An uneven profile is the normal case, not an edge case, and naming the
+ * imbalance is the more useful thing to say: it is what a coach would lead
+ * with and it points at what to train next. So an even profile gets its
+ * band as the headline and an uneven one gets its shape.
+ */
+export function strengthProfile(
+  maxes: LiftMaxes,
+  profile: Pick<LifeProfile, 'weightKg' | 'sexAtBirth' | 'age'>,
+): StrengthProfile {
+  const weightKg = profile.weightKg ?? 0;
+  const lifts = STRENGTH_LIFTS.flatMap((lift) => {
+    const e1rm = maxes[lift];
+    if (e1rm === undefined || weightKg <= 0) return [];
+    const band = bandForLift(lift, e1rm, profile);
+    return band ? [{ lift, band, ratio: e1rm / weightKg }] : [];
+  }).sort((a, b) => bandRank(b.band) - bandRank(a.band) || b.ratio - a.ratio);
+
+  if (lifts.length === 0) {
+    return {
+      lifts, strongest: null, weakest: null, even: true,
+      headline: 'Not enough to say yet',
+      detail: 'Log a main lift and IntentNorth can place it.',
+    };
+  }
+
+  const strongest = lifts[0].band;
+  const weakest = lifts[lifts.length - 1].band;
+  const even = strongest === weakest;
+
+  if (even) {
+    return {
+      lifts, strongest, weakest, even,
+      headline: BAND_LABEL[strongest],
+      detail:
+        lifts.length === 1
+          ? `Your ${LIFT_NAME[lifts[0].lift]}, relative to bodyweight.`
+          : `All ${lifts.length} of your main lifts sit here, relative to bodyweight.`,
+    };
+  }
+
+  const ahead = lifts.filter((l) => l.band === strongest).map((l) => LIFT_NAME[l.lift]);
+  const behind = lifts.filter((l) => l.band === weakest).map((l) => LIFT_NAME[l.lift]);
+
+  return {
+    lifts, strongest, weakest, even,
+    // The strong end leads. It is the true statement about how long
+    // somebody has been training, and it is the one they will check first.
+    headline: `${BAND_LABEL[strongest]} ${list(ahead)}`,
+    detail: `Your ${list(ahead)} ${ahead.length > 1 ? 'sit' : 'sits'} at ${BAND_LABEL[strongest].toLowerCase()} and your ${list(behind)} at ${BAND_LABEL[weakest].toLowerCase()}, relative to bodyweight. That gap is the thing worth training, not a verdict on you — an uneven profile is the normal one.`,
+  };
+}
+
+/** Who the bands compare somebody to. Shown wherever a band is shown. */
+export const COMPARISON_CLASS = 'among people who train and log their lifts';
+
+/**
+ * An orienting fact about the general population, where one is well
+ * enough established to state.
+ *
+ * Only bench, and only for men, because that is where the sources agree.
+ * See the header: the female figures disagree by a factor of two, so
+ * nothing is claimed for them rather than something being made up.
+ */
+export function generalPopulationNote(
+  lift: StrengthLift,
+  ratio: number,
+  profile: Pick<LifeProfile, 'sexAtBirth'>,
+): string | null {
+  if (lift !== 'bench' || profile.sexAtBirth !== 'male') return null;
+  if (ratio >= 1.75) return 'Against men in general that is around the top one percent.';
+  if (ratio >= 1.25) return 'Against men in general that is around the top ten percent.';
+  if (ratio >= 1.0) return 'Against men in general that is above the median, which is about one times bodyweight.';
+  return 'The median man in his twenties or thirties benches about one times his bodyweight.';
 }

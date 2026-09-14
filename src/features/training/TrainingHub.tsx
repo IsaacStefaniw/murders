@@ -17,7 +17,14 @@ import { weekOf } from '@/features/training/programme';
 import { useAppStore } from '@/state/store';
 import { strengthBaseline } from '@/features/training/baseline';
 import { latestMaxes } from '@/features/training/level';
-import { assessStrength, BAND_LABEL, type StrengthLift } from '@/features/training/standards';
+import {
+  assessStrength,
+  BAND_LABEL,
+  COMPARISON_CLASS,
+  generalPopulationNote,
+  strengthProfile,
+  type StrengthLift,
+} from '@/features/training/standards';
 import {
   answersForWant,
   describeChange,
@@ -101,8 +108,16 @@ export function TrainingHub() {
   const knownLifts = LIFTS.filter((l) => latest(metrics, l.key));
 
   const profile = useAppStore((s) => s.profile);
-  const { band, perLift } = useMemo(
+  // `band` is the conservative median, and it is what the PROGRAMME reads.
+  // Nothing on this screen prints it: see strengthProfile.
+  const { band } = useMemo(
     () => assessStrength(latestMaxes(metrics), profile ?? {}),
+    [metrics, profile],
+  );
+  // The shape, not the median. `band` still drives the programme; this is
+  // what the person reads. See strengthProfile for why they differ.
+  const shape = useMemo(
+    () => strengthProfile(latestMaxes(metrics), profile ?? {}),
     [metrics, profile],
   );
   // Named plainly, because "we cannot assess you" is only useful with the
@@ -143,17 +158,40 @@ export function TrainingHub() {
       <Card style={styles.bandCard}>
         {band ? (
           <>
+            {/* The comparison class, in the label rather than buried in a
+                caption. "Beginner" over a 130 kg bench is not wrong about
+                the arithmetic — it is silent about "against whom", and the
+                reader supplies the worst answer. */}
             <AppText variant="label" color="textTertiary">
-              Against the population tables
+              Your lifts {COMPARISON_CLASS}
             </AppText>
-            <AppText variant="heading">{BAND_LABEL[band]}</AppText>
+            <AppText variant="heading">{shape.headline}</AppText>
+            <AppText variant="secondary" style={styles.shapeDetail}>
+              {shape.detail}
+            </AppText>
+            {/* Every lift, with its own band. One word for a whole person
+                hides the only interesting thing in the numbers. */}
+            <View style={styles.liftBands}>
+              {shape.lifts.map((l) => (
+                <View key={l.lift} style={styles.liftBandRow}>
+                  <AppText variant="body">{LIFT_LABEL[l.lift]}</AppText>
+                  <AppText variant="caption" color="textTertiary">
+                    {BAND_LABEL[l.band]} · {l.ratio.toFixed(2)}× bodyweight
+                  </AppText>
+                  {/* The other comparison, where it is well enough
+                      established to state. Most people mean this one. */}
+                  {generalPopulationNote(l.lift, l.ratio, profile ?? {}) ? (
+                    <AppText variant="caption" color="accent">
+                      {generalPopulationNote(l.lift, l.ratio, profile ?? {})}
+                    </AppText>
+                  ) : null}
+                </View>
+              ))}
+            </View>
             <AppText variant="caption" color="textTertiary">
-              From {Object.keys(perLift).length === 1 ? 'your' : 'the middle of your'}{' '}
-              {Object.keys(perLift)
-                .map((l) => LIFT_LABEL[l as StrengthLift])
-                .join(', ')}
-              , relative to bodyweight. These tables come from voluntary submissions to
-              lifting sites — useful for placing you, not a score and not a target.
+              These bands come from voluntary submissions to lifting sites, so they place
+              you among people who already train — a harder room than the general
+              population. Useful for placing a lift, not a score and not a target.
             </AppText>
           </>
         ) : (
@@ -374,6 +412,9 @@ export function TrainingHub() {
 }
 
 const styles = StyleSheet.create({
+  shapeDetail: { marginTop: Spacing.sm },
+  liftBands: { gap: Spacing.sm, marginTop: Spacing.md, marginBottom: Spacing.md },
+  liftBandRow: { gap: 2 },
   bandCard: { gap: Spacing.xs },
   stack: { gap: Spacing.sm },
   row: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
