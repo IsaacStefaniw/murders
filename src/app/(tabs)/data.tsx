@@ -25,6 +25,7 @@ import { SectionHeader } from '@/components/section-header';
 import { protocolById } from '@/features/knowledge/protocols';
 import { computeCohortMetrics, shareableSummary } from '@/features/analytics/cohort';
 import { BodyNumbers } from '@/features/health/BodyNumbers';
+import { WellbeingCard } from '@/features/health/WellbeingCard';
 import { WeeklyReviewPanel } from '@/features/review/WeeklyReviewPanel';
 import { WorkNumbers } from '@/features/work/WorkNumbers';
 import { AppText } from '@/components/text';
@@ -140,6 +141,9 @@ export default function Data() {
         Progress
       </AppText>
       <AppText variant="title">What the numbers say</AppText>
+
+      <SectionHeader title="Your week, against a published measure" />
+      <WellbeingCard />
 
       {nothingYet ? (
         <EmptyState

@@ -19,6 +19,7 @@ import { behaviourInfo } from '@/features/behaviours/catalog';
 import { assessGoal } from '@/features/goals/composer';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { detectGoalUnderserved } from '@/features/goals/underserved';
+import type { NicotineStatus } from '@/features/health/essential8';
 import { applicableRoutines, protocolById, routineApplies, toRoutine } from '@/features/knowledge/protocols';
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
@@ -356,6 +357,18 @@ export interface AppState {
   notifications: NotificationSettings;
   setNotificationSettings: (patch: Partial<NotificationSettings>) => void;
 
+  /**
+   * Nicotine status, in the person's own words.
+   *
+   * The wellbeing overview scores nicotine on the AHA's published table,
+   * where never-used is 100 and quit-last-year is 50. An empty log looks
+   * identical for both, so the app asks once rather than guessing across a
+   * fifty-point gap. Null means not asked, which the card shows as a
+   * question rather than as a score.
+   */
+  nicotineStatus: NicotineStatus | null;
+  setNicotineStatus: (status: NicotineStatus) => void;
+
   /** Apple Health — read-only vitals feeding the same metric stream. */
   healthConnectedAt: string | null;
   healthLastSyncAt: string | null;
@@ -554,6 +567,7 @@ const initialData = {
   foodPreferences: EMPTY_FOOD_PREFERENCES as FoodPreferences,
   foodPreferencesAsked: false,
   notifications: DEFAULT_NOTIFICATION_SETTINGS as NotificationSettings,
+  nicotineStatus: null as NicotineStatus | null,
   healthConnectedAt: null as string | null,
   healthLastSyncAt: null as string | null,
   healthHistoryReadAt: null as string | null,
@@ -1367,6 +1381,8 @@ export const useAppStore = create<AppState>()(
         setFoodPreferences: (patch) => {
           set({ foodPreferences: { ...get().foodPreferences, ...patch } });
         },
+
+        setNicotineStatus: (nicotineStatus) => set({ nicotineStatus }),
 
         markFoodPreferencesAsked: () => set({ foodPreferencesAsked: true }),
 
