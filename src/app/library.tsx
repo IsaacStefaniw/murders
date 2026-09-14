@@ -9,6 +9,7 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Radius, Spacing } from '@/constants/theme';
 import { Disclosure } from '@/components/disclosure';
+import { howToFor } from '@/features/knowledge/howTo';
 import {
   EVIDENCE_LABELS,
   EVIDENCE_NOTE,
@@ -100,6 +101,8 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
     setJustPlaced(null);
   };
 
+  const steps = howToFor(protocol.id);
+
   return (
     <Card style={styles.card}>
       <View style={styles.headerRow}>
@@ -114,6 +117,28 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
       <AppText variant="caption" style={styles.why}>
         {protocol.why}
       </AppText>
+      {/*
+        How to actually do it.
+
+        The card told you what a practice is and what the evidence says,
+        and then left you at the hardest moment: the first attempt.
+        "Thirty grams of fibre" is a target with no method — nobody knows
+        what thirty grams looks like on a plate.
+      */}
+      {steps ? (
+        <Disclosure title="How to do it">
+          {steps.steps.map((step, i) => (
+            <AppText key={step} variant="body" style={styles.step}>
+              {i + 1}. {step}
+            </AppText>
+          ))}
+          {steps.example ? (
+            <AppText variant="caption" color="textSecondary" style={styles.step}>
+              {steps.example}
+            </AppText>
+          ) : null}
+        </Disclosure>
+      ) : null}
       <View style={[styles.evidence, { borderColor: theme.border }]}>
         <AppText variant="caption" color="text">
           Evidence {protocol.evidenceLevel} · {EVIDENCE_LABELS[protocol.evidenceLevel]}
@@ -374,6 +399,7 @@ export default function Library() {
 }
 
 const styles = StyleSheet.create({
+  step: { marginTop: Spacing.sm },
   topRow: { flexDirection: 'row', alignItems: 'center' },
   doneBottom: { marginTop: Spacing.lg },
   intro: { marginTop: Spacing.sm },

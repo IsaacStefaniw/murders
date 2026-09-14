@@ -21,9 +21,19 @@ describe('a person is not one word', () => {
     expect(p.headline).toContain('bench');
   });
 
-  it('leads with the strong end, because that is the true thing', () => {
-    expect(strengthProfile(ISAAC, man(90)).headline).toBe('Intermediate bench');
-    expect(strengthProfile(ISAAC, man(80)).headline).toBe('Advanced bench');
+  it('leads with the general population, which is the question being asked', () => {
+    // 1.44x at 90 kg and 1.63x at 80 kg are both the top tenth of men.
+    // "Intermediate bench" is a true sentence about a room of powerlifters
+    // and it is not what anybody wants to know.
+    expect(strengthProfile(ISAAC, man(90)).headline).toBe('Your bench is in the top tenth of men');
+    expect(strengthProfile(ISAAC, man(80)).headline).toBe('Your bench is in the top tenth of men');
+  });
+
+  it('falls back to the lift shape where no population reading exists', () => {
+    // Women and the non-bench lifts have no general-population figure we
+    // are willing to state, so the shape is what is left.
+    const woman = { weightKg: 70, sexAtBirth: 'female', age: 35 } as LifeProfile;
+    expect(strengthProfile(ISAAC, woman).headline).toMatch(/bench$/);
   });
 
   it('names the gap as the thing to train, not as a verdict', () => {

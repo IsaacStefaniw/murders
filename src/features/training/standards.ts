@@ -239,6 +239,19 @@ const list = (names: string[]): string =>
  * with and it points at what to train next. So an even profile gets its
  * band as the headline and an uneven one gets its shape.
  */
+/** The headline form of the general-population reading, where there is one. */
+function populationHeadline(
+  lift: StrengthLift,
+  ratio: number,
+  profile: Pick<LifeProfile, 'sexAtBirth'>,
+): string | null {
+  if (lift !== 'bench' || profile.sexAtBirth !== 'male') return null;
+  if (ratio >= 1.75) return 'Your bench is in the top one percent of men';
+  if (ratio >= 1.25) return 'Your bench is in the top tenth of men';
+  if (ratio >= 1.0) return 'Your bench is above the median for men';
+  return null;
+}
+
 export function strengthProfile(
   maxes: LiftMaxes,
   profile: Pick<LifeProfile, 'weightKg' | 'sexAtBirth' | 'age'>,
@@ -277,11 +290,20 @@ export function strengthProfile(
   const ahead = lifts.filter((l) => l.band === strongest).map((l) => LIFT_NAME[l.lift]);
   const behind = lifts.filter((l) => l.band === weakest).map((l) => LIFT_NAME[l.lift]);
 
+  /*
+    Where a general-population reading exists, it leads.
+
+    "Intermediate bench" is a true sentence about a room of powerlifters
+    and it is not the question anybody is asking. A 130 kg bench at 88 kg
+    is 1.48× — two hundredths under our "advanced" bar, and the top tenth
+    of men. Leading with the band buries the meaningful half.
+  */
+  const top = lifts[0];
+  const general = populationHeadline(top.lift, top.ratio, profile);
+
   return {
     lifts, strongest, weakest, even,
-    // The strong end leads. It is the true statement about how long
-    // somebody has been training, and it is the one they will check first.
-    headline: `${BAND_LABEL[strongest]} ${list(ahead)}`,
+    headline: general ?? `${BAND_LABEL[strongest]} ${list(ahead)}`,
     detail: `Your ${list(ahead)} ${ahead.length > 1 ? 'sit' : 'sits'} at ${BAND_LABEL[strongest].toLowerCase()} and your ${list(behind)} at ${BAND_LABEL[weakest].toLowerCase()}, relative to bodyweight. That gap is the thing worth training, not a verdict on you — an uneven profile is the normal one.`,
   };
 }
