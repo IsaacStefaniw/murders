@@ -337,6 +337,12 @@ export interface PaceInputs {
   activityMinutes?: number | null;
   sleepHours?: number | null;
   bmi?: number | null;
+  /**
+   * True where `essential8.bmiMisread` has established that BMI is not
+   * measuring this person — a lean body fat percentage, or a waist under
+   * half their height, against a BMI the table calls overweight.
+   */
+  bmiMisread?: boolean;
   nicotine?: NicotineStatus | null;
   /**
    * What they told us before anything was measured.
@@ -394,7 +400,11 @@ export function readPace(input: PaceInputs): PaceReading {
   const le8Parts: number[] = [];
   if (input.activityMinutes != null) le8Parts.push(activityScore(input.activityMinutes));
   if (input.sleepHours != null) le8Parts.push(sleepScore(input.sleepHours));
-  if (input.bmi != null) le8Parts.push(bmiScore(input.bmi));
+  // Dropped rather than scored where BMI has been established as a misread
+  // for this person. The component then reads from fewer parts and the
+  // headline's interval widens, which is the honest consequence: we know
+  // less about them than we would have pretended to.
+  if (input.bmi != null && !input.bmiMisread) le8Parts.push(bmiScore(input.bmi));
   const le8 =
     le8Parts.length > 0 ? le8Parts.reduce((a, b) => a + b, 0) / le8Parts.length : null;
 
@@ -587,8 +597,13 @@ export function readPace(input: PaceInputs): PaceReading {
       id: 'le8',
       source: le8 != null ? 'measured' : null,
       label: 'Cardiovascular health behaviours',
+      // Three, not four. Nicotine is scored on its own evidence above and
+      // deliberately left out here so it is not counted twice — this line
+      // said "and nicotine" for some time while the arithmetic never
+      // included it, which is the kind of drift between copy and code that
+      // costs a reader their trust in both.
       measures:
-        'Activity, sleep, body mass and nicotine — the four of Life’s Essential 8 this app can see.',
+        'Activity, sleep and body mass — the components of Life’s Essential 8 this app can read. Nicotine is scored separately, on stronger evidence than the construct gives it.',
       provenance: {
         study: 'Lloyd-Jones and colleagues, 2022 (construct); subsequent cohort validations',
         journal: 'Circulation',
@@ -600,7 +615,11 @@ export function readPace(input: PaceInputs): PaceReading {
           'The construct is eight components and we read four. The four missing include the three blood measures, which carry a large share of the risk.',
       },
       logHazard: le8 != null ? le8LogHazard(le8) : null,
-      detail: le8 != null ? `${Math.round(le8)} across ${le8Parts.length} of 8` : 'Not measured',
+      detail:
+        le8 != null
+          ? `${Math.round(le8)} across ${le8Parts.length} of 8` +
+            (input.bmiMisread ? ' — body mass left out, see the wellbeing card' : '')
+          : 'Not measured',
       blocked: le8 == null ? 'Starts reading from your first logged session or night.' : undefined,
     },
   ];

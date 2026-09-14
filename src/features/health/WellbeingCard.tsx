@@ -88,18 +88,27 @@ function ComponentRow({ component }: { component: Component }) {
         </AppText>
         <AppText
           variant="body"
-          color={scored ? 'text' : 'textTertiary'}
+          color={scored && !component.misread ? 'text' : 'textTertiary'}
           accessibilityLabel={
-            scored ? `${component.label}, ${component.score} out of 100` : `${component.label}, not scored`
+            component.misread
+              ? `${component.label}, not counted — this measure does not describe you`
+              : scored
+                ? `${component.label}, ${component.score} out of 100`
+                : `${component.label}, not scored`
           }
         >
-          {scored ? `${component.score}` : '—'}
+          {component.misread ? 'Not counted' : scored ? `${component.score}` : '—'}
         </AppText>
       </View>
-      {scored ? <ScoreBar score={component.score!} /> : null}
+      {scored && !component.misread ? <ScoreBar score={component.score!} /> : null}
       <AppText variant="caption" color="textSecondary" style={styles.detail}>
         {component.detail}
       </AppText>
+      {component.misread ? (
+        <AppText variant="caption" color="must" style={styles.detail}>
+          {component.misread}
+        </AppText>
+      ) : null}
       {component.blocked ? (
         <AppText variant="caption" color="textTertiary" style={styles.detail}>
           {component.blocked}
@@ -122,6 +131,7 @@ export function WellbeingCard() {
   const events = useAppStore((s) => s.behaviourEvents);
   const cardioLogs = useAppStore((s) => s.cardioLogs);
   const stated = useAppStore((s) => s.nicotineStatus);
+  const profile = useAppStore((s) => s.profile);
   const setNicotineStatus = useAppStore((s) => s.setNicotineStatus);
   const today = todayKey();
 
@@ -136,8 +146,12 @@ export function WellbeingCard() {
         events,
         today,
         nicotine: stated ?? undefined,
+        sexAtBirth:
+          profile?.sexAtBirth === 'male' || profile?.sexAtBirth === 'female'
+            ? profile.sexAtBirth
+            : null,
       }),
-    [plans, routines, cardioLogs, metrics, intentions, events, today, stated],
+    [plans, routines, cardioLogs, metrics, intentions, events, today, stated, profile?.sexAtBirth],
   );
   const alcohol = useMemo(
     () => alcoholWeek(intentions, events, today),
@@ -178,7 +192,7 @@ export function WellbeingCard() {
           than only at the extremes. Moving it appears to move something real.
         </AppText>
         <AppText variant="caption" color="textSecondary" style={styles.gap}>
-          This app can read {week.observed.length} of the eight. Four need a blood test, a blood
+          This app can read {week.counted.length} of the eight. Four need a blood test, a blood
           pressure cuff or a full diet questionnaire, and three of those four are where a large share
           of the risk actually sits — so this is not a Life&apos;s Essential 8 score and is never
           shown as one. It is the average of what is visible, labelled every time with how much of
@@ -190,7 +204,7 @@ export function WellbeingCard() {
         </AppText>
       </Disclosure>
 
-      {week.biggestGap && week.observed.length > 1 ? (
+      {week.biggestGap && week.counted.length > 1 ? (
         <View style={styles.gap}>
           <AppText variant="caption" color="textSecondary">
             The most room, in published points, is in {week.biggestGap.label.toLowerCase()}.

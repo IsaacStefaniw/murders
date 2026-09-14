@@ -43,6 +43,7 @@ export function BodyNumbers() {
   const weight = known('body.weight');
   const waist = known('body.waist');
 
+  const bodyFat = known('body.bodyFat');
   const bmi = bmiFrom(weight, height);
   const wth = waistToHeight(waist, height);
   const conditioning = useMemo(() => conditioningFrom(metrics), [metrics]);
@@ -68,9 +69,17 @@ export function BodyNumbers() {
     <View>
       <SectionHeader title="Your body" />
 
-      {bmi != null || wth != null ? (
+      {bmi != null || wth != null || bodyFat != null ? (
         <Card>
           <View style={styles.ratios}>
+            {bodyFat != null ? (
+              <View style={styles.ratio}>
+                <AppText variant="label" color="textSecondary">
+                  Body fat
+                </AppText>
+                <AppText variant="title">{bodyFat}%</AppText>
+              </View>
+            ) : null}
             {wth != null ? (
               <View style={styles.ratio}>
                 <AppText variant="label" color="textSecondary">
@@ -91,6 +100,16 @@ export function BodyNumbers() {
           <AppText variant="caption" color="textTertiary" style={styles.gap}>
             {BMI_CONTEXT}
           </AppText>
+          {/* The one thing BMI cannot do, said where the number is, rather
+              than only in a comment. Where the app has a direct reading it
+              stops deferring to the proxy — see essential8.bmiMisread. */}
+          {bmi != null && bodyFat == null ? (
+            <AppText variant="caption" color="textTertiary" style={styles.gap}>
+              BMI cannot tell muscle from fat. If you have had a scan, or a scale that
+              reports it, adding your body fat percentage lets the app work out whether
+              BMI is describing you — and stop counting it against you where it is not.
+            </AppText>
+          ) : null}
         </Card>
       ) : null}
 
@@ -146,7 +165,7 @@ export function BodyNumbers() {
             title="Enter my numbers"
             variant="secondary"
             style={styles.gap}
-            hint="Height, weight, waist, resting heart rate, heart-rate variability and cardio fitness."
+            hint="Height, weight, waist, body fat, resting heart rate, heart-rate variability and cardio fitness."
             onPress={() => setOpen(true)}
           />
         </Card>

@@ -22,6 +22,7 @@ import { readinessCoverage } from './readiness';
 import {
   historyObservations,
   sleepHoursLastNight,
+  asPercent,
   snapshotObservations,
   type DatedValue,
   type HealthHistory,
@@ -36,6 +37,7 @@ const READ_TYPES = [
   'HKQuantityTypeIdentifierVO2Max',
   'HKQuantityTypeIdentifierHeight',
   'HKQuantityTypeIdentifierWaistCircumference',
+  'HKQuantityTypeIdentifierBodyFatPercentage',
 ] as const;
 
 /**
@@ -56,6 +58,10 @@ export const WINDOW_HOURS = {
   vo2max: 24 * 90,
   height: 24 * 365 * 5,
   waist: 24 * 90,
+  // A scan is an annual event for most people and a smart scale writes
+  // weekly; either way a reading from last month is still the current
+  // answer, and the alternative is having none.
+  bodyFat: 24 * 365,
 } as const;
 
 /**
@@ -113,7 +119,7 @@ async function readSnapshot(now: Date): Promise<HealthSnapshot> {
   const latestSample = { limit: 1 } as const;
   const window = (hours: number) => ({ date: { startDate: since(hours), endDate: now } });
 
-  const [sleep, rhr, weight, hrv, vo2max, height, waist] = await Promise.all([
+  const [sleep, rhr, weight, hrv, vo2max, height, waist, bodyFat] = await Promise.all([
     queryCategorySamples('HKCategoryTypeIdentifierSleepAnalysis', {
       limit: 0,
       filter: window(WINDOW_HOURS.sleep),
@@ -148,6 +154,11 @@ async function readSnapshot(now: Date): Promise<HealthSnapshot> {
       unit: 'cm',
       filter: window(WINDOW_HOURS.waist),
     }).catch(() => []),
+    queryQuantitySamples('HKQuantityTypeIdentifierBodyFatPercentage', {
+      ...latestSample,
+      unit: '%',
+      filter: window(WINDOW_HOURS.bodyFat),
+    }).catch(() => []),
   ]);
 
   return {
@@ -165,6 +176,7 @@ async function readSnapshot(now: Date): Promise<HealthSnapshot> {
     vo2max: vo2max[0]?.quantity ?? null,
     heightCm: height[0]?.quantity ?? null,
     waistCm: waist[0]?.quantity ?? null,
+    bodyFatPct: asPercent(bodyFat[0]?.quantity),
   };
 }
 

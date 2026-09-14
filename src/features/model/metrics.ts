@@ -69,6 +69,22 @@ export const METRICS: MetricDefinition[] = [
    * simple marker than BMI for anyone carrying real muscle.
    */
   { key: 'body.waist', label: 'Waist', unit: 'cm', domain: 'nutrition', direction: 'lower', decimals: 1 },
+  /**
+   * Body fat percentage.
+   *
+   * Direction is 'steady' rather than 'lower' deliberately. Every other
+   * body measure here declares which way is better and this one does not,
+   * because for a great many people using this app the honest answer is
+   * "neither" — and a metric that declares down-is-good is one step from a
+   * chart that rewards going down, which is the thing the nutrition pillar
+   * refuses on purpose (see protocols.ts).
+   *
+   * It is collected for exactly one reason: BMI cannot tell muscle from
+   * fat, and without this the app has no way to know when it is reading a
+   * lean person as overweight. It corrects a measurement; it is not a
+   * target.
+   */
+  { key: 'body.bodyFat', label: 'Body fat', unit: '%', domain: 'nutrition', direction: 'steady', decimals: 1 },
   { key: 'sleep.hours', label: 'Sleep', unit: 'h', domain: 'sleep', direction: 'higher' },
   { key: 'work.deepHours', label: 'Deep-work hours', unit: 'h/wk', domain: 'work', direction: 'higher' },
   { key: 'mind.minutes', label: 'Stillness minutes', unit: 'min/wk', domain: 'mind', direction: 'higher' },

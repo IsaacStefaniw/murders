@@ -62,6 +62,15 @@ export interface HealthSnapshot {
   vo2max?: number | null;
   heightCm?: number | null;
   waistCm?: number | null;
+  /**
+   * Body fat, as a percentage.
+   *
+   * Written by any smart scale, and by hand from a DEXA or a BodPod. It is
+   * here because BMI is the component of Life's Essential 8 that this app
+   * was getting most wrong for the people most likely to be using it —
+   * see `bmiMisread` in essential8.ts.
+   */
+  bodyFatPct?: number | null;
 }
 
 /**
@@ -81,7 +90,30 @@ const SNAPSHOT_KEYS: { key: string; field: keyof HealthSnapshot; onChangeOnly?: 
   { key: 'body.vo2max', field: 'vo2max', onChangeOnly: true },
   { key: 'body.height', field: 'heightCm', onChangeOnly: true },
   { key: 'body.waist', field: 'waistCm', onChangeOnly: true },
+  { key: 'body.bodyFat', field: 'bodyFatPct', onChangeOnly: true },
 ];
+
+/**
+ * A percentage, whichever way Health hands it over.
+ *
+ * `HKUnit.percent()` is defined on 0–1, so a body fat of eleven per cent
+ * arrives as 0.11 — but wrappers differ on whether they scale it, and a
+ * silent factor of a hundred here is the worst kind of bug this file could
+ * ship: 11% read as 0.11% is not a wrong number somebody would notice, it
+ * is a number that makes the app confidently tell a lean person something
+ * false about their body.
+ *
+ * So the shape is decided by the value rather than by trusting the unit.
+ * Nobody alive has a body fat percentage below one, and a fraction can
+ * never exceed one, so the two ranges do not overlap and the test is
+ * exact rather than a guess.
+ */
+export function asPercent(raw: number | undefined | null): number | null {
+  if (raw == null || !Number.isFinite(raw) || raw <= 0) return null;
+  const pct = raw <= 1 ? raw * 100 : raw;
+  // Past this it is not a body composition reading, whatever it is.
+  return pct >= 3 && pct <= 70 ? Math.round(pct * 10) / 10 : null;
+}
 
 /**
  * Body-mass index, computed rather than read.

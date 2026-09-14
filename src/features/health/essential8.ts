@@ -81,6 +81,11 @@ export interface Component {
   why: string;
   /** Why it is not observed, where it is not. */
   blocked?: string;
+  /**
+   * Set where the component was read successfully and is measuring the
+   * wrong thing for THIS person. See `bmiMisread`.
+   */
+  misread?: string;
 }
 
 export const CATEGORY_CUTOFFS = { intermediate: 50, high: 75 } as const;
@@ -137,6 +142,116 @@ export function bmiScore(bmi: number): number {
   if (bmi < 35) return 30;
   if (bmi < 40) return 15;
   return 0;
+}
+
+/* ── When BMI is measuring the wrong thing ────────────────────────────── */
+
+/**
+ * Isaac, on the wellbeing overview: "my actual body fat % is around 11%
+ * which the app would know if it had asked."
+ *
+ * It had not asked. It scored his body mass at 70 out of 100 from a BMI of
+ * 25.2, offered that as one of his weaker components, and was capable of
+ * naming it as the place he had the most room — to a man at eleven per
+ * cent body fat.
+ *
+ * ── WHY THIS IS NOT A CAVEAT ────────────────────────────────────────────
+ *
+ * The app had already written the warning down. Twice. This module says
+ * BMI "says nothing about one person's build, and a heavily muscled person
+ * will score below where their health sits". `summarise.ts` says it
+ * harder: BMI "cannot tell muscle from fat and reports a great many strong
+ * people as overweight, which is both wrong and the kind of wrong that
+ * makes someone stop trusting everything else the app says."
+ *
+ * Both were correct. Both were shipped as prose underneath the wrong
+ * number rather than as anything that changed it. A limitation you have
+ * described accurately and done nothing about is not a limitation you have
+ * handled — and the person it lands on has no way to tell the difference
+ * between an app that knows and an app that is simply wrong.
+ *
+ * ── WHAT THIS DOES INSTEAD ──────────────────────────────────────────────
+ *
+ * It does NOT re-score. There is no published Life's Essential 8 table
+ * that takes body fat, and inventing one would be exactly the composite of
+ * our own that this module exists to refuse.
+ *
+ * It marks the component as not describing this person, on evidence, and
+ * then everything downstream stops treating it as a finding: it is left
+ * out of the composite, it can never be named as the biggest gap, and
+ * `pace.ts` counts it as unread so the interval widens rather than
+ * pretending to a precision it does not have.
+ *
+ * Being honest about what we did not measure is already this instrument's
+ * rule. A measurement known to be invalid for the person in front of us is
+ * a thing we did not measure.
+ *
+ * ── THE THRESHOLDS, AND WHY THESE ───────────────────────────────────────
+ *
+ * Two independent routes, both published, neither invented here.
+ *
+ * Body fat below the healthy-range ceiling — around 25% for men and 32%
+ * for women in the commonly cited ACE and AJCN ranges — while BMI calls
+ * the same person overweight is a direct contradiction between a crude
+ * proxy and a direct measurement of the thing the proxy is proxying for.
+ * The direct measurement wins.
+ *
+ * Waist-to-height under 0.5 is the second route, and it matters because it
+ * needs no new data: the app already holds waist, already computes the
+ * ratio, and already shows it one card away. The threshold is the
+ * commonly cited one — keep your waist under half your height.
+ *
+ * Where sex is unknown the male ceiling is used, because it is the lower
+ * of the two and using the lower one can only ever flag FEWER people. The
+ * app does not ask sex of everybody and guessing it would be a confident
+ * invisible error in half of all cases — `BodyNumbers` settled that
+ * already and this follows it.
+ */
+export const LEAN_CEILING = { male: 25, female: 32 } as const;
+
+/** Keep your waist under half your height. */
+export const WAIST_HEIGHT_HEALTHY = 0.5;
+
+export interface MisreadInput {
+  bmi: number | null;
+  bodyFatPct?: number | null;
+  waistToHeight?: number | null;
+  sex?: 'male' | 'female' | null;
+}
+
+/** The sentence to show, or null where BMI is reading this person fairly. */
+export function bmiMisread(input: MisreadInput): string | null {
+  const { bmi, bodyFatPct, waistToHeight, sex } = input;
+  // Under 25 the table is already giving full marks, so there is no wrong
+  // answer to correct and nothing worth saying.
+  if (bmi == null || bmi < 25) return null;
+
+  if (bodyFatPct != null) {
+    const ceiling = LEAN_CEILING[sex === 'female' ? 'female' : 'male'];
+    if (bodyFatPct < ceiling) {
+      return (
+        `Your body fat is ${bodyFatPct}%, which is inside the healthy range, ` +
+        `while BMI puts you above it at ${bmi.toFixed(1)}. BMI cannot tell muscle ` +
+        `from fat, and on you it is reading the muscle as fat. The published ` +
+        `table has no version that takes body fat, so this is left out of the ` +
+        `summary rather than rescored — a measurement that is wrong about you ` +
+        `is not one to average in.`
+      );
+    }
+    return null;
+  }
+
+  if (waistToHeight != null && waistToHeight < WAIST_HEIGHT_HEALTHY) {
+    return (
+      `Your waist is under half your height, which is the marker that ` +
+      `separates the two things weight alone runs together — and BMI puts ` +
+      `you above its cut point at ${bmi.toFixed(1)}. BMI cannot tell muscle ` +
+      `from fat. This is left out of the summary for that reason. A body fat ` +
+      `percentage, from a scan or a smart scale, would settle it either way.`
+    );
+  }
+
+  return null;
 }
 
 /* ── Reading the week out of what the app holds ───────────────────────── */
@@ -326,12 +441,24 @@ export interface WeekInputs {
   today: string;
   /** Stated directly, where the logs cannot tell 'never' from 'quit'. */
   nicotine?: NicotineStatus;
+  /**
+   * Only ever used to pick which published body-fat ceiling applies. Absent
+   * is a supported answer and never guessed at — see `bmiMisread`.
+   */
+  sexAtBirth?: 'male' | 'female' | null;
 }
 
 export interface WeekHealth {
   components: Component[];
+  /** Every component that produced a score. */
   observed: Component[];
-  /** Mean of the observed components. NOT a Life's Essential 8 score. */
+  /**
+   * The observed components that describe THIS person — observed, minus
+   * anything flagged as a misread. Everything that speaks to the person
+   * reads from this rather than from `observed`.
+   */
+  counted: Component[];
+  /** Mean of the counted components. NOT a Life's Essential 8 score. */
   composite: number | null;
   band: 'low' | 'intermediate' | 'high' | null;
   headline: string;
@@ -348,6 +475,19 @@ export function weekHealth(input: WeekInputs): WeekHealth {
   const heightCm = latest(metrics, 'body.height');
   const bmi = weightKg && heightCm ? weightKg / (heightCm / 100) ** 2 : null;
   const nicotine = input.nicotine ?? nicotineFromLogs(intentions, events, today);
+
+  // The two things that can tell us BMI is reading this person wrongly.
+  // The waist ratio needs no new data at all — the app has held waist, and
+  // shown this exact ratio one card away, the whole time.
+  const bodyFatPct = latest(metrics, 'body.bodyFat');
+  const waistCm = latest(metrics, 'body.waist');
+  const waistToHeight = waistCm && heightCm ? waistCm / heightCm : null;
+  const misread = bmiMisread({
+    bmi,
+    bodyFatPct,
+    waistToHeight,
+    sex: input.sexAtBirth ?? null,
+  });
 
   const components: Component[] = [
     {
@@ -395,8 +535,14 @@ export function weekHealth(input: WeekInputs): WeekHealth {
       label: 'Body mass index',
       score: bmi === null ? null : bmiScore(bmi),
       detail: bmi === null ? 'Height or weight missing' : `${bmi.toFixed(1)}`,
-      why: 'A crude instrument that the construct uses anyway, because at population scale it predicts. It says nothing about one person’s build, and a heavily muscled person will score below where their health sits.',
-      blocked: bmi === null ? 'Add your height and weight in Body numbers and this scores.' : undefined,
+      why: 'A crude instrument that the construct uses anyway, because at population scale it predicts. It says nothing about one person’s build, and a heavily muscled person will score below where their health sits — which is why the app now checks, rather than only warning.',
+      blocked:
+        bmi === null
+          ? 'Add your height and weight in Body numbers and this scores.'
+          : bodyFatPct == null && waistToHeight == null
+            ? 'BMI cannot tell muscle from fat. Add a body fat percentage or a waist measurement in Body numbers and the app can tell whether this number describes you.'
+            : undefined,
+      misread: misread ?? undefined,
     },
     {
       key: 'diet',
@@ -433,10 +579,14 @@ export function weekHealth(input: WeekInputs): WeekHealth {
   ];
 
   const observed = components.filter((c) => c.score !== null);
+  // A reading known to be invalid for this person is a thing we did not
+  // measure, and averaging it in would be the app insisting on a number it
+  // has already worked out is wrong.
+  const counted = observed.filter((c) => !c.misread);
   const composite =
-    observed.length === 0
+    counted.length === 0
       ? null
-      : observed.reduce((sum, c) => sum + (c.score ?? 0), 0) / observed.length;
+      : counted.reduce((sum, c) => sum + (c.score ?? 0), 0) / counted.length;
 
   const band =
     composite === null
@@ -447,18 +597,21 @@ export function weekHealth(input: WeekInputs): WeekHealth {
           ? 'intermediate'
           : 'low';
 
-  // The most room, measured in published points rather than in opinion.
+  // The most room, measured in published points rather than in opinion —
+  // and never a component we have already established is not describing
+  // them. Telling a man at eleven per cent body fat that his biggest
+  // opportunity is body mass is the exact failure this guards.
   const biggestGap =
-    observed.length === 0
+    counted.length === 0
       ? null
-      : observed.reduce((worst, c) => ((c.score ?? 100) < (worst.score ?? 100) ? c : worst));
+      : counted.reduce((worst, c) => ((c.score ?? 100) < (worst.score ?? 100) ? c : worst));
 
   const headline =
     composite === null
       ? 'Nothing observed yet'
-      : `${Math.round(composite)} across the ${observed.length} of 8 we can see`;
+      : `${Math.round(composite)} across the ${counted.length} of 8 we can see`;
 
-  return { components, observed, composite, band, headline, biggestGap };
+  return { components, observed, counted, composite, band, headline, biggestGap };
 }
 
 /* ── Alcohol, beside the score rather than inside it ──────────────────── */

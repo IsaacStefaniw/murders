@@ -41,6 +41,16 @@ export const BODY_ENTRIES: Entry[] = [
     max: 250,
   },
   {
+    key: 'body.bodyFat',
+    label: 'Body fat',
+    unit: '%',
+    hint: 'From a DEXA, a BodPod or a smart scale. Corrects BMI, which cannot tell muscle from fat.',
+    // A DEXA on a lean athlete can read in the low single figures and
+    // severe obesity runs past 60. Outside that it is a typo, not a body.
+    min: 3,
+    max: 65,
+  },
+  {
     key: 'body.restingHr',
     label: 'Resting heart rate',
     unit: 'bpm',

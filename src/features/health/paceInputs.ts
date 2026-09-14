@@ -9,7 +9,7 @@
  * way a displayed number and a stored one quietly drift apart.
  */
 
-import { activityMinutes, nicotineFromLogs } from '@/features/health/essential8';
+import { activityMinutes, bmiMisread, nicotineFromLogs } from '@/features/health/essential8';
 import { functionMetricKey } from '@/features/health/functionTests';
 import type { PaceInputs } from '@/features/health/pace';
 import { negativeHabitsFrom } from '@/features/health/negativeHabits';
@@ -62,6 +62,9 @@ export function paceInputsFrom(s: PaceSources): PaceInputs {
 
   const weight = latest('body.weight');
   const height = latest('body.height');
+  const waist = latest('body.waist');
+  const bmi = weight && height ? weight / (height / 100) ** 2 : null;
+  const sex = s.profile?.sexAtBirth;
 
   return {
     age: s.profile?.age,
@@ -71,7 +74,17 @@ export function paceInputsFrom(s: PaceSources): PaceInputs {
     gaitMs: latest(functionMetricKey('gaitSpeed')),
     vo2max: latest('body.vo2max'),
     sleepHours: meanThisWeek('sleep.hours'),
-    bmi: weight && height ? weight / (height / 100) ** 2 : null,
+    bmi,
+    // A BMI the app has established is measuring the wrong thing for this
+    // person is not a reading of this person. It is dropped rather than
+    // scored, and the interval widens to say so.
+    bmiMisread:
+      bmiMisread({
+        bmi,
+        bodyFatPct: latest('body.bodyFat'),
+        waistToHeight: waist && height ? waist / height : null,
+        sex: sex === 'male' || sex === 'female' ? sex : null,
+      }) !== null,
     activityMinutes: activityMinutes(s.plans, s.routines, s.today, s.cardioLogs),
     nicotine:
       s.nicotineStatus ??
