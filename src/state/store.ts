@@ -126,6 +126,7 @@ import type {
   Suggestion,
   WorkoutLog,
 } from '@/types/domain';
+import { makeCount, type WeeklyCount } from '@/features/behaviours/weekly';
 
 export interface AppState {
   hydrated: boolean;
@@ -139,6 +140,20 @@ export interface AppState {
   planEvents: PlanActionEvent[];
   behaviourIntentions: BehaviourIntention[];
   behaviourEvents: BehaviourEvent[];
+
+  /**
+   * One number a week, for the behaviours where a count means something
+   * published — see features/behaviours/weekly.ts for why this is a
+   * measurement rather than the tally `BehaviourLog` refuses.
+   *
+   * Held here rather than as MetricObservations on purpose: metrics feed
+   * the trend engine and the trajectory projections, and a projection of
+   * somebody's drinking is precisely the chart that module exists not to
+   * build.
+   */
+  weeklyCounts: WeeklyCount[];
+  /** Upsert — one figure per behaviour per week, correctable. */
+  setWeeklyCount: (behaviour: BehaviourKey, weekStart: string, count: number) => void;
   reflections: Reflection[];
   suggestions: Suggestion[];
 
@@ -653,6 +668,7 @@ const initialData = {
   planEvents: [] as PlanActionEvent[],
   behaviourIntentions: [] as BehaviourIntention[],
   behaviourEvents: [] as BehaviourEvent[],
+  weeklyCounts: [] as WeeklyCount[],
   reflections: [] as Reflection[],
   suggestions: [] as Suggestion[],
   experiments: [] as Experiment[],
@@ -1427,6 +1443,13 @@ export const useAppStore = create<AppState>()(
           record(eventFor(item, date, 'completed', { evidence: item.evidence }));
           get().assessGoals();
           return item.id;
+        },
+
+        setWeeklyCount: (behaviour, weekStart, count) => {
+          const others = get().weeklyCounts.filter(
+            (c) => !(c.behaviour === behaviour && c.weekStart === weekStart),
+          );
+          set({ weeklyCounts: [...others, makeCount(behaviour, weekStart, count)] });
         },
 
         logCardio: (input) => {

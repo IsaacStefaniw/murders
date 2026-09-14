@@ -50,6 +50,7 @@ export function PaceCard() {
   const answers = useAppStore((s) => s.interviewAnswers);
   const snapshots = useAppStore((s) => s.paceSnapshots);
   const sleepNights = useAppStore((s) => s.sleepNights);
+  const weeklyCounts = useAppStore((s) => s.weeklyCounts);
   const [shared, setShared] = useState(false);
   const today = todayKey();
 
@@ -65,10 +66,11 @@ export function PaceCard() {
         behaviourEvents: events,
         nicotineStatus: stated,
         interviewAnswers: answers,
+        weeklyCounts,
         sleepNights,
         today,
       }),
-    [profile, metrics, plans, routines, cardioLogs, intentions, events, stated, answers, sleepNights, today],
+    [profile, metrics, plans, routines, cardioLogs, intentions, events, stated, answers, weeklyCounts, sleepNights, today],
   );
 
   const reading = useMemo(() => readPace(inputs), [inputs]);

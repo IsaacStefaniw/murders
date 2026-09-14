@@ -14,6 +14,8 @@ import { SectionHeader } from '@/components/section-header';
 import { DeferredQuestions } from '@/features/onboarding/DeferredQuestions';
 import { Spacing } from '@/constants/theme';
 import { BehaviourLog } from '@/features/behaviours/BehaviourLog';
+import { WeeklyCountCard } from '@/features/behaviours/WeeklyCountCard';
+import { COUNTABLE } from '@/features/behaviours/weekly';
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import { behaviourPattern, weekNote } from '@/features/behaviours/patterns';
 import { goalTrajectory } from '@/features/model/trajectory';
@@ -285,7 +287,15 @@ export default function Life() {
             }
 
             return (
-              <Card key={intention.id}>
+              <View key={intention.id} style={styles.stack}>
+                {/* One number for the week that finished, where a count means
+                    something published. Occasions answer "when does it win";
+                    a weekly figure answers "how much", which is the question
+                    the guideline and the markers instrument are both in. */}
+                {COUNTABLE[intention.behaviour] ? (
+                  <WeeklyCountCard intention={intention} />
+                ) : null}
+              <Card>
                 <View style={styles.intentionRow}>
                   <View style={styles.intentionInfo}>
                     <AppText variant="heading">{intention.intentionText}</AppText>
@@ -366,6 +376,7 @@ export default function Life() {
                   </AppText>
                 ) : null}
               </Card>
+              </View>
             );
           })}
           <AppText variant="caption" color="textTertiary" style={styles.note}>

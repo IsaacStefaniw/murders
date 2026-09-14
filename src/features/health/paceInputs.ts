@@ -10,6 +10,7 @@
  */
 
 import { activityMinutes, bmiMisread, nicotineFromLogs } from '@/features/health/essential8';
+import { bandFromDrinks, latestCount, type WeeklyCount } from '@/features/behaviours/weekly';
 import { functionMetricKey } from '@/features/health/functionTests';
 import type { PaceInputs } from '@/features/health/pace';
 import { negativeHabitsFrom } from '@/features/health/negativeHabits';
@@ -38,6 +39,8 @@ export interface PaceSources {
   behaviourEvents: BehaviourEvent[];
   nicotineStatus: NicotineStatus | null;
   interviewAnswers: InterviewAnswers | undefined;
+  /** Weekly figures the person actually recorded. */
+  weeklyCounts?: WeeklyCount[];
   /** Answered or imported bed/wake times, newest last. */
   sleepNights: SleepNight[];
   today: string;
@@ -91,6 +94,20 @@ export function paceInputsFrom(s: PaceSources): PaceInputs {
       nicotineFromLogs(s.behaviourIntentions, s.behaviourEvents, s.today),
     ...selfReportedFrom(s.interviewAnswers),
     ...negativeHabitsFrom(s.interviewAnswers),
+    /**
+     * A measured week beats a remembered one.
+     *
+     * `drinkingBand` is asked once, during onboarding, before the person
+     * has any reason to be accurate, and then scored for a mortality
+     * hazard forever. Where they have since recorded an actual weekly
+     * figure, that is the reading and this is where it wins — the bands
+     * are already denominated in standard drinks a week, so no conversion
+     * or judgement is involved.
+     */
+    ...(() => {
+      const measured = latestCount(s.weeklyCounts ?? [], 'alcohol');
+      return measured ? { drinking: bandFromDrinks(measured.count) } : {};
+    })(),
     sleepRegularity: sleepRegularityIndex(s.sleepNights, s.today),
   };
 }
