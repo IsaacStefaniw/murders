@@ -58,6 +58,7 @@ function ordered(mine: ExistingHabitKey[] | undefined): LoggableHabit[] {
 
 export function QuickLog() {
   const profile = useAppStore((s) => s.profile);
+  const routines = useAppStore((s) => s.routines);
   const logCompletedActivity = useAppStore((s) => s.logCompletedActivity);
   const [justLogged, setJustLogged] = useState<string | null>(null);
   const [offsetDays, setOffsetDays] = useState(0);
@@ -74,12 +75,19 @@ export function QuickLog() {
 
     // Prefer the protocol's own title and duration, so a logged sauna reads
     // the same as a scheduled one and carries the same evidence story.
-    const protocol = protocolById(HABIT_PROTOCOL[habit.key] ?? '');
+    const protocolId = HABIT_PROTOCOL[habit.key] ?? '';
+    const protocol = protocolById(protocolId);
+    // And if this IS one of their routines, say so. Without the id a logged
+    // sauna is a different object from the scheduled one to adherence, to
+    // the streak rungs and to the adaptation engine — the routine reads as
+    // never done however many times they tap the chip.
+    const mine = routines.find((r) => r.active && r.protocolId === protocolId);
     logCompletedActivity({
       title: protocol?.title ?? habit.label,
       area: protocol?.area ?? habit.area,
       durationMin: protocol?.durationMin ?? habit.durationMin,
       sessionType: protocol?.sessionType,
+      routineId: mine?.id,
       date: offsetDays === 0 ? undefined : toDateKey(when),
       endedAt: offsetDays === 0 ? undefined : when.toISOString(),
       note: offsetDays === 0 ? 'logged after the fact' : `logged later, for ${day.label}`,

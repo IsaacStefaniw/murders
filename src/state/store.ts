@@ -1346,6 +1346,50 @@ export const useAppStore = create<AppState>()(
           const date = input.date ?? todayKey();
           get().ensurePlan(date);
           const at = input.endedAt ?? new Date().toISOString();
+
+          /**
+           * If the day already holds this thing, finish it — do not add a
+           * second one.
+           *
+           * Isaac, on build 21: "if a user selects did a sauna it doubles
+           * it up?" It did. The sauna the planner put on the day stayed
+           * sitting there as planned while a second completed one appeared
+           * underneath it, and the day then read as one sauna done and one
+           * sauna missed.
+           *
+           * The app already knew this was the risk. `LogDidIt` hides any
+           * routine that is already on the plan because offering it "would
+           * be an invitation to double-count it", and the `routineId` field
+           * on this very action is documented as the thing that stops a
+           * logged walk being "a different thing from the scheduled one to
+           * every consumer downstream". `QuickLog` — the chip row on Today,
+           * the one people actually reach for — had neither guard.
+           *
+           * Fixing it here rather than in QuickLog fixes every caller at
+           * once, including `logCardio`, which routes through this too.
+           *
+           * Matching is deliberately narrow. A routine id is exact and wins
+           * outright; otherwise the title has to be the same, which is the
+           * case that matters because a logged practice takes its title
+           * from the same protocol the scheduled one did. An item already
+           * COMPLETED is never absorbed, so a second walk on the same day
+           * is still a second walk.
+           */
+          const existing = (get().plans[date]?.items ?? []).find((i) => {
+            if (i.status === 'completed') return false;
+            if (input.routineId && i.routineId) return i.routineId === input.routineId;
+            if (input.routineId || i.routineId) return false;
+            return i.title === input.title;
+          });
+          if (existing) {
+            get().setItemStatus(date, existing.id, 'completed', {
+              source: 'manual',
+              confidence: 1,
+              at,
+              note: input.note,
+            });
+            return existing.id;
+          }
           // Place it where it actually happened: ending now (or at the given
           // time), starting its duration earlier. Clamped so a late-evening
           // entry can't wrap past midnight into negative minutes.
