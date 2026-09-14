@@ -140,13 +140,25 @@ export interface PaceComponent {
   provenance: Provenance;
   /**
    * Log hazard ratio against this component's own reference level, or null
-   * where it has not been observed.
+   * where it has not been observed. Positive is worse; zero is that
+   * component's reference.
    *
-   * Positive is worse. Zero is the reference — the level the study treated
-   * as the comparison group — which means a component at its reference
-   * contributes nothing rather than contributing a bonus. Nothing here
-   * rewards; the scale runs from "no added hazard" downwards, because that
-   * is the shape the underlying papers actually have.
+   * Whether a component may go NEGATIVE — that is, whether being
+   * exceptional earns credit rather than merely avoiding a penalty — is
+   * decided per component by what its own paper supports, and the two
+   * answers are both represented here:
+   *
+   *  - Grip and gait speed are floored at zero. PURE and the gait
+   *    literature report DECREMENT effects; reading them backwards as an
+   *    unbounded bonus is an extrapolation neither carries.
+   *  - Fitness and the Essential 8 composite may go negative, because
+   *    theirs do. Mandsager found a dose-response with explicitly no upper
+   *    limit to the benefit, and Life's Essential 8 is validated as linear
+   *    across its full 0–100 range rather than only below its midpoint.
+   *
+   * The asymmetry is not an oversight. It is the whole discipline: each
+   * component runs in the direction, and only as far as, its own evidence
+   * goes.
    */
   logHazard: number | null;
   /** What was read, in the person's terms. */
@@ -416,6 +428,186 @@ export function readPace(input: PaceInputs): PaceReading {
     coverage: { observed: observed.length, total: components.length },
     provisional: PROVISIONAL,
   };
+}
+
+/* ── The headline, and the uncertainty that has to travel with it ────── */
+
+/**
+ * How wide the error bars are, and why they are on the hero rather than in
+ * a footnote.
+ *
+ * Isaac chose a headline number. The engine can produce one, and a
+ * headline number is a legitimate product decision — but the figure has
+ * uncertainty of several years, and the failure mode of every product in
+ * this category is a big confident numeral with that uncertainty stripped
+ * off. `PaceHeadline` therefore makes the interval and the coverage
+ * non-optional fields: there is no way to obtain the number from this
+ * module without also holding what it is worth.
+ *
+ * It is also the better mechanic. The interval narrows visibly as somebody
+ * measures more, which turns honesty into the thing that makes the number
+ * better rather than the thing that apologises for it.
+ *
+ * ── WHERE THE WIDTH COMES FROM ──────────────────────────────────────────
+ *
+ * Three sources, combined in quadrature:
+ *
+ * 1. Each component's own effect is estimated with error. We do not hold
+ *    every published confidence interval, so the error is approximated
+ *    from the evidence grade — a proxy for sample size and replication.
+ * 2. `ATTENUATION` is a judgement, not a finding, so it carries its own
+ *    uncertainty proportional to the size of the total it is shrinking.
+ * 3. Components we could not read could have gone either way. Each unread
+ *    one widens the interval, which is what makes measuring pay.
+ *
+ * None of these three numbers is a published quantity. They are stated
+ * approximations, chosen to be honest about width rather than flattering,
+ * and they are exported so they can be argued with.
+ */
+export const GRADE_RELATIVE_SE: Record<EvidenceGrade, number> = {
+  A: 0.25,
+  B: 0.4,
+  C: 0.55,
+  D: 0.75,
+};
+
+/** Uncertainty in ATTENUATION itself, as a fraction of what it shrinks. */
+export const ATTENUATION_RELATIVE_SE = 0.25;
+
+/** Years of uncertainty added by each component we could not read. */
+export const UNREAD_COMPONENT_YEARS = 2.5;
+
+/**
+ * Test-retest uncertainty carried by each component we DID read, in years.
+ *
+ * Without this the interval collapses for somebody sitting at every
+ * reference level, because the estimation error is proportional to the
+ * effect and the effect is zero — so a person measuring exactly average on
+ * everything would be handed a suspiciously confident number. That is
+ * backwards. Grip varies a few kilograms between mornings, balance varies
+ * with the floor and the shoes, and Apple's VO₂max estimate wanders. A
+ * measurement is never certain just because it came out at the reference.
+ *
+ * It also sets the floor on how good the headline can ever get: five
+ * components at this floor is about ±5 years, and the instrument never
+ * claims better than that.
+ */
+export const MEASUREMENT_SE_YEARS = 1.2;
+
+/** Log-hazard to years, via the Gompertz doubling time. */
+const YEARS_PER_LOG_HAZARD = MRDT_YEARS / Math.LN2;
+
+export interface PaceHeadline {
+  /**
+   * The figure, in years. Chronological age adjusted by the measured
+   * markers. Rounded, because a decimal place here is false precision
+   * against an interval several years wide.
+   */
+  years: number;
+  /** Their actual age, always shown beside it. */
+  chronological: number;
+  /** Plus or minus, in years. 95% interval. Never optional. */
+  plusMinus: number;
+  /** How much of the instrument was readable. Never optional. */
+  coverage: { observed: number; total: number };
+  /** How much narrower the interval gets if everything is measured. */
+  plusMinusIfComplete: number;
+  provisional: true;
+  /** The one sentence that has to appear wherever the number appears. */
+  qualifier: string;
+}
+
+/**
+ * The headline figure with its interval attached.
+ *
+ * Returns null where there is no chronological age or nothing was
+ * measured — a headline built on no readings is the exact artefact this
+ * whole module exists to avoid producing.
+ */
+export function paceHeadline(reading: PaceReading, age: number | undefined): PaceHeadline | null {
+  if (age == null || reading.yearsEquivalent === null) return null;
+
+  // 1. Component estimation error, in log-hazard space.
+  let varianceLog = 0;
+  for (const c of reading.observed) {
+    const se = Math.abs(c.logHazard ?? 0) * GRADE_RELATIVE_SE[c.provenance.grade];
+    varianceLog += se ** 2;
+  }
+  const sumLog = reading.observed.reduce((sum, c) => sum + (c.logHazard ?? 0), 0);
+
+  // 2. The attenuation judgement, proportional to what it is shrinking.
+  const attenuationSe = Math.abs(sumLog * ATTENUATION) * ATTENUATION_RELATIVE_SE;
+
+  const estimationVarYears =
+    (varianceLog * ATTENUATION ** 2 + attenuationSe ** 2) * YEARS_PER_LOG_HAZARD ** 2;
+
+  // 3. Test-retest error on each reading we took. Does not vanish at the
+  //    reference, because a measurement is not certain for coming out
+  //    average.
+  const observedCount = reading.coverage.observed;
+  const measuredVar = observedCount * MEASUREMENT_SE_YEARS ** 2;
+
+  // 4. What we could not see. Quadrature again: four unknowns are not four
+  //    times as uncertain as one.
+  const unread = reading.coverage.total - reading.coverage.observed;
+  const coverageVar = unread * UNREAD_COMPONENT_YEARS ** 2;
+
+  const plusMinus = Math.max(
+    1,
+    Math.round(1.96 * Math.sqrt(estimationVarYears + measuredVar + coverageVar)),
+  );
+
+  // What measuring everything would buy. The unread components are assumed
+  // to carry estimation error like the ones we have — a stated assumption,
+  // and the only way to answer "is it worth doing the other two tests?"
+  // before they are done.
+  const scaledEstimation =
+    observedCount > 0 ? estimationVarYears * (reading.coverage.total / observedCount) : 0;
+  const ifComplete = Math.max(
+    1,
+    Math.round(
+      1.96 * Math.sqrt(scaledEstimation + reading.coverage.total * MEASUREMENT_SE_YEARS ** 2),
+    ),
+  );
+
+  return {
+    years: Math.round(age + reading.yearsEquivalent),
+    chronological: age,
+    plusMinus,
+    coverage: reading.coverage,
+    plusMinusIfComplete: ifComplete,
+    provisional: PROVISIONAL,
+    qualifier:
+      `Give or take ${plusMinus} years, from ${reading.coverage.observed} of ` +
+      `${reading.coverage.total} markers. Not a biological age and not a ` +
+      `prediction about you — it is where your measured markers sit.`,
+  };
+}
+
+/**
+ * What gets shared, when somebody shares it.
+ *
+ * The moment a number leaves the app it loses its screen, and with it
+ * every caveat that was sitting underneath. So the shared text carries the
+ * interval, the coverage and the disclaimer in the body rather than in a
+ * link nobody follows. It is longer than a boast and that is deliberate:
+ * the shareable artefact should be the honest one, or there is no point
+ * having been honest on the screen.
+ */
+export function paceShareText(headline: PaceHeadline): string {
+  const direction =
+    headline.years < headline.chronological
+      ? `${headline.chronological - headline.years} years younger than`
+      : headline.years > headline.chronological
+        ? `${headline.years - headline.chronological} years older than`
+        : 'the same as';
+  return [
+    `My markers read ${headline.years} — ${direction} my actual age.`,
+    ``,
+    `Give or take ${headline.plusMinus} years, from ${headline.coverage.observed} of ${headline.coverage.total} markers measured.`,
+    `Compiled from published cohort studies, not validated on its own yet.`,
+    `It is not a biological age, and not a prediction about anybody.`,
+  ].join('\n');
 }
 
 /* ── The rate, which is the part that needs our own data ──────────────── */

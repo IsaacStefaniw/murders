@@ -152,28 +152,73 @@ to anyone reading the module.
    the data is looked at.
 6. Enough people, for long enough. **This is years, not quarters.**
 
-## 6. Open questions for Isaac
+## 6. The presentation decision
 
-**6a. Does this surface as a number at all?** The engine is identical
-either way, so it has not blocked the build — but it is the decision that
-most affects whether this helps people or harms them. Three options, in my
-order of preference:
+**Decided: a headline number.** Isaac chose it over showing components
+alone or a heavily qualified composite.
 
-1. **No composite on screen.** Show the components, each with its
-   provenance, and the pace only once there is a real series. Safest,
-   least marketable, most consistent with everything the app already does.
-2. **Composite shown, heavily qualified**, as `essential8.ts` does it —
-   coverage stated every time, "provisional" attached, never called an age.
-3. **A headline number.** Marketable, and the thing that puts us in the
-   category we are trying not to be in.
+Built with one engineering constraint that follows from the figure's real
+uncertainty: `PaceHeadline` makes `plusMinus` and `coverage` **non-optional
+fields**, so there is no code path that hands a caller the number without
+what it is worth. The interval renders beside the figure at body size, not
+behind a tap.
 
-**6b. Regulatory.** Under the TGA, software that predicts disease risk can
+That is not a compromise on the decision — it is the better version of it.
+The interval narrows visibly as somebody measures more, so the honest thing
+and the engaging thing coincide:
+
+| Markers read | Interval | If all five measured |
+|---|---|---|
+| 1 of 5 | ±11 years | ±10 |
+| 3 of 5 | ±8 years | ±5 |
+| 5 of 5 | ±6 years | ±6 |
+
+*"Give or take 8, or about 5 if you do the other two tests"* is a better
+call to action than any bare number, and it is true.
+
+### 6.1 Where the width comes from
+
+Four sources, combined in quadrature, all exported so they can be argued
+with. None is a published quantity; each is a stated approximation chosen
+to be honest about width rather than flattering.
+
+1. **Component estimation error** — approximated from evidence grade
+   (`GRADE_RELATIVE_SE`), since we do not hold every published CI.
+2. **`ATTENUATION` uncertainty** — it is a judgement, so it carries error
+   proportional to what it shrinks (`ATTENUATION_RELATIVE_SE = 0.25`).
+3. **Test–retest error** (`MEASUREMENT_SE_YEARS = 1.2`) on each marker
+   actually read. This one matters: without it the interval collapses for
+   somebody sitting at every reference level, because estimation error is
+   proportional to effect size and the effect is zero. A measurement is not
+   certain for having come out average. It also sets the floor — five
+   markers at this floor is about ±5 years, and the instrument never claims
+   better.
+4. **Coverage** (`UNREAD_COMPONENT_YEARS = 2.5`) per marker not read.
+
+### 6.2 Sharing
+
+`paceShareText` puts the interval, the coverage and the caveat in the
+**body** of the shared message, not behind a link. A number that leaves the
+app loses its screen and with it every qualification underneath. The shared
+text is longer than a boast, deliberately: if the shareable artefact is not
+the honest one, there was no point being honest on screen.
+
+### 6.3 Naming
+
+The card is headed **"Your markers"** and the copy reads *"your markers sit
+where a 43-year-old's usually do"* rather than *"your IntentNorth Age is
+43"*. Same number, same prominence, same shareability — it just does not
+assert that we measured an age, which we did not. Say the word if you want
+the branded name instead; it is a one-line change and the tests that would
+need revisiting are named in §4.
+
+**6d. Regulatory.** Under the TGA, software that predicts disease risk can
 be a medical device. Framing matters materially: a reading with named
 components, observational caveats and no diagnostic claim sits much more
 safely than "your heart age is 52". Worth a proper opinion before anything
 ships publicly, not after.
 
-**6c. The research arm is a different company function.** Consent, ethics
+**6e. The research arm is a different company function.** Consent, ethics
 approval, a registered analysis plan and an external statistician are not
 things to bolt on later — the data collected before they exist is largely
 unusable for publication. If the research ambition is real, the consent

@@ -26,6 +26,8 @@ import { protocolById } from '@/features/knowledge/protocols';
 import { computeCohortMetrics, shareableSummary } from '@/features/analytics/cohort';
 import { BodyNumbers } from '@/features/health/BodyNumbers';
 import { WellbeingCard } from '@/features/health/WellbeingCard';
+import { FunctionTestList } from '@/features/health/FunctionTests';
+import { PaceCard } from '@/features/health/PaceCard';
 import { WeeklyReviewPanel } from '@/features/review/WeeklyReviewPanel';
 import { WorkNumbers } from '@/features/work/WorkNumbers';
 import { AppText } from '@/components/text';
@@ -141,6 +143,12 @@ export default function Data() {
         Progress
       </AppText>
       <AppText variant="title">What the numbers say</AppText>
+
+      <SectionHeader title="Your markers" />
+      <PaceCard />
+
+      <SectionHeader title="The four tests" />
+      <FunctionTestList />
 
       <SectionHeader title="Your week, against a published measure" />
       <WellbeingCard />

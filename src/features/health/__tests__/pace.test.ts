@@ -26,7 +26,10 @@ import {
   gaitLogHazard,
   gripLogHazard,
   le8LogHazard,
+  MEASUREMENT_SE_YEARS,
+  paceHeadline,
   paceOverTime,
+  paceShareText,
   readPace,
   type PaceInputs,
 } from '@/features/health/pace';
@@ -289,5 +292,102 @@ describe('what this instrument may never do', () => {
       expect(t.evidence).toMatch(/[\d,]{3,}/);
       expect(t.steps.length).toBeGreaterThanOrEqual(4);
     }
+  });
+});
+
+/* ── The headline, which Isaac chose over showing components alone ────── */
+
+describe('the headline figure', () => {
+  const strong = readPace(
+    inputs({ age: 45, gripKg: 50, balanceSeconds: 30, gaitMs: 1.3, vo2max: 48 }),
+  );
+
+  it('cannot be obtained without its interval and its coverage', () => {
+    // Not a convention — a type guarantee. plusMinus and coverage are
+    // non-optional fields on PaceHeadline, so there is no code path that
+    // hands a caller the number alone. The failure mode of every product
+    // in this category is a confident numeral with the width stripped off.
+    const h = paceHeadline(strong, 45)!;
+    expect(h.plusMinus).toBeGreaterThan(0);
+    expect(h.coverage.total).toBe(5);
+    expect(h.qualifier).toMatch(/give or take/i);
+    expect(h.qualifier).toMatch(/not a biological age/i);
+  });
+
+  it('refuses to exist with no age or no readings', () => {
+    // A headline built on nothing is exactly the artefact this module is
+    // for avoiding.
+    expect(paceHeadline(strong, undefined)).toBeNull();
+    expect(paceHeadline(readPace(inputs()), 45)).toBeNull();
+  });
+
+  it('widens the interval for every marker it could not read', () => {
+    const one = paceHeadline(readPace(inputs({ balanceSeconds: 30 })), 45)!;
+    const four = paceHeadline(strong, 45)!;
+    expect(one.plusMinus).toBeGreaterThan(four.plusMinus);
+  });
+
+  it('keeps an interval even when every marker sits at its reference', () => {
+    // The estimation error is proportional to the effect, so somebody
+    // average on everything would otherwise be handed a suspiciously
+    // confident number. Grip varies between mornings; a measurement is not
+    // certain for having come out at the reference.
+    const h = paceHeadline(strong, 45)!;
+    expect(strong.yearsEquivalent).toBeLessThanOrEqual(0);
+    expect(h.plusMinus).toBeGreaterThanOrEqual(Math.round(1.96 * MEASUREMENT_SE_YEARS));
+  });
+
+  it('never claims better precision than the measurement floor allows', () => {
+    // Five components at the test-retest floor is about ±5 years, and
+    // nothing may promise better than that.
+    const floor = Math.round(1.96 * Math.sqrt(5) * MEASUREMENT_SE_YEARS);
+    for (const age of [30, 45, 68]) {
+      const h = paceHeadline(
+        readPace(inputs({ age, gripKg: 50, balanceSeconds: 30, gaitMs: 1.3, vo2max: 48, activityMinutes: 200, sleepHours: 7.5, bmi: 23, nicotine: 'never' })),
+        age,
+      )!;
+      expect(h.plusMinus).toBeGreaterThanOrEqual(floor);
+      expect(h.plusMinusIfComplete).toBeGreaterThanOrEqual(floor);
+    }
+  });
+
+  it('tells somebody what measuring the rest would buy them', () => {
+    // The honest thing and the engaging thing are the same thing here.
+    const partial = paceHeadline(readPace(inputs({ balanceSeconds: 30, gaitMs: 1.3 })), 45)!;
+    expect(partial.plusMinusIfComplete).toBeLessThan(partial.plusMinus);
+  });
+
+  it('rounds to whole years, because a decimal here is false precision', () => {
+    const h = paceHeadline(strong, 45)!;
+    expect(Number.isInteger(h.years)).toBe(true);
+    expect(Number.isInteger(h.plusMinus)).toBe(true);
+  });
+});
+
+describe('what leaves the app when somebody shares it', () => {
+  const h = paceHeadline(
+    readPace(inputs({ age: 45, gripKg: 50, balanceSeconds: 30, gaitMs: 1.3 })),
+    45,
+  )!;
+  const text = paceShareText(h);
+
+  it('carries the interval, the coverage and the caveat in the body', () => {
+    // A number that leaves the app loses its screen and every
+    // qualification underneath it. They travel in the text or not at all.
+    expect(text).toMatch(/give or take \d+ years/i);
+    expect(text).toMatch(/\d+ of \d+ markers/i);
+    expect(text).toMatch(/not validated on its own yet/i);
+    expect(text).toMatch(/not a biological age/i);
+  });
+
+  it('makes no forbidden claim', () => {
+    const lower = text.toLowerCase();
+    for (const claim of FORBIDDEN_CLAIMS) {
+      expect(lower).not.toContain(claim);
+    }
+  });
+
+  it('says which way round it is without overstating it', () => {
+    expect(text).toMatch(/younger than|older than|the same as/);
   });
 });
