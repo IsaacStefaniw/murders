@@ -13,6 +13,7 @@
 
 import { estimate1Rm, type MetricObservation } from '@/features/model/metrics';
 import { hiitById } from '@/features/training/hiit';
+import { nameSessions } from '@/features/training/sessionName';
 import { strengthBaseline } from '@/features/training/baseline';
 import type { PathLevel } from '@/features/paths/level';
 import { newId } from '@/lib/dates';
@@ -141,8 +142,21 @@ export interface PrescribedExercise {
 
 export type TrainingPhase = 'build' | 'progress' | 'deload';
 
+/**
+ * Which part of the split a session is.
+ *
+ * Separate from the title on purpose. Titles are now derived from what the
+ * session trains ("Chest, shoulders & back"), which is what a person wants
+ * to read and a poor thing for code to branch on — it changes with the
+ * equipment, the constraints and the accessories. This does not.
+ *
+ * Optional so a programme built before this existed still loads.
+ */
+export type SessionKind = 'full' | 'upper' | 'lower' | 'conditioning';
+
 export interface ProgrammeSession {
   title: string;
+  kind?: SessionKind;
   exercises: PrescribedExercise[];
   estimatedMin: number;
   note?: string;
@@ -750,6 +764,7 @@ function conditioningSession(
   exercises = fitToTime(exercises, sessionMin, age);
   return {
     title: 'Conditioning',
+    kind: 'conditioning',
     exercises,
     estimatedMin: estimateSessionMin(exercises, age),
     note: vetoed
@@ -971,8 +986,11 @@ export function buildProgramme(
       }
       exercises = fitToTime(exercises, inputs.sessionMin, inputs.age);
       return {
+        // Replaced below by a name derived from what the session trains.
+        // Kept as the fallback for a session nothing can be derived from.
         title:
           kind === 'full' ? `Full body ${String.fromCharCode(65 + dayIdx)}` : kind === 'upper' ? `Upper ${dayIdx < 2 ? 'A' : 'B'}` : `Lower ${dayIdx < 2 ? 'A' : 'B'}`,
+        kind,
         exercises,
         // The honest number. It was clamped to the session length, which
         // hid the one case that matters: a session that could not be
@@ -994,6 +1012,13 @@ export function buildProgramme(
         ),
       );
     }
+    // Named for what they train, once the whole week is built — the letters
+    // only come back where two sessions would otherwise share a name, and
+    // a Conditioning day keeps its own title.
+    const names = nameSessions(sessions);
+    sessions.forEach((session, i) => {
+      session.title = names[i];
+    });
     return {
       week,
       phase,

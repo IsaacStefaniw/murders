@@ -45,14 +45,23 @@ const weeklySets = (p: TrainingProgramme, week: number) =>
 describe('acceptance: two people, two genuinely different programmes', () => {
   it('different split and session count', () => {
     expect(intermediate.weeks[0].sessions).toHaveLength(4);
+    expect(intermediate.weeks[0].sessions.map((s) => s.kind)).toEqual([
+      'upper',
+      'lower',
+      'upper',
+      'lower',
+    ]);
+    // Named for what they train, and distinct — the four-day block runs
+    // Upper A and Upper B with the same movements, so the letters come back
+    // only there, where two names would otherwise collide.
     expect(intermediate.weeks[0].sessions.map((s) => s.title)).toEqual([
-      'Upper A',
-      'Lower A',
-      'Upper B',
-      'Lower B',
+      'Chest, shoulders & back A',
+      'Legs & glutes A',
+      'Chest, shoulders & back B',
+      'Legs & glutes B',
     ]);
     expect(beginner.weeks[0].sessions).toHaveLength(3);
-    expect(beginner.weeks[0].sessions.every((s) => s.title.startsWith('Full body'))).toBe(true);
+    expect(beginner.weeks[0].sessions.every((s) => s.kind === 'full')).toBe(true);
   });
 
   it('different exercise selection for the equipment that exists', () => {

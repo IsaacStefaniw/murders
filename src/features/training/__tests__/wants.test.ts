@@ -40,10 +40,19 @@ const base: TrainingInputs = {
   age: 30,
 };
 
-const mains = (p: TrainingProgramme, week: number, title: string) =>
-  p.weeks[week - 1].sessions.find((s) => s.title === title)!.exercises.filter((e) => !e.accessory);
-const accessories = (p: TrainingProgramme, week: number, title: string) =>
-  p.weeks[week - 1].sessions.find((s) => s.title === title)!.exercises.filter((e) => e.accessory);
+/**
+ * By position, not by title. Sessions are now named for what they train
+ * ("Chest, shoulders & back"), which changes with the equipment and the
+ * accessories — the wrong handle for a test about where sets land. The
+ * order is [upper, lower, upper, lower] and that is what these indices are.
+ */
+const UPPER_A = 0;
+const LOWER_A = 1;
+
+const mains = (p: TrainingProgramme, week: number, i: number) =>
+  p.weeks[week - 1].sessions[i].exercises.filter((e) => !e.accessory);
+const accessories = (p: TrainingProgramme, week: number, i: number) =>
+  p.weeks[week - 1].sessions[i].exercises.filter((e) => e.accessory);
 const setsOf = (xs: { sets: number }[]) => xs.reduce((n, e) => n + e.sets, 0);
 
 describe('a muscle block puts the extra work where the person asked', () => {
@@ -53,23 +62,23 @@ describe('a muscle block puts the extra work where the person asked', () => {
   const whole = buildProgramme({ ...base, goal: 'hypertrophy', focusArea: 'whole' }, BASELINES);
 
   it('adds a set to every main lift of the chosen area, and none elsewhere', () => {
-    expect(setsOf(mains(upper, 1, 'Upper A'))).toBe(setsOf(mains(plain, 1, 'Upper A')) + mains(plain, 1, 'Upper A').length);
-    expect(setsOf(mains(upper, 1, 'Lower A'))).toBe(setsOf(mains(plain, 1, 'Lower A')));
-    expect(setsOf(mains(lower, 1, 'Lower A'))).toBe(setsOf(mains(plain, 1, 'Lower A')) + mains(plain, 1, 'Lower A').length);
-    expect(setsOf(mains(lower, 1, 'Upper A'))).toBe(setsOf(mains(plain, 1, 'Upper A')));
-    expect(setsOf(mains(whole, 1, 'Upper A'))).toBeGreaterThan(setsOf(mains(plain, 1, 'Upper A')));
-    expect(setsOf(mains(whole, 1, 'Lower A'))).toBeGreaterThan(setsOf(mains(plain, 1, 'Lower A')));
+    expect(setsOf(mains(upper, 1, UPPER_A))).toBe(setsOf(mains(plain, 1, UPPER_A)) + mains(plain, 1, UPPER_A).length);
+    expect(setsOf(mains(upper, 1, LOWER_A))).toBe(setsOf(mains(plain, 1, LOWER_A)));
+    expect(setsOf(mains(lower, 1, LOWER_A))).toBe(setsOf(mains(plain, 1, LOWER_A)) + mains(plain, 1, LOWER_A).length);
+    expect(setsOf(mains(lower, 1, UPPER_A))).toBe(setsOf(mains(plain, 1, UPPER_A)));
+    expect(setsOf(mains(whole, 1, UPPER_A))).toBeGreaterThan(setsOf(mains(plain, 1, UPPER_A)));
+    expect(setsOf(mains(whole, 1, LOWER_A))).toBeGreaterThan(setsOf(mains(plain, 1, LOWER_A)));
   });
 
   it('adds an accessory for the area, listed first, and leaves the other area alone', () => {
-    expect(accessories(upper, 1, 'Upper A').length).toBe(accessories(plain, 1, 'Upper A').length + 1);
-    expect(accessories(upper, 1, 'Upper A')[0].name).toBe('Incline dumbbell press');
-    expect(accessories(upper, 1, 'Lower A').map((e) => e.name)).toEqual(accessories(plain, 1, 'Lower A').map((e) => e.name));
-    expect(accessories(lower, 1, 'Lower A')[0].name).toBe('Leg press');
+    expect(accessories(upper, 1, UPPER_A).length).toBe(accessories(plain, 1, UPPER_A).length + 1);
+    expect(accessories(upper, 1, UPPER_A)[0].name).toBe('Incline dumbbell press');
+    expect(accessories(upper, 1, LOWER_A).map((e) => e.name)).toEqual(accessories(plain, 1, LOWER_A).map((e) => e.name));
+    expect(accessories(lower, 1, LOWER_A)[0].name).toBe('Leg press');
   });
 
   it('keeps the deload easy: no extra set there', () => {
-    expect(setsOf(mains(upper, 4, 'Upper A'))).toBe(setsOf(mains(plain, 4, 'Upper A')));
+    expect(setsOf(mains(upper, 4, UPPER_A))).toBe(setsOf(mains(plain, 4, UPPER_A)));
   });
 
   it('does not add a loaded accessory beside a sore joint', () => {
@@ -115,8 +124,8 @@ describe('a fitter block turns one lifting day into conditioning', () => {
   it('keeps the session count and gives one session to conditioning', () => {
     for (const w of p.weeks) {
       expect(w.sessions).toHaveLength(4);
-      expect(w.sessions.filter((s) => s.title === 'Conditioning')).toHaveLength(1);
-      expect(w.sessions.filter((s) => s.title.startsWith('Full body'))).toHaveLength(3);
+      expect(w.sessions.filter((s) => s.kind === 'conditioning')).toHaveLength(1);
+      expect(w.sessions.filter((s) => s.kind === 'full')).toHaveLength(3);
     }
   });
 
@@ -173,7 +182,7 @@ describe('a fitter block turns one lifting day into conditioning', () => {
 
   it('keeps at least one lifting day at two days a week, and a runner’s lifting never chases a peak', () => {
     const two = buildProgramme({ ...base, goal: 'fitter', daysAvailable: 2 }, BASELINES);
-    expect(two.weeks[0].sessions.map((s) => s.title)).toEqual(['Full body A', 'Conditioning']);
+    expect(two.weeks[0].sessions.map((s) => s.kind)).toEqual(['full', 'conditioning']);
     const lifts = p.weeks.flatMap((w) => w.sessions.flatMap((s) => s.exercises));
     expect(lifts.some((e) => /heavy top single/.test(e.name))).toBe(false);
     for (const e of lifts) {
@@ -192,7 +201,7 @@ describe('keeping what you have runs the holding dose', () => {
   });
 
   it('runs the same dose every week with no peak and no heavy single, even at a level that has earned one', () => {
-    const squat = (week: number) => mains(p, week, 'Full body A')[0];
+    const squat = (week: number) => mains(p, week, 0)[0];
     expect(squat(1).sets).toBe(squat(2).sets);
     expect(squat(2).sets).toBe(squat(3).sets);
     expect(squat(1).loadKg).toBe(squat(3).loadKg);

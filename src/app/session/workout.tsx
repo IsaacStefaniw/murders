@@ -20,6 +20,13 @@ import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/traini
 import { defaultRepsFrom, SetLogger, topRepsFrom } from '@/features/training/SetLogger';
 import { readinessFrom } from '@/features/health/readiness';
 import { autoRegulate, complexLiftsAllowed, weekOf } from '@/features/training/programme';
+import {
+  addedKey,
+  applySessionEdits,
+  canDrop,
+  droppedFrom,
+} from '@/features/training/sessionEdits';
+import { AddALift } from '@/features/training/AddALift';
 import { alternativesFor, applyExerciseSwaps, sessionIndexFor } from '@/features/training/swap';
 import { dateKeyOfIso, dateKeyToDate, durationMinutes, formatDateLong, todayKey } from '@/lib/dates';
 import {
@@ -57,6 +64,12 @@ export default function WorkoutSession() {
   const exerciseSwaps = useAppStore((s) => s.exerciseSwaps);
   const swapSession = useAppStore((s) => s.swapSession);
   const swapExercise = useAppStore((s) => s.swapExercise);
+  const droppedExercises = useAppStore((s) => s.droppedExercises);
+  const addedExercises = useAppStore((s) => s.addedExercises);
+  const dropExercise = useAppStore((s) => s.dropExercise);
+  const restoreExercise = useAppStore((s) => s.restoreExercise);
+  const addExercise = useAppStore((s) => s.addExercise);
+  const removeAddedExercise = useAppStore((s) => s.removeAddedExercise);
   const sessionDate = date ?? todayKey();
 
   // Which of this week's sessions today is: the programme's pick by
@@ -137,7 +150,16 @@ export default function WorkoutSession() {
       });
       // Under fifteen minutes there is no session, on either path.
       if (!adjusted) return null;
-      const exercises = applyExerciseSwaps(adjusted.exercises, exerciseSwaps, programme.id, programmed.title);
+      const swapped = applyExerciseSwaps(adjusted.exercises, exerciseSwaps, programme.id, programmed.title);
+      // Taken out and put in, after the swaps: a swap replaces a movement,
+      // a drop removes one, and an addition is a lift the block never had.
+      const exercises = applySessionEdits(
+        swapped,
+        droppedExercises,
+        addedExercises,
+        programme.id,
+        programmed.title,
+      );
       return {
         title: `Week ${week} · ${adjusted.title}`,
         programmedTitle: programmed.title,
@@ -172,7 +194,7 @@ export default function WorkoutSession() {
     const swapped = stock.exercises.map((e, i) => ({ ...e, name: slots[i + added].name }));
     const constrained: StockSession = { ...stock, exercises: [...balance, ...swapped] };
     return constrained;
-  }, [availableMin, trainingPreference, constraints, weekday, programme, week, sessionIdx, exerciseSwaps, sleptHours, readiness?.band]);
+  }, [availableMin, trainingPreference, constraints, weekday, programme, week, sessionIdx, exerciseSwaps, droppedExercises, addedExercises, sleptHours, readiness?.band]);
 
   const workoutLogs = useAppStore((s) => s.workoutLogs);
   const saveWorkoutLog = useAppStore((s) => s.saveWorkoutLog);
@@ -300,6 +322,27 @@ export default function WorkoutSession() {
   }
 
   const totalSets = session.exercises.reduce((s, e) => s + e.sets, 0);
+
+  /**
+   * The block's own movements for this session, before drops and additions.
+   *
+   * `canDrop` has to count against what the programme built, not against
+   * what is on screen — otherwise the last main lift looks droppable
+   * because the others are already gone.
+   */
+  const programmedExercises =
+    programme && week ? programme.weeks[week - 1].sessions[sessionIdx].exercises : [];
+  const programmedTitle = 'programmedTitle' in session ? session.programmedTitle : null;
+  const addedNames = new Set(
+    (programme && programmedTitle
+      ? (addedExercises[addedKey(programme.id, programmedTitle)] ?? [])
+      : []
+    ).map((e) => e.name),
+  );
+  const dropped =
+    programme && programmedTitle
+      ? droppedFrom(programmedExercises, droppedExercises, programme.id, programmedTitle)
+      : [];
   const loggedSets = log?.sets ?? [];
   const completedSets = loggedSets.length;
   const allDone = completedSets >= totalSets;
@@ -485,6 +528,22 @@ export default function WorkoutSession() {
           // equipment, under the same rules the block was built with.
           // Only while nothing is logged under the current name.
           const programmedName = swappedFrom ?? e.name;
+          const isAdded = addedNames.has(e.name);
+          // Nothing is removable once sets are logged against it — taking
+          // out a movement that has already been done would delete a record
+          // of something that happened.
+          const removable =
+            programme != null &&
+            'programmedTitle' in session &&
+            setsFor(e.name).length === 0 &&
+            (isAdded ||
+              canDrop(
+                programmedExercises,
+                droppedExercises,
+                programme.id,
+                session.programmedTitle,
+                programmedName,
+              ));
           const alternatives =
             programme && 'programmedTitle' in session && setsFor(e.name).length === 0
               ? alternativesFor(programmedName, programme.inputs.equipment, {
@@ -513,11 +572,32 @@ export default function WorkoutSession() {
                 onEditSet={editSet}
                 onRemoveSet={removeSet}
               />
-              {alternatives.length > 0 || swappedFrom ? (
+              {alternatives.length > 0 || swappedFrom || removable ? (
                 <View style={styles.swapRow}>
                   <AppText variant="caption" color="textTertiary">
                     Swap:
                   </AppText>
+                  {/* Out for today, not out of the block: a dropped lift is
+                      back next week, and one main lift always survives or
+                      the session is an accessory circuit with a lifting
+                      session's name on it. */}
+                  {removable ? (
+                    <Chip
+                      label={isAdded ? 'Remove' : 'Take it out'}
+                      hint={
+                        isAdded
+                          ? 'Remove the lift you added'
+                          : 'Skip this movement in this session. It comes back next week.'
+                      }
+                      onPress={() =>
+                        programme && 'programmedTitle' in session
+                          ? isAdded
+                            ? removeAddedExercise(programme.id, session.programmedTitle, e.name)
+                            : dropExercise(programme.id, session.programmedTitle, programmedName)
+                          : undefined
+                      }
+                    />
+                  ) : null}
                   {swappedFrom ? (
                     <Chip
                       label={`Back to ${swappedFrom}`}
@@ -547,6 +627,34 @@ export default function WorkoutSession() {
           );
         })}
       </View>
+
+      {/* What this session lost, named out loud and offered back. A session
+          quietly two movements shorter than the programme built is how
+          somebody loses a lift for a month without noticing. */}
+      {dropped.length > 0 && programme && programmedTitle ? (
+        <View style={styles.swapRow}>
+          <AppText variant="caption" color="textTertiary">
+            Taken out today:
+          </AppText>
+          {dropped.map((name) => (
+            <Chip
+              key={name}
+              label={`Put ${name} back`}
+              hint="Returns it to this session"
+              onPress={() => restoreExercise(programme.id, programmedTitle, name)}
+            />
+          ))}
+        </View>
+      ) : null}
+
+      {programme && programmedTitle ? (
+        <AddALift
+          onAdd={(exercise) => addExercise(programme.id, programmedTitle, exercise)}
+          equipment={programme.inputs.equipment}
+          alreadyHere={session.exercises.map((e) => e.name)}
+        />
+      ) : null}
+
       <AppText variant="caption" color="textTertiary" style={styles.note}>
         Log what you actually lifted — tap any set to correct it, today or next week. Form over
         load; leave one rep in the tank.

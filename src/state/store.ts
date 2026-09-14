@@ -42,6 +42,11 @@ import {
   type CardioEffort,
   type CardioLog,
 } from '@/features/training/cardio';
+import {
+  addedKey,
+  dropKey,
+  type AddedExercise,
+} from '@/features/training/sessionEdits';
 import { swapKey } from '@/features/training/swap';
 import {
   baselinesFrom,
@@ -446,6 +451,23 @@ export interface AppState {
    */
   hiitChoice: string | null;
   setHiitChoice: (id: string | null) => void;
+  /**
+   * Movements taken out of one session, and movements put in.
+   *
+   * Isaac: "add/remove/swap exercises on a day, log any lift." Swapping
+   * already worked; these are the other two. Both are scoped to one
+   * session of one programme like a swap is, both are reversible, and
+   * neither changes the block — a dropped lift is back next week.
+   *
+   * Kept apart from `exerciseSwaps` so "I did a different press" stays
+   * distinguishable from "I did no press".
+   */
+  droppedExercises: Record<string, true>;
+  dropExercise: (programmeId: string, sessionTitle: string, name: string) => void;
+  restoreExercise: (programmeId: string, sessionTitle: string, name: string) => void;
+  addedExercises: Record<string, AddedExercise[]>;
+  addExercise: (programmeId: string, sessionTitle: string, exercise: AddedExercise) => void;
+  removeAddedExercise: (programmeId: string, sessionTitle: string, name: string) => void;
   swapExercise: (programmeId: string, sessionTitle: string, from: string, to: string | null) => void;
 
   /**
@@ -615,6 +637,8 @@ const initialData = {
   sessionSwaps: {} as Record<string, number>,
   exerciseSwaps: {} as Record<string, string>,
   hiitChoice: null as string | null,
+  droppedExercises: {} as Record<string, true>,
+  addedExercises: {} as Record<string, AddedExercise[]>,
   interviewAnswers: {} as InterviewAnswers,
   lastOpenedAt: null as string | null,
   previousOpenAt: null as string | null,
@@ -1572,6 +1596,39 @@ export const useAppStore = create<AppState>()(
           if (to == null || to === from) delete next[key];
           else next[key] = to;
           set({ exerciseSwaps: next });
+        },
+
+        dropExercise: (programmeId, sessionTitle, name) => {
+          set({
+            droppedExercises: {
+              ...get().droppedExercises,
+              [dropKey(programmeId, sessionTitle, name)]: true,
+            },
+          });
+        },
+
+        restoreExercise: (programmeId, sessionTitle, name) => {
+          const next = { ...get().droppedExercises };
+          delete next[dropKey(programmeId, sessionTitle, name)];
+          set({ droppedExercises: next });
+        },
+
+        addExercise: (programmeId, sessionTitle, exercise) => {
+          const key = addedKey(programmeId, sessionTitle);
+          const current = get().addedExercises[key] ?? [];
+          // Adding the same name twice is a mis-tap, not two exercises.
+          if (current.some((e) => e.name === exercise.name)) return;
+          set({ addedExercises: { ...get().addedExercises, [key]: [...current, exercise] } });
+        },
+
+        removeAddedExercise: (programmeId, sessionTitle, name) => {
+          const key = addedKey(programmeId, sessionTitle);
+          const current = get().addedExercises[key] ?? [];
+          const next = { ...get().addedExercises };
+          const kept = current.filter((e) => e.name !== name);
+          if (kept.length === 0) delete next[key];
+          else next[key] = kept;
+          set({ addedExercises: next });
         },
 
         setHiitChoice: (id) => {

@@ -282,9 +282,16 @@ describe('sessions per week', () => {
     for (const [days, count] of Object.entries(expected)) {
       const p = buildProgramme(inputs(Number(days)));
       for (const w of p.weeks) expect(w.sessions).toHaveLength(count);
+      // The split itself, read off `kind`. Titles are now named for what
+      // each session trains, so they are the wrong thing to assert a
+      // structural claim against — they move with equipment and swaps.
+      const kinds = p.weeks[0].sessions.map((s) => s.kind);
+      if (count <= 3) expect(kinds.every((k) => k === 'full')).toBe(true);
+      else expect(kinds.slice(0, 4)).toEqual(['upper', 'lower', 'upper', 'lower']);
+      // And the titles say what is being trained, never "Upper A".
       const titles = p.weeks[0].sessions.map((s) => s.title);
-      if (count <= 3) expect(titles.every((t) => t.startsWith('Full body'))).toBe(true);
-      else expect(titles.slice(0, 4)).toEqual(['Upper A', 'Lower A', 'Upper B', 'Lower B']);
+      expect(titles.some((t) => /^(Upper|Lower|Full body) [A-C]$/.test(t))).toBe(false);
+      expect(new Set(titles).size).toBe(titles.length);
     }
   });
 

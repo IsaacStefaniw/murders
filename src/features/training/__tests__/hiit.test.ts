@@ -133,7 +133,7 @@ describe('the one planned by default', () => {
 describe('a chosen session in the built block', () => {
   const base: TrainingInputs = {
     goal: 'fitter',
-    experience: 'some',
+    experience: 'consistent',
     daysAvailable: 4,
     sessionMin: 60,
     equipment: 'gym',
