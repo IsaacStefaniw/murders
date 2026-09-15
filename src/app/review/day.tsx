@@ -11,6 +11,7 @@ import { Sparkbars } from '@/components/charts';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { LogDidIt } from '@/features/today/LogDidIt';
+import { QuickLog } from '@/features/today/QuickLog';
 import {
   MARK_STATUS,
   dayResult,
@@ -125,9 +126,15 @@ export default function DayReview() {
         </Card>
       )}
 
+      {/* The "+" column's own answer. The habit chips are the fastest
+          path — one tap for the eight things this person already does —
+          and the fuller entry underneath catches everything else. Both
+          used to sit at the bottom of Today, four screens from any
+          question. */}
       {instead ? (
         <Card style={styles.gap}>
           <AppText variant="secondary">What did you do instead?</AppText>
+          <QuickLog />
           <LogDidIt date={date} />
         </Card>
       ) : null}

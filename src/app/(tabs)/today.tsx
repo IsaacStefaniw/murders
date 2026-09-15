@@ -15,7 +15,7 @@ import { buildLookingAhead, ideasFor } from '@/features/anticipation/lookAhead';
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import { dueInterventions } from '@/features/behaviours/patterns';
 import { CheckinCard } from '@/features/checkins/CheckinCard';
-import { coachNote, weekMomentum } from '@/features/today/coach';
+import { coachNote } from '@/features/today/coach';
 import { availableStartsFor } from '@/features/planner/generate';
 import { ItemActions } from '@/features/today/item-actions';
 import { PlanItemRow } from '@/features/today/plan-item-row';
@@ -30,6 +30,7 @@ import {
   todayKey,
   toMinutes,
   weekdayOf,
+  weekStartOf,
 } from '@/lib/dates';
 import { useTheme } from '@/hooks/use-theme';
 import { LogCardio } from '@/features/training/LogCardio';
@@ -40,7 +41,14 @@ import { BudgetCard } from '@/features/budget/BudgetCard';
 import { TrialReview } from '@/features/knowledge/TrialReview';
 import { commitmentBudget, mayOffer } from '@/features/budget/commitment';
 import { nextInterrupt } from '@/features/coaches/interrupt';
-import { QuickLog } from '@/features/today/QuickLog';
+import { nextRitual, statedPurpose } from '@/features/cadence/rituals';
+import { nextCheckin } from '@/features/checkins/due';
+import { dueExperiments } from '@/features/knowledge/experiments';
+import { readinessFrom } from '@/features/health/readiness';
+import { DEBT_SHOW_H, sleepDebt } from '@/features/health/sleepDebt';
+import { returnSummary } from '@/features/today/returning';
+import { distinctWeeks } from '@/features/paths/level';
+import { claimAttention, shows, waiting } from '@/features/today/attention';
 import { RitualCard } from '@/features/cadence/RitualCard';
 import { displacedLine } from '@/features/planner/displaced';
 import { useAppStore } from '@/state/store';
@@ -93,6 +101,13 @@ export default function Today() {
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
   const metrics = useAppStore((s) => s.metrics);
   const previousOpenAt = useAppStore((s) => s.previousOpenAt);
+  // Read here rather than inside each card, so the arbiter below can ask
+  // the same questions the cards ask without mounting them.
+  const workoutLogs = useAppStore((s) => s.workoutLogs);
+  const rituals = useAppStore((s) => s.rituals);
+  const experiments = useAppStore((s) => s.experiments);
+  const dismissedCheckins = useAppStore((s) => s.dismissedCheckins);
+  const plusNudgeDismissedAt = useAppStore((s) => s.plusNudgeDismissedAt);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   /** Set by a long press, so the row opens on the move picker. */
@@ -130,7 +145,6 @@ export default function Today() {
   }, [date, plans, routines, profile]);
 
   const mealPlan = useAppStore((s) => s.mealPlan);
-  const momentum = useMemo(() => weekMomentum(date, plans, goals), [date, plans, goals]);
   // Timings computed from the person's own logged distribution, filtered to
   // the days the pattern actually lives on. Nothing fires without a pattern.
   const interventions = useMemo(
@@ -206,6 +220,64 @@ export default function Today() {
   const tonightDinner = mealPlan?.dinners?.[weekdayOf(date)];
   const hasEveningReflection = reflections.some((r) => r.date === date && r.kind === 'evening');
 
+  /*
+    One job, and one thing asking for it.
+
+    Eleven blocks could render here at once, each silent most days, so
+    nobody building one ever saw four of them fire together — and on the
+    morning they did, the screen answered "what now?" fifth. Every
+    condition below is the same pure function the block itself uses, so a
+    slot is never claimed by something that then renders nothing.
+
+    See features/today/attention.ts for the order and the reasoning.
+  */
+  const available = useMemo(() => {
+    const goalTitles = goals.filter((g) => g.status === 'active').map((g) => g.title);
+    const debt = sleepDebt(metrics);
+    return {
+      welcomeBack: Boolean(
+        returnSummary({
+          lastOpenedAt: previousOpenAt,
+          sessionsLogged: workoutLogs.filter((l) => l.sets.length > 0).length,
+          weeksLogged: distinctWeeks(
+            workoutLogs.filter((l) => l.sets.length > 0).map((l) => l.date),
+          ),
+          today: plans[date],
+        }),
+      ),
+      setupDay: Boolean(plans[date]) && !plans[date]?.approvedAt && !isEvening,
+      readiness: Boolean(readinessFrom(metrics)) || Boolean(debt && debt.debtH >= DEBT_SHOW_H),
+      ritual: Boolean(
+        nextRitual(date, rituals, goalTitles) ??
+          statedPurpose('week-setup', weekStartOf(date), rituals) ??
+          statedPurpose('month-setup', date.slice(0, 7), rituals),
+      ),
+      trial: dueExperiments(experiments, date).length > 0,
+      checkin: Boolean(nextCheckin(goals, metrics, dismissedCheckins)),
+      plus: !plus && !plusNudgeDismissedAt && !firstDay,
+      budget: budget.state !== 'stable',
+      suggestion: Boolean(openSuggestion) && mayOffer(budget),
+    };
+  }, [
+    goals,
+    metrics,
+    previousOpenAt,
+    workoutLogs,
+    plans,
+    date,
+    isEvening,
+    rituals,
+    experiments,
+    dismissedCheckins,
+    plus,
+    plusNudgeDismissedAt,
+    firstDay,
+    budget,
+    openSuggestion,
+  ]);
+  const claimed = claimAttention(available);
+  const heldBack = waiting(available);
+
   if (!profile || !plan) return <Screen tabbed />;
 
   const pending = plan.items.filter((i) => i.status === 'planned' && meaningful(i));
@@ -279,11 +351,24 @@ export default function Today() {
     p.items.some((i) => i.status === 'completed' || i.status === 'skipped'),
   );
   const meaningfulCount = plan.items.filter(meaningful).length;
-  const needsApproval = !plan.approvedAt && !isEvening;
 
   const nowGoal = nowItem?.goalId ? goals.find((g) => g.id === nowItem.goalId) : undefined;
   const nextUp = upcoming[0] ?? null;
   const nowTimeLabel = nowItem ? `${toMinutes(nowItem.end) - now} min left` : '';
+
+  /** One section, rendered in one of two places. Never both. */
+  const anyTime = (
+    <View>
+      <SectionHeader title="Any time" />
+      <View style={styles.chipsRow}>
+        <Chip label="Breathe" onPress={() => router.push('/session/breathe' as never)} />
+        <Chip label="Journal" onPress={() => router.push('/session/journal' as never)} />
+        <Chip label="Meditate" onPress={() => router.push('/session/meditate' as never)} />
+        <Chip label="Plan meals" onPress={() => router.push('/session/meals' as never)} />
+        <Chip label="Train" onPress={() => router.push('/session/workout' as never)} />
+      </View>
+    </View>
+  );
 
   const scheduleGapIdea = (gapDate: string, idea: string) => {
     const target = plans[gapDate] ?? ensurePlan(gapDate);
@@ -316,22 +401,21 @@ export default function Today() {
         Today
       </AppText>
       <AppText variant="title">{formatDateLong(date)}</AppText>
-      <PlusNudge firstDay={firstDay} />
-      {momentum.done > 0 || momentum.milestonesMoved > 0 ? (
-        <AppText variant="caption" color="success" style={styles.summary}>
-          This week: {momentum.done} done
-          {momentum.milestonesMoved > 0
-            ? ` · ${momentum.milestonesMoved} milestone${momentum.milestonesMoved > 1 ? 's' : ''} moved`
-            : ''}
-        </AppText>
-      ) : null}
       {plan.summary ? (
         <AppText variant="secondary" style={styles.summary}>
           {plan.summary}
         </AppText>
       ) : null}
 
-      {needsApproval ? (
+      {/*
+        The one interruption, chosen by features/today/attention.ts.
+
+        Everything from here to the "Now" header used to render together,
+        all of it good and none of it aware of the others. What the week
+        has done so far went with them: it is the week's business, and the
+        Week tab and the end-of-week grid both report it properly.
+      */}
+      {shows(claimed, 'setupDay') ? (
         <Card
           onPress={() => router.push('/check-in/morning')}
           style={{ backgroundColor: theme.accentSoft, borderColor: theme.accent, marginTop: Spacing.lg }}
@@ -344,10 +428,7 @@ export default function Today() {
         </Card>
       ) : null}
 
-      {/* The week and the month, when either is at a turn. The day is not
-          here — the morning check-in above already sets it up. Renders
-          nothing on an ordinary Wednesday. */}
-      <RitualCard />
+      {shows(claimed, 'ritual') ? <RitualCard /> : null}
 
       <SectionHeader title="Now" color="must" />
       {nowItem ? (
@@ -448,20 +529,12 @@ export default function Today() {
           now?" first and "what did the system decide?" second. */}
       <WhyToday displaced={displacedLine(plan.displaced ?? [])} energyNote={plan.energyNote} />
 
-      {/* What the app is asking of you this week, and what it is holding
-          back. Silent in the ordinary stable case — a card that appears
-          every day stops being read on the day it matters. */}
-      <BudgetCard budget={budget} />
-
-      {/* A trial whose fortnight is up. The asking is the whole value of
-          time-boxing something: a practice nobody revisits is how a week
-          fills with things that stopped mattering. */}
-      <TrialReview />
-
-      {/* A suggestion is the app proposing something, so it goes through
-          the same gate as everything else it proposes. Nothing here stops
-          a person adding what they like from the library. */}
-      {openSuggestion && mayOffer(budget) ? (
+      {/* The rest of the one interruption. Each of these is gated on the
+          same condition it uses internally, so a claimed slot is never a
+          blank one. */}
+      {shows(claimed, 'budget') ? <BudgetCard budget={budget} /> : null}
+      {shows(claimed, 'trial') ? <TrialReview /> : null}
+      {shows(claimed, 'suggestion') && openSuggestion ? (
         <View style={styles.suggestion}>
           <SuggestionCard
             suggestion={openSuggestion}
@@ -470,31 +543,28 @@ export default function Today() {
           />
         </View>
       ) : null}
+      {shows(claimed, 'checkin') ? <CheckinCard /> : null}
+      {shows(claimed, 'welcomeBack') ? <WelcomeBack date={date} /> : null}
+      {shows(claimed, 'readiness') ? <ReadinessCard /> : null}
+      {shows(claimed, 'plus') ? <PlusNudge firstDay={firstDay} /> : null}
 
-      {/*
-        The input side of the measurement architecture. Renders nothing at
-        all unless something is genuinely due, which is most days.
-      */}
-      <CheckinCard />
-
-      {/* Both silent on an ordinary morning, which is what makes either
-          one worth reading on the morning it appears. */}
-      <WelcomeBack date={date} />
-      <ReadinessCard />
+      {/* Said once, in a caption, rather than swallowed. Nobody gets a
+          badge with a number on it, and nothing is lost — whatever was
+          behind today's winner claims the slot on a day when nothing above
+          it does. */}
+      {heldBack > 0 ? (
+        <AppText variant="caption" color="textTertiary" style={styles.summary}>
+          {heldBack === 1 ? 'One more thing' : `${heldBack} more things`} to look at, tomorrow.
+        </AppText>
+      ) : null}
 
       {/* After eight, the reset comes before everything else on the page:
           at 9pm it was five sections down, two screens on a small phone,
-          which is not "two taps to the breath reset". */}
-      {isEvening ? (
-        <View>
-          <SectionHeader title="Any time" />
-          <View style={styles.chipsRow}>
-            <Chip label="Breathe" onPress={() => router.push('/session/breathe' as never)} />
-            <Chip label="Journal" onPress={() => router.push('/session/journal' as never)} />
-            <Chip label="Meditate" onPress={() => router.push('/session/meditate' as never)} />
-          </View>
-        </View>
-      ) : null}
+          which is not "two taps to the breath reset". The whole section
+          MOVES rather than splitting — the evening used to hoist three of
+          these chips to the top and leave a second header lower down for
+          the other two, so one idea carried two headings. */}
+      {isEvening ? anyTime : null}
 
       {!plus ? (
         <LockedSessions
@@ -505,39 +575,33 @@ export default function Today() {
         />
       ) : null}
 
+      {/*
+        The ledger moved to the end of the day, where it belongs.
+
+        This was a second copy of the day's items, in the same rows with
+        the same three actions, asking the same question the end-of-day
+        review asks with a grid — and the review does it in three taps
+        against every item at once, not one row at a time on a screen whose
+        job is what to do NOW. So Today points at it and stops carrying it.
+
+        "Still open" below stays: those are inside the grace window and are
+        genuinely still doable, which is a different thing from a ledger.
+      */}
       {overdueItems.length > 0 ? (
-        <View>
-          <SectionHeader title="Earlier today" />
-          <View style={styles.stack}>
-            {overdueItems.map((item) => (
-              <DragToMove
-                key={item.id}
-                item={item}
-                profile={profile}
-                enabled={!item.fixed && item.status === 'planned'}
-                onDragging={setDragging}
-                onDrop={(start) => dropAt(item.id, start)}
-                onHold={() => {
-                  setExpandedId(item.id);
-                  setMoveId(item.id);
-                }}
-              >
-                <PlanItemRow
-                  item={item}
-                plan={plan}
-                profile={profile}
-                date={date}
-                expanded={expandedId === item.id}
-                onToggle={() => {
-                setExpandedId(expandedId === item.id ? null : item.id);
-                setMoveId(null);
-                }}
-                moveOnOpen={moveId === item.id}
-                />
-              </DragToMove>
-            ))}
-          </View>
-        </View>
+        <Card
+          onPress={() => router.push('/review/day' as never)}
+          accessibilityLabel="Close the day"
+          style={styles.firstRun}
+        >
+          <AppText variant="heading">
+            {overdueItems.length === 1
+              ? 'One thing from earlier'
+              : `${overdueItems.length} things from earlier`}
+          </AppText>
+          <AppText variant="caption" color="textTertiary">
+            Mark them off in one go when you close the day.
+          </AppText>
+        </Card>
       ) : null}
 
       {/* Just slipped, still yours to do. Above Next, because it is the
@@ -720,23 +784,23 @@ export default function Today() {
         </View>
       ) : null}
 
-      {/* Always something to do — sessions run on demand, not only when scheduled. */}
-      <SectionHeader title={isEvening ? 'Also any time' : 'Any time'} />
-      <View style={styles.chipsRow}>
-        {!isEvening ? <Chip label="Breathe" onPress={() => router.push('/session/breathe' as never)} /> : null}
-        {!isEvening ? <Chip label="Journal" onPress={() => router.push('/session/journal' as never)} /> : null}
-        <Chip label="Plan meals" onPress={() => router.push('/session/meals' as never)} />
-        {!isEvening ? <Chip label="Meditate" onPress={() => router.push('/session/meditate' as never)} /> : null}
-        <Chip label="Train" onPress={() => router.push('/session/workout' as never)} />
-      </View>
+      {isEvening ? null : anyTime}
 
-      {/* And the other direction: recording what already happened. The
-          chips cover the eight common habits in one tap; anything else —
-          including your own routines — goes through the fuller entry
-          below, because the day has to be able to hold what actually
-          happened and not only what IntentNorth suggested. */}
+      {/*
+        And the other direction: recording what already happened.
+
+        The 56-chip habit wall moved to the end-of-day review, where it is
+        what the "+" column opens — "I did something else" is the most-used
+        answer in any honest review, and it belongs beside the question
+        rather than four screens down a page whose job is what to do now.
+
+        Two entries stay here, because both are things somebody wants to
+        record in the moment rather than at nine at night: a run, which
+        needs its distance and effort while they remember them, and the
+        general one, which is the escape hatch for everything the plan did
+        not contain.
+      */}
       <SectionHeader title="Already done" />
-      <QuickLog />
       <View style={styles.didIt}>
         <LogDidIt date={date} />
       </View>

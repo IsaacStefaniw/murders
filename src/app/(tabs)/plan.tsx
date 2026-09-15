@@ -12,6 +12,7 @@ import { describeCycle } from '@/features/roster/roster';
 import { PlanItemRow } from '@/features/today/plan-item-row';
 import { buildWeekShape } from '@/features/review/weekShape';
 import { WeekSizeCard } from '@/features/planner/WeekSizeCard';
+import { weekMomentum } from '@/features/today/coach';
 import { QuickAdd } from '@/features/today/QuickAdd';
 import { addDays, formatDateLong, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
@@ -25,6 +26,7 @@ export default function Plan() {
 
   const profile = useAppStore((s) => s.profile);
   const plans = useAppStore((s) => s.plans);
+  const goals = useAppStore((s) => s.goals);
   const ensurePlan = useAppStore((s) => s.ensurePlan);
   const regeneratePlan = useAppStore((s) => s.regeneratePlan);
 
@@ -33,6 +35,7 @@ export default function Plan() {
     () => buildWeekShape(dates, plans, routines ?? [], today),
     [dates, plans, routines, today],
   );
+  const momentum = useMemo(() => weekMomentum(today, plans, goals), [today, plans, goals]);
 
   const [openDate, setOpenDate] = useState(today);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -68,6 +71,19 @@ export default function Plan() {
       {shape.intended > 0 ? (
         <Card style={styles.shapeCard}>
           <AppText variant="body">{shape.line}</AppText>
+          {/* What the week has actually done so far. This used to sit at
+              the top of Today, where it competed with the one question
+              that screen exists to answer — and where a person looking
+              for it would never think to look. It is the week's business.
+          */}
+          {momentum.done > 0 || momentum.milestonesMoved > 0 ? (
+            <AppText variant="caption" color="success" style={styles.shapeDetail}>
+              {momentum.done} done
+              {momentum.milestonesMoved > 0
+                ? ` · ${momentum.milestonesMoved} milestone${momentum.milestonesMoved > 1 ? 's' : ''} moved`
+                : ''}
+            </AppText>
+          ) : null}
           {shape.pillars.length > 1 ? (
             <AppText variant="caption" color="textTertiary" style={styles.shapeDetail}>
               {shape.pillars

@@ -241,8 +241,25 @@ Three things worth building, none of which breaks the no-account promise:
 
 ## 9. Order
 
-**Now** — Now reduced to one job (the one restructure item everyone kept);
-number-and-date question; tab bar 44pt + icons; type scale.
+**Now** — ✅ Now reduced to one job (the one restructure item everyone
+kept); ✅ number-and-date question; ✅ tab bar 44pt + icons; type scale.
+
+> **Today, done.** `features/today/attention.ts` arbitrates the eleven
+> blocks that could render at once. At most one, ever, ranked
+> time-critical before routine and "the app doing its job" before "the app
+> asking for something" — which puts the Plus nudge mid-table rather than
+> at the top of the screen, where it used to talk over somebody coming
+> back after a fortnight away. Whatever loses says so once, in a caption,
+> rather than being swallowed.
+>
+> Three things left Today entirely. The week's momentum line went to the
+> Week tab, where a person looking for it would think to look. The
+> "Earlier today" ledger went to the end-of-day review, which does the
+> whole day in three taps rather than repeating the rows one at a time.
+> The 56-chip habit wall became what the review's `+` column opens.
+>
+> A structural test now fails the build if an arbitrated block is added
+> back ungated, which is exactly how the screen got to eleven.
 
 **Then** — the three coach rebuilds above, cheapest-first: family's 17:15
 defence, work's wiring fixes (`decisionLoad` → decision journal, delete
