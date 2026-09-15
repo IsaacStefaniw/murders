@@ -239,7 +239,9 @@ describe('the dead slot', () => {
 
   it('names the hour, the count, and offers the hour after it', () => {
     const found = nextInterrupt(input({ routines: [r], plans: dead }))!;
-    expect(found.says).toBe("6am isn't working for strength. That's 2 times now.");
+    // The count names its window: two sightings over the three weeks the
+    // slot detector looks across, not a bare number to take on trust.
+    expect(found.says).toBe("6am isn't working for strength. That is twice in the last 3 weeks.");
     expect(found.answers[0].label).toBe('Move to 7am');
     expect(found.answers[0].effect).toMatchObject({
       kind: 'changes',

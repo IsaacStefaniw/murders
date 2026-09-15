@@ -49,7 +49,7 @@ import {
   type Protocol,
 } from '@/features/knowledge/protocols';
 import type { MetricObservation } from '@/features/model/metrics';
-import { deadSlots, hourLabel } from '@/features/review/weekReview';
+import { deadSlots, hourLabel, overWeeks } from '@/features/review/weekReview';
 import { latenessMessage } from '@/features/coaches/reach';
 import { voiceFor } from '@/features/coaches/voices';
 import { PATH_AREA, type PathId } from '@/features/paths/definitions';
@@ -187,7 +187,10 @@ function slotInterrupt(input: InterruptInput): CoachInterrupt | null {
   return {
     id: `slot:${slot.routine.id}:${slot.col}:${slot.hour}`,
     pathId,
-    says: `${hourLabel(slot.hour)} isn't working for ${slot.routine.title.toLowerCase()}. That's ${slot.seen} times now.`,
+    // Names the window, for the same reason the week review does: a count
+    // somebody cannot place against a span of time is a number they have
+    // to take on trust, and this app does not ask for that anywhere else.
+    says: `${hourLabel(slot.hour)} isn't working for ${slot.routine.title.toLowerCase()}. That is ${overWeeks(slot.seen)}.`,
     asks: `Move it an hour later, or leave it where it is?`,
     because: `${v.name} watches when things happen, not just whether they do.`,
     adds: false,

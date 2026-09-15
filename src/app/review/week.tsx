@@ -149,20 +149,38 @@ export default function WeekReview() {
             </View>
 
             {grid.rows.map((row, r) => (
-              <View
-                key={row.hour}
-                style={[
-                  styles.gridRow,
-                  { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
-                  r === 0 && { borderTopColor: theme.text },
-                ]}
-              >
-                <View style={[styles.hourCell, { borderRightColor: theme.border }]}>
-                  <AppText variant="caption" color="textTertiary" numeric>
-                    {row.label}
-                  </AppText>
-                </View>
-                {row.cells.map((cell, col) => {
+              <View key={row.hour}>
+                {/* The hours nobody used, said rather than silently closed
+                    up. Dropping them keeps the grid three rows instead of
+                    nineteen; drawing them at zero height would make the
+                    six hours between ten and four look like the one
+                    between six and seven, on the screen whose entire point
+                    is the shape of the week. */}
+                {row.gapBefore > 0 ? (
+                  <View
+                    style={[
+                      styles.gap,
+                      { borderColor: theme.border, backgroundColor: theme.background },
+                    ]}
+                  >
+                    <AppText variant="caption" color="textTertiary">
+                      {row.gapBefore === 1 ? '1 hour' : `${row.gapBefore} hours`} with nothing on
+                    </AppText>
+                  </View>
+                ) : null}
+                <View
+                  style={[
+                    styles.gridRow,
+                    { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
+                    r === 0 && { borderTopColor: theme.text },
+                  ]}
+                >
+                  <View style={[styles.hourCell, { borderRightColor: theme.border }]}>
+                    <AppText variant="caption" color="textTertiary" numeric>
+                      {row.label}
+                    </AppText>
+                  </View>
+                  {row.cells.map((cell, col) => {
                   const open =
                     selected?.cell.date === cell.date && selected?.cell.hour === cell.hour;
                   const summary = cellSummary(cell);
@@ -186,9 +204,10 @@ export default function WeekReview() {
                       <AppText variant="body" style={{ color: cellColor(cell.mark) }}>
                         {CELL_GLYPH[cell.mark]}
                       </AppText>
-                    </Pressable>
-                  );
-                })}
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
             ))}
           </View>
@@ -308,6 +327,21 @@ const styles = StyleSheet.create({
   },
   // No gap anywhere: cells butt together so the columns read as columns.
   gridRow: { flexDirection: 'row', alignItems: 'stretch' },
+  /*
+    A break in the table, not a row of it.
+
+    Painted in the PAGE colour rather than the grid's surface, so it reads
+    as the table being interrupted — which is exactly what it is. The first
+    version used the surface colour and looked like a white strip slicing
+    the tinted weekend columns, which reads as a bug rather than as time
+    passing.
+  */
+  gap: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: Spacing.xs,
+    paddingLeft: Spacing.sm,
+  },
   hourCell: {
     minWidth: 46,
     justifyContent: 'center',

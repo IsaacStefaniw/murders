@@ -96,6 +96,33 @@ describe('the grid', () => {
     expect(grid.rows[1].cells[5].mark).toBe('did');
   });
 
+  /**
+   * Dropping empty hours keeps the grid three rows instead of nineteen,
+   * and closing them up silently makes the vertical axis lie: rows at 6am,
+   * 7am and 10am drawn at equal spacing say the three hours between seven
+   * and ten are the same distance as the one between six and seven.
+   */
+  it('reports the hours it skipped, so the screen can draw the gap', () => {
+    const grid = weekGrid(
+      plans({
+        [DAY(0)]: [
+          item({ start: '06:00' }),
+          item({ start: '07:00' }),
+          item({ start: '10:00' }),
+          item({ start: '16:00' }),
+        ],
+      }),
+      WEEK,
+      DAY(6),
+    );
+    expect(grid.rows.map((r) => [r.label, r.gapBefore])).toEqual([
+      ['6am', 0],
+      ['7am', 0],
+      ['10am', 2],
+      ['4pm', 5],
+    ]);
+  });
+
   it('drops the hours the week never used, rather than ruling nineteen empty rows', () => {
     const grid = weekGrid(
       plans({ [DAY(0)]: [item({ start: '05:00' })], [DAY(0) + '']: [item({ start: '21:00' })] }),
@@ -313,9 +340,30 @@ describe('what changes next week', () => {
       today: DAY(6),
     });
 
-  it('leads with the slot, in the person’s own words', () => {
+  /**
+   * The grid above this line shows ONE week and the count comes from
+   * three, so a bare "died twice" is a claim nobody can check against the
+   * picture beside it.
+   */
+  it('leads with the slot, and names the window it counted over', () => {
     const [first] = build();
-    expect(first.line).toBe('6am Tuesday — strength died twice.');
+    expect(first.line).toBe('6am Tuesday — strength died twice in the last 3 weeks.');
+  });
+
+  it('says it plainly when every week in the window died', () => {
+    const p = plans({
+      [addDays(WEEK, -14)]: [item({ routineId: r.id, status: 'skipped' })],
+      [addDays(WEEK, -7)]: [item({ routineId: r.id, status: 'skipped' })],
+      [WEEK]: [item({ routineId: r.id, status: 'skipped' })],
+    });
+    const [first] = weekProposals({
+      grid: weekGrid(p, WEEK, DAY(6)),
+      plans: p,
+      routines: [r],
+      capacity: 'steady',
+      today: DAY(6),
+    });
+    expect(first.line).toBe('6am Monday — strength died 3 weeks running.');
   });
 
   it('offers the two answers that exist: move it, or stop pretending', () => {

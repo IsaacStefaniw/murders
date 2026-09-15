@@ -111,6 +111,20 @@ export interface WeekGridRow {
   label: string;
   /** Always seven, Monday first. */
   cells: WeekCell[];
+  /**
+   * Hours skipped between the row above and this one.
+   *
+   * The grid drops empty hours, which keeps it three rows instead of
+   * nineteen — and quietly makes the vertical axis lie. Rows at 6am, 7am,
+   * 10am and 4pm are drawn at equal spacing, so the eye reads the six
+   * hours between ten and four as the same distance as the one between
+   * six and seven. On a screen whose whole argument is "look at the SHAPE
+   * of your week", a false shape is the worst defect available.
+   *
+   * So the gap is reported and the screen draws it. Zero on the first row
+   * and on any row directly below the one above it.
+   */
+  gapBefore: number;
 }
 
 export interface WeekGrid {
@@ -183,18 +197,18 @@ export function weekGrid(
     }
   });
 
-  const rows: WeekGridRow[] = [...byHour.keys()]
-    .sort((a, b) => a - b)
-    .map((hour) => ({
+  const hours = [...byHour.keys()].sort((a, b) => a - b);
+  const rows: WeekGridRow[] = hours.map((hour, i) => ({
+    hour,
+    label: hourLabel(hour),
+    gapBefore: i === 0 ? 0 : hour - hours[i - 1] - 1,
+    cells: byHour.get(hour)!.map((items, col) => ({
+      date: days[col],
       hour,
-      label: hourLabel(hour),
-      cells: byHour.get(hour)!.map((items, col) => ({
-        date: days[col],
-        hour,
-        items,
-        mark: markOf(items, days[col], today),
-      })),
-    }));
+      items,
+      mark: markOf(items, days[col], today),
+    })),
+  }));
 
   const line =
     total === 0 ? 'Nothing was on this week.' : `${done} of ${total} things happened.`;
@@ -263,6 +277,22 @@ export interface WeekProposal {
 /** Twice reads better than 2 times; past four, the numeral is clearer. */
 function countWord(n: number): string {
   return n === 2 ? 'twice' : n === 3 ? 'three times' : `${n} times`;
+}
+
+/**
+ * The count, AND the window it was counted over.
+ *
+ * `deadSlots` looks back `SLOT_HISTORY_WEEKS` weeks; the grid directly
+ * above this sentence shows ONE. So a bare "died three times" sent anybody
+ * who checked looking for three crosses in a picture that holds one, and a
+ * claim you cannot check against the picture beside it is how a picture
+ * stops being believed. Every week in the window is both the stronger
+ * sentence and the shorter one.
+ */
+export function overWeeks(seen: number): string {
+  return seen >= SLOT_HISTORY_WEEKS
+    ? `${SLOT_HISTORY_WEEKS} weeks running`
+    : `${countWord(seen)} in the last ${SLOT_HISTORY_WEEKS} weeks`;
 }
 
 /** The routine's window length, so a move keeps the room it had. */
@@ -395,7 +425,7 @@ function slotProposal(slot: Slot, routines: Routine[]): WeekProposal {
   }
   return {
     id: `slot-${slot.routine.id}-${slot.col}-${slot.hour}`,
-    line: `${hourLabel(slot.hour)} ${DAY_NAMES[slot.col]} — ${slot.routine.title.toLowerCase()} died ${countWord(slot.seen)}.`,
+    line: `${hourLabel(slot.hour)} ${DAY_NAMES[slot.col]} — ${slot.routine.title.toLowerCase()} died ${overWeeks(slot.seen)}.`,
     actions,
   };
 }
