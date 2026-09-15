@@ -195,6 +195,37 @@ alcohol. That is the app's only true monopoly and it needs no calendar.
 **The rule:** without calendar access the coach never asserts a time it did
 not get from the user.
 
+> ✅ **All three wiring fixes are in, and the third turned out to be
+> forty-five protocols rather than one.**
+>
+> `direct-reports` is deleted. It wrote its answer to `directs` while the
+> work path reads `answers.team` — where the same question already lives
+> as an option — so the app asked twice and read the other copy. A
+> question that changes nothing is worse than a missing one: it spends the
+> only thing the intake has.
+>
+> The **decision journal** is built. Grade B, Tetlock and Duke, the
+> strongest thing in the work library, and `build()` had never added it.
+> Cadence comes from `decisionLoad`, which the question engine asked and
+> nothing read: most days gets Wednesday and Friday, most weeks gets
+> Friday, a few times a year gets nothing rather than a standing slot it
+> will delete.
+>
+> **The 09:15 was not one protocol.** Counting every practice that happens
+> DURING work found 45, of which 38 were pinned to a clock time — and
+> every one of those times is a nine-to-five assumption. `shutdown-ritual`
+> had already been fixed once, for exactly this, and the pattern was never
+> generalised. A new `workStart` anchor kind now carries all of them,
+> five that genuinely close a day or a week anchor to work end instead,
+> and the exemption is `timeAnchored`, which already means "the hour is
+> part of what this IS" — a nap at three in the morning on a night shift
+> is about the body clock, and avoiding the heat of the day is about the
+> heat of the day.
+>
+> Fixing one of forty-five would have been the work coach looking tidy
+> while the library kept handing shift workers a thinking block in the
+> middle of their sleep.
+
 ### Money
 `moneySteps` and `savingsPlan` are real and load-bearing. The headline —
 *"Share of income kept last month"* — is **hand-typed**, shows "—"

@@ -65,8 +65,19 @@ export const PILLAR_LABELS: Record<Pillar, string> = {
 
 /** Where in the day a protocol wants to live. */
 interface Anchor {
-  /** 'wake'/'sleep' offset in minutes, or a fixed start. */
-  kind: 'wake' | 'sleep' | 'fixed';
+  /**
+   * 'wake'/'sleep'/'workStart' offset in minutes, or a fixed start.
+   *
+   * `workStart` exists for the same reason `anchorToWorkEnd` does, in the
+   * other direction. A during-work practice pinned to a clock time is a
+   * nine-to-five assumption, and about half of this audience is not on
+   * one: the deep-work block sat at a fixed 09:15, so a nurse finishing at
+   * seven in the morning was handed a thinking block mid-afternoon. The
+   * coach's own rule, from the review — without calendar access it never
+   * asserts a time it did not get from the person — and a stated work
+   * start is a time it did get.
+   */
+  kind: 'wake' | 'sleep' | 'workStart' | 'fixed';
   offsetMin?: number;
   start?: string;
   /** Latest acceptable start, minutes after preferred. */
@@ -720,11 +731,23 @@ export const PROTOCOLS: Protocol[] = [
     area: 'work',
     goalDomains: ['business', 'career'],
     summary: 'A protected 60–90 minute single-task block before the day fragments.',
-    why: 'The highest-leverage work is the kind interruptions kill. One protected morning block routinely outproduces a scattered afternoon.',
+    /*
+      Reworded to match its own grade.
+
+      This used to read "one protected morning block routinely outproduces
+      a scattered afternoon", which is a research-shaped sentence with no
+      research behind it, sitting on a practice graded D — "what
+      experienced people do, ahead of the review". A D that talks like a B
+      is the one thing that would make a reader stop trusting the grades,
+      which are the only reason to believe anything else in this library.
+    */
+    why: 'The highest-leverage work is the kind interruptions kill, and the people who do a lot of it almost all defend a block for it. That is practice rather than evidence — no trial has compared a protected block against a scattered day — so it is graded as practice.',
     attribution: ['Tim Ferriss'],
     days: [1, 2],
     durationMin: 60,
-    anchor: { kind: 'fixed', start: '09:15', windowMin: 60 },
+    // Fifteen minutes into the work day, whatever time that is. The
+    // fallback start is only for somebody who never gave us their hours.
+    anchor: { kind: 'workStart', offsetMin: 15, start: '09:15', windowMin: 60 },
     energy: 'morning',
     tier: 'must',
     duringWork: true,
@@ -741,7 +764,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Jordan Peterson', 'Tim Ferriss'],
     days: [1],
     durationMin: 90,
-    anchor: { kind: 'fixed', start: '09:15', windowMin: 60 },
+    anchor: { kind: 'workStart', offsetMin: 15, start: '09:15', windowMin: 60 },
     energy: 'morning',
     tier: 'must',
     duringWork: true,
@@ -759,7 +782,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Tim Ferriss'],
     days: [5],
     durationMin: 45,
-    anchor: { kind: 'fixed', start: '14:00', windowMin: 90 },
+    anchor: { kind: 'workStart', offsetMin: 300, start: '14:00', windowMin: 90 },
     energy: 'midday',
     tier: 'could',
     duringWork: true,
@@ -1122,7 +1145,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Peter Gollwitzer', 'Paschal Sheeran'],
     days: [1],
     durationMin: 10,
-    anchor: { kind: 'fixed', start: '09:05', windowMin: 60 },
+    anchor: { kind: 'workStart', offsetMin: 5, start: '09:05', windowMin: 60 },
     energy: 'morning',
     tier: 'should',
     duringWork: true,
@@ -1139,11 +1162,12 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Philip Tetlock', 'Annie Duke'],
     days: [5],
     durationMin: 20,
-    anchor: { kind: 'fixed', start: '16:00', windowMin: 90 },
+    anchor: { kind: 'workStart', offsetMin: 420, start: '16:00', windowMin: 90 },
     energy: 'any',
     tier: 'should',
     sessionType: 'journal',
     duringWork: true,
+    anchorToWorkEnd: true,
     safety: 'Your own calls, not a file on other people — a journal that might be read as a performance record stops being honest.',
   },
   {
@@ -1158,7 +1182,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Gary Klein', 'Daniel Kahneman'],
     days: [4],
     durationMin: 30,
-    anchor: { kind: 'fixed', start: '14:00', windowMin: 120 },
+    anchor: { kind: 'workStart', offsetMin: 300, start: '14:00', windowMin: 120 },
     energy: 'midday',
     tier: 'could',
     duringWork: true,
@@ -1176,7 +1200,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Andrew Grove', 'Kim Scott'],
     days: [2],
     durationMin: 30,
-    anchor: { kind: 'fixed', start: '11:00', windowMin: 120 },
+    anchor: { kind: 'workStart', offsetMin: 120, start: '11:00', windowMin: 120 },
     energy: 'any',
     tier: 'should',
     duringWork: true,
@@ -1194,7 +1218,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Leidy Klotz', 'Tim Ferriss'],
     days: [3],
     durationMin: 20,
-    anchor: { kind: 'fixed', start: '15:30', windowMin: 120 },
+    anchor: { kind: 'workStart', offsetMin: 390, start: '15:30', windowMin: 120 },
     energy: 'midday',
     tier: 'could',
     duringWork: true,
@@ -1211,7 +1235,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Tim Ferriss'],
     days: [5],
     durationMin: 120,
-    anchor: { kind: 'fixed', start: '09:15', windowMin: 180 },
+    anchor: { kind: 'workStart', offsetMin: 15, start: '09:15', windowMin: 180 },
     energy: 'morning',
     tier: 'could',
     duringWork: true,
@@ -1428,10 +1452,11 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Angelo DeNisi'],
     days: [5],
     durationMin: 10,
-    anchor: { kind: 'fixed', start: '16:30', windowMin: 120 },
+    anchor: { kind: 'workStart', offsetMin: 450, start: '16:30', windowMin: 120 },
     energy: 'any',
     tier: 'should',
     duringWork: true,
+    anchorToWorkEnd: true,
     safety: 'Your own work and your own part in shared work — a log that reads as a file on colleagues stops being honest, and stops being usable.',
   },
   {
@@ -1480,10 +1505,11 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Laszlo Bock', 'Tim Ferriss'],
     days: [4],
     durationMin: 15,
-    anchor: { kind: 'fixed', start: '16:15', windowMin: 90 },
+    anchor: { kind: 'workStart', offsetMin: 435, start: '16:15', windowMin: 90 },
     energy: 'any',
     tier: 'should',
     duringWork: true,
+    anchorToWorkEnd: true,
     safety: 'Name the people who did it with you, and claim only what you can evidence. If updates are treated as noise where you work, send narrower ones to fewer people rather than louder ones to more.',
   },
   {
@@ -1866,7 +1892,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Kelly Starrett', 'Stuart McGill'],
     days: [1, 2, 3, 4, 5],
     durationMin: 8,
-    anchor: { kind: 'fixed', start: '15:15', windowMin: 90 },
+    anchor: { kind: 'workStart', offsetMin: 375, start: '15:15', windowMin: 90 },
     energy: 'any',
     tier: 'could',
     duringWork: true,
@@ -1884,7 +1910,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Katy Bowman', 'Peter Attia'],
     days: [1, 2, 3, 4, 5],
     durationMin: 5,
-    anchor: { kind: 'fixed', start: '10:45', windowMin: 240 },
+    anchor: { kind: 'workStart', offsetMin: 105, start: '10:45', windowMin: 240 },
     energy: 'any',
     tier: 'could',
     duringWork: true,
@@ -2125,7 +2151,7 @@ export const PROTOCOLS: Protocol[] = [
     durationMin: 5,
     // A cutoff, not an activity: parked after the block began is a failed
     // habit, not a late one.
-    anchor: { kind: 'fixed', start: '09:10', windowMin: 15, deadline: true },
+    anchor: { kind: 'workStart', offsetMin: 10, start: '09:10', windowMin: 15, deadline: true },
     energy: 'morning',
     tier: 'should',
     duringWork: true,
@@ -2143,10 +2169,11 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Kostadin Kushlev', 'Cal Newport'],
     days: [5],
     durationMin: 20,
-    anchor: { kind: 'fixed', start: '16:30', windowMin: 90 },
+    anchor: { kind: 'workStart', offsetMin: 450, start: '16:30', windowMin: 90 },
     energy: 'any',
     tier: 'could',
     duringWork: true,
+    anchorToWorkEnd: true,
   },
   {
     id: 'task-close-out',
@@ -2160,7 +2187,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Sophie Leroy', 'Cal Newport'],
     days: [1, 2, 3, 4, 5],
     durationMin: 5,
-    anchor: { kind: 'fixed', start: '10:20', windowMin: 180 },
+    anchor: { kind: 'workStart', offsetMin: 80, start: '10:20', windowMin: 180 },
     energy: 'any',
     tier: 'could',
     duringWork: true,
@@ -2195,7 +2222,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Patricia Albulescu', 'Andrew Huberman'],
     days: [1, 2, 3, 4, 5],
     durationMin: 5,
-    anchor: { kind: 'fixed', start: '15:05', windowMin: 180 },
+    anchor: { kind: 'workStart', offsetMin: 365, start: '15:05', windowMin: 180 },
     energy: 'any',
     tier: 'could',
     duringWork: true,
@@ -2236,7 +2263,7 @@ export const PROTOCOLS: Protocol[] = [
     days: [1, 2, 3, 4, 5],
     durationMin: 10,
     anchorToWorkEnd: true,
-    anchor: { kind: 'fixed', start: '17:10', windowMin: 45, deadline: true },
+    anchor: { kind: 'workStart', offsetMin: 490, start: '17:10', windowMin: 45, deadline: true },
     energy: 'any',
     tier: 'should',
     duringWork: true,
@@ -2271,7 +2298,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Peter Attia', 'Andrew Huberman'],
     days: [2, 4],
     durationMin: 25,
-    anchor: { kind: 'fixed', start: '12:45', windowMin: 120 },
+    anchor: { kind: 'workStart', offsetMin: 225, start: '12:45', windowMin: 120 },
     energy: 'midday',
     tier: 'could',
     duringWork: true,
@@ -2306,10 +2333,11 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Christina Maslach', 'Michael Leiter'],
     days: [5],
     durationMin: 20,
-    anchor: { kind: 'fixed', start: '16:00', windowMin: 120 },
+    anchor: { kind: 'workStart', offsetMin: 420, start: '16:00', windowMin: 120 },
     energy: 'any',
     tier: 'should',
     duringWork: true,
+    anchorToWorkEnd: true,
     safety: 'A structural review, not a resilience exercise, and the limit deserves saying plainly: no breathing practice and no evening routine will fix a job with an impossible workload or no control over how the work is done. If the honest answer is that the work itself has to change, the next steps are your manager, your union or professional body, or a different job. And if you are at dread, numbness, or thoughts of not wanting to be here, that is a doctor or therapist today — not a monthly review.',
   },
 
@@ -3371,7 +3399,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Michelle Craske', 'Paul Emmelkamp'],
     days: [2],
     durationMin: 10,
-    anchor: { kind: 'fixed', start: '10:00', windowMin: 300 },
+    anchor: { kind: 'workStart', offsetMin: 60, start: '10:00', windowMin: 300 },
     energy: 'any',
     tier: 'should',
     duringWork: true,
@@ -3406,7 +3434,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Peter Gollwitzer', 'Douglas Stone', 'Sheila Heen'],
     days: [1],
     durationMin: 10,
-    anchor: { kind: 'fixed', start: '08:30', windowMin: 240 },
+    anchor: { kind: 'workStart', offsetMin: -30, start: '08:30', windowMin: 240 },
     energy: 'morning',
     tier: 'could',
     duringWork: true,
@@ -3424,7 +3452,7 @@ export const PROTOCOLS: Protocol[] = [
     attribution: ['Carl Rogers', 'William Miller'],
     days: [3],
     durationMin: 15,
-    anchor: { kind: 'fixed', start: '11:00', windowMin: 300 },
+    anchor: { kind: 'workStart', offsetMin: 120, start: '11:00', windowMin: 300 },
     energy: 'any',
     tier: 'could',
     duringWork: true,
@@ -3710,6 +3738,12 @@ function startFor(p: Protocol, profile: LifeProfile | null): string {
   if (a.kind === 'sleep' && profile) {
     return toHHMM((toMinutes(profile.sleepTime) - (a.offsetMin ?? 0) + 1440) % 1440);
   }
+  if (a.kind === 'workStart' && profile?.workStart) {
+    return toHHMM((toMinutes(profile.workStart) + (a.offsetMin ?? 0)) % 1440);
+  }
+  // `start` is the fallback for a work-anchored practice belonging to
+  // somebody who never told us their hours. It is a guess, and it is
+  // labelled as one rather than presented as the protocol's own time.
   return a.start ?? '12:05';
 }
 

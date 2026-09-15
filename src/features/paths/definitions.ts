@@ -567,19 +567,30 @@ export const PATHS: Record<PathId, PathDefinition> = {
       // day spent on your feet; the block stays in the library for anyone
       // who wants it. Isaac's decision, 7 September 2026.
       if (answers.style !== 'manager' && answers.style !== 'physical') {
+        /*
+          The block always starts from THEIR work start, never from ours.
+
+          The protocol's own anchor is a fixed 09:15, which is a
+          nine-to-five assumption, and about half of this audience is not
+          on one — a nurse finishing at seven in the morning was being
+          handed a thinking block mid-afternoon. Without calendar access
+          the coach never asserts a time it did not get from the person,
+          and the work start is a time it did get.
+        */
+        const fromWorkStart = (afterMin: number, windowMin: number): Partial<Routine> => ({
+          preferredStart: toHHMM((toMinutes(workStart) + afterMin) % 1440),
+          preferredEnd: toHHMM((toMinutes(workStart) + afterMin + windowMin) % 1440),
+        });
         if (answers.meetingLoad === 'heavy') {
-          // Before the first call, or it does not happen: the block moves
-          // to the start of the work day, and the window stays tight so
-          // the scheduler cannot drift it into the meetings.
-          shape('deep-work', {
-            preferredStart: workStart,
-            preferredEnd: toHHMM((toMinutes(workStart) + 75) % 1440),
-          });
+          // Before the first call, or it does not happen: the block sits at
+          // the start of the work day, and the window stays tight so the
+          // scheduler cannot drift it into the meetings.
+          shape('deep-work', fromWorkStart(0, 75));
         } else if (answers.meetingLoad === 'light' || answers.meetingLoad === 'none') {
           // A light week is an asset: a third making block, not one.
-          shape('deep-work', { days: [1, 2, 4] });
+          shape('deep-work', { days: [1, 2, 4], ...fromWorkStart(15, 90) });
         } else {
-          shape('deep-work');
+          shape('deep-work', fromWorkStart(15, 90));
         }
       }
       // A manager in a heavy week has no block to move; what they own is
@@ -623,6 +634,34 @@ export const PATHS: Record<PathId, PathDefinition> = {
           { id: newId('ms'), title: 'Every direct report has a standing slot', done: false },
         ];
       }
+      /*
+        The decision journal, finally built.
+
+        It is the strongest thing in the work library — grade B, Tetlock
+        and Duke, a written forecast with a confidence number and a booked
+        reread — and `build()` had never added it. The intake asks how
+        often somebody makes a call they would hate to get wrong
+        (`decisionLoad`, from the question engine) and the answer went
+        nowhere, so the best-evidenced practice the work coach owns was
+        reachable only by browsing the library.
+
+        Cadence comes from the answer: somebody making consequential calls
+        most days needs the habit weekly; somebody making them a few times
+        a year does not need a standing Friday slot and gets nothing, which
+        is the honest answer rather than a block they will delete.
+      */
+      if (answers.decisionLoad === 'weekly' || answers.decisionLoad === 'daily') {
+        shape('decision-journal', {
+          // Twenty minutes against the end of THEIR day, not against 16:00.
+          anchorToWorkEnd: true,
+          days: answers.decisionLoad === 'daily' ? [3, 5] : [5],
+        });
+        plan.goal.milestones = [
+          ...(plan.goal.milestones ?? []),
+          { id: newId('ms'), title: 'Four calls written down before you knew how they went', done: false },
+        ];
+      }
+
       if (answers.bigBet === 'signing' || answers.bigBet === 'maybe') {
         plan.goal.milestones = [
           ...(plan.goal.milestones ?? []),

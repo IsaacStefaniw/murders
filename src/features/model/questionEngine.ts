@@ -234,24 +234,19 @@ export const QUESTIONS: QuestionDef[] = [
     ],
   },
 
-  // ── Work: who you lead decides which practices even apply ────────────
-  {
-    id: 'direct-reports',
-    domain: 'work',
-    prompt: 'How many people report to you? It decides whether the block includes one-on-ones at all.',
-    importance: 4,
-    informationGain: 3,
-    burden: 1,
-    input: 'choice',
-    pathId: 'work',
-    answerKey: 'directs',
-    options: [
-      { value: 'none', label: 'Nobody yet' },
-      { value: 'few', label: '1–3' },
-      { value: 'several', label: '4–8' },
-      { value: 'many', label: '9 or more' },
-    ],
-  },
+  /*
+    ── Deleted: `direct-reports` ────────────────────────────────────────
+    "How many people report to you?" wrote its answer to `directs`, and the
+    work path reads `answers.team` — where the SAME question already lives,
+    as the "A team who report to me" option of "Who else can carry some of
+    it?". So the app asked twice and read the other copy: every answer to
+    this one went nowhere, and the one-on-ones it claimed to decide were
+    already decided by `team`.
+
+    A question that changes nothing is worse than a missing one. It spends
+    the only thing the intake has — somebody's patience — and buys the plan
+    nothing, which is the whole of why the question engine grades burden.
+  */
   {
     id: 'decision-volume',
     domain: 'work',
