@@ -38,6 +38,7 @@ import {
   type UpdateInfo,
 } from '@/lib/updates';
 import { exportBackup, restoreBackup as restoreFromBackup } from '@/state/backup';
+import { getCalendarProvider } from '@/lib/calendar/provider';
 import { useAppStore } from '@/state/store';
 import { shareText } from '@/lib/share';
 import { NO_ENTITLEMENT, grantedEntitlement } from '@/features/plus/entitlement';
@@ -94,6 +95,8 @@ function buildLine(): string {
 
 export default function Settings() {
   const router = useRouter();
+// One instance, read once: the seam is a contract, not state.
+  const calendar = getCalendarProvider();
   const profile = useAppStore((s) => s.profile);
   const entitlement = useAppStore((s) => s.entitlement);
   const setEntitlement = useAppStore((s) => s.setEntitlement);
@@ -382,6 +385,28 @@ export default function Settings() {
           {foodPreferences.allergies.length > 0
             ? `${foodPreferences.allergies.length} declared — dishes are only suggested when we know they are free of them.`
             : 'Nothing declared. Worth a minute before the app suggests any food.'}
+        </AppText>
+      </Card>
+
+      {/*
+        The calendar seam, said out loud.
+
+        `lib/calendar/provider.ts` is the contract the native milestone
+        fills in, and the planner already accepts the events — but on any
+        build without EventKit behind it the provider returns nothing and
+        the app models work hours from the stated profile instead. A person
+        who expects their diary to be read deserves to be told it is not,
+        rather than to conclude the scheduler is ignoring a meeting.
+      */}
+      <SectionHeader title="Your calendar" />
+      <Card>
+        <AppText variant="secondary">
+          {calendar.available()
+            ? 'Your diary is read for fixed commitments, and the plan is built around what is actually in it.'
+            : 'Not in this build. The plan is built from the work hours you gave, so anything in your diary that is not on those hours is invisible to it — a meeting at noon will not move your session.'}
+        </AppText>
+        <AppText variant="caption" color="textTertiary" style={styles.note}>
+          Nothing is ever written to your calendar without you approving the move first.
         </AppText>
       </Card>
 

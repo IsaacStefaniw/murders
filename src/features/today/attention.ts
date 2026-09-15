@@ -69,6 +69,7 @@ export type AttentionId =
   | 'readiness'
   | 'ritual'
   | 'trial'
+  | 'dailyAsk'
   | 'checkin'
   | 'plus'
   | 'budget'
@@ -81,6 +82,11 @@ export const ATTENTION_ORDER: AttentionId[] = [
   'readiness',
   'ritual',
   'trial',
+  // Above the goal check-in: this is the instrument asking for the one
+  // reading it cannot get any other way. A bed time not given this morning
+  // is gone — sleep regularity cannot be recovered from an average later,
+  // where a goal check-in can be answered tomorrow and mean the same thing.
+  'dailyAsk',
   'checkin',
   'plus',
   'budget',

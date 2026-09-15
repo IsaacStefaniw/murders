@@ -75,25 +75,37 @@ const EXEMPT = [
  * list cannot quietly become a graveyard of things somebody once meant to
  * do. It shrinks or it stays honest; it cannot rot.
  *
- * Each entry, and what it costs while it sits here:
+ * ── The list is empty, and that is the point ────────────────────────────
  *
- *   dailyAsk.ts   No question is asked on any cadence. Sleep regularity
- *                 needs a SERIES and cannot be recovered from an average,
- *                 so every night this is not wired is a night of data
- *                 permanently gone.
- *   stress.ts     Standing decision #6 says stress "shapes the plan". It
- *                 does not, and will not until something imports this.
- *   calendar      The planner cannot see a real diary, so every plan it
- *                 makes is a guess about a week it cannot observe.
- *   location      Undecided for 1.0. If it is out, delete it.
+ * All four are resolved. What each one needed turned out to be different,
+ * which is why a blanket "wire it up" would have produced four bad
+ * answers:
+ *
+ *   dailyAsk.ts   Wired, and the thing underneath was worse than an
+ *                 unwired module: `recordSleepNight` was in the store and
+ *                 nothing called it either, so there was no way for
+ *                 anybody without a watch to enter a bed time and sleep
+ *                 regularity — the strongest sleep predictor in the
+ *                 instrument — could never populate. Now `DailyAsk` takes
+ *                 the two clock times as two taps.
+ *   stress.ts     Wired to the markers card, where a person asking "why
+ *                 isn't my stress in this?" is standing. It was always a
+ *                 decision document; it needed a reader, not a caller.
+ *   calendar      Given the surface it should have had all along: Settings
+ *                 says plainly that this build cannot see a diary and what
+ *                 that costs. The EventKit implementation is a native
+ *                 milestone and a native dependency; the seam is honest
+ *                 in the meantime instead of silent.
+ *   location      Deleted. See ADR-017 — the privacy stance is recorded
+ *                 there, which is where a design that has no
+ *                 implementation belongs.
+ *
+ * Keep it empty. An entry here is a promise, and the test enforces the
+ * promise in both directions.
  *
  * See docs/BEFORE_LAUNCH.md §1.
  */
-const KNOWN_STRANDED = [
-  'features/health/dailyAsk.ts',
-  'features/health/stress.ts',
-  'lib/calendar/provider.ts',
-  'lib/context/location.ts',
+const KNOWN_STRANDED: string[] = [
 ];
 
 function walk(dir: string, out: string[] = []): string[] {

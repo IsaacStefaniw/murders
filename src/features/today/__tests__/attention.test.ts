@@ -57,6 +57,17 @@ describe('the order', () => {
   });
 
   /**
+   * A bed time not given this morning is gone: sleep regularity cannot be
+   * recovered from an average later. A goal check-in answered tomorrow
+   * means the same thing it would have meant today.
+   */
+  it('puts the reading that expires ahead of the one that does not', () => {
+    expect(ATTENTION_ORDER.indexOf('dailyAsk')).toBeLessThan(
+      ATTENTION_ORDER.indexOf('checkin'),
+    );
+  });
+
+  /**
    * The Plus nudge used to render at the top of Today, above everything,
    * before the app had shown it could do the job. An app asking for money
    * before it has answered "what now?" has the order wrong. It stays in
@@ -108,6 +119,7 @@ describe('today.tsx', () => {
     '<ReadinessCard': 'readiness',
     '<PlusNudge': 'plus',
     '<SuggestionCard': 'suggestion',
+    '<DailyAsk': 'dailyAsk',
   };
 
   it('gates every arbitrated block', () => {

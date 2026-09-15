@@ -49,6 +49,8 @@ import { DEBT_SHOW_H, sleepDebt } from '@/features/health/sleepDebt';
 import { returnSummary } from '@/features/today/returning';
 import { distinctWeeks } from '@/features/paths/level';
 import { claimAttention, shows, waiting } from '@/features/today/attention';
+import { DailyAsk } from '@/features/health/DailyAsk';
+import { asksFor } from '@/features/health/dailyAsk';
 import { RitualCard } from '@/features/cadence/RitualCard';
 import { displacedLine } from '@/features/planner/displaced';
 import { useAppStore } from '@/state/store';
@@ -109,6 +111,8 @@ export default function Today() {
   const experiments = useAppStore((s) => s.experiments);
   const dismissedCheckins = useAppStore((s) => s.dismissedCheckins);
   const plusNudgeDismissedAt = useAppStore((s) => s.plusNudgeDismissedAt);
+  const sleepNights = useAppStore((s) => s.sleepNights);
+  const interviewAnswers = useAppStore((s) => s.interviewAnswers);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
   /** Set by a long press, so the row opens on the move picker. */
@@ -282,6 +286,15 @@ export default function Today() {
           statedPurpose('month-setup', date.slice(0, 7), rituals),
       ),
       trial: dueExperiments(experiments, date).length > 0,
+      dailyAsk:
+        asksFor({
+          today: date,
+          nightsRecorded: sleepNights.map((n) => n.date),
+          activeHabits: behaviourIntentions.filter((b) => b.active).map((b) => b.behaviour),
+          hasStandingHabit: behaviourIntentions.some((b) => b.active),
+          metrics,
+          lastSelfRatedHealth: interviewAnswers.selfRatedHealthAt as string | undefined,
+        }).length > 0,
       checkin: Boolean(nextCheckin(goals, metrics, dismissedCheckins)),
       plus: !plus && !plusNudgeDismissedAt && !firstDay,
       budget: budget.state !== 'stable',
@@ -297,6 +310,9 @@ export default function Today() {
     isEvening,
     rituals,
     experiments,
+    sleepNights,
+    behaviourIntentions,
+    interviewAnswers,
     dismissedCheckins,
     plus,
     plusNudgeDismissedAt,
@@ -572,6 +588,7 @@ export default function Today() {
           />
         </View>
       ) : null}
+      {shows(claimed, 'dailyAsk') ? <DailyAsk /> : null}
       {shows(claimed, 'checkin') ? <CheckinCard /> : null}
       {shows(claimed, 'welcomeBack') ? <WelcomeBack date={date} /> : null}
       {shows(claimed, 'readiness') ? <ReadinessCard /> : null}

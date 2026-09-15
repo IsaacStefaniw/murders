@@ -352,9 +352,55 @@ kept); ✅ number-and-date question; ✅ tab bar 44pt + icons; ✅ type scale.
 > A structural test now fails the build if an arbitrated block is added
 > back ungated, which is exactly how the screen got to eleven.
 
-**Then** — the three coach rebuilds above, cheapest-first: family's 17:15
-defence, work's wiring fixes (`decisionLoad` → decision journal, delete
-`direct-reports`, stop asserting 09:15), money's `goalDomains` routing.
+**Then** — ✅ the three coach rebuilds above, cheapest-first: family's
+17:15 defence, work's wiring fixes (`decisionLoad` → decision journal,
+delete `direct-reports`, stop asserting 09:15), money's `goalDomains`
+routing.
+
+---
+
+## 10. The four stranded modules — all four resolved
+
+The reachability test's own list is empty, and what each one needed turned
+out to be different, which is why a blanket "wire it up" would have
+produced four bad answers.
+
+**`dailyAsk.ts` — wired**, and the thing underneath was worse than an
+unwired module. `recordSleepNight` was in the store and nothing called
+that either, so there was no way for anybody without a watch to enter a
+bed time — and sleep REGULARITY, the strongest sleep predictor in the
+instrument (Windred and colleagues beat duration with it across 60,977
+people), could never populate. `DailyAsk` now takes the two clock times as
+two taps, on half-hour chips centred on the person's own stated window,
+because a numeric field at seven in the morning is four taps and a
+mistyped colon. It sits in the attention arbiter above the goal check-in:
+a bed time not given this morning is gone, where a check-in answered
+tomorrow means the same thing.
+
+**`stress.ts` — wired** to the markers card, behind "Why stress and sleep
+quality are not in this", which is where somebody asking the question is
+standing. It was always a decision document; it needed a reader, not a
+caller. The reasoning it carries is worth reading: the one strong finding
+about stress — that high stress *plus believing stress is harming you*
+carries the risk, and high stress without that belief carries none — is
+deliberately not used, because the sentence it produces is "your belief
+that stress is hurting you is the part that is hurting you", and there is
+no framing that makes that safe to say to somebody under real pressure.
+
+**Calendar — given the surface it should have had.** Settings now says
+plainly that this build cannot see a diary, and what that costs: a meeting
+at noon will not move your session. The EventKit implementation is a
+native milestone and a native dependency whose OTA-fingerprint cost is
+Isaac's call; until then the seam is honest rather than silent.
+
+**`location.ts` — deleted**, per ADR-017. It was an interface with a Null
+implementation, no native implementation and no consumer, and the reach
+test's own note read "Undecided for 1.0. If it is out, delete it." The
+privacy stance it encoded is recorded in the decision log, which is where
+a design with no implementation belongs. `expo-location` is a native
+dependency and background location is among the heaviest permissions in
+App Review — a poor trade to power a confirmation prompt the design
+correctly insisted must never complete anything by itself.
 
 **Then** — the weekly review shedding on observed non-completion (§4);
 sharing (§7); the blood panel.

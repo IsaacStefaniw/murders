@@ -242,3 +242,39 @@ against itself and looks ordinary.
 makes it worth reading on the morning it appears. A low reading costs
 accessory volume and never the main work — the session people actually skip
 is the one that got cancelled for them.
+
+---
+
+## ADR-017 — Geofencing is out of 1.0, and its contract is deleted (2026-09-15)
+
+**Decision:** `lib/context/location.ts` — the `Place` / `PlaceEvent` /
+`LocationProvider` contract, and the Null implementation behind it — is
+deleted. Presence-based evidence ("looks like you trained — confirm?") is
+not in 1.0. The privacy stance it encoded is recorded here instead, so the
+thinking survives the code.
+
+**Reason:** The module was an interface with a Null implementation, no
+native implementation, and no consumer. It could not do anything in any
+build the app ships, and the reachability test's own note on it read
+"Undecided for 1.0. If it is out, delete it." This is that decision.
+
+What it would cost to keep going: `expo-location` is a native dependency,
+and adding one changes the expo-updates fingerprint, which cuts every
+installed build off from over-the-air updates. Background location is also
+among the heaviest permissions in App Review, and asking for it to power a
+confirmation prompt — which the design correctly insisted must never
+silently complete anything — is a poor trade at 1.0. The feature earns
+almost nothing the manual tap does not, and costs the app its lightest
+permission profile.
+
+**The stance, preserved:** if presence ever returns, it returns as
+event-based geofencing over a handful of user-labelled places, processed
+on-device, with minimum necessary retention and no continuous location
+history, ever. Presence is evidence and not proof: arriving at the gym may
+surface the workout and may ask, and must never complete anything by
+itself.
+
+**Consequences:** One fewer stranded module, and one fewer native
+dependency standing between the app and an OTA update. A future milestone
+that wants this writes the contract again from this entry, which is a
+morning's work and will be a better contract for knowing what it is for.

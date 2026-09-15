@@ -11,6 +11,10 @@ import { paceHeadline, paceShareText, readPace } from '@/features/health/pace';
 import { paceInputsFrom } from '@/features/health/paceInputs';
 import { paceProgress } from '@/features/health/progress';
 import { readingFromSnapshot } from '@/features/health/snapshot';
+import {
+  WHY_SLEEP_QUALITY_IS_NOT_SCORED,
+  WHY_STRESS_IS_NOT_SCORED,
+} from '@/features/health/stress';
 import { useTheme } from '@/hooks/use-theme';
 import { shareText } from '@/lib/share';
 import { todayKey } from '@/lib/dates';
@@ -274,6 +278,25 @@ export function PaceCard() {
           that is not the same as showing that improving the score changes anything. Some of it runs
           the other way — illness makes people slow and unsteady before it does anything else. This
           is education, not medical advice, and it diagnoses nothing.
+        </AppText>
+      </Disclosure>
+
+      {/*
+        The two things a person will look for here and not find.
+
+        Stress and sleep quality are both asked in the interview, both
+        change the plan, and neither is in the figure — which reads as an
+        oversight unless the app says otherwise. The reasoning is long,
+        well sourced, and belongs behind a disclosure rather than in a
+        comment nobody reads: see features/health/stress.ts, including why
+        the one strong finding about stress is deliberately not used.
+      */}
+      <Disclosure title="Why stress and sleep quality are not in this">
+        <AppText variant="caption" color="textSecondary">
+          {WHY_STRESS_IS_NOT_SCORED}
+        </AppText>
+        <AppText variant="caption" color="textSecondary" style={styles.gap}>
+          {WHY_SLEEP_QUALITY_IS_NOT_SCORED}
         </AppText>
       </Disclosure>
 
