@@ -170,6 +170,16 @@ export interface AppState {
    */
   weekCapacities: WeekCapacityOverride[];
   setWeekCapacity: (weekStart: string, capacity: Capacity) => void;
+  /**
+   * Coach interruptions already shown, so each one happens once.
+   *
+   * Recorded on APPEARANCE, not on answer — an interruption you backed out
+   * of has still interrupted you, and re-presenting it every time Today
+   * mounts would turn a coach into a modal that traps you.
+   */
+  coachInterrupts: { id: string; at: string; answerId?: string }[];
+  seeInterrupt: (id: string) => void;
+  answerInterrupt: (id: string, answerId: string) => void;
   /** Upsert — one figure per behaviour per week, correctable. */
   setWeeklyCount: (behaviour: BehaviourKey, weekStart: string, count: number) => void;
   reflections: Reflection[];
@@ -688,6 +698,7 @@ const initialData = {
   behaviourEvents: [] as BehaviourEvent[],
   weeklyCounts: [] as WeeklyCount[],
   weekCapacities: [] as WeekCapacityOverride[],
+  coachInterrupts: [] as { id: string; at: string; answerId?: string }[],
   reflections: [] as Reflection[],
   suggestions: [] as Suggestion[],
   experiments: [] as Experiment[],
@@ -1492,6 +1503,25 @@ export const useAppStore = create<AppState>()(
           // The week the person just resized should look resized.
           const today = todayKey();
           for (let i = 0; i <= 6; i++) get().regeneratePlan(addDays(today, i));
+        },
+
+        seeInterrupt: (id) => {
+          if (get().coachInterrupts.some((i) => i.id === id)) return;
+          set({
+            coachInterrupts: [
+              ...get().coachInterrupts,
+              { id, at: new Date().toISOString() },
+            ],
+          });
+        },
+
+        answerInterrupt: (id, answerId) => {
+          const existing = get().coachInterrupts.find((i) => i.id === id);
+          set({
+            coachInterrupts: existing
+              ? get().coachInterrupts.map((i) => (i.id === id ? { ...i, answerId } : i))
+              : [...get().coachInterrupts, { id, at: new Date().toISOString(), answerId }],
+          });
         },
 
         setWeeklyCount: (behaviour, weekStart, count) => {

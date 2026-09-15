@@ -350,8 +350,26 @@ than the place they were supposed to eventually appear.
    Saturday that has not arrived was counted in the denominator ("7 of 9"
    for one miss), and it was counted as a death in the slot tally ("died
    three times" after two). Both now stop at today.
-2. **Coach voices and the interrupt frame.** The character work is cheap
-   and it changes how the whole app reads.
+2. **Coach voices and the interrupt frame.** ✅ Built. The character work
+   is cheap and it changes how the whole app reads.
+
+   `features/coaches/voices.ts` is the seven records — Ren, Mara, Nell,
+   Ivo, Sol, Juno, Bo — and each refusal names a constraint the code
+   already keeps, pinned by tests so a removed mechanism turns a coach
+   into a liar loudly rather than quietly.
+
+   `features/coaches/interrupt.ts` is the frame: one at a time, two
+   answers, and it always says why. Four triggers, each off data that
+   exists — a dead slot (the week review's own evidence, said by a person
+   on the day it matters), three sessions held in a row, three short
+   nights, and the family block work is about to eat. `mayOffer` gates
+   only the interruptions that ADD something; a strained week is exactly
+   when moving a dead Tuesday matters most.
+
+   Nutrition ("the fibre protocol you added a week ago") and money ("is
+   your offset actually linked?") are not built: both need a field that
+   does not exist — `Routine.createdAt`, and a confirmed flag on the money
+   step. Four triggers that fire beat six where two never can.
 3. **Setup as eight sections**, un-deferring everything, with the payout
    on the same screen.
 4. **The missing measurements**, which section 5 of setup now has a home

@@ -39,6 +39,7 @@ import { WhyToday } from '@/features/today/WhyToday';
 import { BudgetCard } from '@/features/budget/BudgetCard';
 import { TrialReview } from '@/features/knowledge/TrialReview';
 import { commitmentBudget, mayOffer } from '@/features/budget/commitment';
+import { nextInterrupt } from '@/features/coaches/interrupt';
 import { QuickLog } from '@/features/today/QuickLog';
 import { RitualCard } from '@/features/cadence/RitualCard';
 import { displacedLine } from '@/features/planner/displaced';
@@ -157,6 +158,44 @@ export default function Today() {
       }),
     [routines, plans, metrics, profile, previousOpenAt, date],
   );
+
+  /*
+    A coach with something to say.
+
+    The sketch is explicit that an interruption is a full screen rather
+    than a card: a card is something you scroll past. It is recorded the
+    moment it appears, so backing out of it does not re-trap you the next
+    time Today mounts, and `nextInterrupt` returns at most one. See
+    features/coaches/interrupt.ts.
+
+    Never on the first day. A coach that interrupts somebody before it has
+    watched them do anything is guessing out loud.
+  */
+  const coachInterruptLog = useAppStore((s) => s.coachInterrupts);
+  const seeInterrupt = useAppStore((s) => s.seeInterrupt);
+  const interrupt = useMemo(
+    () =>
+      firstDay || !plan
+        ? null
+        : nextInterrupt({
+            routines,
+            plans,
+            metrics,
+            profile: profile ?? null,
+            budget,
+            today: date,
+            nowMinutes: nowMinutes(),
+            seen: coachInterruptLog.map((i) => i.id),
+          }),
+     
+    [firstDay, plan, routines, plans, metrics, profile, budget, date, coachInterruptLog],
+  );
+
+  useEffect(() => {
+    if (!interrupt) return;
+    seeInterrupt(interrupt.id);
+    router.push(`/coach/interrupt?id=${encodeURIComponent(interrupt.id)}` as never);
+  }, [interrupt, seeInterrupt, router]);
 
   const todayNote = useMemo(
     () => (plans[date] ? coachNote(date, plans[date].items, routines, nowMinutes()) : null),
