@@ -214,7 +214,7 @@ export default function Settings() {
    * launch. iOS offers the prompt once, and a prompt before anyone has seen
    * what the app would say is the fastest route to a permanent no.
    */
-  const toggleNotification = async (key: 'interventions' | 'sessions' | 'windDown') => {
+  const toggleNotification = async (key: 'interventions' | 'coach' | 'sessions' | 'windDown') => {
     const turningOn = !(notifications.enabled && notifications[key]);
     if (turningOn) {
       const state = await requestNotificationPermission();
@@ -225,7 +225,7 @@ export default function Settings() {
     setNotificationSettings({
       ...next,
       // Enabled is derived: the master switch is just "is anything on".
-      enabled: next.interventions || next.sessions || next.windDown,
+      enabled: next.interventions || next.coach || next.sessions || next.windDown,
     });
   };
 
@@ -400,6 +400,11 @@ export default function Settings() {
           onPress={() => void toggleNotification('interventions')}
         />
         <Chip
+          label="A coach defending an evening"
+          selected={notifications.enabled && notifications.coach}
+          onPress={() => void toggleNotification('coach')}
+        />
+        <Chip
           label="Session reminders"
           selected={notifications.enabled && notifications.sessions}
           onPress={() => void toggleNotification('sessions')}
@@ -413,7 +418,8 @@ export default function Settings() {
       <AppText variant="caption" color="textTertiary" style={styles.note}>
         A habit intervention arrives BEFORE the window your own logs say it usually happens in —
         the hour when a different plan still lands. It stays quiet until there is a pattern to
-        work from.
+        work from. A coach speaks up three quarters of an hour before an evening work is about to
+        eat, and can write the &quot;running late&quot; message for you.
       </AppText>
 
       <SectionHeader title="Behaviours you're working on" />

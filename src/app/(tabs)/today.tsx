@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
@@ -101,6 +101,7 @@ export default function Today() {
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
   const metrics = useAppStore((s) => s.metrics);
   const previousOpenAt = useAppStore((s) => s.previousOpenAt);
+  const hydrated = useAppStore((s) => s.hydrated);
   // Read here rather than inside each card, so the arbiter below can ask
   // the same questions the cards ask without mounting them.
   const workoutLogs = useAppStore((s) => s.workoutLogs);
@@ -189,7 +190,18 @@ export default function Today() {
   const seeInterrupt = useAppStore((s) => s.seeInterrupt);
   const interrupt = useMemo(
     () =>
-      firstDay || !plan
+      /*
+        Not before the store has finished reading itself.
+
+        `setHydrated` applies the stored clock offset and THEN publishes
+        the flag, so there is a render where the state is restored and the
+        clock is not. Deciding in that render meant a coach asking about
+        the wrong hour, and — because an interruption is recorded the
+        moment it appears — burning the right one to do it. It cost the
+        family coach its 17:15 in a walk-through, which is the one moment
+        that coach exists for.
+      */
+      !hydrated || firstDay || !plan
         ? null
         : nextInterrupt({
             routines,
@@ -202,11 +214,28 @@ export default function Today() {
             seen: coachInterruptLog,
           }),
      
-    [firstDay, plan, routines, plans, metrics, profile, budget, date, coachInterruptLog],
+    [hydrated, firstDay, plan, routines, plans, metrics, profile, budget, date, coachInterruptLog],
   );
 
+  /*
+    One interruption per app open, and it is the FIRST one.
+
+    Recording an interruption changes the log, the log is what the
+    computation above reads, and a new computation produced the next
+    interruption — which this effect then presented. On a day with three
+    things to say the app walked straight through all three, recorded each
+    as seen, and showed the person only the last one. Every interruption
+    ahead of it was spent without ever being shown, which is worse than
+    not having them: a coach that burns its 17:15 to deliver a suggestion
+    has taken the one moment it existed for.
+
+    A browser found this. The unit tests could not: they call the module,
+    which is correct, rather than the screen, where the cascade lives.
+  */
+  const interrupted = useRef(false);
   useEffect(() => {
-    if (!interrupt) return;
+    if (!interrupt || interrupted.current) return;
+    interrupted.current = true;
     seeInterrupt(interrupt.id);
     router.push(`/coach/interrupt?id=${encodeURIComponent(interrupt.id)}` as never);
   }, [interrupt, seeInterrupt, router]);

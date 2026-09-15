@@ -142,6 +142,28 @@ describe('today.tsx', () => {
   });
 
   /**
+   * `setHydrated` applies the stored clock offset and then publishes the
+   * flag, so there is a render where the state is restored and the clock
+   * is not. An interruption decided in that render asks about the wrong
+   * hour — and, because it is recorded the moment it appears, burns the
+   * right one doing it.
+   */
+  it('waits for the store to finish reading itself before interrupting', () => {
+    expect(source).toContain('!hydrated || firstDay || !plan');
+  });
+
+  /**
+   * Recording an interruption changes the log the computation reads, which
+   * produced the NEXT interruption, which the effect then presented — so a
+   * day with three things to say walked through all three, recorded each
+   * as seen, and showed only the last. One per app open, and the first.
+   */
+  it('presents one interruption per open, and does not cascade', () => {
+    expect(source).toContain('interrupted.current');
+    expect(source).toContain('interrupted.current = true');
+  });
+
+  /**
    * The ledger belongs to the end-of-day review, which does the whole day
    * in three taps. Today used to carry a second copy of the same rows.
    */

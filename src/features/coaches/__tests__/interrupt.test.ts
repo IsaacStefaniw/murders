@@ -323,6 +323,12 @@ describe('the evening work is about to eat', () => {
       start: '18:20',
     });
     expect(FAMILY_LATE_MIN).toBe(20);
+    // "Shall I say 20 late?" — the half that turns a reminder into help.
+    // The app writes it; the OS sheet sends it.
+    expect(found.answers[1].message).toBe(
+      'Running about 20 minutes late — see you at 6:20pm.',
+    );
+    expect(found.answers[0].message).toBeUndefined();
   });
 
   it('is silent two hours out, and silent once it has started', () => {

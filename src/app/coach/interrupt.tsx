@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
@@ -12,6 +12,8 @@ import {
   coachInterrupts,
   type InterruptEffect,
 } from '@/features/coaches/interrupt';
+import { TELL_THEM } from '@/features/coaches/reach';
+import { shareText } from '@/lib/share';
 import { voiceFor } from '@/features/coaches/voices';
 import { nowMinutes, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
@@ -81,6 +83,16 @@ export default function CoachInterruptScreen() {
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/today' as never));
 
+  /**
+   * The message the answer wrote, offered once, after the change landed.
+   *
+   * Not before: somebody who has not yet decided to be twenty late has
+   * nothing to tell anyone. And it stays on this screen rather than
+   * sending on the same tap, because what goes to another person is
+   * theirs to read first.
+   */
+  const [message, setMessage] = useState<string | null>(null);
+
   const apply = (effect: InterruptEffect) => {
     switch (effect.kind) {
       case 'changes':
@@ -116,6 +128,41 @@ export default function CoachInterruptScreen() {
 
   const voice = voiceFor(interrupt.pathId);
 
+  /*
+    Answered. The question is gone, not restated.
+
+    The change lands immediately, so recomputing the interruption after it
+    produced a second, stale version of the same question — "Dinner in 65
+    minutes, shall I move it to 6:40?" over a message that already said
+    6:20. One answer, one screen.
+  */
+  if (message) {
+    return (
+      <Screen>
+        <AppText variant="label" color="textTertiary">
+          {voice.name} · {voice.discipline}
+        </AppText>
+        <View style={styles.middle}>
+          <AppText variant="heading">Done. Want to tell them?</AppText>
+          <Card style={styles.detail}>
+            <AppText variant="body">{message}</AppText>
+          </Card>
+        </View>
+        <View style={styles.answers}>
+          <Button
+            title={TELL_THEM}
+            hint="Opens your messages with this already written."
+            onPress={() => {
+              void shareText(message);
+              close();
+            }}
+          />
+          <Button title="No need" variant="secondary" onPress={close} />
+        </View>
+      </Screen>
+    );
+  }
+
   return (
     <Screen>
       <AppText variant="label" color="textTertiary">
@@ -145,6 +192,10 @@ export default function CoachInterruptScreen() {
             onPress={() => {
               apply(a.effect);
               answerInterrupt(interrupt.id, a.id);
+              if (a.message) {
+                setMessage(a.message);
+                return;
+              }
               close();
             }}
           />

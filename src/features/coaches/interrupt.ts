@@ -50,6 +50,7 @@ import {
 } from '@/features/knowledge/protocols';
 import type { MetricObservation } from '@/features/model/metrics';
 import { deadSlots, hourLabel } from '@/features/review/weekReview';
+import { latenessMessage } from '@/features/coaches/reach';
 import { voiceFor } from '@/features/coaches/voices';
 import { PATH_AREA, type PathId } from '@/features/paths/definitions';
 import type { WeeklyChange } from '@/features/review/weeklyChanges';
@@ -77,6 +78,15 @@ export interface InterruptAnswer {
   id: string;
   label: string;
   effect: InterruptEffect;
+  /**
+   * A sentence the person can send to somebody else, after answering.
+   *
+   * "Shall I say 20 late?" is the half of the family coach's product that
+   * turns a reminder into help — and the app composes it rather than
+   * sending it, so the OS share sheet does the sending and nothing about
+   * the evening reaches a server. See features/coaches/reach.ts.
+   */
+  message?: string;
 }
 
 export interface CoachInterrupt {
@@ -313,6 +323,7 @@ function familyInterrupt(input: InterruptInput): CoachInterrupt | null {
           itemId: next.item.id,
           start: toHHMM(later),
         },
+        message: latenessMessage(next.item, FAMILY_LATE_MIN),
       },
     ],
   };

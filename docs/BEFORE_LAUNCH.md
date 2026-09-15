@@ -150,6 +150,26 @@ say 20 late?"* Two taps, pre-written text via `shareText`. That is the
 coach's actual product. Plus: name the children, rotate the one-on-ones,
 and a Sunday ledger with counts and no score.
 
+> ✅ **The 17:15 defence is built**, on both channels.
+> `features/coaches/interrupt.ts` asks it in-app inside the family window;
+> `features/coaches/reach.ts` sends it as a local notification 45 minutes
+> out, from Bo, through the existing cap and quiet hours. Answering "20
+> minutes later" moves the block and writes the sentence — *"Running about
+> 20 minutes late — see you at 6:20pm."* — which the OS share sheet sends,
+> so nothing about the evening reaches a server.
+>
+> Two defects only a browser found. Recording an interruption changed the
+> log the computation read, which produced the next interruption, which
+> the effect presented — so a day with three things to say walked through
+> all three, marked each seen, and showed only the last. The 17:15 was
+> being spent to deliver a protocol suggestion. And answering re-rendered
+> the question against the block it had just moved, so a message reading
+> "see you at 6:20" sat under "shall I move it to 6:40?".
+>
+> **Still to do here:** name the children (the data model stores one
+> Person called "The kids" and a count), rotate the one-on-ones, and the
+> Sunday ledger.
+
 **Never:** streaks or percentages on family, comparison between children,
 any causal claim about child outcomes, or treating a cancelled family item
 as failure.

@@ -24,6 +24,7 @@
  */
 
 import { behaviourInfo } from '@/features/behaviours/catalog';
+import { coachNotifications } from '@/features/coaches/reach';
 import { dueInterventions } from '@/features/behaviours/patterns';
 import { protocolById } from '@/features/knowledge/protocols';
 import type { MetricObservation } from '@/features/model/metrics';
@@ -36,7 +37,7 @@ import type {
   Routine,
 } from '@/types/domain';
 
-export type NotificationKind = 'intervention' | 'session' | 'wind_down';
+export type NotificationKind = 'intervention' | 'coach' | 'session' | 'wind_down';
 
 export interface PlannedNotification {
   /**
@@ -56,6 +57,15 @@ export interface NotificationSettings {
   enabled: boolean;
   /** Interventions ahead of a behaviour's usual window. */
   interventions: boolean;
+  /**
+   * A coach defending a block, out of the app.
+   *
+   * On by default, unlike sessions and wind-down. This is the family
+   * coach's entire product — "Dinner in 45. Making it, or shall I say 20
+   * late?" — and a defence that only speaks to somebody already holding
+   * the phone is not a defence. See features/coaches/reach.ts.
+   */
+  coach: boolean;
   /** A nudge as a planned session's window opens. */
   sessions: boolean;
   /** One evening reminder to start winding down. */
@@ -67,6 +77,7 @@ export interface NotificationSettings {
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   enabled: false,
   interventions: true,
+  coach: true,
   sessions: false,
   windDown: false,
   dailyCap: 3,
@@ -75,8 +86,12 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
 /** Priority when the cap bites. Interventions are the reason this exists. */
 const PRIORITY: Record<NotificationKind, number> = {
   intervention: 0,
-  wind_down: 1,
-  session: 2,
+  // Second, and above wind-down: an evening that work is about to eat is a
+  // moment with a deadline on it, where a reminder to start winding down
+  // is the same advice whenever it arrives.
+  coach: 1,
+  wind_down: 2,
+  session: 3,
 };
 
 export interface QuietHours {
@@ -174,6 +189,15 @@ export function plannedNotifications(input: ScheduleInput, now = new Date()): Pl
         // verdicts and a push must not be where that slips.
         body: `${info.label} usually lands ${iv.pattern.window?.label ?? 'about now'}.${lever ? ` ${lever}` : ' Good moment to line something else up.'}`,
       });
+    }
+  }
+
+  if (settings.coach) {
+    // The coaches' only out-of-app voice. Everything about what to say and
+    // when lives with the coaches; this module owns the cap and the quiet
+    // hours, and applies both to this exactly as to everything else.
+    for (const n of coachNotifications({ date, plan: input.plan, profile })) {
+      candidates.push({ ...n, at: pullOutOfQuiet(n.at, quiet) });
     }
   }
 
