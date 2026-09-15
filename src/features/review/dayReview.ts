@@ -56,19 +56,24 @@ export interface DayRow {
   mark: DayMark | null;
 }
 
-/** Generic work blocks are calendar noise, the same rule Today applies. */
-const meaningful = (i: PlanItem) => i.title !== 'Work' && !i.fixed;
+/**
+ * What a review is allowed to ask about.
+ *
+ * Generic work blocks are calendar noise, the same rule Today applies, and
+ * fixed calendar events are the person's own diary rather than something
+ * the app asked of them — "did your dentist appointment happen?" is the
+ * app pretending to have scheduled someone's life. Exported so the week
+ * grid reviews exactly the same set: two review screens disagreeing about
+ * what counts is two different apps.
+ */
+export const isReviewable = (i: PlanItem) => i.title !== 'Work' && !i.fixed;
 
 /**
- * The rows to review, in the order they happened.
- *
- * Fixed calendar events are excluded: they are the person's own diary, not
- * something the app asked of them, and asking "did your dentist appointment
- * happen?" is the app pretending to have scheduled someone's life.
+ * The rows to review, in the order they happened. See `isReviewable`.
  */
 export function dayRows(plan: DailyPlan | undefined): DayRow[] {
   return (plan?.items ?? [])
-    .filter(meaningful)
+    .filter(isReviewable)
     .slice()
     .sort((a, b) => toMinutes(a.start) - toMinutes(b.start))
     .map((item) => ({

@@ -333,9 +333,23 @@ than the place they were supposed to eventually appear.
 
 ## 7. Order
 
-1. **The two review screens.** Smallest, most used, and they replace
-   screens that are actively worse. They also produce the data everything
-   else needs.
+1. **The two review screens.** ✅ Built. Smallest, most used, and they
+   replace screens that are actively worse. They also produce the data
+   everything else needs.
+
+   `app/review/day.tsx` is the three-column ✓/✗/+ grid, ending with
+   tomorrow's first thing. `app/review/week.tsx` is the time grid, reached
+   from the Week tab, with the proposals under it derived from what
+   actually happened — a dead slot named by routine, weekday and hour, the
+   morning shift offered only when the early hours died and later ones
+   lived, and the capacity dial as a direct `+` / `−`. Tap and move is a
+   tap, not a drag: seven columns on a 390pt phone leave 45 points each,
+   and a drag target that size is a demo rather than a control.
+
+   Two things only the browser found, both about reviewing mid-week: a
+   Saturday that has not arrived was counted in the denominator ("7 of 9"
+   for one miss), and it was counted as a death in the slot tally ("died
+   three times" after two). Both now stop at today.
 2. **Coach voices and the interrupt frame.** The character work is cheap
    and it changes how the whole app reads.
 3. **Setup as eight sections**, un-deferring everything, with the payout

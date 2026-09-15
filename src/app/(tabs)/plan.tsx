@@ -78,6 +78,20 @@ export default function Plan() {
         </Card>
       ) : null}
 
+      {/* The week that just happened, before the week being planned. The
+          grid is where a plan change comes from — see
+          features/review/weekReview.ts. */}
+      <Card
+        onPress={() => router.push('/review/week' as never)}
+        style={styles.routinesCard}
+        accessibilityLabel="Review the week"
+      >
+        <AppText variant="heading">How last week actually went</AppText>
+        <AppText variant="caption" color="textTertiary">
+          The whole week on one grid, and what it says to change.
+        </AppText>
+      </Card>
+
       <Card
         onPress={() => router.push('/plan/routines' as never)}
         style={styles.routinesCard}

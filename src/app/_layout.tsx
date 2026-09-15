@@ -96,6 +96,7 @@ export default function RootLayout() {
               entered and left deliberately, rather than cards competing
               inside a tab. See docs/REDESIGN.md §1. */}
           <Stack.Screen name="review/day" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="review/week" options={{ presentation: 'modal' }} />
           <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
           <Stack.Screen name="session/breathe" options={{ presentation: 'modal' }} />
           <Stack.Screen name="session/meditate" options={{ presentation: 'modal' }} />
