@@ -45,6 +45,7 @@ import {
   worksSomewhere,
   type WeekShape,
 } from './markets';
+import { parseGoal } from '@/features/goals/goalPlanner';
 
 export type StepKind = 'text' | 'single' | 'multi';
 
@@ -876,6 +877,48 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     optional: true,
     prompt: () => "Last one. What's one thing you're working toward this year?",
     placeholder: (a) => ambitionPlaceholder(a.weekShape as WeekShape | undefined),
+  },
+  {
+    id: 'ambitionTarget',
+    /**
+     * Asked only when the app cannot already tell.
+     *
+     * The six-month simulation is the clearest result in the whole set:
+     * the persona with one hard number and a date gained 184% from the
+     * coaches and finished at 82% completion; the persona closest to the
+     * target user gained 6%, because "grow the business to $2m" became a
+     * weekly review block. A measurable objective is the difference
+     * between a ladder and a mirror.
+     *
+     * But most people put the number in the sentence themselves —
+     * `parseGoal` already reads both a target and a date out of free text,
+     * and every way of writing a date is matched. So this asks only when
+     * BOTH are missing, which keeps the spine at twelve for anybody who
+     * wrote "sub-3 marathon in October" and adds one for somebody who
+     * wrote "get fitter".
+     *
+     * Optional, always. An ambition without a number is still an ambition,
+     * and refusing to accept one would be the app insisting on being able
+     * to grade you.
+     */
+    core: (a) => {
+      const text = typeof a.ambition === 'string' ? a.ambition.trim() : '';
+      if (!text) return false;
+      const parsed = parseGoal(text);
+      return !parsed.target && !parsed.timeframe;
+    },
+    kind: 'text',
+    optional: true,
+    prompt: () => 'What will tell you it worked — and by when?',
+    placeholder: () => 'e.g. 100 kg deadlift by March',
+    reveal: (a) => {
+      const answer = typeof a.ambitionTarget === 'string' ? a.ambitionTarget.trim() : '';
+      if (!answer) return null;
+      const parsed = parseGoal(answer);
+      return parsed.timeframe
+        ? 'Then the app can tell you whether the current rate gets you there, rather than only whether you showed up.'
+        : 'Noted. Add a date whenever you have one and the app can start telling you if the rate is enough.';
+    },
   },
 ];
 

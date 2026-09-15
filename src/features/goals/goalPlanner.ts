@@ -11,7 +11,7 @@
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import { answered } from '@/features/knowledge/questionBank';
 import { sessionsPerWeekFloor } from '@/features/training/programme';
-import { addDays, newId, toDateKey } from '@/lib/dates';
+import { addDays, newId, toDateKey, todayKey} from '@/lib/dates';
 import type {
   Goal,
   GoalDomain,
@@ -467,6 +467,28 @@ export function buildGoalPlan(
     domain: parsed.domain,
     why: why?.trim() || undefined,
     milestones: milestones.length > 0 ? milestones : undefined,
+    /**
+     * The date the person already wrote, finally kept.
+     *
+     * `parseGoal` has always read "in October" or "by June 2028" out of the
+     * sentence — every way of saying a date is matched, deliberately,
+     * because "a date is the one thing the person is most likely to put in
+     * the sentence". And then this function dropped it on the floor. Only
+     * the manual goal wizard (`composer.ts`) ever called `timeframeToDate`,
+     * so an ambition typed during onboarding arrived with no target date,
+     * no pace, and nothing for the trajectory engine to say "at this rate
+     * you arrive in March" about.
+     *
+     * The simulation is blunt about what that costs: the persona with one
+     * hard number and a date completed 82% of a much larger week and
+     * gained 184% from the coaches; the persona closest to the target user
+     * gained 6%, because his ambition became a weekly review block.
+     *
+     * Still undefined where the person named no date. A goal without one is
+     * a direction, and inventing a deadline manufactures a failure they
+     * never signed up for — see the field's own comment in domain.ts.
+     */
+    targetDate: timeframeToDate(parsed.timeframe, todayKey()),
     status: 'active',
     createdAt: new Date().toISOString(),
     routineIds: routines.map((r) => r.id),

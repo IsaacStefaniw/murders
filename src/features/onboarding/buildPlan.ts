@@ -197,6 +197,22 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   // training routine would only duplicate or, worse, orphan it.
   const ambition = str(answers, 'ambition');
   const parsedAmbition = ambition ? parseGoal(ambition) : null;
+  /**
+   * The number and date, where the sentence did not already carry them.
+   *
+   * Parsed separately rather than glued onto the ambition text, because
+   * the title is what gets rendered — appending "100 kg deadlift by March"
+   * to "Get strong enough to keep up with my kids" would produce a goal
+   * title nobody can read and a calendar block that truncates twice as
+   * hard. Only the missing fields are filled; anything the person already
+   * said in their own sentence wins.
+   */
+  const ambitionTarget = str(answers, 'ambitionTarget');
+  if (parsedAmbition && ambitionTarget) {
+    const extra = parseGoal(ambitionTarget);
+    parsedAmbition.target = parsedAmbition.target ?? extra.target;
+    parsedAmbition.timeframe = parsedAmbition.timeframe ?? extra.timeframe;
+  }
   const ambitionOwnsTraining = !walking && parsedAmbition?.domain === 'fitness';
 
   // Someone who said they do not want to train does not get a training
