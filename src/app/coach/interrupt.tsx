@@ -43,6 +43,7 @@ export default function CoachInterruptScreen() {
   const setPathIntensityPush = useAppStore((s) => s.setPathIntensityPush);
   const moveItem = useAppStore((s) => s.moveItem);
   const moveItemToDate = useAppStore((s) => s.moveItemToDate);
+  const toggleProtocol = useAppStore((s) => s.toggleProtocol);
 
   const interrupt = useMemo(() => {
     const budget = commitmentBudget({
@@ -61,7 +62,18 @@ export default function CoachInterruptScreen() {
       budget,
       today: date,
       nowMinutes: nowMinutes(),
-      seen: coachInterruptLog.map((i) => i.id),
+      /*
+        Everything seen EXCEPT the one being rendered.
+
+        Today records an interruption the moment it appears, so by the time
+        this screen mounts the id it was opened with is already in the log
+        — and a trigger that filters on its own history (the suggestion one
+        does, twice: once per practice and once per fortnight) would then
+        refuse to produce it, and the screen would say "nothing right now"
+        about the thing it had just navigated to. Only a browser found
+        this.
+      */
+      seen: coachInterruptLog.filter((s) => s.id !== id),
     });
     return all.find((i) => i.id === id) ?? null;
      
@@ -82,6 +94,9 @@ export default function CoachInterruptScreen() {
         break;
       case 'moveItemToDate':
         moveItemToDate(effect.date, effect.itemId, effect.targetDate);
+        break;
+      case 'protocol':
+        toggleProtocol(effect.protocolId);
         break;
       case 'none':
         break;
@@ -109,6 +124,11 @@ export default function CoachInterruptScreen() {
 
       <View style={styles.middle}>
         <AppText variant="title">{interrupt.says}</AppText>
+        {interrupt.detail ? (
+          <AppText variant="body" color="textSecondary" style={styles.detail}>
+            {interrupt.detail}
+          </AppText>
+        ) : null}
         <AppText variant="heading" style={styles.asks}>
           {interrupt.asks}
         </AppText>
@@ -132,11 +152,18 @@ export default function CoachInterruptScreen() {
       </View>
 
       {/* It always says why. An app that asks without saying why is a
-          survey wearing a coach's name. */}
+          survey wearing a coach's name. And where a practice carries a
+          caution, the caution is on this screen rather than behind a tap
+          somebody would have to know to take. */}
       <Card style={styles.why}>
         <AppText variant="caption" color="textTertiary">
           {interrupt.because}
         </AppText>
+        {interrupt.caveat ? (
+          <AppText variant="caption" color="must" style={styles.caveat}>
+            {interrupt.caveat}
+          </AppText>
+        ) : null}
       </Card>
 
       <Button title="Not now" variant="ghost" style={styles.gap} onPress={close} />
@@ -146,8 +173,10 @@ export default function CoachInterruptScreen() {
 
 const styles = StyleSheet.create({
   middle: { marginTop: Spacing.xxl },
+  detail: { marginTop: Spacing.md },
   asks: { marginTop: Spacing.lg },
   answers: { marginTop: Spacing.xl, gap: Spacing.sm },
   why: { marginTop: Spacing.xl },
+  caveat: { marginTop: Spacing.sm },
   gap: { marginTop: Spacing.md },
 });

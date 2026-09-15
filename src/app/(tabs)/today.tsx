@@ -185,7 +185,7 @@ export default function Today() {
             budget,
             today: date,
             nowMinutes: nowMinutes(),
-            seen: coachInterruptLog.map((i) => i.id),
+            seen: coachInterruptLog,
           }),
      
     [firstDay, plan, routines, plans, metrics, profile, budget, date, coachInterruptLog],

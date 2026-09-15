@@ -3,14 +3,17 @@ import {
   FAMILY_LATE_MIN,
   HELD_IN_A_ROW,
   SHORT_NIGHTS_TRIGGER,
+  SUGGESTION_GAP_DAYS,
+  SUGGESTION_GRADES,
   coachForArea,
   coachInterrupts,
   nextInterrupt,
 } from '@/features/coaches/interrupt';
 import { COACH_VOICES } from '@/features/coaches/voices';
 import type { MetricObservation } from '@/features/model/metrics';
+import { protocolById } from '@/features/knowledge/protocols';
 import { addDays } from '@/lib/dates';
-import type { DailyPlan, LifeProfile, PlanItem, Routine } from '@/types/domain';
+import type { DailyPlan, LifeArea, LifeProfile, PlanItem, Routine } from '@/types/domain';
 
 /**
  * A coach with something to say.
@@ -103,8 +106,21 @@ const input = (over: Partial<Parameters<typeof coachInterrupts>[0]> = {}) => ({
 /* ── Saying nothing ───────────────────────────────────────────────────── */
 
 describe('most of the time it has nothing to say', () => {
-  it('says nothing on an ordinary day', () => {
+  it('says nothing on an ordinary day with nothing running', () => {
     expect(nextInterrupt(input())).toBeNull();
+  });
+
+  it('says nothing about a routine that is simply going fine', () => {
+    const r = routine();
+    const fine = plans({
+      [addDays(TODAY, -1)]: [item({ routineId: r.id, status: 'completed' })],
+      [addDays(TODAY, -2)]: [item({ routineId: r.id, status: 'skipped' })],
+    });
+    expect(
+      coachInterrupts(input({ routines: [r], plans: fine })).filter(
+        (i) => !i.id.startsWith('suggest:'),
+      ),
+    ).toEqual([]);
   });
 
   it('says nothing at all without a profile', () => {
@@ -148,8 +164,12 @@ describe('one at a time, and once only', () => {
   it('never says the same thing twice', () => {
     const args = { routines: [r], plans: dead };
     const first = nextInterrupt(input(args));
-    expect(first).not.toBeNull();
-    expect(nextInterrupt(input({ ...args, seen: [first!.id] }))).toBeNull();
+    expect(first!.id).toMatch(/^slot:/);
+    const after = nextInterrupt(
+      input({ ...args, seen: [{ id: first!.id, at: `${TODAY}T08:00:00.000Z` }] }),
+    );
+    expect(after?.id).not.toBe(first!.id);
+    expect(after?.id ?? '').not.toMatch(/^slot:/);
   });
 });
 
@@ -250,7 +270,9 @@ describe('three held in a row', () => {
       [addDays(TODAY, -2)]: [item({ routineId: r.id, status: 'skipped' })],
       [addDays(TODAY, -3)]: [item({ routineId: r.id, status: 'completed' })],
     });
-    expect(coachInterrupts(input({ routines: [r], plans: mixed }))).toEqual([]);
+    expect(
+      coachInterrupts(input({ routines: [r], plans: mixed })).map((i) => i.id),
+    ).not.toContainEqual(expect.stringMatching(/^load:/));
   });
 });
 
@@ -273,13 +295,15 @@ describe('three short nights', () => {
 
   it('stays quiet at two short nights', () => {
     expect(
-      coachInterrupts(input({ plans: todayPlan, metrics: nights.slice(0, 2) })),
-    ).toEqual([]);
+      coachInterrupts(input({ plans: todayPlan, metrics: nights.slice(0, 2) })).map((i) => i.id),
+    ).not.toContainEqual(expect.stringMatching(/^sleep:/));
   });
 
   it('has nothing to offer when the day is already done', () => {
     const done = plans({ [TODAY]: [item({ status: 'completed' })] });
-    expect(coachInterrupts(input({ plans: done, metrics: nights }))).toEqual([]);
+    expect(
+      coachInterrupts(input({ plans: done, metrics: nights })).map((i) => i.id),
+    ).not.toContainEqual(expect.stringMatching(/^sleep:/));
   });
 });
 
@@ -302,8 +326,12 @@ describe('the evening work is about to eat', () => {
   });
 
   it('is silent two hours out, and silent once it has started', () => {
-    expect(coachInterrupts(input({ plans: dinner, nowMinutes: 16 * 60 }))).toEqual([]);
-    expect(coachInterrupts(input({ plans: dinner, nowMinutes: 18 * 60 }))).toEqual([]);
+    const family = (nowMinutes: number) =>
+      coachInterrupts(input({ plans: dinner, nowMinutes })).filter((i) =>
+        i.id.startsWith('family:'),
+      );
+    expect(family(16 * 60)).toEqual([]);
+    expect(family(18 * 60)).toEqual([]);
   });
 });
 
@@ -317,5 +345,183 @@ describe('who speaks for what', () => {
     // trigger is about when and how hard.
     expect(coachForArea('health')).toBe('training');
     expect(coachForArea('growth')).toBe('training');
+  });
+});
+
+
+/* ── Protocol suggestions ─────────────────────────────────────────────── */
+
+/**
+ * The library holds around two hundred graded practices and the app
+ * essentially never offered one: you browsed them or you did not get them.
+ * A suggestion is an interruption with a particular shape — here is a
+ * practice, what it is for, the grade and the caution, one tap in and one
+ * tap done.
+ */
+describe('suggesting a practice', () => {
+  const running = routine({ id: 'r-running', area: 'health' });
+  const suggest = (over = {}) =>
+    coachInterrupts(input({ routines: [running], ...over })).find((i) =>
+      i.id.startsWith('suggest:'),
+    );
+
+  it('offers one, from a coach, with the grade and the reasoning', () => {
+    const found = suggest()!;
+    expect(found).toBeDefined();
+    const p = protocolById(found.id.replace('suggest:', ''))!;
+    // The coach's line is short, and what the practice IS sits under it at
+    // reading size — a two-clause summary at title size ran to six lines
+    // of 32pt and swallowed the screen.
+    expect(found.says).toBe(p.title);
+    expect(found.detail).toBe(p.summary);
+    expect(found.asks).toContain(`${p.durationMin} minutes`);
+    expect(found.because).toContain(COACH_VOICES[found.pathId].name);
+    expect(found.because).toContain(p.why);
+    expect(found.answers[0].effect).toEqual({ kind: 'protocol', protocolId: p.id });
+    expect(found.answers[1].label).toBe('Not for me');
+  });
+
+  /**
+   * An unprompted suggestion is a different act from a shelf somebody
+   * chose to browse. A person who goes looking can read a D and decide;
+   * a person being interrupted is being told this is worth their Tuesday.
+   */
+  it('never offers a D or an E unprompted', () => {
+    const found = suggest()!;
+    const p = protocolById(found.id.replace('suggest:', ''))!;
+    expect(SUGGESTION_GRADES).toContain(p.evidenceLevel);
+    expect(SUGGESTION_GRADES).toEqual(['A', 'B', 'C']);
+    expect(SUGGESTION_GRADES).not.toContain('D');
+    expect(SUGGESTION_GRADES).not.toContain('E');
+  });
+
+  /**
+   * The line that was drawn at A and B until the library was counted: one
+   * A/B practice in family, none in relationship. The coach with the
+   * thinnest shelf would have been the coach that never spoke. Both
+   * shelves need more graded practices, and until they have them this is
+   * the check that the two smallest coaches can say something at all.
+   */
+  it('has something to say for every coach, including the thin shelves', () => {
+    const areas: LifeArea[] = ['family', 'relationship', 'health', 'work', 'admin'];
+    for (const area of areas) {
+      const found = coachInterrupts(
+        input({
+          routines: [routine({ id: `r-${area}`, area })],
+          profile: profile({ priorities: [area] }),
+        }),
+      ).find((i) => i.id.startsWith('suggest:'));
+      expect(found).toBeDefined();
+      expect(protocolById(found!.id.replace('suggest:', ''))!.area).toBe(area);
+    }
+  });
+
+  it('carries the practice’s own caution where it has one, not behind a tap', () => {
+    // Every suggestion with a safety line must surface it.
+    for (let i = 0; i < 6; i++) {
+      const found = suggest({
+        seen: coachInterrupts(input({ routines: [running] }))
+          .filter((x) => x.id.startsWith('suggest:'))
+          .map((x) => ({ id: x.id, at: '2000-01-01T00:00:00.000Z' })),
+      });
+      if (!found) break;
+      const p = protocolById(found.id.replace('suggest:', ''))!;
+      expect(found.caveat).toBe(p.safety);
+    }
+  });
+
+  it('stays inside the areas the person said matter', () => {
+    const found = suggest()!;
+    const p = protocolById(found.id.replace('suggest:', ''))!;
+    // The fixture ranks family and health. A practice from an area they
+    // did not rank would be the app deciding what their week is for.
+    expect(['family', 'health']).toContain(p.area);
+  });
+
+  it('says nothing to somebody whose week is empty', () => {
+    // They do not need a library pointed at them; they need a plan, and
+    // every other trigger exists to help them get one.
+    expect(coachInterrupts(input({ routines: [] })).some((i) => i.id.startsWith('suggest:'))).toBe(
+      false,
+    );
+    expect(
+      coachInterrupts(input({ routines: [routine({ active: false })] })).some((i) =>
+        i.id.startsWith('suggest:'),
+      ),
+    ).toBe(false);
+  });
+
+  it('never offers something already on the plan', () => {
+    const found = suggest()!;
+    const id = found.id.replace('suggest:', '');
+    const withIt = suggest({ routines: [running, routine({ id: 'r-have', protocolId: id })] });
+    expect(withIt?.id).not.toBe(found.id);
+  });
+
+  it('is the quietest thing a coach can say', () => {
+    // Anything actually wrong outranks it. A suggestion is what a coach
+    // says when nothing is.
+    const nights = [
+      sleep(addDays(TODAY, -1), 5),
+      sleep(addDays(TODAY, -2), 5),
+      sleep(addDays(TODAY, -3), 5),
+    ];
+    const all = coachInterrupts(
+      input({
+        routines: [running],
+        plans: plans({ [TODAY]: [item({ status: 'planned' })] }),
+        metrics: nights,
+      }),
+    );
+    expect(all[all.length - 1].id).toMatch(/^suggest:/);
+  });
+
+  it('waits a fortnight between suggestions, so it is not a feed', () => {
+    const yesterday = { id: 'suggest:something', at: addDays(TODAY, -1) + 'T08:00:00.000Z' };
+    expect(suggest({ seen: [yesterday] })).toBeUndefined();
+
+    const longAgo = {
+      id: 'suggest:something',
+      at: addDays(TODAY, -(SUGGESTION_GAP_DAYS + 1)) + 'T08:00:00.000Z',
+    };
+    expect(suggest({ seen: [longAgo] })).toBeDefined();
+    expect(SUGGESTION_GAP_DAYS).toBe(14);
+  });
+
+  it('goes through the gate, because saying yes is one more thing to do', () => {
+    expect(suggest()!.adds).toBe(true);
+    expect(
+      nextInterrupt(input({ routines: [running], budget: SHUT }))?.id.startsWith('suggest:'),
+    ).not.toBe(true);
+  });
+});
+
+
+/**
+ * The screen resolves an interruption by id, and Today records it the
+ * moment it appears. A trigger that filters on its own history would then
+ * refuse to produce the thing the screen had just been opened with — which
+ * is what happened, and what only a browser found.
+ */
+describe('resolving one that has already been shown', () => {
+  const running = routine({ id: 'r-running', area: 'health' });
+
+  it('produces it again once its own record is set aside', () => {
+    const first = coachInterrupts(input({ routines: [running] })).find((i) =>
+      i.id.startsWith('suggest:'),
+    )!;
+    const log = [{ id: first.id, at: `${TODAY}T08:00:00.000Z` }];
+
+    // With its own record in the log, the trigger declines — both the
+    // per-practice filter and the fortnight gap say no.
+    expect(
+      coachInterrupts(input({ routines: [running], seen: log })).some((i) => i.id === first.id),
+    ).toBe(false);
+
+    // The screen passes everything except the one it is rendering.
+    expect(
+      coachInterrupts(input({ routines: [running], seen: log.filter((s) => s.id !== first.id) }))
+        .some((i) => i.id === first.id),
+    ).toBe(true);
   });
 });

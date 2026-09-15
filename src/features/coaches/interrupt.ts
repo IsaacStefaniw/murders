@@ -42,6 +42,12 @@
  */
 
 import { mayOffer, type CommitmentBudget } from '@/features/budget/commitment';
+import {
+  evidenceLine,
+  listedProtocols,
+  type EvidenceLevel,
+  type Protocol,
+} from '@/features/knowledge/protocols';
 import type { MetricObservation } from '@/features/model/metrics';
 import { deadSlots, hourLabel } from '@/features/review/weekReview';
 import { voiceFor } from '@/features/coaches/voices';
@@ -64,7 +70,8 @@ export type InterruptEffect =
   | { kind: 'changes'; changes: WeeklyChange[] }
   | { kind: 'intensity'; pathId: PathId; push: boolean }
   | { kind: 'moveItem'; date: string; itemId: string; start: string }
-  | { kind: 'moveItemToDate'; date: string; itemId: string; targetDate: string };
+  | { kind: 'moveItemToDate'; date: string; itemId: string; targetDate: string }
+  | { kind: 'protocol'; protocolId: string };
 
 export interface InterruptAnswer {
   id: string;
@@ -76,14 +83,24 @@ export interface CoachInterrupt {
   /** Stable for the occasion, so it is shown once and never again. */
   id: string;
   pathId: PathId;
-  /** What the coach says, in its own voice. */
+  /** What the coach says, in its own voice. Rendered large, so kept short. */
   says: string;
+  /**
+   * A sentence under it, at reading size.
+   *
+   * A suggestion carries the practice's own summary, and at title size a
+   * two-clause summary ran to six lines of 32pt and swallowed the screen.
+   * What the coach SAYS is short; what the practice IS goes here.
+   */
+  detail?: string;
   /** The one question. */
   asks: string;
   /** Exactly two. */
   answers: [InterruptAnswer, InterruptAnswer];
   /** Why it fired, in the person's own numbers. Always shown. */
   because: string;
+  /** The practice's own caution, where it has one. Never hidden behind a tap. */
+  caveat?: string;
   /** True where saying yes means one more thing to do. Gated by mayOffer. */
   adds: boolean;
   /** Lower sorts first. Today beats this week beats whenever. */
@@ -131,8 +148,11 @@ export interface InterruptInput {
   today: string;
   /** Minutes since midnight. Separate from `today` so tests can stand anywhere. */
   nowMinutes: number;
-  /** Interruptions already shown. Each one happens once. */
-  seen: readonly string[];
+  /**
+   * Interruptions already shown, with when. Each one happens once, and the
+   * dates are what keeps suggestions from becoming a daily feed.
+   */
+  seen: readonly { id: string; at: string }[];
 }
 
 const dayItems = (plans: Record<string, DailyPlan>, date: string): PlanItem[] =>
@@ -298,9 +318,157 @@ function familyInterrupt(input: InterruptInput): CoachInterrupt | null {
   };
 }
 
+/* ── Protocol suggestions ─────────────────────────────────────────────── */
+
+/**
+ * The grades an unprompted suggestion is allowed to carry.
+ *
+ * An unprompted suggestion is a different act from a shelf somebody chose
+ * to browse. A person who goes looking can read a D — "what experienced
+ * people do, ahead of the research" — and decide for themselves; a person
+ * being interrupted is being told this is worth their Tuesday. D and E
+ * stay in the library and out of interruptions.
+ *
+ * ── Why C is in, and what that cost is admitting ────────────────────────
+ *
+ * This started at A and B, which is the defensible line, and then the
+ * library was counted:
+ *
+ *     health 79 practices, 38 at A or B
+ *     growth 33, 16 at A or B
+ *     admin  13,  6
+ *     work   21,  5
+ *     enjoyment 6, 1
+ *     family  9,  1
+ *     relationship 5, 0
+ *
+ * A family-first person would have been offered `child-bedtime-routine`
+ * once and then nothing, ever. Somebody whose week is about their
+ * relationship would have been offered nothing at all — the coach with the
+ * thinnest library would have been the coach that never spoke.
+ *
+ * That is not a reason to lower the bar quietly. It is a reason to lower
+ * it to C, which the library already describes as "some evidence, not
+ * settled", and to say the grade out loud in the interruption, which the
+ * `because` line does. It is also a finding worth acting on separately:
+ * the family and relationship shelves need more graded practices before
+ * suggestions can serve those two coaches properly, and no amount of
+ * arranging the ones that exist will fix it.
+ */
+export const SUGGESTION_GRADES: EvidenceLevel[] = ['A', 'B', 'C'];
+
+/** Days between suggestions. A coach that suggests daily is a feed. */
+export const SUGGESTION_GAP_DAYS = 14;
+
+/** The order a practice is worth offering in. Lower sorts first. */
+function suggestionRank(p: Protocol, priorities: readonly string[]): number[] {
+  const priority = priorities.indexOf(p.area);
+  return [
+    priority === -1 ? 99 : priority,
+    SUGGESTION_GRADES.indexOf(p.evidenceLevel),
+    // A smaller thing that happens beats a bigger one that does not — the
+    // same rule the weekly pruner shrinks by.
+    p.durationMin,
+  ];
+}
+
+/**
+ * A practice, offered by the coach whose area owns it.
+ *
+ * Point 4 of Isaac's five: the library has around two hundred graded
+ * protocols and the app essentially never offers one — you browse them or
+ * you do not get them. A suggestion is an interruption with a particular
+ * shape: here is a practice, here is what it is for, here is the grade and
+ * the caution, one tap to put it in the week and one tap to be done with
+ * it.
+ *
+ * It is the lowest-urgency trigger on purpose. It is what a coach says
+ * when nothing is wrong, and anything that IS wrong outranks it.
+ *
+ * Shown once each, ever. The id is the protocol's, so a practice that has
+ * been offered is never offered again — which also means "not for me" and
+ * backing out cost the same thing. With two hundred practices that is the
+ * right trade: the alternative is an app that asks again, and asking again
+ * is the whole of nagging.
+ */
+function suggestionInterrupt(input: InterruptInput): CoachInterrupt | null {
+  const { profile } = input;
+  if (!profile) return null;
+
+  // Nothing is offered to somebody with nothing running. A person whose
+  // week is empty does not need a two-hundred-item library pointed at
+  // them; they need their plan, and every other trigger here exists to
+  // help them get it. Suggestions are for a week that is already working.
+  if (!input.routines.some((r) => r.active)) return null;
+
+  const recent = input.seen.filter(
+    (s) =>
+      s.id.startsWith('suggest:') &&
+      (daysSince(s.at, input.today) ?? SUGGESTION_GAP_DAYS + 1) < SUGGESTION_GAP_DAYS,
+  );
+  if (recent.length > 0) return null;
+
+  const have = new Set(
+    input.routines.filter((r) => r.protocolId).map((r) => r.protocolId as string),
+  );
+  const offered = new Set(input.seen.map((s) => s.id));
+  const priorities = profile.priorities ?? [];
+
+  const candidate = listedProtocols(profile.sexAtBirth)
+    .filter((p) => !have.has(p.id))
+    .filter((p) => !offered.has(`suggest:${p.id}`))
+    .filter((p) => SUGGESTION_GRADES.includes(p.evidenceLevel))
+    // Only areas the person said matter. A practice from a part of life
+    // they did not rank is the app deciding what their week is for.
+    .filter((p) => priorities.includes(p.area))
+    .sort((a, b) => {
+      const ra = suggestionRank(a, priorities);
+      const rb = suggestionRank(b, priorities);
+      for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] - rb[i];
+      return a.id.localeCompare(b.id);
+    })[0];
+  if (!candidate) return null;
+
+  const pathId = coachForArea(candidate.area);
+  const v = voiceFor(pathId);
+  return {
+    id: `suggest:${candidate.id}`,
+    pathId,
+    says: candidate.title,
+    detail: candidate.summary,
+    asks: `${candidate.durationMin} minutes. Want it in your week?`,
+    because: `${v.name} suggests this: ${candidate.why} ${evidenceLine(candidate.evidenceLevel)}`,
+    caveat: candidate.safety,
+    adds: true,
+    urgency: 4,
+    answers: [
+      {
+        id: 'add',
+        label: 'Put it in',
+        effect: { kind: 'protocol', protocolId: candidate.id },
+      },
+      { id: 'not-for-me', label: 'Not for me', effect: { kind: 'none' } },
+    ],
+  };
+}
+
+/** Whole days between an ISO timestamp and a date key. */
+function daysSince(iso: string, today: string): number | null {
+  const then = Date.parse(iso);
+  const now = Date.parse(`${today}T00:00:00.000Z`);
+  if (!Number.isFinite(then) || !Number.isFinite(now)) return null;
+  return Math.floor((now - then) / 86400000);
+}
+
 /* ── Arbitration ──────────────────────────────────────────────────────── */
 
-const TRIGGERS = [familyInterrupt, sleepInterrupt, slotInterrupt, loadInterrupt];
+const TRIGGERS = [
+  familyInterrupt,
+  sleepInterrupt,
+  slotInterrupt,
+  loadInterrupt,
+  suggestionInterrupt,
+];
 
 /**
  * Everything a coach could say right now, most urgent first.
@@ -322,7 +490,7 @@ export function coachInterrupts(input: InterruptInput): CoachInterrupt[] {
  * has something to say is a coach nobody believes.
  */
 export function nextInterrupt(input: InterruptInput): CoachInterrupt | null {
-  const seen = new Set(input.seen);
+  const seen = new Set(input.seen.map((s) => s.id));
   const offer = mayOffer(input.budget);
   return (
     coachInterrupts(input).find((i) => !seen.has(i.id) && (offer || !i.adds)) ?? null

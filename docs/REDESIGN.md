@@ -423,7 +423,36 @@ than the place they were supposed to eventually appear.
    birth date. The decade stays for anyone who would rather not say, is
    skipped once a year is given, and the markers card now names the
    precision it is working at.
-5. **Protocol suggestions** through the interrupt frame.
+5. **Protocol suggestions** ✅ Built, through the interrupt frame.
+
+   A suggestion is an interruption with a particular shape: here is a
+   practice, what it is for, its grade in plain words, its caution, one tap
+   in and one tap done. It is the lowest-urgency trigger — what a coach
+   says when nothing is wrong — it goes through `mayOffer` because saying
+   yes is one more thing to do, it waits a fortnight between suggestions,
+   and it says nothing at all to somebody whose week is still empty.
+
+   **A finding worth acting on separately.** The grade floor started at A
+   and B, which is the defensible line, until the library was counted:
+
+   | area | practices | at A or B |
+   |---|---|---|
+   | health | 79 | 38 |
+   | growth | 33 | 16 |
+   | admin | 13 | 6 |
+   | work | 21 | 5 |
+   | enjoyment | 6 | 1 |
+   | **family** | **9** | **1** |
+   | **relationship** | **5** | **0** |
+
+   A family-first person would have been offered one practice and then
+   nothing ever again; somebody whose week is about their relationship
+   would have been offered nothing at all. The coach with the thinnest
+   shelf would have been the coach that never spoke. The floor moved to C
+   — "some evidence, not settled", said out loud in the interruption — and
+   D and E stay out. But arranging the practices that exist will not fix
+   this: **the family and relationship shelves need more graded
+   practices.**
 
 ---
 
