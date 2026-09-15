@@ -87,6 +87,7 @@ describe('large text', () => {
     'breathe.tsx',     // the breathing circle
     'LevelCard.tsx',   // a 6pt progress bar
     'DragToMove.tsx',  // a shadow offset, not a layout width
+    '_layout.tsx',     // the 2pt rule marking the active tab
   ];
 
   it('never pins a text column to a fixed width', () => {
@@ -201,5 +202,35 @@ describe('type sizes', () => {
       }
     }
     expect(offenders).toEqual([]);
+  });
+});
+
+/**
+ * Tap targets, for the control people touch most.
+ *
+ * The tab bar shipped at about 29pt — a 21pt line with `Spacing.xs` above
+ * and below — against Apple's 44pt floor. `chip.tsx` carries a comment
+ * defending 44pt for a chip; the bar underneath every screen quietly
+ * ignored it.
+ *
+ * Read from the file rather than imported: `_layout.tsx` pulls in
+ * expo-router's navigator, which does not load under jest, and the point
+ * here is the number rather than the rendering.
+ */
+describe('the tab bar', () => {
+  const layout = readFileSync(join(SRC, 'app', '(tabs)', '_layout.tsx'), 'utf8');
+
+  it('meets the 44pt minimum touch target', () => {
+    const declared = layout.match(/export const TAB_MIN_TOUCH = (\d+)/)?.[1];
+    expect(Number(declared)).toBeGreaterThanOrEqual(44);
+    expect(layout).toMatch(/minHeight: TAB_MIN_TOUCH/);
+  });
+
+  it('marks the active tab with something other than font weight', () => {
+    // Focused and unfocused used to differ only by weight and a grey, at
+    // the same size in the same place, so finding where you are meant
+    // reading four words rather than glancing at a shape.
+    expect(layout).toMatch(/styles\.marker/);
+    expect(layout).toMatch(/focused \? theme\.accent/);
   });
 });
