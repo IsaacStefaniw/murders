@@ -144,7 +144,7 @@ export default function WeekReview() {
 
           {grid.rows.map((row) => (
             <View key={row.hour} style={styles.gridRow}>
-              <AppText variant="caption" color="textTertiary" style={styles.hourLabel}>
+              <AppText variant="caption" color="textTertiary" style={styles.hourLabel} numeric>
                 {row.label}
               </AppText>
               {row.cells.map((cell, col) => {

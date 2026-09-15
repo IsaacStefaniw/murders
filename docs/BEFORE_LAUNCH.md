@@ -311,11 +311,20 @@ Three things worth building, none of which breaks the no-account promise:
 - **Tab bar targets are ~29pt** (`paddingVertical: Spacing.xs` = 4, plus a
   21pt line) against Apple's 44pt minimum — on the most-touched control in
   the app. `chip.tsx` has a comment defending 44pt; the tab bar ignores it.
-- **No usable type scale.** 34/26/18/16/15/14/12 — the bottom four steps
-  are ratios of 1.125, 1.07, 1.07. `secondary` vs `body` exists in code
-  and not in the eye.
-- **No tabular numerals anywhere**, so times do not align in their column.
-- **`Fonts` is defined in `theme.ts` and never used.**
+- ✅ **The type scale is rebuilt.** It ran 34/26/18/16/15/14/12, where the
+  bottom four steps were ratios of 1.125, 1.07 and 1.07 — seven names for
+  about four sizes. It is now 36/28/21/17/14 plus a 12pt uppercase
+  eyebrow, every step at least a fifth apart, with a test that holds the
+  gaps. **`secondary` became body size in the quieter colour**, which is
+  what it always was: the colour had already made the distinction and one
+  point of size was a second signal for it. The 14pt reading floor from
+  `docs/MARKETS.md` is what shapes the whole thing — with a floor there
+  and a ceiling near 36, six even steps would need a ratio of 1.17, which
+  is the same invisible difference in a new suit. Five sizes, not seven.
+- ✅ **Tabular numerals**, on a `numeric` prop, used by the two review
+  grids and every column of times.
+- ✅ **`Fonts` is used.** It sat in `theme.ts` unreferenced since it was
+  written, so the web preview rendered in whatever the browser chose.
 - **`display` (34pt) is rendered inside cards** — the largest type on
   Today was the empty state.
 
@@ -324,7 +333,7 @@ Three things worth building, none of which breaks the no-account promise:
 ## 9. Order
 
 **Now** — ✅ Now reduced to one job (the one restructure item everyone
-kept); ✅ number-and-date question; ✅ tab bar 44pt + icons; type scale.
+kept); ✅ number-and-date question; ✅ tab bar 44pt + icons; ✅ type scale.
 
 > **Today, done.** `features/today/attention.ts` arbitrates the eleven
 > blocks that could render at once. At most one, ever, ranked

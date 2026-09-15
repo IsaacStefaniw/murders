@@ -462,7 +462,7 @@ export default function Today() {
       <SectionHeader title="Now" color="must" />
       {nowItem ? (
         <Card style={[styles.nowCard, { borderColor: theme.accent }]}>
-          <AppText variant="caption" color="textTertiary">
+          <AppText variant="caption" color="textTertiary" numeric>
             {nowTimeLabel}
             {nowItem.shortenedFromMin ? ' · shortened to fit' : ''}
           </AppText>

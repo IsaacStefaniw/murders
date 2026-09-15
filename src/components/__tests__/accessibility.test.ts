@@ -184,6 +184,53 @@ describe('type sizes', () => {
   });
 
   /**
+   * A scale a person can see.
+   *
+   * The old one ran 34/26/18/16/15/14/12, where the bottom four steps
+   * were ratios of 1.125, 1.07 and 1.07 — seven names for about four
+   * sizes. Every step that is a SIZE step now differs by at least a
+   * fifth, which is roughly where a difference stops being a rounding
+   * error and starts being a hierarchy.
+   *
+   * `secondary` is exempt because it is deliberately body size in the
+   * quieter colour: the colour was always what made it secondary, and one
+   * point of size was a second signal for a distinction already made.
+   * `label` is exempt because an uppercase eyebrow is a register, not a
+   * step.
+   */
+  it('steps by enough to be visible', () => {
+    const t = sizes();
+    const scale = [t.caption, t.body, t.heading, t.title, t.display];
+    for (let i = 1; i < scale.length; i++) {
+      const ratio = scale[i] / scale[i - 1];
+      expect(`${scale[i - 1]}→${scale[i]} = ${ratio.toFixed(2)}`).toBe(
+        `${scale[i - 1]}→${scale[i]} = ${Math.max(1.2, ratio).toFixed(2)}`,
+      );
+    }
+    expect(t.secondary).toBe(t.body);
+  });
+
+  /**
+   * Times in a column wander with the width of a 1 unless the figures are
+   * tabular. Every screen in this app that matters is a column of times.
+   */
+  it('offers tabular figures, and the review grids use them', () => {
+    const text = readFileSync(join(SRC, 'components', 'text.tsx'), 'utf8');
+    expect(text).toContain("fontVariant: ['tabular-nums']");
+    for (const file of ['app/review/day.tsx', 'app/review/week.tsx', 'features/today/plan-item-row.tsx']) {
+      expect(readFileSync(join(SRC, file), 'utf8')).toContain('numeric');
+    }
+  });
+
+  /**
+   * `Fonts` sat in theme.ts, used by nothing, since it was written — so
+   * the web preview rendered in whatever the browser felt like.
+   */
+  it('actually uses the font stack it defines', () => {
+    expect(readFileSync(join(SRC, 'components', 'text.tsx'), 'utf8')).toContain('Fonts?.sans');
+  });
+
+  /**
    * charts.tsx draws 9pt axis ticks. Every chart carries an
    * accessibilityLabel that says the numbers in words, so the ticks are
    * decoration for people who can see them — but 9pt is small for the

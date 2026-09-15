@@ -81,7 +81,7 @@ export default function DayReview() {
           {rows.map((row) => (
             <View key={row.item.id} style={[styles.row, { borderTopColor: theme.border }]}>
               <View style={styles.rowHead}>
-                <AppText variant="caption" color="textTertiary" style={styles.time}>
+                <AppText variant="caption" color="textTertiary" style={styles.time} numeric>
                   {formatTime(row.item.start)}
                 </AppText>
                 <AppText variant="body" style={styles.grow}>
@@ -163,7 +163,7 @@ export default function DayReview() {
           <SectionHeader title="Tomorrow" />
           <Card>
             <View style={styles.rowHead}>
-              <AppText variant="caption" color="textTertiary" style={styles.time}>
+              <AppText variant="caption" color="textTertiary" style={styles.time} numeric>
                 {formatTime(next.start)}
               </AppText>
               <AppText variant="body" style={styles.grow}>

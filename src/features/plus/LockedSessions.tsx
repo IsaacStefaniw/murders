@@ -48,7 +48,7 @@ export function LockedSessions({
                 Plus
               </AppText>
             </View>
-            <AppText variant="caption" color="textTertiary">
+            <AppText variant="caption" color="textTertiary" numeric>
               around {formatTime(r.preferredStart)} · {r.durationMin} min
             </AppText>
           </Card>

@@ -105,7 +105,7 @@ export function PlanItemRow({
       >
         <View style={styles.main}>
           <View style={styles.time}>
-            <AppText variant="caption" color="textTertiary">
+            <AppText variant="caption" color="textTertiary" numeric>
               {formatTime(item.start)}
             </AppText>
             {length ? (
