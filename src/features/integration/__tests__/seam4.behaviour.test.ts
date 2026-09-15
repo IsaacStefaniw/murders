@@ -14,6 +14,7 @@ import { plannedNotifications } from '@/features/notifications/schedule';
 import { PATHS } from '@/features/paths/definitions';
 import {
   FREE_MEDITATION_MAX_MIN,
+  freeCoachArea,
   isAlwaysFreeRoutine,
   meditationLengthNeedsPlus,
   sessionsPlusWouldRun,
@@ -51,9 +52,28 @@ describe('with Plus off', () => {
     const plan = s().ensurePlan(FRIDAY);
     const ownIds = new Set(own.map((r) => r.id));
     expect(plan.items.some((i) => i.routineId && ownIds.has(i.routineId))).toBe(true);
-    const locked = sessionsPlusWouldRun(s().routines, FRIDAY, recovery.goalId);
-    expect(locked.some((r) => r.protocolId === 'strength')).toBe(true);
-    expect(plan.items.some((i) => i.title === locked.find((r) => r.protocolId === 'strength')!.title)).toBe(false);
+    // The paid coaches wait — but "paid" no longer means "all of them".
+    // One coach runs free, chosen by the person's own first priority, and
+    // this harness ranks health first, so strength IS free here. The thing
+    // that must still be locked is a coach they did not rank first.
+    const freeArea = freeCoachArea(s().profile!.priorities);
+    expect(freeArea).toBe('health');
+    const locked = sessionsPlusWouldRun(s().routines, FRIDAY, recovery.goalId, freeArea);
+    // Nothing free is ever offered as locked.
+    expect(locked.some((r) => r.area === 'health')).toBe(false);
+    // And the rule, stated directly rather than via whichever routine
+    // happens to fall on a Friday: every flexible thing on a free plan is
+    // either the free coach, the recovery goal, or a habit they already
+    // had. For this persona — health first, doomscrolling — that covers
+    // the whole day, and `locked` is legitimately empty.
+    const byId = new Map(s().routines.map((r) => [r.id, r]));
+    const offenders = plan.items
+      .filter((i) => !i.fixed && i.routineId)
+      .map((i) => byId.get(i.routineId!))
+      .filter((r): r is NonNullable<typeof r> => !!r)
+      .filter((r) => !isAlwaysFreeRoutine(r, recovery.goalId, freeArea))
+      .map((r) => r.title);
+    expect(offenders).toEqual([]);
   });
 
   it('four logs become a window, a time ahead of it, and a card on the right days', () => {

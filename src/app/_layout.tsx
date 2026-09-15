@@ -92,6 +92,10 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="check-in/morning" options={{ presentation: 'modal' }} />
           <Stack.Screen name="check-in/evening" options={{ presentation: 'modal' }} />
+          {/* The reviews are breakouts: full screens that own the moment,
+              entered and left deliberately, rather than cards competing
+              inside a tab. See docs/REDESIGN.md §1. */}
+          <Stack.Screen name="review/day" options={{ presentation: 'modal' }} />
           <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
           <Stack.Screen name="session/breathe" options={{ presentation: 'modal' }} />
           <Stack.Screen name="session/meditate" options={{ presentation: 'modal' }} />

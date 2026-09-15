@@ -45,7 +45,7 @@ import { displacedLine } from '@/features/planner/displaced';
 import { useAppStore } from '@/state/store';
 import type { PlanItem } from '@/types/domain';
 import { LockedSessions } from '@/features/plus/LockedSessions';
-import { freeCoachFor } from '@/features/plus/entitlement';
+import { freeCoachArea } from '@/features/plus/entitlement';
 import { PlusNudge } from '@/features/plus/PlusNudge';
 import { TonightCard } from '@/features/behaviours/TonightCard';
 import { applicableRoutines } from '@/features/knowledge/protocols';
@@ -76,9 +76,9 @@ export default function Today() {
   const plus = useAppStore((s) => s.entitlement.plus);
   const recoveryGoalId = useAppStore((s) => s.paths.recovery?.goalId);
   // The coach that runs free, from their own top priority — see
-  // entitlement.freeCoachFor for why one has to run without paying.
-  const paths = useAppStore((s) => s.paths);
-  const freeCoachGoalId = profile ? paths[freeCoachFor(profile.priorities)]?.goalId : undefined;
+  // entitlement.freeCoachArea for why one has to run without paying, and
+  // why it is keyed on the area rather than on a started pathway.
+  const freeArea = profile ? freeCoachArea(profile.priorities) : undefined;
   const goals = useAppStore((s) => s.goals);
   const plans = useAppStore((s) => s.plans);
   const ensurePlan = useAppStore((s) => s.ensurePlan);
@@ -462,7 +462,7 @@ export default function Today() {
           routines={applicableRoutines(routines, profile.sexAtBirth)}
           date={date}
           recoveryGoalId={recoveryGoalId}
-          freeCoachGoalId={freeCoachGoalId}
+          freeArea={freeArea}
         />
       ) : null}
 
@@ -634,7 +634,7 @@ export default function Today() {
           </DragToMove>
         ))}
         <Card
-          onPress={isEvening && !hasEveningReflection ? () => router.push('/check-in/evening') : undefined}
+          onPress={isEvening && !hasEveningReflection ? () => router.push('/review/day') : undefined}
           accessibilityLabel="Tonight"
         >
           {plan.intention ? (

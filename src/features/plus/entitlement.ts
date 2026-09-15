@@ -13,8 +13,7 @@
  * feeds it purchases; the store keeps the result; screens read it.
  */
 import type { Protocol } from '@/features/knowledge/protocols';
-import type { PathId } from '@/features/paths/definitions';
-import type { Routine } from '@/types/domain';
+import type { LifeArea, Routine } from '@/types/domain';
 import { weekdayOf } from '@/lib/dates';
 
 export const PLUS_PRODUCTS = {
@@ -138,11 +137,11 @@ export function splitLibrary(
 export function isAlwaysFreeRoutine(
   r: Routine,
   recoveryGoalId?: string,
-  freeCoachGoalId?: string,
+  freeArea?: LifeArea,
 ): boolean {
   if (recoveryGoalId && r.goalId === recoveryGoalId) return true;
-  // One coach runs, free, forever — see FREE_COACH_FOR.
-  if (freeCoachGoalId && r.goalId === freeCoachGoalId) return true;
+  // One coach runs, free, forever — see freeCoachArea.
+  if (freeArea && r.area === freeArea) return true;
   // A habit the person told the interview they already have is theirs, not
   // the coaches': it is placed on the free day so the day has rows and the
   // walk they already take is never behind a lock. Isaac's call, after the
@@ -161,11 +160,11 @@ export function runningRoutines(
   routines: Routine[],
   plus: boolean,
   recoveryGoalId?: string,
-  freeCoachGoalId?: string,
+  freeArea?: LifeArea,
 ): Routine[] {
   return plus
     ? routines
-    : routines.filter((r) => isAlwaysFreeRoutine(r, recoveryGoalId, freeCoachGoalId));
+    : routines.filter((r) => isAlwaysFreeRoutine(r, recoveryGoalId, freeArea));
 }
 
 /**
@@ -178,7 +177,7 @@ export function sessionsPlusWouldRun(
   routines: Routine[],
   dateKey: string,
   recoveryGoalId?: string,
-  freeCoachGoalId?: string,
+  freeArea?: LifeArea,
 ): Routine[] {
   const weekday = weekdayOf(dateKey);
   return routines
@@ -186,7 +185,7 @@ export function sessionsPlusWouldRun(
       (r) =>
         r.active !== false &&
         r.days.includes(weekday) &&
-        !isAlwaysFreeRoutine(r, recoveryGoalId, freeCoachGoalId),
+        !isAlwaysFreeRoutine(r, recoveryGoalId, freeArea),
     )
     .sort((a, b) => a.preferredStart.localeCompare(b.preferredStart));
 }
@@ -220,21 +219,35 @@ export function sessionsPlusWouldRun(
  * with the most built behind it and the one most likely to produce a
  * session on day one.
  */
-export const FREE_COACH_FOR: Record<string, PathId> = {
-  health: 'training',
-  family: 'family',
-  relationship: 'relationship',
-  work: 'work',
-  admin: 'money',
-};
+/**
+ * Which coach runs free, as an AREA rather than a pathway.
+ *
+ * The first version of this mapped a priority to a PathId and looked up
+ * that path's goal. Running the real app showed it silently did nothing
+ * for most people: `buildLifeOperatingPlan` only ever auto-starts
+ * nutrition, money and recovery, so somebody whose top priority was family
+ * had no started family path, no goal id to match, and therefore no free
+ * coach at all. Today still read "Dinner together — Plus".
+ *
+ * An area is the right key because it is the same vocabulary the person
+ * answered in: the priorities question offers family, relationship,
+ * health, work, growth, enjoyment and admin, and `Routine.area` uses those
+ * exact values. So the routine either belongs to the part of life they
+ * ranked first or it does not, and no pathway needs to have been started
+ * for that to be true.
+ *
+ * Growth and enjoyment fall back to health: they are real answers with
+ * little scheduled behind them, and health is the area most likely to have
+ * produced something on day one.
+ */
+export const FREE_AREA_FALLBACK: LifeArea = 'health';
 
-/** The coach that runs free, from the person's own ranking. */
-export function freeCoachFor(priorities: readonly string[] | undefined): PathId {
+export function freeCoachArea(priorities: readonly string[] | undefined): LifeArea {
+  const areas: LifeArea[] = ['family', 'relationship', 'health', 'work', 'admin'];
   for (const p of priorities ?? []) {
-    const coach = FREE_COACH_FOR[p];
-    if (coach) return coach;
+    if ((areas as readonly string[]).includes(p)) return p as LifeArea;
   }
-  return 'training';
+  return FREE_AREA_FALLBACK;
 }
 
 /** Guided sits longer than a reset are Plus. Two minutes is always free. */

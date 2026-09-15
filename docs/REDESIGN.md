@@ -182,6 +182,41 @@ notification, not a coach.
 
 ---
 
+### How far a coach can reach
+
+Isaac: *"they should be able to email users as well as prompt in app."*
+Three channels, in order of what exists today.
+
+**1. In-app — built.** The interrupt frame above. Free, instant, and the
+only one where the coach can actually ask something and get an answer.
+
+**2. Local notification — already built and already wired.**
+`useNotificationSync` is mounted in `_layout.tsx` and
+`plannedNotifications` computes a queue with quiet hours honoured. The
+coaches simply do not use it. This is the fastest out-of-app voice
+available and it costs nothing: *"Dinner in 45"* can fire tonight, no
+server, no account, no address.
+
+**3. Email — genuinely new, and a real decision.** It cannot be done
+without breaking one of two things:
+
+- An address plus a server to send from. That ends "no account, nothing
+  leaves your phone", which is the product's clearest differentiator and
+  the one line the user in testing said stopped them bouncing.
+- Or the device composing a message the person sends themselves — which
+  is a share sheet, not a coach emailing you.
+
+There is a middle path worth considering: **email is opt-in, address-only,
+and severed from plan data.** The server knows an address and a schedule;
+it never sees what you do. The weekly coach digest is composed on-device
+and either sent through the share sheet or rendered into a notification —
+the server's only job is the nudge, not the content.
+
+Recommendation: **ship notifications now** (a week's work, no
+architectural cost, and it delivers most of what "reach the user outside
+the app" means), and treat email as a deliberate v1.1 decision with the
+privacy trade written down rather than discovered.
+
 ## 4. Protocol suggestions
 
 Point 4 of the five. The library has ~200 graded protocols and the app

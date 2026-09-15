@@ -8,7 +8,7 @@ import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { sessionsPlusWouldRun } from '@/features/plus/entitlement';
 import { formatTime } from '@/lib/dates';
-import type { Routine } from '@/types/domain';
+import type { LifeArea, Routine } from '@/types/domain';
 
 /**
  * On Today, without Plus: what the coaches built for this exact day, by
@@ -19,15 +19,15 @@ export function LockedSessions({
   routines,
   date,
   recoveryGoalId,
-  freeCoachGoalId,
+  freeArea,
 }: {
   routines: Routine[];
   date: string;
   recoveryGoalId?: string;
-  freeCoachGoalId?: string;
+  freeArea?: LifeArea;
 }) {
   const router = useRouter();
-  const sessions = sessionsPlusWouldRun(routines, date, recoveryGoalId, freeCoachGoalId);
+  const sessions = sessionsPlusWouldRun(routines, date, recoveryGoalId, freeArea);
   if (sessions.length === 0) return null;
   return (
     <View>

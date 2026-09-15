@@ -28,7 +28,7 @@ import { applicableRoutines, protocolById, routineApplies, toRoutine } from '@/f
 import { observe, type MetricObservation } from '@/features/model/metrics';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { NO_ENTITLEMENT, runningRoutines, type Entitlement,
-  freeCoachFor,
+  freeCoachArea,
 } from '@/features/plus/entitlement';
 import { MAX_PACE_SNAPSHOTS, MAX_SLEEP_NIGHTS, PERSIST_VERSION, migratePersisted, pruneHistory } from '@/state/hygiene';
 import { ritualKey, type RitualEntry, type RitualKind } from '@/features/cadence/rituals';
@@ -1021,15 +1021,14 @@ export const useAppStore = create<AppState>()(
           // never planned, whatever the entitlement says.
           const applicable = applicableRoutines(routines, profile.sexAtBirth);
           // One coach runs free, chosen by the person's own top priority —
-          // see entitlement.freeCoachFor. Without this a new user finished
-          // the interview and met a locked card under a heading announcing
-          // the coaches had built them something.
-          const freeCoachGoalId = get().paths[freeCoachFor(profile.priorities)]?.goalId;
+          // see entitlement.freeCoachArea. Keyed on AREA rather than on a
+          // started pathway, because most pathways are never auto-started
+          // and the first version therefore freed nothing at all.
           const running = runningRoutines(
             applicable,
             entitlement.plus,
             get().paths.recovery?.goalId,
-            freeCoachGoalId,
+            freeCoachArea(profile.priorities),
           );
           // What these sessions actually take this person, drawn from
           // their own finished blocks. A routine with fewer than three
