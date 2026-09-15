@@ -15,6 +15,8 @@ import { protocolById } from '@/features/knowledge/protocols';
 import { MindHub } from '@/features/mind/MindHub';
 import { MoneyHub } from '@/features/money/MoneyHub';
 import { NutritionHub } from '@/features/nutrition/NutritionHub';
+import { CoachIntro } from '@/features/coaches/CoachIntro';
+import { coachLine } from '@/features/coaches/voices';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { LevelCard } from '@/features/paths/LevelCard';
 import { NextRungCard } from '@/features/paths/NextRungCard';
@@ -96,9 +98,15 @@ export default function PathHub() {
           <Button title="Close" variant="ghost" onPress={close} />
         </View>
         <AppText variant="title">{def.title}</AppText>
-        <AppText variant="secondary" style={styles.sub}>
-          {def.promise}
+        <AppText variant="caption" color="textTertiary">
+          {coachLine(def.id)}
         </AppText>
+
+        {/* Who is about to build this, before they build it. A coach you
+            chose is one you listen to, and you cannot choose a program. */}
+        <View style={styles.sub}>
+          <CoachIntro pathId={def.id} />
+        </View>
 
         {def.questions.map((q) => (
           <View key={q.key}>

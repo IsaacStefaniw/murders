@@ -1,4 +1,5 @@
 import { freeCoachArea, isAlwaysFreeRoutine, runningRoutines } from '@/features/plus/entitlement';
+import { PATH_AREA, PATH_ORDER } from '@/features/paths/definitions';
 import type { LifeArea, Routine } from '@/types/domain';
 
 /**
@@ -78,5 +79,41 @@ describe('what runs without paying', () => {
   it('leaves the other areas locked, which is what Plus is for', () => {
     const work = routine({ id: 'w', area: 'work' });
     expect(isAlwaysFreeRoutine(work, undefined, 'family' as LifeArea)).toBe(false);
+  });
+});
+
+
+/**
+ * The Coaches tab advertises the free coach from the same rule Today
+ * places it by. Until `PATH_AREA` existed the tab read every non-recovery
+ * coach as "Plus puts its sessions into your days", including the one
+ * already running for nothing — the app disagreeing with itself about
+ * what somebody had paid for.
+ */
+describe('the tab and the day agree', () => {
+  it('maps every coach to the area its routines carry', () => {
+    for (const id of PATH_ORDER) expect(PATH_AREA[id]).toBeDefined();
+    expect(PATH_AREA.family).toBe('family');
+    expect(PATH_AREA.work).toBe('work');
+    // Three coaches share `health` on purpose: a free health area really
+    // does run training, nutrition and the urge tools.
+    expect([PATH_AREA.training, PATH_AREA.nutrition, PATH_AREA.recovery]).toEqual([
+      'health',
+      'health',
+      'health',
+    ]);
+  });
+
+  it('marks free exactly the coaches whose routines run free', () => {
+    const freeArea = freeCoachArea(['family', 'health']);
+    const free = PATH_ORDER.filter((id) => PATH_AREA[id] === freeArea);
+    expect(free).toEqual(['family']);
+    expect(
+      isAlwaysFreeRoutine(
+        { id: 'r', title: 'Dinner together', area: 'family', active: true } as Routine,
+        undefined,
+        freeArea,
+      ),
+    ).toBe(true);
   });
 });

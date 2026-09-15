@@ -29,7 +29,7 @@ import {
 import { moneySteps } from '@/features/money/plan';
 import { sessionsPerWeekFloor } from '@/features/training/programme';
 import { newId, toHHMM, toMinutes } from '@/lib/dates';
-import type { BehaviourKey, LifeProfile, Routine } from '@/types/domain';
+import type { BehaviourKey, LifeArea, LifeProfile, Routine } from '@/types/domain';
 
 import { fitLadderToBudget, ladderFor } from './programme';
 import { LEVEL_ORDER, type PathLevel } from './level';
@@ -1150,3 +1150,23 @@ export const PATH_ORDER: PathId[] = [
   'relationship',
   'family',
 ];
+
+/**
+ * The part of life each coach works in.
+ *
+ * The free coach is chosen by area rather than by path (see
+ * `plus/entitlement.freeCoachArea`), because that is the field the
+ * scheduler and the entitlement check actually read. Three coaches map to
+ * `health`, and that is not a collision to fix: somebody whose free area
+ * is health genuinely gets training, nutrition and the urge tools running,
+ * because every routine those three build carries `area: 'health'`.
+ */
+export const PATH_AREA: Record<PathId, LifeArea> = {
+  training: 'health',
+  nutrition: 'health',
+  money: 'admin',
+  work: 'work',
+  recovery: 'health',
+  relationship: 'relationship',
+  family: 'family',
+};

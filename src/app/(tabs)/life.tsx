@@ -20,7 +20,9 @@ import { behaviourInfo } from '@/features/behaviours/catalog';
 import { behaviourPattern, weekNote } from '@/features/behaviours/patterns';
 import { goalTrajectory } from '@/features/model/trajectory';
 import { GoalProgress } from '@/features/goals/GoalProgress';
-import { PATH_ORDER, PATHS } from '@/features/paths/definitions';
+import { coachLine, voiceFor } from '@/features/coaches/voices';
+import { PATH_AREA, PATH_ORDER, PATHS } from '@/features/paths/definitions';
+import { freeCoachArea } from '@/features/plus/entitlement';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
@@ -107,6 +109,7 @@ export default function Life() {
 
   if (!profile) return <Screen tabbed />;
 
+  const freeArea = freeCoachArea(profile.priorities);
   const activeGoals = goals.filter((g) => g.status === 'active');
   const activeIntentions = behaviourIntentions.filter((b) => b.active);
 
@@ -117,8 +120,8 @@ export default function Life() {
       </AppText>
       <AppText variant="title">What you&apos;re building</AppText>
       <AppText variant="caption" color="textTertiary">
-        A coach here is a program, not a person: each one builds and runs a plan for one part of
-        your life, from the same answers.
+        Seven specialists, each one building and running a plan for one part of your life from the
+        same answers. They tell you what they need and what they will never do.
       </AppText>
       {profile.lifeVision ? (
         <AppText variant="secondary" style={styles.vision}>
@@ -133,9 +136,9 @@ export default function Life() {
         promise="One more thing IntentNorth can use across every coach."
       />
 
-      <SectionHeader title="Programs" />
+      <SectionHeader title="Your coaches" />
       <AppText variant="caption" color="textTertiary">
-        One program for each part of life. A few questions each — every answer changes what gets built.
+        A few questions each — every answer changes what gets built.
       </AppText>
       <View style={styles.stack}>
         {PATH_ORDER.map((pathId) => {
@@ -159,22 +162,35 @@ export default function Life() {
                     ? total > 0
                       ? `Active · ${done}/${total} steps`
                       : 'Active'
-                    : `${def.questions.length} questions → your program`}
+                    : `${def.questions.length} questions`}
                 </AppText>
               </View>
+              <AppText variant="caption" color="textTertiary">
+                {coachLine(pathId)}
+              </AppText>
+              {/* The refusal rather than the promise. A list of seven
+                  promises is a feature matrix; nobody picks a person from
+                  one. See features/coaches/voices.ts. */}
               {!entry ? (
-                <AppText variant="caption" color="textTertiary">
-                  {def.promise}
+                <AppText variant="secondary" style={styles.pathVoice}>
+                  {voiceFor(pathId).refusal}
                 </AppText>
               ) : null}
-              {!plus && pathId !== 'recovery' ? (
-                <AppText variant="caption" color="accent">
-                  Built and waiting · Plus puts its sessions into your days
-                </AppText>
-              ) : null}
+              {/* The card says what Today does. The free coach is chosen
+                  by the area the person ranked first, and until this read
+                  the same rule the tab advertised a lock that was not
+                  there. */}
               {!plus && pathId === 'recovery' ? (
                 <AppText variant="caption" color="success">
                   Always free — we never charge for someone’s hardest moment
+                </AppText>
+              ) : !plus && PATH_AREA[pathId] === freeArea ? (
+                <AppText variant="caption" color="success">
+                  Yours free — you said this matters most
+                </AppText>
+              ) : !plus ? (
+                <AppText variant="caption" color="accent">
+                  Built and waiting · Plus puts its sessions into your days
                 </AppText>
               ) : null}
             </Card>
@@ -413,6 +429,7 @@ export default function Life() {
 const styles = StyleSheet.create({
   stack: { gap: Spacing.sm },
   vision: { marginTop: Spacing.sm, fontStyle: 'italic' },
+  pathVoice: { marginTop: Spacing.sm },
   pathRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: Spacing.sm },
   pathTitle: { flexShrink: 1 },
   intentionRow: {
