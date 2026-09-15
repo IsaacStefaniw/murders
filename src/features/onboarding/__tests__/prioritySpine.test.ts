@@ -47,11 +47,36 @@ describe('a stated priority pulls its question into the spine', () => {
     expect(deferredSteps(answers, 'family').map((s) => s.id)).toContain('household');
   });
 
-  it('never offers the same question twice', () => {
+  /**
+   * This used to assert that a question in the spine was never ALSO
+   * offered by its coach, which was the old model's rule: setup asked
+   * thirteen questions and the coaches asked the other twenty-three, so
+   * overlap meant a duplicate.
+   *
+   * Setup now asks everything (features/onboarding/sections.ts) and
+   * skipping is allowed everywhere, so the coach hub's job changed: it
+   * offers what was SKIPPED. Under the old rule a skipped spine question
+   * could never be offered by anyone again — which is precisely the
+   * failure the un-deferring exists to end.
+   *
+   * The invariant that survives, and the one that actually protects the
+   * person, is that an ANSWERED question is never asked twice.
+   */
+  it('never asks a question that has been answered', () => {
     const answers = { ...BASE, priorities: ['family'] };
     const step = INTERVIEW_STEPS.find((s) => s.id === 'household')!;
     expect(isCore(step, answers)).toBe(true);
-    expect(deferredSteps(answers, 'family').map((s) => s.id)).not.toContain('household');
+    expect(deferredSteps(answers, 'family').map((s) => s.id)).toContain('household');
+
+    const answered = { ...answers, household: ['partner', 'kids'] };
+    expect(deferredSteps(answered, 'family').map((s) => s.id)).not.toContain('household');
+    expect(deferredSteps(answered, 'family').map((s) => s.id)).not.toContain('household');
+  });
+
+  it('still offers a skipped spine question from the coach that wants it', () => {
+    // The old rule made this impossible.
+    const skipped = { ...BASE, priorities: ['family'] };
+    expect(deferredSteps(skipped, 'family').map((s) => s.id)).toContain('household');
   });
 });
 

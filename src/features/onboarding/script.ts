@@ -875,7 +875,11 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
         : null,
     kind: 'text',
     optional: true,
-    prompt: () => "Last one. What's one thing you're working toward this year?",
+    // Not "last one" any more: setup runs eight sections and this one sits
+    // in the third. A prompt that tells somebody they are nearly finished
+    // when they have five sections to go is the app losing their trust for
+    // nothing.
+    prompt: () => "What's one thing you're working toward this year?",
     placeholder: (a) => ambitionPlaceholder(a.weekShape as WeekShape | undefined),
   },
   {
@@ -965,8 +969,15 @@ export function activeSteps(
 }
 
 /**
- * The deferred questions belonging to one place that have not been
- * answered yet — what a pathway hub offers, one at a time.
+ * The questions belonging to one place that have not been answered yet —
+ * what a coach hub offers, one at a time.
+ *
+ * `deferTo` no longer means "asked later, maybe". Setup asks everything
+ * (features/onboarding/sections.ts), so this is what somebody SKIPPED, and
+ * `deferTo` names the coach that still wants it. The `!isCore` filter that
+ * used to be here was the old model's: it meant a skipped spine question
+ * could never be offered again by anyone, which is the exact failure the
+ * un-deferring was meant to end.
  */
 export function deferredSteps(
   answers: InterviewAnswers,
@@ -974,7 +985,6 @@ export function deferredSteps(
 ): InterviewStep[] {
   return INTERVIEW_STEPS.filter(
     (s) =>
-      !isCore(s, answers) &&
       s.deferTo === target &&
       !s.skipIf?.(answers) &&
       (answers[s.id] === undefined ||

@@ -370,8 +370,32 @@ than the place they were supposed to eventually appear.
    your offset actually linked?") are not built: both need a field that
    does not exist — `Routine.createdAt`, and a confirmed flag on the money
    step. Four triggers that fire beat six where two never can.
-3. **Setup as eight sections**, un-deferring everything, with the payout
-   on the same screen.
+3. **Setup as eight sections** ✅ Built, un-deferring everything, with the
+   payout on the same screen.
+
+   `features/onboarding/sections.ts` holds the eight, what each unlocks and
+   what skipping each one costs. Setup now runs every question the person's
+   answers have not ruled out — 35 rather than 13 — with an eight-dot
+   spine, section headers, a priced skip on every section and a per-
+   question skip everywhere else. The reveal is full size, on the screen
+   the answer was given on, before advancing; only the 18 questions that
+   have something to reveal cost the extra tap.
+
+   `deferTo` stops meaning "asked later, maybe" and starts meaning "the
+   coach that still wants this if you skipped it". Under the old rule a
+   skipped SPINE question could never be offered by anyone again, which
+   was the un-deferring's own failure mode.
+
+   Two orderings only a test could have caught: `lessOf` and `moreOf`
+   compute their options from `weekShape`, and `moreOf` also reads
+   `household` — asked before either, a retiree gets a shift worker's list
+   of vices and a parent gets one with no children in it. There is now a
+   test that derives dependency rather than trusting a comment: change an
+   earlier answer, see whether a later step's options, placeholder, prompt
+   or skipIf move, and demand the ordering if they do.
+
+   Still thin: §8 Work has one question. The brief wants meeting load,
+   travel and decision load there, and none of them exist as steps yet.
 4. **The missing measurements**, which section 5 of setup now has a home
    for.
 5. **Protocol suggestions** through the interrupt frame.

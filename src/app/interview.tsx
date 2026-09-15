@@ -1,88 +1,110 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { Chip } from '@/components/chip';
 import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
-import { Spacing } from '@/constants/theme';
+import { Radius, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { optionsFor, placeholderFor, type InterviewAnswers } from '@/features/onboarding/script';
 import {
-  activeSteps,
-  optionsFor,
-  placeholderFor,
-  type InterviewAnswers,
-} from '@/features/onboarding/script';
+  SECTION_ORDER,
+  sectionDef,
+  sectionsRemaining,
+  setupSteps,
+  type SetupSection,
+} from '@/features/onboarding/sections';
 import { useOnboardingStore } from '@/features/onboarding/state';
 import { track } from '@/lib/telemetry';
 
 /**
- * The Life Interview. One question at a time, quick answers, a visible
- * sense of progress. Every answer maps to structured data.
+ * Setup — eight sections, and nothing deferred.
+ *
+ * This replaces a thirteen-question interview that sent the other
+ * twenty-three questions into coaches people never opened. The reasoning,
+ * the measured cost of deferring, and what each section unlocks are in
+ * `features/onboarding/sections.ts`.
+ *
+ * Two things this screen does that the old one did not:
+ *
+ * **The payout lands on the same screen as the answer.** The reveal used
+ * to appear small, at the top of the NEXT question, which is the app
+ * telling you what changed after you have stopped looking. Now the answer
+ * clears the question and the reveal takes its place, full size, and you
+ * move on from there. Only questions that have something to reveal cost
+ * the extra tap.
+ *
+ * **Skipping is offered and priced.** Every section can be skipped at its
+ * first question, with one line saying what that costs. A cost named up
+ * front is a decision; a cost discovered later is a grievance.
  */
 export default function Interview() {
   const router = useRouter();
+  const theme = useTheme();
   const { answers, setAnswer } = useOnboardingStore();
   const [stepIndex, setStepIndex] = useState(0);
+  const [textDraft, setTextDraft] = useState('');
+  /** The payout, held on this screen until it is read. */
+  const [payout, setPayout] = useState<string | null>(null);
+
   useEffect(() => {
     void track('interview_started');
   }, []);
-  const [textDraft, setTextDraft] = useState('');
-  /**
-   * What the last answer changed, carried onto the next question.
-   *
-   * This is the whole reason a nine-question interview does not read as a
-   * form: each answer visibly moves the plan before the next question
-   * arrives. It is shown on the following screen rather than as an extra
-   * tap, so nobody pays for the reassurance with an interaction.
-   */
-  const [lastReveal, setLastReveal] = useState<string | null>(null);
 
-  const steps = useMemo(() => activeSteps(answers), [answers]);
-  const step = steps[Math.min(stepIndex, steps.length - 1)];
+  const steps = useMemo(() => setupSteps(answers), [answers]);
+  const at = Math.min(stepIndex, steps.length - 1);
+  const { step, section, opensSection } = steps[at];
+  const def = sectionDef(section);
+  const remaining = useMemo(() => sectionsRemaining(answers), [answers]);
+
   const currentValue = answers[step.id];
   const selected: string[] = Array.isArray(currentValue) ? currentValue : [];
 
-  const advance = (justAnswered?: InterviewAnswers) => {
+  const goTo = (i: number) => {
+    setPayout(null);
     setTextDraft('');
-    // Computed from the answers WITH this one applied — reading the store
-    // here would read the value before it landed.
-    setLastReveal(step.reveal?.(justAnswered ?? answers) ?? null);
-    if (stepIndex >= steps.length - 1) {
+    if (i >= steps.length) {
       void track('interview_finished');
       router.replace('/plan-review');
-    } else {
-      setStepIndex(stepIndex + 1);
+      return;
     }
+    setStepIndex(Math.max(0, i));
   };
 
-  const back = () => {
-    setLastReveal(null);
-    if (stepIndex === 0) {
-      router.back();
-    } else {
-      setStepIndex(stepIndex - 1);
-      setTextDraft('');
+  /** Answer landed: show what it bought, or move on if it bought nothing. */
+  const settle = (next: InterviewAnswers) => {
+    const reveal = step.reveal?.(next) ?? null;
+    if (reveal) {
+      setPayout(reveal);
+      return;
     }
+    goTo(at + 1);
+  };
+
+  const back = () => (at === 0 ? router.back() : goTo(at - 1));
+
+  /** Everything is skippable. Sections skip whole; questions skip one. */
+  const skipSection = () => {
+    const nextSection = SECTION_ORDER.indexOf(section) + 1;
+    const target = steps.findIndex(
+      (s) => SECTION_ORDER.indexOf(s.section) >= nextSection,
+    );
+    goTo(target === -1 ? steps.length : target);
   };
 
   const submitText = () => {
     const value = textDraft.trim() || undefined;
     setAnswer(step.id, value);
-    advance({ ...answers, [step.id]: value });
+    settle({ ...answers, [step.id]: value });
   };
 
   const toggleChip = (value: string) => {
     if (step.kind === 'single') {
       setAnswer(step.id, value);
-      advance({ ...answers, [step.id]: value });
+      settle({ ...answers, [step.id]: value });
       return;
     }
     const next = selected.includes(value)
@@ -94,9 +116,7 @@ export default function Interview() {
   };
 
   const canContinue =
-    step.kind === 'text'
-      ? step.optional || textDraft.trim().length > 0
-      : selected.length > 0 || Boolean(step.optional);
+    step.kind === 'text' ? textDraft.trim().length > 0 : selected.length > 0;
 
   return (
     <Screen scroll={false}>
@@ -111,61 +131,123 @@ export default function Interview() {
             </AppText>
           </Pressable>
           <AppText variant="caption" color="textTertiary">
-            {stepIndex + 1} of {steps.length}
+            {def.title}
           </AppText>
         </View>
 
-        {lastReveal ? (
-          <AppText variant="secondary" color="accent" style={styles.reveal}>
-            {lastReveal}
-          </AppText>
-        ) : null}
-
-        <View style={styles.question}>
-          <AppText variant="title">{step.prompt(answers)}</AppText>
-
-          {step.kind === 'text' ? (
-            <Field
-              // The question above IS the label, so it is announced rather
-              // than drawn — a second copy would read as a duplicate.
-              label={step.prompt(answers)}
-              showLabel={false}
-              value={textDraft}
-              onChangeText={setTextDraft}
-              placeholder={placeholderFor(step, answers)}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={canContinue ? submitText : undefined}
+        {/* Eight dots. People will give you ten minutes if they can see
+            the end, and "question 19 of 31" is not an end you can see. */}
+        <View
+          style={styles.spine}
+          accessibilityRole="progressbar"
+          accessibilityLabel={`Section ${SECTION_ORDER.indexOf(section) + 1} of ${SECTION_ORDER.length}: ${def.title}`}
+        >
+          {SECTION_ORDER.map((id: SetupSection) => (
+            <View
+              key={id}
+              style={[
+                styles.dot,
+                {
+                  backgroundColor:
+                    id === section
+                      ? theme.accent
+                      : remaining.has(id)
+                        ? theme.border
+                        : theme.accentSoft,
+                },
+              ]}
             />
-          ) : (
-            <View style={styles.chips}>
-              {optionsFor(step, answers).map((option) => (
-                <Chip
-                  key={option.value}
-                  label={option.label}
-                  selected={
-                    step.kind === 'single'
-                      ? currentValue === option.value
-                      : selected.includes(option.value)
-                  }
-                  onPress={() => toggleChip(option.value)}
-                />
-              ))}
-            </View>
-          )}
+          ))}
         </View>
 
-        {step.kind !== 'single' ? (
-          <Button
-            title={
-              step.optional && (step.kind === 'text' ? !textDraft.trim() : selected.length === 0)
-                ? 'Skip'
-                : 'Continue'
-            }
-            disabled={!canContinue}
-            onPress={step.kind === 'text' ? submitText : () => advance()}
-          />
-        ) : null}
+        {payout ? (
+          /* The answer bought something, and it is said here rather than
+             at the top of a question the person has already moved on to. */
+          <View style={styles.question}>
+            <AppText variant="title" color="accent">
+              {payout}
+            </AppText>
+            <Button title="Next" onPress={() => goTo(at + 1)} />
+          </View>
+        ) : (
+          <>
+            <View style={styles.question}>
+              {opensSection ? (
+                <AppText variant="secondary" color="textTertiary">
+                  {def.unlocks}
+                </AppText>
+              ) : null}
+
+              <AppText variant="title">{step.prompt(answers)}</AppText>
+
+              {step.kind === 'text' ? (
+                <Field
+                  // The question above IS the label, so it is announced
+                  // rather than drawn.
+                  label={step.prompt(answers)}
+                  showLabel={false}
+                  value={textDraft}
+                  onChangeText={setTextDraft}
+                  placeholder={placeholderFor(step, answers)}
+                  autoFocus
+                  returnKeyType="done"
+                  onSubmitEditing={canContinue ? submitText : undefined}
+                />
+              ) : (
+                <View style={styles.chips}>
+                  {optionsFor(step, answers).map((option) => (
+                    <Chip
+                      key={option.value}
+                      label={option.label}
+                      selected={
+                        step.kind === 'single'
+                          ? currentValue === option.value
+                          : selected.includes(option.value)
+                      }
+                      onPress={() => toggleChip(option.value)}
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
+
+            <View style={styles.foot}>
+              {step.kind !== 'single' ? (
+                <Button
+                  title="Continue"
+                  disabled={!canContinue}
+                  onPress={step.kind === 'text' ? submitText : () => settle(answers)}
+                />
+              ) : null}
+
+              {/* Priced, and offered on the section it belongs to rather
+                  than buried. Skipping is a decision, not a debt. */}
+              {opensSection ? (
+                <Pressable
+                  onPress={skipSection}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Skip ${def.title}. ${def.skipPrice}`}
+                  style={styles.skip}
+                >
+                  <AppText variant="caption" color="textTertiary">
+                    {def.skipPrice}
+                  </AppText>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={() => goTo(at + 1)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Skip this question"
+                  style={styles.skip}
+                >
+                  <AppText variant="caption" color="textTertiary">
+                    Skip this one
+                  </AppText>
+                </Pressable>
+              )}
+            </View>
+          </>
+        )}
       </KeyboardAvoidingView>
     </Screen>
   );
@@ -173,21 +255,16 @@ export default function Interview() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  reveal: { paddingTop: Spacing.sm },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: Spacing.sm,
   },
-  question: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: Spacing.xl,
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
+  spine: { flexDirection: 'row', gap: Spacing.xs, paddingTop: Spacing.xs },
+  dot: { flex: 1, height: 3, borderRadius: Radius.sm },
+  question: { flex: 1, justifyContent: 'center', gap: Spacing.xl },
+  foot: { gap: Spacing.sm },
+  skip: { minHeight: 44, justifyContent: 'center', alignItems: 'center' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
 });
