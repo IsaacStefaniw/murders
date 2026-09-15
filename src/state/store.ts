@@ -78,6 +78,7 @@ import {
   type LevelProgress,
   type PathLevel,
 } from '@/features/paths/level';
+import { ageOf } from '@/features/health/age';
 import {
   measuredTrainingLevel,
   trainingEvidence,
@@ -815,7 +816,7 @@ export function deriveTrainingInputs(
     focusLift,
     focusArea,
     distance,
-    age: profile.age,
+    age: ageOf(profile, todayKey()),
     // Carried from the profile, not re-asked. Something answered once in
     // onboarding must reach the place that acts on it, or the question was
     // theatre.

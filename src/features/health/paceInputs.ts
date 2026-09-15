@@ -18,7 +18,7 @@ import { sleepRegularityIndex, type SleepNight } from '@/features/health/sleepTi
 import { selfReportedFrom } from '@/features/health/selfReport';
 import type { MetricObservation } from '@/features/model/metrics';
 import type { InterviewAnswers } from '@/features/onboarding/script';
-import { addDays } from '@/lib/dates';
+import { addDays, todayKey } from '@/lib/dates';
 import type {
   BehaviourEvent,
   BehaviourIntention,
@@ -28,6 +28,7 @@ import type {
 } from '@/types/domain';
 import type { CardioLog } from '@/features/training/cardio';
 import type { NicotineStatus } from '@/features/health/essential8';
+import { ageOf } from '@/features/health/age';
 
 export interface PaceSources {
   profile: LifeProfile | null;
@@ -70,7 +71,9 @@ export function paceInputsFrom(s: PaceSources): PaceInputs {
   const sex = s.profile?.sexAtBirth;
 
   return {
-    age: s.profile?.age,
+    // A birth year where there is one, so the Gompertz term is computed
+    // on a year rather than on a decade midpoint. See health/age.ts.
+    age: ageOf(s.profile, todayKey()),
     sexAtBirth: s.profile?.sexAtBirth,
     gripKg: latest(functionMetricKey('gripStrength')),
     balanceSeconds: latest(functionMetricKey('oneLegStand')),

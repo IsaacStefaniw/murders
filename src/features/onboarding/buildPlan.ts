@@ -9,7 +9,8 @@ import { buildGoalPlan, parseGoal } from '@/features/goals/goalPlanner';
 import { protocolById, toRoutine } from '@/features/knowledge/protocols';
 import type { PathId } from '@/features/paths/definitions';
 import { dedupeRoutines } from '@/features/planner/mergeRoutines';
-import { newId } from '@/lib/dates';
+import { isPlausibleBirthYear } from '@/features/health/age';
+import { newId, todayKey } from '@/lib/dates';
 import type {
   BehaviourIntention,
   BehaviourKey,
@@ -130,6 +131,13 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
   const priorities = arr(answers, 'priorities') as LifeArea[];
 
   const age = Number(str(answers, 'age')) || undefined;
+  const rawBirthYear = Number(str(answers, 'birthYear')) || undefined;
+  // A year that is not one is dropped rather than carried: an age of
+  // negative four hundred would propagate straight into the hazard model.
+  const birthYear =
+    rawBirthYear != null && isPlausibleBirthYear(rawBirthYear, todayKey())
+      ? rawBirthYear
+      : undefined;
   const sexAtBirth =
     (str(answers, 'sexAtBirth') as LifeProfile['sexAtBirth']) || undefined;
   const weightKg = Number(str(answers, 'weight')) || undefined;
@@ -168,6 +176,7 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     constraints: constraints.length > 0 ? constraints : undefined,
     weekShape,
     age,
+    birthYear,
     sexAtBirth,
     weightKg,
     kidsCount,
@@ -778,6 +787,12 @@ export function profilePatchFor(
       return { lifeVision: one || undefined };
     case 'age':
       return { age: Number(one) || undefined };
+    case 'birthYear': {
+      const year = Number(one) || undefined;
+      return {
+        birthYear: year != null && isPlausibleBirthYear(year, todayKey()) ? year : undefined,
+      };
+    }
     case 'weight':
       return { weightKg: Number(one) || undefined };
     case 'workStyle':
@@ -851,6 +866,7 @@ export const PATH_ANSWER_FOR: Record<
   trainingExperience: { path: 'training', key: 'experience' },
   trainingSetup: { path: 'training', key: 'setup' },
   age: { path: 'training', key: 'age' },
+  birthYear: { path: 'training', key: 'birthYear' },
   foodAim: { path: 'nutrition', key: 'aim' },
   foodTrouble: { path: 'nutrition', key: 'trouble' },
   weight: { path: 'nutrition', key: 'weightKg' },
@@ -891,6 +907,7 @@ export function answersFromProfile(profile: LifeProfile): InterviewAnswers {
 
   if (profile.lifeVision) answers.vision = profile.lifeVision;
   if (profile.age) answers.age = String(profile.age);
+  if (profile.birthYear) answers.birthYear = String(profile.birthYear);
   if (profile.sexAtBirth) answers.sexAtBirth = profile.sexAtBirth;
   if (profile.weightKg) answers.weight = String(profile.weightKg);
   if (profile.workStyle) answers.workStyle = profile.workStyle;

@@ -28,11 +28,12 @@ import {
 } from '@/features/knowledge/questionBank';
 import { moneySteps } from '@/features/money/plan';
 import { sessionsPerWeekFloor } from '@/features/training/programme';
-import { newId, toHHMM, toMinutes } from '@/lib/dates';
+import { newId, toHHMM, toMinutes, todayKey } from '@/lib/dates';
 import type { BehaviourKey, LifeArea, LifeProfile, Routine } from '@/types/domain';
 
 import { fitLadderToBudget, ladderFor } from './programme';
 import { LEVEL_ORDER, type PathLevel } from './level';
+import { ageOf } from '@/features/health/age';
 
 export type PathId =
   | 'training'
@@ -305,8 +306,9 @@ export const PATHS: Record<PathId, PathDefinition> = {
       if (answered(answers, 'limiter', 'boredom')) {
         lines.push('Sessions rotate blocks so no two consecutive workouts repeat.');
       }
-      if ((profile?.age ?? 0) >= 45) {
-        lines.push(`At ${profile!.age}, warm-ups are non-negotiable — they’re built into every session estimate.`);
+      const years = ageOf(profile, todayKey());
+      if ((years ?? 0) >= 45) {
+        lines.push(`At ${years}, warm-ups are non-negotiable — they’re built into every session estimate.`);
       }
       return lines;
     },

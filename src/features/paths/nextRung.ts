@@ -37,6 +37,7 @@ import { WORK_LADDERS } from '@/features/paths/ladders.work';
 import type { PathId } from '@/features/paths/definitions';
 import { addDays, todayKey } from '@/lib/dates';
 import type { DailyPlan, LifeProfile, Routine } from '@/types/domain';
+import { ageOf } from '@/features/health/age';
 
 /** Every ladder the app knows about, research and work alike. */
 export const ALL_LADDERS: Ladder[] = [...RESEARCH_LADDERS, ...WORK_LADDERS];
@@ -72,7 +73,7 @@ export function laddersFor(
       // Age first: an over-65 ladder that loses to "trains three times a
       // week" would hand a seventy-year-old the tendon rung and skip the
       // best-evidenced thing in the pillar.
-      const age = profile?.age ?? 0;
+      const age = ageOf(profile, todayKey()) ?? 0;
       if (age >= 65) return [TRAINING_OVER_65_LADDER, TRAINING_LADDER];
       // '0' is the questionBank's value for "None right now" — the answer
       // that means this person is not on the training ladder at all yet.

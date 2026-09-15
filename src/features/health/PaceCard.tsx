@@ -15,6 +15,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { shareText } from '@/lib/share';
 import { todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
+import { ageOf, agePrecision } from '@/features/health/age';
 
 /**
  * The headline figure, with the width of its error bars beside it.
@@ -76,8 +77,8 @@ export function PaceCard() {
   const reading = useMemo(() => readPace(inputs), [inputs]);
 
   const headline = useMemo(
-    () => paceHeadline(reading, profile?.age),
-    [reading, profile?.age],
+    () => paceHeadline(reading, ageOf(profile, todayKey())),
+    [reading, profile],
   );
 
   /**
@@ -109,7 +110,7 @@ export function PaceCard() {
       <Card>
         <AppText variant="heading">Your markers</AppText>
         <AppText variant="caption" color="textSecondary" style={styles.gap}>
-          {profile?.age == null
+          {ageOf(profile, todayKey()) == null
             ? 'Add your age in your profile and this starts reading.'
             : 'Two questions would start this off — how your health feels to you, and your usual walking pace. Both are in your recovery answers, both take a second, and between them they carry more evidence than most of what a longevity panel measures.'}
         </AppText>
@@ -118,6 +119,7 @@ export function PaceCard() {
   }
 
   const delta = headline.chronological - headline.years;
+  const precision = agePrecision(profile, todayKey());
 
   return (
     <Card>
@@ -156,6 +158,18 @@ export function PaceCard() {
         Read from {headline.coverage.observed} of {headline.coverage.total} markers. This is not a
         biological age, and it is not a prediction about you.
       </AppText>
+
+      {/* The input every component is computed against, and how much of it
+          is known. A decade bucket widens every interval above by five
+          years before a single measurement is considered — see
+          features/health/age.ts. */}
+      {precision.line ? (
+        <View style={[styles.nudge, { borderColor: theme.border }]}>
+          <AppText variant="caption" color="textSecondary">
+            {precision.line}
+          </AppText>
+        </View>
+      ) : null}
 
       {headline.plusMinusIfComplete < headline.plusMinus ? (
         <View style={[styles.nudge, { borderColor: theme.border }]}>

@@ -70,6 +70,8 @@ export interface InterviewStep {
   /** For multi steps: cap on selections (order of selection is meaningful). */
   maxSelections?: number;
   placeholder?: string | ((a: InterviewAnswers) => string);
+  /** Numeric where the answer is a number. Text steps only. */
+  keyboardType?: 'numeric';
   optional?: boolean;
   /** Skip this step entirely based on earlier answers. */
   skipIf?: (answers: InterviewAnswers) => boolean;
@@ -280,10 +282,41 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     ],
   },
   {
+    /**
+     * A year rather than a decade, because of what is computed from it.
+     *
+     * `pace.ts` runs a Gompertz hazard, where risk doubles about every
+     * eight years. The decade midpoint below can be five years out, which
+     * is a hazard out by roughly half again before a single measurement is
+     * considered — and it is the number every published interval on that
+     * screen is computed against. See features/health/age.ts for the
+     * error budget and for why this is a year and not a birth date.
+     */
+    id: 'birthYear',
+    deferTo: 'training',
+    kind: 'text',
+    optional: true,
+    keyboardType: 'numeric',
+    prompt: () =>
+      'Which year were you born? It is the single number the health markers lean on hardest.',
+    placeholder: 'e.g. 1986 — or skip',
+    reveal: (a) => {
+      const year = Number(a.birthYear);
+      if (!Number.isFinite(year) || year < 1900) return null;
+      return 'That narrows every interval on the markers screen. A decade would have left them five years wide.';
+    },
+  },
+  {
     id: 'age',
     deferTo: 'training',
     kind: 'single',
     optional: true,
+    // Never asked twice. A birth year is strictly better and this is the
+    // fallback for anyone who would rather not give one.
+    skipIf: (a) => {
+      const year = Number(a.birthYear);
+      return Number.isFinite(year) && year > 1900;
+    },
     prompt: () =>
       'Roughly which decade are you in? (Training and recovery guidance changes with it.)',
     options: [

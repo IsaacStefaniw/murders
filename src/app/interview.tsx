@@ -189,6 +189,7 @@ export default function Interview() {
                   value={textDraft}
                   onChangeText={setTextDraft}
                   placeholder={placeholderFor(step, answers)}
+                  keyboardType={step.keyboardType}
                   autoFocus
                   returnKeyType="done"
                   onSubmitEditing={canContinue ? submitText : undefined}

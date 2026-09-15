@@ -42,6 +42,8 @@
  */
 
 import type { LifeProfile } from '@/types/domain';
+import { ageOf } from '@/features/health/age';
+import { todayKey } from '@/lib/dates';
 
 export type StrengthLift = 'bench' | 'squat' | 'deadlift' | 'ohp';
 
@@ -396,7 +398,7 @@ export function liftContext(
   if (sexAtBirth !== 'male' && sexAtBirth !== 'female') return null;
 
   const table = (sexAtBirth === 'female' ? FEMALE : MALE)[lift];
-  const allowance = ageAllowance(profile.age);
+  const allowance = ageAllowance(ageOf(profile, todayKey()));
   const ratio = e1rmKg / weightKg;
 
   let passed: StrengthBand | null = null;

@@ -396,8 +396,8 @@ than the place they were supposed to eventually appear.
 
    Still thin: §8 Work has one question. The brief wants meeting load,
    travel and decision load there, and none of them exist as steps yet.
-4. **The missing measurements.** Blood pressure, lipids and glucose are
-   built; the birth year is next.
+4. **The missing measurements.** ✅ Built — birth year, blood pressure,
+   lipids and glucose. (Body fat was done earlier.)
 
    `features/health/bloodwork.ts` carries the three remaining Life's
    Essential 8 tables from the same 2022 paper the other four come from,
@@ -412,6 +412,17 @@ than the place they were supposed to eventually appear.
    at 100 on activity, sleep, nicotine and BMI with a blood pressure of
    165/100 does not have excellent cardiovascular health, and "4 of 8
    observed · High" said to them is the worst sentence in the product.
+
+   `features/health/age.ts` replaces the decade bucket where anybody gives
+   a year. The interview asked "roughly which decade are you in?" and
+   stored the midpoint, and `pace.ts` runs a Gompertz hazard on it — risk
+   doubling about every eight years, computed on a number five years wide,
+   and every published interval on that screen computed against it. A
+   birth year takes the dominant term in the error budget from ±5 to ±1,
+   never goes stale, and is a much less sensitive thing to hold than a
+   birth date. The decade stays for anyone who would rather not say, is
+   skipped once a year is given, and the markers card now names the
+   precision it is working at.
 5. **Protocol suggestions** through the interrupt frame.
 
 ---

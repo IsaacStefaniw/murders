@@ -206,6 +206,7 @@ export const SECTION_OF: Record<string, SetupSection> = {
   constraints: 'lifestyle',
 
   // §5 — health and food
+  birthYear: 'health',
   age: 'health',
   sexAtBirth: 'health',
   weight: 'health',

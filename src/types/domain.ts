@@ -116,6 +116,18 @@ export interface LifeProfile {
    * (protein target, training guidance). Never required, never judged. */
   age?: number;
   /**
+   * The year they were born, where they chose to give one.
+   *
+   * `age` above is a DECADE MIDPOINT from a chip list, and the Gompertz
+   * hazard in pace.ts doubles risk about every eight years — so five years
+   * of error is a hazard out by roughly half again before any measurement
+   * is considered. A year is one number, never goes stale, and takes the
+   * dominant term in the marker error budget from ±5 years to ±1. A full
+   * birth date would take it to zero and is a materially more sensitive
+   * thing to hold. See features/health/age.ts.
+   */
+  birthYear?: number;
+  /**
    * Sex at birth, where the person chose to say. Drives what anatomy-specific
    * guidance is offered at all — never a label shown back to them, and never
    * used to decide what they are capable of.
