@@ -4,11 +4,13 @@ import {
   MAX_PROPOSALS,
   NUDGE_MINUTES,
   SLOT_MIN_OBSERVATIONS,
+  SPREAD_MIN_DAYS,
   cellSummary,
   deadSlots,
   hourLabel,
   nudgeCell,
   weekGrid,
+  weekLead,
   weekProposals,
   weekRangeLabel,
 } from '@/features/review/weekReview';
@@ -574,5 +576,192 @@ describe('tap and move', () => {
     );
     const [change] = nudgeCell(grid.rows[0].cells[1], [late], NUDGE_MINUTES);
     expect(change.payload?.preferredStart).toBe('23:30');
+  });
+});
+
+/* ── The finding, and the evidence for it ─────────────────────────────── */
+
+/**
+ * The screen used to open with the grid and bury the sentence the app had
+ * already worked out below it — asking a person to do analysis the app had
+ * done, then doing it for them further down where they may never reach.
+ */
+describe('what the week screen says first', () => {
+  const r = routine();
+  const twiceDead = plans({
+    [addDays(DAY(1), -7)]: [item({ routineId: r.id, status: 'skipped' })],
+    [DAY(1)]: [item({ routineId: r.id, status: 'skipped' })],
+    [DAY(2)]: [item({ start: '10:00', status: 'completed', title: 'Walk' })],
+  });
+  const at = (p: Record<string, DailyPlan>) => {
+    const grid = weekGrid(p, WEEK, DAY(6));
+    return weekLead(
+      grid,
+      weekProposals({ grid, plans: p, routines: [r], capacity: 'steady', today: DAY(6) }),
+    );
+  };
+
+  it('leads with the finding, not the grid and not a count', () => {
+    const lead = at(twiceDead);
+    expect(lead.headline).toBe('6am Tuesday — strength died twice in the last 3 weeks.');
+    expect(lead.proposal?.actions.length).toBeGreaterThan(0);
+  });
+
+  it('keeps the count as context underneath, never as the headline', () => {
+    const lead = at(twiceDead);
+    expect(lead.under).toBe('1 of 2 things happened.');
+    expect(lead.headline).not.toBe(lead.under);
+    expect(lead.under).not.toMatch(/%/);
+  });
+
+  it('points the finding at the cells it was read off', () => {
+    // Monday first, so Tuesday is column 1 and 6am is hour 6.
+    expect(at(twiceDead).proposal?.focus).toEqual([{ col: 1, hour: 6 }]);
+  });
+
+  it('never leads with the capacity dial — it is a standing question', () => {
+    const p = plans({ [DAY(0)]: [item({ status: 'completed' })] });
+    const lead = at(p);
+    expect(lead.proposal).toBeNull();
+    expect(lead.rest.map((x) => x.id)).toContain('capacity');
+  });
+
+  it('says what an uneventful week actually means, rather than scoring it', () => {
+    const p = plans({
+      [DAY(0)]: [item({ status: 'completed' })],
+      [DAY(1)]: [item({ start: '10:00', title: 'Walk', status: 'skipped' })],
+    });
+    expect(at(p).headline).toBe('Nothing went wrong twice in the same place.');
+  });
+
+  it('does not repeat itself on a week with nothing on', () => {
+    const lead = at(plans({}));
+    expect(lead.headline).toBe('Nothing was on this week.');
+    expect(lead.under).toBe('');
+  });
+
+  it('hands everything it did not take to the rest, in order', () => {
+    const lead = at(twiceDead);
+    const all = weekProposals({
+      grid: weekGrid(twiceDead, WEEK, DAY(6)),
+      plans: twiceDead,
+      routines: [r],
+      capacity: 'steady',
+      today: DAY(6),
+    });
+    expect([lead.proposal!, ...lead.rest].map((x) => x.id)).toEqual(all.map((x) => x.id));
+  });
+});
+
+/**
+ * A daily routine that is failing is ONE finding about an hour, not seven
+ * near-identical ones about weekdays.
+ *
+ * The browser caught this the moment the finding became the headline:
+ * "7am Monday — protein at breakfast died twice" in 28pt above a 7am row
+ * holding seven crosses, with one of them ringed and Tuesday repeating
+ * the same sentence underneath.
+ */
+describe('an hour that is failing all week', () => {
+  const daily = routine({ id: 'r-protein', title: 'Protein at breakfast', days: [0, 1, 2, 3, 4, 5, 6] });
+
+  /** Two weeks of a 7am routine dying on every day of the week. */
+  const deadHour = () => {
+    const out: Record<string, PlanItem[]> = {};
+    for (let w = 1; w >= 0; w--) {
+      for (let col = 0; col < 7; col++) {
+        const date = addDays(WEEK, col - 7 * w);
+        out[date] = [item({ id: `x-${date}`, routineId: daily.id, start: '07:00', status: 'skipped' })];
+      }
+    }
+    // Something later that lived, so the week is not a total write-off.
+    out[DAY(1)] = [...(out[DAY(1)] ?? []), item({ start: '10:00', title: 'Walk', status: 'completed' })];
+    return plans(out);
+  };
+
+  const first = () => {
+    const p = deadHour();
+    return weekProposals({
+      grid: weekGrid(p, WEEK, DAY(6)),
+      plans: p,
+      routines: [daily],
+      capacity: 'steady',
+      today: DAY(6),
+    })[0];
+  };
+
+  it('names the hour rather than one of its seven days', () => {
+    expect(first().line).toBe('7am is not working — protein at breakfast died every day it was on.');
+  });
+
+  it('rings every cell the finding was read off, not just one', () => {
+    const focus = first().focus ?? [];
+    expect(focus).toHaveLength(7);
+    expect(focus.every((f) => f.hour === 7)).toBe(true);
+    expect([...new Set(focus.map((f) => f.col))].sort()).toEqual([0, 1, 2, 3, 4, 5, 6]);
+  });
+
+  it('does not then repeat itself for the next weekday down the page', () => {
+    const p = deadHour();
+    const all = weekProposals({
+      grid: weekGrid(p, WEEK, DAY(6)),
+      plans: p,
+      routines: [daily],
+      capacity: 'steady',
+      today: DAY(6),
+    });
+    expect(all.filter((x) => x.line.includes('protein at breakfast'))).toHaveLength(1);
+  });
+
+  it('offers the same answers a single dead slot does', () => {
+    expect(first().actions.map((a) => a.label)).toEqual(['Move to 8am', 'Drop it']);
+  });
+
+  it('keeps naming the weekday while only one or two days are involved', () => {
+    // Below the spread threshold, "6am Tuesday" is the more useful sentence.
+    expect(SPREAD_MIN_DAYS).toBeGreaterThan(2);
+    const p = plans({
+      [addDays(DAY(1), -7)]: [item({ routineId: daily.id, status: 'skipped' })],
+      [DAY(1)]: [item({ routineId: daily.id, status: 'skipped' })],
+    });
+    const [only] = weekProposals({
+      grid: weekGrid(p, WEEK, DAY(6)),
+      plans: p,
+      routines: [daily],
+      capacity: 'steady',
+      today: DAY(6),
+    });
+    expect(only.line).toContain('Tuesday');
+  });
+});
+
+/**
+ * The browser found the capacity dial printing "More than half of it went
+ * untouched. Less this week?" above a lone `+ Normal`, to somebody already
+ * in the lowest gear — the app proposing the one thing it could not do.
+ */
+describe('the capacity dial', () => {
+  const emptyWeek = plans({
+    [DAY(0)]: [item({ status: 'skipped' })],
+    [DAY(1)]: [item({ start: '10:00', title: 'Walk', status: 'skipped' })],
+  });
+
+  const dial = (capacity: 'minimal' | 'steady') =>
+    weekProposals({
+      grid: weekGrid(emptyWeek, WEEK, DAY(6)),
+      plans: emptyWeek,
+      routines: [],
+      capacity,
+      today: DAY(6),
+    }).find((x) => x.id === 'capacity')!;
+
+  it('never asks for a gear that has no button', () => {
+    const lowest = dial('minimal');
+    expect(lowest.actions.every((a) => a.capacity !== 'minimal')).toBe(true);
+    expect(lowest.line).not.toMatch(/Less/);
+  });
+
+  it('still asks to shed where shedding is possible', () => {
+    expect(dial('steady').line).toMatch(/Less/);
   });
 });

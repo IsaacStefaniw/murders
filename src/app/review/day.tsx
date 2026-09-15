@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
+import { Disclosure } from '@/components/disclosure';
 import { Screen } from '@/components/screen';
 import { Sparkbars } from '@/components/charts';
 import { Radius, Spacing } from '@/constants/theme';
@@ -14,47 +15,63 @@ import {
   MARK_STATUS,
   dayResult,
   dayRows,
+  dayTold,
   tomorrowFirst,
+  unresolvedRows,
   type DayMark,
 } from '@/features/review/dayReview';
 import { addDays, formatDateLong, formatTime, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 
 /**
- * End of day — a grid, not a form.
+ * End of day — the gap, then the handoff.
  *
- * ── What the first version got wrong ────────────────────────────────────
+ * ── What this screen is FOR ─────────────────────────────────────────────
  *
- * The sketch is one line per item with the three marks BESIDE it:
+ * Three jobs were competing and only one of them was the person's:
  *
- *     │  Strength — lower body   ✓ ✗ + │
+ *   capture   the adaptation engine needs to know what happened
+ *   closure   the person needs to put the day down
+ *   setup     hand them tomorrow
  *
- * The first build put a full-width row of three third-width buttons UNDER
- * each title, which made a five-item day about five hundred points tall —
- * so a review meant to take twenty seconds had to be scrolled. The
- * justification was the 44pt touch floor, and the arithmetic does not
- * support it: three 44pt cells are 132 points, leaving 226 for the time
- * and the title on a 390pt phone. The sketch was always buildable as
- * drawn.
+ * The first version optimised entirely for capture — a grid of every item
+ * with three marks each — and capture is the APP's need. Nobody opens
+ * something at half past nine to feed a scheduler. Dressed as a review, a
+ * chore is still a chore, which is why it read as a form however it was
+ * laid out.
  *
- * ── Why the marks carry colour ──────────────────────────────────────────
+ * Worse, it was capture the app did not need: Today marks items as they
+ * happen, so by evening most of the day is already answered and the screen
+ * was handing all of it back. A person who ticked three things off at the
+ * time and gets all five returned at 9pm has learned the app was not
+ * listening.
  *
- * The three glyphs used to be identical in weight until tapped, so there
- * was no column to scan down and a marked day had no shape. Marked, each
- * column now has its own tone — kept, missed, swapped — which means a
- * person can look at a finished day and see what kind of day it was
- * without reading a word of it. That is the entire argument for a grid
- * over a list.
+ * ── So the order is inverted ────────────────────────────────────────────
+ *
+ * 1. The day, told back — closure, first, in titles rather than a count.
+ * 2. Only what is still unanswered, which on most days is nothing.
+ * 3. Tomorrow, which is the reason to open this at all.
+ *
+ * On a day that was kept up with, this screen is two sentences and a
+ * button. That is the correct amount of screen for a day that went fine,
+ * and the grid could never be that.
+ *
+ * ── One tap for the common answer ───────────────────────────────────────
+ *
+ * Where several things are open, the usual truth is "yeah, all of that
+ * happened". That is one button, not six taps. It is an assertion the
+ * person makes rather than an inference the app draws, so it records at
+ * full confidence like any other answer.
  */
 
-const MARKS: { value: DayMark; glyph: string; label: string; tone: 'accent' | 'danger' | 'must' }[] =
-  [
-    { value: 'did', glyph: '✓', label: 'Did it', tone: 'accent' },
-    { value: 'didnt', glyph: '✗', label: 'Didn’t', tone: 'danger' },
-    { value: 'instead', glyph: '+', label: 'Did something else', tone: 'must' },
-  ];
-
-const SOFT = { accent: 'accentSoft', danger: 'dangerSoft', must: 'mustSoft' } as const;
+/** The three answers, in the order a person reaches for them. No selected
+ *  state and no tones: only unanswered rows render here, and a row leaves
+ *  the list the moment it is answered. */
+const MARKS: { value: DayMark; glyph: string; label: string }[] = [
+  { value: 'did', glyph: '✓', label: 'Did it' },
+  { value: 'didnt', glyph: '✗', label: 'Didn’t' },
+  { value: 'instead', glyph: '+', label: 'Did something else' },
+];
 
 export default function DayReview() {
   const router = useRouter();
@@ -65,6 +82,8 @@ export default function DayReview() {
   const setItemStatus = useAppStore((s) => s.setItemStatus);
 
   const rows = useMemo(() => dayRows(plans[date]), [plans, date]);
+  const open = useMemo(() => unresolvedRows(plans[date]), [plans, date]);
+  const told = useMemo(() => dayTold(rows), [rows]);
   const result = useMemo(() => dayResult(plans, date), [plans, date]);
   const next = useMemo(() => tomorrowFirst(plans, date), [plans, date]);
   const [instead, setInstead] = useState(false);
@@ -81,7 +100,7 @@ export default function DayReview() {
 
   return (
     <Screen>
-      <View style={styles.head}>
+      <View style={styles.headRow}>
         <AppText variant="label" color="textTertiary">
           End of day
         </AppText>
@@ -90,106 +109,99 @@ export default function DayReview() {
         </AppText>
       </View>
 
-      {rows.length === 0 ? (
+      {/* Closure first. A count is not how anybody puts a day down — and
+          what happened gets the large type while what didn't sits under
+          it, the same split the week screen makes between its finding and
+          its count. */}
+      <AppText variant="title" style={styles.told}>
+        {told.headline}
+      </AppText>
+      {told.note ? (
+        <AppText variant="secondary" style={styles.note}>
+          {told.note}
+        </AppText>
+      ) : null}
+
+      {open.length > 0 ? (
         <View style={styles.block}>
-          <AppText variant="heading">Nothing was on today.</AppText>
-          <AppText variant="secondary">Anything you did anyway can still go on the day.</AppText>
-          <LogDidIt date={date} />
-        </View>
-      ) : (
-        <View style={[styles.grid, { borderColor: theme.border, backgroundColor: theme.surface }]}>
-          {rows.map((row, i) => (
-            <View
-              key={row.item.id}
-              style={[
-                styles.row,
-                i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
-              ]}
-            >
-              <AppText variant="caption" color="textTertiary" style={styles.time} numeric>
-                {formatTime(row.item.start)}
-              </AppText>
-              <AppText variant="body" style={styles.title}>
-                {row.item.title}
-              </AppText>
-              <View style={styles.marks}>
-                {MARKS.map((m) => {
-                  const on = row.mark === m.value;
-                  return (
+          <AppText variant="label" color="textTertiary">
+            {open.length === 1 ? 'One thing left to say' : `${open.length} things left to say`}
+          </AppText>
+
+          <View style={[styles.grid, { borderColor: theme.border, backgroundColor: theme.surface }]}>
+            {open.map((row, i) => (
+              <View
+                key={row.item.id}
+                style={[
+                  styles.row,
+                  i > 0 && {
+                    borderTopWidth: StyleSheet.hairlineWidth,
+                    borderTopColor: theme.border,
+                  },
+                ]}
+              >
+                <AppText variant="caption" color="textTertiary" style={styles.time} numeric>
+                  {formatTime(row.item.start)}
+                </AppText>
+                <AppText variant="body" style={styles.grow}>
+                  {row.item.title}
+                </AppText>
+                <View style={styles.marks}>
+                  {MARKS.map((m) => (
                     <Pressable
                       key={m.value}
                       onPress={() => mark(row.item.id, m.value)}
                       accessibilityRole="button"
-                      accessibilityState={{ selected: on }}
                       accessibilityLabel={`${row.item.title}: ${m.label}`}
-                      style={[
-                        styles.mark,
-                        { borderLeftColor: theme.border },
-                        on && {
-                          backgroundColor: theme[SOFT[m.tone]],
-                          borderColor: theme[m.tone],
-                          borderLeftColor: theme[m.tone],
-                        },
-                      ]}
+                      style={[styles.mark, { borderLeftColor: theme.border }]}
                     >
-                      <AppText variant="body" color={on ? m.tone : 'textTertiary'}>
+                      <AppText variant="body" color="textTertiary">
                         {m.glyph}
                       </AppText>
                     </Pressable>
-                  );
-                })}
+                  ))}
+                </View>
               </View>
-            </View>
-          ))}
-        </View>
-      )}
+            ))}
+          </View>
 
-      {rows.length > 0 ? (
-        <AppText variant="caption" color="textTertiary" style={styles.legend}>
-          ✓ did it · ✗ didn’t · + did something else
-        </AppText>
+          {/* The usual truth, in one tap rather than six. */}
+          {open.length > 1 ? (
+            <Button
+              title="All of that happened"
+              variant="secondary"
+              hint="Marks every remaining item as done."
+              onPress={() => open.forEach((r) => mark(r.item.id, 'did'))}
+            />
+          ) : null}
+
+          <AppText variant="caption" color="textTertiary">
+            ✓ did it · ✗ didn’t · + did something else
+          </AppText>
+        </View>
       ) : null}
 
-      {/* The "+" column's own answer, opened only by using it. The habit
-          chips are one tap for the things this person already does; the
-          fuller entry underneath catches everything else. */}
+      {/* Opened by using the third column, or on purpose from the bottom.
+          Never sitting there as a wall. */}
       {instead ? (
-        <View style={[styles.block, styles.ruled, { borderTopColor: theme.border }]}>
+        <View style={styles.block}>
           <AppText variant="secondary">What did you do instead?</AppText>
           <QuickLog />
           <LogDidIt date={date} />
         </View>
       ) : null}
 
-      {/* One line and a sparkline, on a rule. Not a chapter heading: a
-          twenty-second close does not have sections. */}
-      <View style={[styles.ruled, styles.resultRow, { borderTopColor: theme.border }]}>
-        <AppText variant="body" style={styles.title}>
-          {result.line}
-        </AppText>
-        {result.weekTotal > 0 ? (
-          <View style={styles.spark}>
-            <Sparkbars
-              data={result.trend.map((value, i) => ({ label: addDays(date, i - 6), value }))}
-              accessibilityLabel={`${result.weekDone} of ${result.weekTotal} across the last seven days`}
-              fromZero
-            />
-          </View>
-        ) : null}
-      </View>
-      {/* No percentage and no streak. A missed Tuesday is a missed
-          Tuesday, not a reset to zero. */}
-
+      {/* Tomorrow is the reason to open this, so it gets the weight. */}
       {next ? (
         <View style={[styles.ruled, { borderTopColor: theme.border }]}>
           <AppText variant="label" color="textTertiary">
-            Tomorrow
+            Tomorrow starts with
           </AppText>
           <View style={styles.nextRow}>
             <AppText variant="caption" color="textTertiary" style={styles.time} numeric>
               {formatTime(next.start)}
             </AppText>
-            <AppText variant="body" style={styles.title}>
+            <AppText variant="heading" style={styles.grow}>
               {next.title}
             </AppText>
             <Pressable
@@ -208,37 +220,64 @@ export default function DayReview() {
       ) : null}
 
       <Button title="Close the day" style={styles.close} onPress={() => router.back()} />
+
+      {/* The week, and anything unplanned — both real, neither the point of
+          a nightly close. No percentage and no streak: a missed Tuesday is
+          a missed Tuesday, not a reset to zero. */}
+      <View style={styles.footer}>
+        <Disclosure title="How the week is going">
+          <View style={styles.resultRow}>
+            <AppText variant="body" style={styles.grow}>
+              {result.line}
+            </AppText>
+            {result.weekTotal > 0 ? (
+              <View style={styles.spark}>
+                <Sparkbars
+                  data={result.trend.map((value, i) => ({ label: addDays(date, i - 6), value }))}
+                  accessibilityLabel={`${result.weekDone} of ${result.weekTotal} across the last seven days`}
+                  fromZero
+                />
+              </View>
+            ) : null}
+          </View>
+        </Disclosure>
+        {!instead ? (
+          <Disclosure title="I did something else today">
+            <QuickLog />
+            <LogDidIt date={date} />
+          </Disclosure>
+        ) : null}
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  block: { marginTop: Spacing.lg, gap: Spacing.sm },
+  headRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  told: { marginTop: Spacing.lg },
+  note: { marginTop: Spacing.xs },
+  block: { marginTop: Spacing.xl, gap: Spacing.md },
   grid: {
-    marginTop: Spacing.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: Radius.lg,
     overflow: 'hidden',
   },
   row: { flexDirection: 'row', alignItems: 'center', paddingLeft: Spacing.md, gap: Spacing.sm },
   time: { minWidth: 52 },
-  title: { flex: 1 },
+  grow: { flex: 1 },
   marks: { flexDirection: 'row' },
   mark: {
     minWidth: 44,
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'transparent',
     borderLeftWidth: StyleSheet.hairlineWidth,
   },
-  legend: { marginTop: Spacing.sm },
   ruled: { marginTop: Spacing.xl, paddingTop: Spacing.lg, borderTopWidth: StyleSheet.hairlineWidth },
-  resultRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  spark: { minWidth: 96 },
   nextRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.sm },
   move: { minHeight: 44, minWidth: 56, alignItems: 'flex-end', justifyContent: 'center' },
   close: { marginTop: Spacing.xl },
+  footer: { marginTop: Spacing.xl, gap: Spacing.sm },
+  resultRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  spark: { minWidth: 96 },
 });

@@ -299,6 +299,58 @@ Three things the sketch calls out and the app cannot currently do:
 The grid is the honest picture: you see the shape of your week, including
 that everything at 6am died. No score, no percentage, no streak.
 
+### Both screens, redesigned away from the sketch — Sept 2026
+
+Isaac, on the built version: *"Don't rely on my sketch, put a design lens
+that was conceptual only."* The sketch above is a **layout**, and both
+screens were built by rendering it. Rendering a layout is not designing a
+screen, and each one had a concept problem the prettiest possible table
+could not have fixed.
+
+**End of Day was capturing what it already knew.** Three jobs compete on
+that screen — capture (the engine needs to know what happened), closure
+(the person needs to put the day down), and setup (hand them tomorrow) —
+and the grid of every item with three marks each serves only *capture*,
+which is the app's need, not the person's. Worse, it was capture the app
+did not need: `ItemActions` calls `setItemStatus` from the Today row all
+day, so by the evening most of the day is already answered and the screen
+was handing all of it back. Somebody who ticked three things off at the
+time and gets all five returned at 9pm has learned the app was not
+listening. That is why it read as a form however it was laid out.
+
+So the order inverted: the day told back in its own titles (closure),
+then only what is genuinely unanswered — `unresolvedRows`, which on most
+days is one thing and quite often nothing — then tomorrow, with weight.
+On a day that was kept up with the screen is two sentences and a button,
+which is the correct amount of screen for a day that went fine and a
+thing the grid could never be. Where several rows are open, "All of that
+happened" is the usual truth in one tap rather than six. The week count
+and the "did something else" wall are still reachable, in disclosures at
+the bottom, where a real-but-secondary fact belongs.
+
+**End of Week was asking for analysis it had already done.** It opened
+with the grid, the legend and the count, and put the sentence the app had
+worked out below all of it. `deadSlots` knows "6am Tuesday died twice"
+before a single cell renders — and that sentence is the entire value of
+keeping a week of data, because anyone can see their own Tuesday and
+nobody can see three Tuesdays at once. Leading with the grid asks a tired
+person on a Sunday night to do that work themselves, then does it for
+them further down, where they may never reach.
+
+So: **finding, decision, evidence.** `weekLead` picks the first
+non-capacity proposal as the headline, the actions it implies sit
+directly under it, and the grid follows as *"where that came from"* with
+the cells the finding was read off ringed — claim and proof in one look
+rather than a table and a homework question. The count drops to secondary
+weight under the headline: "8 of 14 things happened" is context, and it
+was reading as a verdict. Where there is no finding, the honest headline
+is what an empty `deadSlots` actually means — *"Nothing went wrong twice
+in the same place"* — which is worth saying to somebody whose week felt
+scrappy. The capacity dial stays last: it is a standing question about
+next week rather than anything this week said.
+
+The grid keeps every job it had. It lost its position, not its point.
+
 ---
 
 ## 6. What this means for the code

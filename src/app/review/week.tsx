@@ -18,37 +18,56 @@ import {
   hourLabel,
   nudgeCell,
   weekGrid,
+  weekLead,
   weekProposals,
   weekRangeLabel,
+  type WeekAction,
   type WeekCell,
+  type WeekProposal,
 } from '@/features/review/weekReview';
 import { addDays, todayKey, weekStartOf } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 
 /**
- * End of week — the grid, built as a grid.
+ * End of week — the finding, the decision, then the evidence.
  *
- * ── What the first version got wrong ────────────────────────────────────
+ * ── What this screen is FOR ─────────────────────────────────────────────
  *
- * The sketch is a table: hours down the left, days across, a mark in every
- * cell, readable in one look. The first build rendered caption-size glyphs
- * floating in space with forty-eight points between rows and an almost
- * invisible dot for an empty cell — so nothing held the columns together
- * and it read as scattered text rather than a week.
+ * Three jobs, and the first build put them in the wrong order:
  *
- * A grid needs a lattice. Cells now butt up against each other inside one
- * bordered block, rows are separated by a hairline rather than by air, and
- * the two weekend columns carry a faint tint so the shape of the week is
- * visible before a single mark is read. Twelve crosses in one row is an
- * argument that makes itself, and it only makes itself if the row reads as
- * a row.
+ *   finding    the app can see three Tuesdays at once; a person cannot
+ *   decision   one or two changes to next week, made here or not at all
+ *   evidence   the grid, so the finding can be checked rather than trusted
  *
- * ── And the proposals are not cards ─────────────────────────────────────
+ * It opened with the grid — seven columns, a legend, a count — and put the
+ * sentence the app had already worked out below all of it. That asks
+ * somebody to do analysis the app has done, and then does it for them
+ * anyway, further down, where a tired person on a Sunday night may never
+ * reach.
  *
- * Three stacked cards with a heading and two buttons each is a great deal
- * of chrome for "6am Tuesday died twice". The sketch has them as bullets
- * with the actions inline, which is what they are: three short sentences
- * about the grid above, each with the one or two answers that exist.
+ * `deadSlots` knows "6am Tuesday died twice" before a single cell renders.
+ * Saying it first costs nothing and is the whole reason to keep a week of
+ * data: anyone can see their own Tuesday; nobody can see three Tuesdays at
+ * once.
+ *
+ * ── So the grid keeps its job and loses its position ────────────────────
+ *
+ * It is still the thing that makes the claim believable — twelve crosses
+ * in a row is an argument that makes itself — but it is now underneath the
+ * claim, labelled as what it is, with the cells the finding was read off
+ * ringed. Claim and proof in one look, rather than a table and a homework
+ * question.
+ *
+ * The count moves too. "8 of 14 things happened" is context, not a
+ * verdict, and it was reading as a verdict at the top of a screen. It sits
+ * under the headline at secondary weight, where a fact belongs.
+ *
+ * ── What it deliberately does not do ────────────────────────────────────
+ *
+ * No score, no percentage, no streak, and no ranking of days. The capacity
+ * dial stays last: it is a standing question about next week rather than
+ * anything this week said, and putting a standing question first is how a
+ * screen stops having a point.
  */
 
 interface Selection {
@@ -58,6 +77,9 @@ interface Selection {
 
 /** Saturday and Sunday, tinted so the week has a visible shape. */
 const WEEKEND = [5, 6];
+
+/** The outline drawn around the cells a finding was read off. */
+const RING = 2;
 
 export default function WeekReview() {
   const router = useRouter();
@@ -91,6 +113,10 @@ export default function WeekReview() {
     () => weekProposals({ grid, plans, routines, capacity, today, forward: period.lookingForward }),
     [grid, plans, routines, capacity, today, period.lookingForward],
   );
+  const lead = useMemo(
+    () => weekLead(grid, proposals, period.lookingBack),
+    [grid, proposals, period.lookingBack],
+  );
 
   const [selected, setSelected] = useState<Selection | null>(null);
   const [applied, setApplied] = useState<string[]>([]);
@@ -111,6 +137,32 @@ export default function WeekReview() {
     setSelected(null);
   };
 
+  const take = (a: WeekAction) => {
+    if (a.capacity) setWeekCapacity(targetWeek, a.capacity);
+    if (a.changes?.length) applyWeeklyChanges(a.changes);
+    setApplied((prev) => [...prev, a.id]);
+  };
+
+  const actionRow = (p: WeekProposal) => (
+    <View style={styles.actions}>
+      {p.actions.map((a) => (
+        <InlineAction
+          key={a.id}
+          label={applied.includes(a.id) ? 'Done' : a.label}
+          disabled={applied.includes(a.id)}
+          onPress={() => take(a)}
+        />
+      ))}
+    </View>
+  );
+
+  /** The cells the headline was read off, so the ring knows where to go. */
+  const focused = useMemo(() => {
+    const set = new Set<string>();
+    for (const f of lead.proposal?.focus ?? []) set.add(`${f.col}|${f.hour}`);
+    return set;
+  }, [lead.proposal]);
+
   return (
     <Screen>
       <View style={styles.head}>
@@ -122,13 +174,35 @@ export default function WeekReview() {
         </AppText>
       </View>
 
+      {/* The finding first. The app can see three Tuesdays at once; this is
+          the one thing on the screen a person could not work out alone. */}
+      <AppText variant="title" style={styles.headline}>
+        {lead.headline}
+      </AppText>
+      {lead.under ? (
+        <AppText variant="secondary" style={styles.under}>
+          {lead.under}
+        </AppText>
+      ) : null}
+
+      {/* And the decision it implies, before the evidence rather than after
+          it. Nobody scrolls past a table to find out what to do. */}
+      {lead.proposal ? actionRow(lead.proposal) : null}
+
       {grid.rows.length === 0 ? (
+        /* The headline has already said nothing was on. This is the one
+           thing left worth saying: when to come back. */
         <AppText variant="secondary" style={styles.block}>
-          Nothing was on {period.lookingBack}, so there is no shape to read yet. Come back after a
-          week with some of your plan in it.
+          There is no shape to read yet. Come back after a week with some of your plan in it.
         </AppText>
       ) : (
         <>
+          <View style={[styles.ruled, { borderTopColor: theme.border }]}>
+            <AppText variant="label" color="textTertiary">
+              {lead.proposal ? 'Where that came from' : 'How the week went'}
+            </AppText>
+          </View>
+
           <View style={[styles.grid, { borderColor: theme.border, backgroundColor: theme.surface }]}>
             <View style={styles.gridRow}>
               <View style={[styles.hourCell, { borderRightColor: theme.border }]} />
@@ -181,29 +255,50 @@ export default function WeekReview() {
                     </AppText>
                   </View>
                   {row.cells.map((cell, col) => {
-                  const open =
-                    selected?.cell.date === cell.date && selected?.cell.hour === cell.hour;
-                  const summary = cellSummary(cell);
-                  return (
-                    <Pressable
-                      key={cell.date}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: open, disabled: !summary }}
-                      accessibilityLabel={
-                        summary
-                          ? `${DAY_NAMES[col]} ${row.label}: ${summary}, ${MARK_WORDS[cell.mark]}`
-                          : `${DAY_NAMES[col]} ${row.label}: nothing on`
-                      }
-                      onPress={() => (summary ? setSelected(open ? null : { cell, col }) : null)}
-                      style={[
-                        styles.cell,
-                        WEEKEND.includes(col) && { backgroundColor: theme.surfacePressed },
-                        open && { backgroundColor: theme.accentSoft },
-                      ]}
-                    >
-                      <AppText variant="body" style={{ color: cellColor(cell.mark) }}>
-                        {CELL_GLYPH[cell.mark]}
-                      </AppText>
+                    const open =
+                      selected?.cell.date === cell.date && selected?.cell.hour === cell.hour;
+                    const summary = cellSummary(cell);
+                    /* One outline around the run, not a box around each
+                       cell of it. Seven adjacent 2pt rings double up at
+                       every join and read as seven findings, which is
+                       the exact misreading the grouped finding exists to
+                       stop. Edges are drawn only where the run ends. */
+                    const ring = focused.has(`${col}|${row.hour}`);
+                    const ringEdge = ring
+                      ? {
+                          borderTopWidth: RING,
+                          borderBottomWidth: RING,
+                          borderLeftWidth: focused.has(`${col - 1}|${row.hour}`) ? 0 : RING,
+                          borderRightWidth: focused.has(`${col + 1}|${row.hour}`) ? 0 : RING,
+                          borderColor: theme.text,
+                        }
+                      : null;
+                    return (
+                      <Pressable
+                        key={cell.date}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: open, disabled: !summary }}
+                        accessibilityLabel={
+                          summary
+                            ? `${DAY_NAMES[col]} ${row.label}: ${summary}, ${MARK_WORDS[cell.mark]}${
+                                ring ? ', the one above' : ''
+                              }`
+                            : `${DAY_NAMES[col]} ${row.label}: nothing on`
+                        }
+                        onPress={() => (summary ? setSelected(open ? null : { cell, col }) : null)}
+                        style={[
+                          styles.cell,
+                          WEEKEND.includes(col) && { backgroundColor: theme.surfacePressed },
+                          /* The claim, pointing at itself. A finding you
+                             have to hunt for in a 7-column table is one
+                             most people take on trust or skip. */
+                          ringEdge,
+                          open && { backgroundColor: theme.accentSoft },
+                        ]}
+                      >
+                        <AppText variant="body" style={{ color: cellColor(cell.mark) }}>
+                          {CELL_GLYPH[cell.mark]}
+                        </AppText>
                       </Pressable>
                     );
                   })}
@@ -214,11 +309,6 @@ export default function WeekReview() {
 
           <AppText variant="caption" color="textTertiary" style={styles.legend}>
             ✓ happened · ✗ didn&apos;t · ≈ partly · ○ to come
-          </AppText>
-          {/* The grid is the verdict. This is a caption on it, and at
-              heading weight it was the loudest thing on the screen. */}
-          <AppText variant="body" style={styles.count}>
-            {grid.line}
           </AppText>
 
           {selected ? (
@@ -231,8 +321,14 @@ export default function WeekReview() {
                 Moving it here moves it every week — {period.lookingBack} is already over.
               </AppText>
               <View style={styles.actions}>
-                <InlineAction label={`${NUDGE_MINUTES} min earlier`} onPress={() => nudge(-NUDGE_MINUTES)} />
-                <InlineAction label={`${NUDGE_MINUTES} min later`} onPress={() => nudge(NUDGE_MINUTES)} />
+                <InlineAction
+                  label={`${NUDGE_MINUTES} min earlier`}
+                  onPress={() => nudge(-NUDGE_MINUTES)}
+                />
+                <InlineAction
+                  label={`${NUDGE_MINUTES} min later`}
+                  onPress={() => nudge(NUDGE_MINUTES)}
+                />
               </View>
             </View>
           ) : (
@@ -243,40 +339,29 @@ export default function WeekReview() {
         </>
       )}
 
-      {/* Bullets with the actions inline, which is what they are: short
-          sentences about the grid, each with the answers that exist. */}
-      <View style={[styles.ruled, { borderTopColor: theme.border }]}>
-        <AppText variant="label" color="textTertiary">
-          What changes {period.lookingForward}
-        </AppText>
-        {proposals.map((p) => (
-          <View key={p.id} style={styles.proposal}>
-            <AppText variant="body">{p.line}</AppText>
-            {p.id === 'capacity' ? (
-              <AppText variant="caption" color="textTertiary">
-                Now: {CAPACITY_LABEL[capacity].toLowerCase()}.
-              </AppText>
-            ) : null}
-            <View style={styles.actions}>
-              {p.actions.map((a) => (
-                <InlineAction
-                  key={a.id}
-                  label={applied.includes(a.id) ? 'Done' : a.label}
-                  disabled={applied.includes(a.id)}
-                  onPress={() => {
-                    if (a.capacity) setWeekCapacity(targetWeek, a.capacity);
-                    if (a.changes?.length) applyWeeklyChanges(a.changes);
-                    setApplied((prev) => [...prev, a.id]);
-                  }}
-                />
-              ))}
+      {/* Everything the headline did not take. Bullets with the actions
+          inline, which is what they are: short sentences about the grid,
+          each with the answers that exist. */}
+      {lead.rest.length > 0 ? (
+        <View style={[styles.ruled, { borderTopColor: theme.border }]}>
+          <AppText variant="label" color="textTertiary">
+            What else changes {period.lookingForward}
+          </AppText>
+          {lead.rest.map((p) => (
+            <View key={p.id} style={styles.proposal}>
+              <AppText variant="body">{p.line}</AppText>
+              {p.id === 'capacity' ? (
+                <AppText variant="caption" color="textTertiary">
+                  Now: {CAPACITY_LABEL[capacity].toLowerCase()}.
+                </AppText>
+              ) : null}
+              {actionRow(p)}
             </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+      ) : null}
 
-      {/* No score, no percentage, no streak. The grid is the verdict and
-          it is a picture. */}
+      {/* No score, no percentage, no streak. */}
       <Button title="Close the week" style={styles.close} onPress={() => router.back()} />
     </Screen>
   );
@@ -318,9 +403,11 @@ const MARK_WORDS: Record<WeekCell['mark'], string> = {
 
 const styles = StyleSheet.create({
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  headline: { marginTop: Spacing.lg },
+  under: { marginTop: Spacing.xs },
   block: { marginTop: Spacing.lg },
   grid: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: Radius.lg,
     overflow: 'hidden',
@@ -355,7 +442,7 @@ const styles = StyleSheet.create({
   ruled: { marginTop: Spacing.xl, paddingTop: Spacing.lg, borderTopWidth: StyleSheet.hairlineWidth },
   why: { marginTop: Spacing.xs },
   proposal: { marginTop: Spacing.lg, gap: Spacing.xs },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.xs },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.md },
   action: {
     minHeight: 44,
     paddingHorizontal: Spacing.md,

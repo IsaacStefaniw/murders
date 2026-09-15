@@ -87,6 +87,95 @@ export function dayRows(plan: DailyPlan | undefined): DayRow[] {
     }));
 }
 
+/**
+ * The rows that still have no answer.
+ *
+ * ── The design mistake this exists to correct ───────────────────────────
+ *
+ * The first end-of-day screen asked about every item on the day. But Today
+ * marks items as they happen — `ItemActions` calls `setItemStatus` from
+ * the row, all day — so by the evening most of the day is already
+ * answered, and the review was re-asking questions it had the answers to.
+ *
+ * That is why it read as a form however it was laid out. A person who
+ * ticked three things off at the time and is then handed all five back at
+ * 9pm has learned that the app was not listening. The fix is not a better
+ * grid; it is asking about the GAP, which on most days is one or two
+ * things and quite often nothing at all.
+ */
+export function unresolvedRows(plan: DailyPlan | undefined): DayRow[] {
+  return dayRows(plan).filter((r) => r.mark === null);
+}
+
+/**
+ * The part of a title a person would actually say.
+ *
+ * Protocol titles carry their method after a colon — "The urge answer:
+ * two-minute reset" — which is right on a card you are about to follow
+ * and wrong in a sentence about your evening. The browser showed the
+ * closure line running to five lines of 28pt because it was reading
+ * library titles out verbatim.
+ */
+function spoken(title: string): string {
+  const head = title.split(/\s*[:—–]\s*/)[0];
+  return head.length >= 6 ? head : title;
+}
+
+export interface DayTold {
+  /** What happened, in the person's own titles. The closure line. */
+  headline: string;
+  /** What didn't, and what is still open. Context, not a verdict. */
+  note: string;
+}
+
+/**
+ * The day, told back.
+ *
+ * The closure job, which the marking grid never did: a person at the end
+ * of a day wants to put it down, and a count is not how anybody puts a day
+ * down. It names what happened, in their own titles, because "four of
+ * five" is a score and "you trained and made dinner" is an evening.
+ *
+ * Split in two for the same reason the week screen splits its finding from
+ * its count: what happened is the closure and belongs in the large type;
+ * what did not is context and belongs under it, quietly. Run together in
+ * one headline they made a five-line paragraph out of an ordinary Tuesday.
+ *
+ * It reports and never grades. The evaluative line stays at week scale for
+ * the reason `dayResult` gives — one day is noise — so this says what the
+ * day contained and stops there.
+ */
+export function dayTold(rows: DayRow[]): DayTold {
+  if (rows.length === 0) return { headline: 'Nothing was on today.', note: '' };
+
+  const kept = rows.filter((r) => r.item.status === 'completed').map((r) => spoken(r.item.title));
+  const missed = rows.filter((r) => r.mark === 'didnt').map((r) => spoken(r.item.title));
+  const open = rows.filter((r) => r.mark === null).length;
+
+  if (kept.length === rows.length) return { headline: 'All of it happened.', note: '' };
+  if (kept.length === 0 && open === 0) return { headline: 'None of it happened today.', note: '' };
+
+  const said = (titles: string[]): string =>
+    titles.length <= 2
+      ? titles.join(' and ')
+      : `${titles[0]} and ${titles.length - 1} more`;
+
+  // Nothing ticked and nothing answered is not a day that went badly, it
+  // is a day the app has not been told about — so it asks rather than
+  // asserting. "None of it happened yet" is a verdict on evidence the
+  // screen is about to go and collect.
+  if (kept.length === 0 && missed.length === 0) return { headline: 'How did today go?', note: '' };
+
+  const note: string[] = [];
+  if (missed.length > 0) note.push(`${said(missed)} didn't.`);
+  if (open > 0) note.push(open === 1 ? '1 still unanswered.' : `${open} still unanswered.`);
+
+  return {
+    headline: kept.length > 0 ? `${said(kept)} happened.` : `${said(missed)} didn't.`,
+    note: kept.length > 0 ? note.join(' ') : note.slice(1).join(' '),
+  };
+}
+
 export interface DayResult {
   /** This day. */
   done: number;

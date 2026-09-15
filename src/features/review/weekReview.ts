@@ -267,11 +267,30 @@ export interface WeekAction {
   capacity?: Capacity;
 }
 
+/** One cell of the grid, named so a claim can point at its own evidence. */
+export interface WeekFocus {
+  /** 0–6, Monday first. */
+  col: number;
+  hour: number;
+}
+
 export interface WeekProposal {
   id: string;
   /** The observation, in the person's own week. */
   line: string;
   actions: WeekAction[];
+  /**
+   * The cells this observation was read off.
+   *
+   * A finding stated above a grid is a claim, and a claim you have to hunt
+   * for in a 7-column table is a claim most people take on trust or
+   * ignore. Naming the cells lets the screen ring them, so "6am Tuesday
+   * died twice" and the two crosses it came from are the same gesture.
+   *
+   * Absent on the capacity dial, which is a standing question rather than
+   * a reading of any particular cell.
+   */
+  focus?: WeekFocus[];
 }
 
 /** Twice reads better than 2 times; past four, the numeral is clearer. */
@@ -391,7 +410,7 @@ function livedHour(slot: Slot): number | null {
   return best[0] === slot.hour ? null : best[0];
 }
 
-function slotProposal(slot: Slot, routines: Routine[]): WeekProposal {
+function slotActions(slot: Slot, routines: Routine[]): WeekAction[] {
   const target = livedHour(slot);
   const toHour = target ?? slot.hour + 1;
   const actions: WeekAction[] = [
@@ -423,10 +442,52 @@ function slotProposal(slot: Slot, routines: Routine[]): WeekProposal {
       ],
     });
   }
+  return actions;
+}
+
+function slotProposal(slot: Slot, routines: Routine[]): WeekProposal {
   return {
     id: `slot-${slot.routine.id}-${slot.col}-${slot.hour}`,
     line: `${hourLabel(slot.hour)} ${DAY_NAMES[slot.col]} — ${slot.routine.title.toLowerCase()} died ${overWeeks(slot.seen)}.`,
-    actions,
+    actions: slotActions(slot, routines),
+    focus: [{ col: slot.col, hour: slot.hour }],
+  };
+}
+
+/** Below this many weekdays, an hour that fails is a day problem. */
+export const SPREAD_MIN_DAYS = 3;
+
+/**
+ * One hour that is failing across the week, said as one hour.
+ *
+ * `deadSlots` keys on routine + weekday + hour, which is right for "6am
+ * Tuesday" and wrong for a daily routine: seven identical findings, of
+ * which the screen shows the top one. That was survivable while the
+ * findings sat below the grid. It is not survivable now they ARE the
+ * headline — the browser showed "7am Monday — protein at breakfast died
+ * twice" in 28pt type directly above a 7am row holding seven crosses,
+ * with one of them ringed and the near-identical Tuesday repeated
+ * underneath. A person reading that concludes the app can see a seventh
+ * of their problem.
+ *
+ * So slots that share a routine and an hour across `SPREAD_MIN_DAYS` or
+ * more weekdays collapse into one finding about the hour, ringing every
+ * cell it was read off. The count stays checkable against the row: "died
+ * every day it was on" when the group covers the routine's whole
+ * schedule, and "5 of the 7 days" when it does not.
+ */
+function spreadProposal(group: Slot[], routines: Routine[]): WeekProposal {
+  const [first] = group;
+  const onDays = first.routine.days?.length ?? group.length;
+  const how =
+    group.length >= onDays
+      ? 'died every day it was on'
+      : `died on ${group.length} of the ${onDays} days it was on`;
+  return {
+    id: `spread-${first.routine.id}-${first.hour}`,
+    line: `${hourLabel(first.hour)} is not working — ${first.routine.title.toLowerCase()} ${how}.`,
+    actions: slotActions(first, routines),
+    focus: group.map((s) => ({ col: s.col, hour: s.hour })),
   };
 }
 
@@ -467,9 +528,18 @@ function shiftProposal(grid: WeekGrid, routines: Routine[]): WeekProposal | null
   );
   if (affected.length === 0) return null;
 
+  const focus: WeekFocus[] = [];
+  for (const row of occupied) {
+    if (row.hour > deadUntil) break;
+    row.cells.forEach((c, col) => {
+      if (c.items.length > 0 && c.mark !== 'ahead') focus.push({ col, hour: row.hour });
+    });
+  }
+
   return {
     id: `shift-${cutoff}`,
     line: `Nothing before ${hourLabel(cutoff)} happened, ${countWord(deadItems)}.`,
+    focus,
     actions: [
       {
         id: 'shift-later',
@@ -500,24 +570,30 @@ function capacityProposal(grid: WeekGrid, current: Capacity, forward: string): W
   // The gear itself is named in the caption under the buttons, so the line
   // asks the question rather than repeating the answer back.
   const settled = `Is ${forward} the right size?`;
+  // Only ever asks in a direction that has a button. The browser caught
+  // "More than half of it went untouched. Less this week?" printed above
+  // a lone `+ Normal`, on somebody already in the lowest gear — the app
+  // proposing the one thing it had no way to do.
+  const canDown = i > 0;
+  const canUp = i < CAPACITY_ORDER.length - 1;
   const line =
     rate === null
       ? settled
-      : rate >= ADD_ABOVE
+      : rate >= ADD_ABOVE && canUp
         ? 'You cleared nearly all of it. Room for one more?'
-        : rate < SHED_BELOW
+        : rate < SHED_BELOW && canDown
           ? `More than half of it went untouched. Less ${forward}?`
           : settled;
 
   const actions: WeekAction[] = [];
-  if (i > 0) {
+  if (canDown) {
     actions.push({
       id: 'capacity-down',
       label: `− ${CAPACITY_LABEL[CAPACITY_ORDER[i - 1]]}`,
       capacity: CAPACITY_ORDER[i - 1],
     });
   }
-  if (i < CAPACITY_ORDER.length - 1) {
+  if (canUp) {
     actions.push({
       id: 'capacity-up',
       label: `+ ${CAPACITY_LABEL[CAPACITY_ORDER[i + 1]]}`,
@@ -544,7 +620,26 @@ export function weekProposals(input: {
   const out: WeekProposal[] = [];
 
   const slots = deadSlots(plans, grid.weekStart, routines, today);
-  for (const slot of slots.slice(0, 2)) out.push(slotProposal(slot, routines));
+  // Grouped by routine and hour, so a daily routine produces one finding
+  // about the hour rather than seven near-identical ones about weekdays.
+  const byHour = new Map<string, Slot[]>();
+  for (const s of slots) {
+    const key = `${s.routine.id}|${s.hour}`;
+    byHour.set(key, [...(byHour.get(key) ?? []), s]);
+  }
+  const taken = new Set<string>();
+  for (const slot of slots) {
+    if (out.length >= 2) break;
+    const key = `${slot.routine.id}|${slot.hour}`;
+    if (taken.has(key)) continue;
+    taken.add(key);
+    const group = byHour.get(key)!;
+    out.push(
+      group.length >= SPREAD_MIN_DAYS
+        ? spreadProposal(group, routines)
+        : slotProposal(slot, routines),
+    );
+  }
 
   // Suppressed when a slot proposal already names a routine in the early
   // band: applying both would move the same thing twice.
@@ -558,6 +653,69 @@ export function weekProposals(input: {
 
   out.push(capacityProposal(grid, capacity, forward));
   return out.slice(0, MAX_PROPOSALS);
+}
+
+/* ── The finding, and the evidence for it ─────────────────────────────── */
+
+export interface WeekLead {
+  /** The sentence the screen opens with. */
+  headline: string;
+  /** The count, quietly, under it. Empty where it would repeat the headline. */
+  under: string;
+  /** The proposal the headline came from, and whose cells to ring. */
+  proposal: WeekProposal | null;
+  /** Everything else, in order, for below the evidence. */
+  rest: WeekProposal[];
+}
+
+/**
+ * What the week screen should say first.
+ *
+ * ── The mistake this corrects ───────────────────────────────────────────
+ *
+ * The screen opened with the grid: seven columns of marks, a legend, a
+ * count, and then — below all of it — the sentence the app had already
+ * worked out. That asks the person to do analysis the app has done, and
+ * then does it for them anyway, further down, where they may never reach.
+ *
+ * `deadSlots` knows "6am Tuesday died twice" before the screen renders a
+ * single cell. Leading with it costs nothing and is the entire value of
+ * having a week's data at all: a person can see their own Tuesday; they
+ * cannot see three Tuesdays at once, and that is exactly the thing the app
+ * can do and they cannot.
+ *
+ * So the grid keeps its job and loses its position. Finding, then the
+ * decision it implies, then the grid as the evidence underneath — with the
+ * cells the finding was read off ringed, so the claim can be checked in
+ * one look rather than taken on trust.
+ *
+ * ── When there is no finding ────────────────────────────────────────────
+ *
+ * Most weeks there is none, and the honest headline then is not a number.
+ * "Nothing went wrong twice in the same place" is what `deadSlots`
+ * returning empty actually means, and it is worth saying: a person whose
+ * week felt scrappy has just been told the scrappiness did not repeat.
+ */
+export function weekLead(
+  grid: WeekGrid,
+  proposals: WeekProposal[],
+  /** "this week" or "last week" — whichever `reviewPeriod` is looking at. */
+  back = 'this week',
+): WeekLead {
+  const lead = proposals.find((p) => p.id !== 'capacity') ?? null;
+  const headline = lead
+    ? lead.line
+    : grid.total === 0
+      ? `Nothing was on ${back}.`
+      : grid.done === grid.total
+        ? 'All of it happened.'
+        : 'Nothing went wrong twice in the same place.';
+  return {
+    headline,
+    under: grid.total === 0 ? '' : grid.line,
+    proposal: lead,
+    rest: proposals.filter((p) => p !== lead),
+  };
 }
 
 /* ── Tap and move ─────────────────────────────────────────────────────── */

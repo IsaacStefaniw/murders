@@ -352,6 +352,24 @@ kept); ✅ number-and-date question; ✅ tab bar 44pt + icons; ✅ type scale.
 > A structural test now fails the build if an arbitrated block is added
 > back ungated, which is exactly how the screen got to eleven.
 
+✅ **The two reviews, redesigned off the sketch.** Isaac: *"Don't rely on
+my sketch, put a design lens that was conceptual only."* Both screens had
+been built by rendering a layout, and both had a concept problem no
+amount of layout could fix.
+
+End of Day was re-asking questions it had the answers to — Today marks
+items as they happen — so it now leads with the day told back in its own
+titles, asks only about `unresolvedRows` (usually one thing, often
+nothing), and ends on tomorrow. On a day kept up with it is two sentences
+and a button.
+
+End of Week was making the person do analysis the app had already done:
+`deadSlots` knows "6am Tuesday died twice" before a cell renders, and
+that sentence was below the grid, the legend and the count. It now leads
+with the finding, puts the decision under it, and drops the grid to
+*"where that came from"* with the cells the finding was read off ringed.
+The full reasoning for both is in `REDESIGN.md` §5.
+
 **Then** — ✅ the three coach rebuilds above, cheapest-first: family's
 17:15 defence, work's wiring fixes (`decisionLoad` → decision journal,
 delete `direct-reports`, stop asserting 09:15), money's `goalDomains`
