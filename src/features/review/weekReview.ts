@@ -78,14 +78,22 @@ export const DAY_NAMES = [
 export type CellMark = 'did' | 'didnt' | 'mixed' | 'ahead' | 'empty';
 
 /**
- * `½` rather than the `◐` this started with: the half-filled circle is
- * missing from enough fallback fonts to render as a box or a solid blob,
- * and a legend glyph nobody can read is worse than a plain one.
+ * Three marks and two placeholders, chosen for a grid rather than a list.
+ *
+ * `mixed` has been through three glyphs. `◐` is missing from enough
+ * fallback fonts to render as a box or a solid blob. `½` renders
+ * everywhere and reads as a fraction — a number, in a grid of marks, which
+ * is the one thing it must not look like. `≈` means "roughly, partly" in
+ * every context a person has met it, is in every font, and is visually
+ * unmistakable from both a tick and a cross.
+ *
+ * Colour is never the only difference between any two of these: each has
+ * its own shape, and each cell carries a spoken label as well.
  */
 export const CELL_GLYPH: Record<CellMark, string> = {
   did: '✓',
   didnt: '✗',
-  mixed: '½',
+  mixed: '≈',
   ahead: '○',
   empty: '·',
 };
