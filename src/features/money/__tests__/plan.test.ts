@@ -184,14 +184,32 @@ describe('assessMoney — the monthly number, judged by trend', () => {
     expect(a.message).toMatch(/Optional/);
   });
 
-  it('a climbing rate or a strong rate → on-track', () => {
+  it('a climbing rate → on-track', () => {
     expect(assessMoney([rate(8, 60), rate(12, 2)]).verdict).toBe('on-track');
-    expect(assessMoney([rate(18, 2)]).verdict).toBe('on-track');
+  });
+
+  /**
+   * This used to call anything at or above 15% "a strong rate" — a
+   * threshold with no citation, applied to one month, by software that
+   * says on the same screen that the trend over a quarter does the
+   * motivating rather than any one month. There is also no defensible
+   * number to put there: the right rate depends on age, income, debt,
+   * dependants and what the money is for, which is a judgement belonging
+   * to the person or to a licensed adviser, never to a constant in a file.
+   */
+  it('grades a direction, never a single month against a number', () => {
+    const high = assessMoney([rate(18, 2)]);
+    expect(high.verdict).toBe('nudge');
+    expect(high.rate).toBe(18);
+    expect(high.message).toContain('no target');
+    // And a flat quarter, however high, is still not a direction.
+    expect(assessMoney([rate(22, 60), rate(22, 2)]).verdict).toBe('nudge');
   });
 
   it('a low flat rate gets a nudge, not a lecture', () => {
     const a = assessMoney([rate(6, 60), rate(6, 2)]);
     expect(a.verdict).toBe('nudge');
     expect(a.message).toContain('never financial advice');
+    expect(a.message).not.toMatch(/strong|good|poor|should/i);
   });
 });

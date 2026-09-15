@@ -27,6 +27,7 @@ import {
   type DomainQuestion,
 } from '@/features/knowledge/questionBank';
 import { moneySteps } from '@/features/money/plan';
+import { moneyYear } from '@/features/money/year';
 import { sessionsPerWeekFloor } from '@/features/training/programme';
 import { newId, toHHMM, toMinutes, todayKey } from '@/lib/dates';
 import type { BehaviourKey, LifeArea, LifeProfile, Routine } from '@/types/domain';
@@ -456,6 +457,58 @@ export const PATHS: Record<PathId, PathDefinition> = {
           { value: 'solid', label: 'Three months or more' },
         ],
       },
+      /*
+        The four taps that switch on the money year.
+
+        Forty finance protocols sat orphaned — offset linkage, super
+        settings, HELP timing, refund pre-commitment — and none of them
+        could have been offered anyway, because the intake never asked
+        whether this person has a mortgage, a super account, a HELP debt
+        or a salary. Four questions is what the entire finance library was
+        waiting on. See features/money/year.ts.
+      */
+      {
+        key: 'homeLoan',
+        question: 'Where do you live, money-wise?',
+        options: [
+          { value: 'mortgage', label: 'Paying off a home loan' },
+          { value: 'renting', label: 'Renting at the moment' },
+          { value: 'owned', label: 'Owned outright' },
+          { value: 'other', label: 'Something else entirely' },
+        ],
+      },
+      {
+        key: 'superAccounts',
+        question: 'Super — how many accounts, roughly?',
+        options: [
+          { value: 'one', label: 'One, and I know which' },
+          { value: 'several', label: 'More than one' },
+          { value: 'unsure', label: 'Honestly not sure' },
+          { value: 'none', label: 'Not applicable' },
+        ],
+      },
+      {
+        key: 'helpDebt',
+        question: 'A student loan (HELP) still running?',
+        options: [
+          { value: 'yes', label: 'Yes, still paying it off' },
+          { value: 'no', label: 'No, nothing outstanding' },
+          { value: 'unsure', label: 'Not sure, honestly' },
+        ],
+      },
+      {
+        key: 'incomeShape',
+        question: 'And how does the income arrive?',
+        options: [
+          { value: 'salary', label: 'A salary, same every time' },
+          { value: 'variable', label: 'Shifts, penalties or commission' },
+          { value: 'selfEmployed', label: 'I invoice for it' },
+          // Somebody on a salary who also contracts on the side has no
+          // true answer above, and forcing one would put them on the wrong
+          // half of the money year.
+          { value: 'unsure', label: 'A bit of both, honestly' },
+        ],
+      },
     ],
     build: (answers, profile) => {
       const plan = buildGoalPlan(parsed('Money, running itself', 'finance', 'admin'), profile, undefined, answers);
@@ -470,6 +523,30 @@ export const PATHS: Record<PathId, PathDefinition> = {
         done: s.done,
         doneAt: s.done ? now : undefined,
       }));
+      /*
+        The money year, as dated steps on the goal.
+
+        Almost nothing in the finance library is weekly — a super review is
+        a July job, HELP is indexed on the first of June, an offset check
+        is a quarterly two minutes worth plausibly four figures — and a
+        routine with `days: Weekday[]` cannot express any of it. That is
+        most of why forty written, cited, graded finance protocols were
+        reachable only by browsing the library: the only shelf the coach
+        had was the wrong shape.
+
+        A milestone with a date is the right shape, and it is the shape the
+        rest of the app already reads. See features/money/year.ts.
+      */
+      for (const entry of moneyYear(answers, todayKey())) {
+        milestones.push({
+          id: newId('ms'),
+          title: entry.title,
+          done: false,
+          doneAt: undefined,
+          dueDate: entry.dueOn,
+          how: entry.summary,
+        } as (typeof milestones)[number]);
+      }
       return withLadder('money', { ...plan, goal: { ...plan.goal, milestones } }, answers, profile);
     },
     insights: (answers) => {

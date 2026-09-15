@@ -243,6 +243,37 @@ Four intake taps switch it on. Week 1's job for a mortgage holder is
 checking the offset is actually linked: two minutes, plausibly four
 figures.
 
+> ✅ **Built.** `features/money/year.ts`, four new intake questions
+> (`homeLoan`, `superAccounts`, `helpDebt`, `incomeShape`), and the year
+> lands on the goal as dated milestones so it is part of the built
+> programme rather than a second list beside it.
+>
+> The reason the content was orphaned turns out to be structural: almost
+> none of it is weekly. A super review is a July job, HELP is indexed on
+> the first of June, a refund is decided in May before it is spent in
+> August — and a routine with `days: Weekday[]` cannot express any of
+> that. The only shelf the coach had was the wrong shape.
+>
+> Everything is pinned to the Australian tax year, nothing connects to a
+> bank, and every entry names the person's own answer back rather than
+> reading as a generic chore list. A renter on a salary with no HELP gets
+> a short year; the app does not pad it out.
+>
+> ✅ **The uncited 15% is gone.** `assessMoney` called anything at or above
+> fifteen per cent "a strong rate" — a threshold with no citation, applied
+> to one month, by software saying on the same screen that the trend over
+> a quarter does the motivating rather than any one month. There is also
+> no defensible number to put there: the right rate depends on age,
+> income, debt, dependants and what the money is for, which belongs to the
+> person or a licensed adviser and never to a constant in a file. The
+> trend keeps its verdict; a single month is reported and not graded.
+>
+> **The regulatory line is untouched and still flagged.** Every money-year
+> entry is a prompt to check, decide or ask — never what to hold, how much
+> to contribute or which product to use, and there is a test that keeps it
+> that way. The existing `insights` line about investing "the boring way"
+> is the risk named in this file and it still needs a lawyer.
+
 **Regulatory, flagged and needing a lawyer, not me:** in Australia
 *general* advice is also licensed; "education, never financial advice" is
 not a safe harbour. The line *"the boring way works: low cost, spread

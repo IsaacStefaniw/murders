@@ -10,6 +10,7 @@ import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
 import { latest } from '@/features/model/metrics';
 import { QuestionCard } from '@/features/model/QuestionCard';
+import { CADENCE_LABEL, moneyYear, monthLabel } from '@/features/money/year';
 import {
   assessMoney,
   dollars,
@@ -83,7 +84,9 @@ export function MoneyHub() {
   const [horizon, setHorizon] = useState<number | null>(null);
   const [editingTarget, setEditingTarget] = useState(false);
 
-  const answers = entry?.answers ?? {};
+  // Memoised because a fresh {} each render would recompute the money
+  // year on every keystroke in the target field.
+  const answers = useMemo(() => entry?.answers ?? {}, [entry?.answers]);
   const goalId = entry?.goalId ?? '';
   const goal = goals.find((g) => g.id === goalId);
 
@@ -106,6 +109,7 @@ export function MoneyHub() {
 
   const nextStep = goal?.milestones?.find((m) => !m.done);
   const assessment = useMemo(() => assessMoney(metrics), [metrics]);
+  const year = useMemo(() => moneyYear(answers, todayKey()), [answers]);
 
   const logWeek = () => {
     const n = Number(weekIn);
@@ -157,6 +161,51 @@ export function MoneyHub() {
           <AppText variant="caption" color="textTertiary" style={styles.hint}>
             One at a time, in the order the maths supports. The rest of your steps are listed below.
           </AppText>
+        </>
+      ) : null}
+
+      {/*
+        Your money year.
+
+        Forty finance protocols were written, cited and graded, and the
+        coach built none of them — offset linkage, super settings, HELP
+        timing, refund pre-commitment, all reachable only by browsing the
+        library. Almost none of it is weekly, which is why: a routine with
+        `days: Weekday[]` cannot say "before the first of June". This is
+        the shelf that shape needed. See features/money/year.ts.
+      */}
+      {year.length > 0 ? (
+        <>
+          <SectionHeader title="Your money year" />
+          <AppText variant="caption" color="textTertiary">
+            Decisions with dates on them. Nothing here connects to a bank or reads a balance.
+          </AppText>
+          <View style={styles.yearList}>
+            {year.map((entry) => (
+              <Card key={entry.protocolId}>
+                <View style={styles.yearHead}>
+                  <AppText variant="heading" style={styles.grow}>
+                    {entry.title}
+                  </AppText>
+                  <AppText variant="caption" color="accent">
+                    {monthLabel(entry.dueOn)}
+                  </AppText>
+                </View>
+                <AppText variant="secondary" style={styles.detail}>
+                  {entry.summary}
+                </AppText>
+                {/* Why THIS person got it. An unexplained list of money
+                    jobs is a chore; a list that names your own answer back
+                    is a plan. */}
+                <AppText variant="caption" color="textTertiary" style={styles.detail}>
+                  {entry.because}
+                </AppText>
+                <AppText variant="caption" color="textTertiary" style={styles.detail}>
+                  {CADENCE_LABEL[entry.cadence]}
+                </AppText>
+              </Card>
+            ))}
+          </View>
         </>
       ) : null}
 
@@ -327,6 +376,8 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.md },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.md },
   detail: { marginTop: Spacing.xs },
+  yearList: { gap: Spacing.sm, marginTop: Spacing.sm },
+  yearHead: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm },
   cardButton: { marginTop: Spacing.md },
   hint: { marginTop: Spacing.sm },
 });

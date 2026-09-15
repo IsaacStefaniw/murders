@@ -407,20 +407,38 @@ export function assessMoney(metrics: MetricObservation[]): MoneyAssessment {
       trend: t,
     };
   }
-  if (t?.direction === 'up' || last.value >= 15) {
+  /*
+    ── The 15% is gone ───────────────────────────────────────────────────
+
+    This used to call anything at or above fifteen per cent "a strong
+    rate", which is a threshold with no citation behind it, applied to one
+    month, by software that says two paragraphs earlier that "the trend
+    over a quarter does the motivating, not any one month". The app was
+    contradicting itself, and the half that was wrong was the half wearing
+    the verdict.
+
+    There is also no defensible number to put there. The right savings
+    rate depends on age, income, debt, dependants and what the money is
+    for — which is exactly the reasoning that belongs to the person, or to
+    a licensed adviser, and never to a constant in a file.
+
+    So the trend keeps its verdict, because a direction over a quarter is
+    a real observation about this person against themselves. A single
+    month gets reported and not graded.
+  */
+  if (t?.direction === 'up') {
     return {
       verdict: 'on-track',
-      message:
-        t?.direction === 'up'
-          ? `Savings rate climbing ${t.from}% → ${t.to}% — the automation is doing its quiet work.`
-          : `Keeping ${last.value}% — a strong rate. The check-in is now about catching drift, not forcing behaviour.`,
+      message: `Savings rate climbing ${t.from}% → ${t.to}% — the automation is doing its quiet work.`,
       rate: last.value,
       trend: t,
     };
   }
   return {
     verdict: 'nudge',
-    message: `${last.value}% kept last month. No judgement — the honest move is one automated transfer a notch higher, not a stricter budget. (Education, never financial advice.)`,
+    message: t
+      ? `${last.value}% kept last month, ${t.from}% → ${t.to}% across the quarter. No judgement and no target — the honest move is one automated transfer a notch higher, not a stricter budget. (Education, never financial advice.)`
+      : `${last.value}% kept last month. One month is not a trend; a quarter of them is. No judgement and no target here. (Education, never financial advice.)`,
     rate: last.value,
     trend: t,
   };
