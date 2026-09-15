@@ -75,3 +75,65 @@ export const BODY_ENTRIES: Entry[] = [
     max: 90,
   },
 ];
+
+/**
+ * What comes off a pathology report or a blood-pressure cuff.
+ *
+ * Separate from `BODY_ENTRIES` because these three components behave
+ * differently from the rest: they go stale (see `bloodwork.freshness`),
+ * two of them only mean anything as a pair, and all three need a flag
+ * beside them that the published table branches on. Units are the ones an
+ * Australian report prints — asking somebody to convert their own blood
+ * test before typing it in is how you get a mistyped cholesterol, which is
+ * worse than an absent one.
+ */
+export const PANEL_ENTRIES: Entry[] = [
+  {
+    key: 'body.bpSystolic',
+    label: 'Blood pressure — upper number',
+    unit: 'mmHg',
+    hint: 'The systolic figure. Pharmacies measure this free, and most homes have a cuff in a drawer.',
+    min: 60,
+    max: 260,
+  },
+  {
+    key: 'body.bpDiastolic',
+    label: 'Blood pressure — lower number',
+    unit: 'mmHg',
+    hint: 'The diastolic figure. Both are needed: the worse of the two decides the reading.',
+    min: 30,
+    max: 160,
+  },
+  {
+    key: 'blood.totalCholesterol',
+    label: 'Total cholesterol',
+    unit: 'mmol/L',
+    hint: 'Off your pathology report. With HDL below, it gives the non-HDL figure the score is built on.',
+    min: 1,
+    max: 20,
+  },
+  {
+    key: 'blood.hdl',
+    label: 'HDL cholesterol',
+    unit: 'mmol/L',
+    hint: 'The one where higher is better. Subtracted from total to get non-HDL.',
+    min: 0.2,
+    max: 5,
+  },
+  {
+    key: 'blood.hba1c',
+    label: 'HbA1c',
+    unit: '%',
+    hint: 'Average blood sugar over about three months. If your report gives mmol/mol instead, use fasting glucose below.',
+    min: 3,
+    max: 20,
+  },
+  {
+    key: 'blood.fastingGlucose',
+    label: 'Fasting glucose',
+    unit: 'mmol/L',
+    hint: 'Only used where there is no HbA1c — it is the coarser of the two.',
+    min: 1,
+    max: 30,
+  },
+];

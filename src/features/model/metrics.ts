@@ -85,6 +85,24 @@ export const METRICS: MetricDefinition[] = [
    * target.
    */
   { key: 'body.bodyFat', label: 'Body fat', unit: '%', domain: 'nutrition', direction: 'steady', decimals: 1 },
+  /**
+   * The three Life's Essential 8 components a phone cannot see.
+   *
+   * Blood pressure, lipids and glucose carry a large share of the risk the
+   * construct measures, and `essential8.ts` reported all three as "needs a
+   * blood test" for as long as there was nowhere to put the answer. These
+   * are the somewhere. Units are the ones an Australian pathology report
+   * prints, because asking somebody to convert their own blood test before
+   * typing it in is how you get a mistyped cholesterol — which is worse
+   * than an absent one. See features/health/bloodwork.ts.
+   */
+  { key: 'body.bpSystolic', label: 'Blood pressure (upper)', unit: 'mmHg', domain: 'sleep', direction: 'lower' },
+  { key: 'body.bpDiastolic', label: 'Blood pressure (lower)', unit: 'mmHg', domain: 'sleep', direction: 'lower' },
+  { key: 'blood.totalCholesterol', label: 'Total cholesterol', unit: 'mmol/L', domain: 'nutrition', direction: 'lower', decimals: 1 },
+  /** HDL is the one where up is better, which is why non-HDL is what scores. */
+  { key: 'blood.hdl', label: 'HDL cholesterol', unit: 'mmol/L', domain: 'nutrition', direction: 'higher', decimals: 1 },
+  { key: 'blood.hba1c', label: 'HbA1c', unit: '%', domain: 'nutrition', direction: 'lower', decimals: 1 },
+  { key: 'blood.fastingGlucose', label: 'Fasting glucose', unit: 'mmol/L', domain: 'nutrition', direction: 'lower', decimals: 1 },
   { key: 'sleep.hours', label: 'Sleep', unit: 'h', domain: 'sleep', direction: 'higher' },
   { key: 'work.deepHours', label: 'Deep-work hours', unit: 'h/wk', domain: 'work', direction: 'higher' },
   { key: 'mind.minutes', label: 'Stillness minutes', unit: 'min/wk', domain: 'mind', direction: 'higher' },

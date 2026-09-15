@@ -54,6 +54,15 @@
  * difference is that a person can see exactly what moved and why.
  */
 
+import {
+  BP_FRESH_DAYS,
+  PANEL_FRESH_DAYS,
+  bpScore,
+  freshness,
+  glucoseScore,
+  lipidsScore,
+  nonHdlMmol,
+} from '@/features/health/bloodwork';
 import { protocolById } from '@/features/knowledge/protocols';
 import { isVigorous, type CardioLog } from '@/features/training/cardio';
 import type { MetricObservation } from '@/features/model/metrics';
@@ -381,13 +390,17 @@ export function activityMinutes(
 }
 
 /** The most recent value of a metric, or null. */
-function latest(metrics: MetricObservation[], key: string): number | null {
+function latestObs(metrics: MetricObservation[], key: string): MetricObservation | null {
   let best: MetricObservation | null = null;
   for (const m of metrics) {
     if (m.key !== key) continue;
     if (!best || m.at > best.at) best = m;
   }
-  return best ? best.value : null;
+  return best;
+}
+
+function latest(metrics: MetricObservation[], key: string): number | null {
+  return latestObs(metrics, key)?.value ?? null;
 }
 
 /** Mean of a metric across the seven days to `today`. */
@@ -456,6 +469,14 @@ export interface WeekInputs {
    * is a supported answer and never guessed at — see `bmiMisread`.
    */
   sexAtBirth?: 'male' | 'female' | null;
+  /**
+   * Facts the published tables branch on, not facts the app has an opinion
+   * about. Being on treatment costs 20 points in the AHA's own table, and
+   * the diabetes flag decides which half of the glucose table applies.
+   */
+  bpMedication?: boolean;
+  lipidMedication?: boolean;
+  diabetes?: boolean;
 }
 
 export interface WeekHealth {
@@ -498,6 +519,41 @@ export function weekHealth(input: WeekInputs): WeekHealth {
     waistToHeight,
     sex: input.sexAtBirth ?? null,
   });
+
+  /*
+    The three the app could not see until somebody could type them in.
+
+    Each is read as the latest observation and then checked for currency:
+    an expired reading is still shown, because it is still their number,
+    but it stops counting. See features/health/bloodwork.ts.
+  */
+  const bpSys = latestObs(metrics, 'body.bpSystolic');
+  const bpDia = latestObs(metrics, 'body.bpDiastolic');
+  const bp =
+    bpSys && bpDia
+      ? { systolic: bpSys.value, diastolic: bpDia.value, at: bpSys.at < bpDia.at ? bpSys.at : bpDia.at }
+      : null;
+  const bpAge = bp ? freshness(bp.at, today, BP_FRESH_DAYS) : null;
+
+  const totalChol = latestObs(metrics, 'blood.totalCholesterol');
+  const hdl = latestObs(metrics, 'blood.hdl');
+  const nonHdl = totalChol && hdl ? nonHdlMmol(totalChol.value, hdl.value) : null;
+  const lipidAge =
+    totalChol && hdl
+      ? freshness(totalChol.at < hdl.at ? totalChol.at : hdl.at, today, PANEL_FRESH_DAYS)
+      : null;
+
+  const hba1c = latestObs(metrics, 'blood.hba1c');
+  const fastingGlucose = latestObs(metrics, 'blood.fastingGlucose');
+  const glucoseObs = hba1c ?? fastingGlucose;
+  const glucoseAge = glucoseObs ? freshness(glucoseObs.at, today, PANEL_FRESH_DAYS) : null;
+  const glucose = glucoseObs
+    ? glucoseScore({
+        hba1cPct: hba1c?.value,
+        fastingGlucoseMmol: hba1c ? undefined : fastingGlucose?.value,
+        diabetes: input.diabetes,
+      })
+    : null;
 
   const components: Component[] = [
     {
@@ -565,26 +621,44 @@ export function weekHealth(input: WeekInputs): WeekHealth {
     {
       key: 'lipids',
       label: 'Blood lipids',
-      score: null,
-      detail: 'Not scored',
+      score: nonHdl !== null && lipidAge?.fresh ? lipidsScore(nonHdl, input.lipidMedication) : null,
+      detail:
+        nonHdl === null
+          ? 'Not scored'
+          : `Non-HDL ${nonHdl.toFixed(1)} mmol/L${input.lipidMedication ? ', on treatment' : ''}`,
       why: 'Non-HDL cholesterol. One of the three components carrying a large share of the risk, and one no phone can see.',
-      blocked: 'Needs a blood test. Worth asking your GP for, alongside glucose.',
+      blocked:
+        nonHdl === null
+          ? 'Needs a blood test. Add total cholesterol and HDL from your report and this scores.'
+          : (lipidAge?.line ?? undefined),
     },
     {
       key: 'glucose',
       label: 'Blood glucose',
-      score: null,
-      detail: 'Not scored',
+      score: glucoseAge?.fresh ? glucose : null,
+      detail:
+        hba1c
+          ? `HbA1c ${hba1c.value.toFixed(1)}%`
+          : fastingGlucose
+            ? `Fasting glucose ${fastingGlucose.value.toFixed(1)} mmol/L`
+            : 'Not scored',
       why: 'HbA1c or fasting glucose. The component that most often moves first and silently.',
-      blocked: 'Needs a blood test.',
+      blocked:
+        glucoseObs === null
+          ? 'Needs a blood test. Add HbA1c or a fasting glucose from your report.'
+          : (glucoseAge?.line ?? undefined),
     },
     {
       key: 'bloodPressure',
       label: 'Blood pressure',
-      score: null,
-      detail: 'Not scored',
+      score: bp && bpAge?.fresh ? bpScore(bp, input.bpMedication) : null,
+      detail: bp
+        ? `${Math.round(bp.systolic)}/${Math.round(bp.diastolic)}${input.bpMedication ? ', on treatment' : ''}`
+        : 'Not scored',
       why: 'The single largest contributor to cardiovascular risk at population level, and completely invisible without a cuff.',
-      blocked: 'Needs a cuff. Pharmacies measure it free.',
+      blocked: bp
+        ? (bpAge?.line ?? undefined)
+        : 'Needs a cuff. Pharmacies measure it free, and most homes have one in a drawer.',
     },
   ];
 

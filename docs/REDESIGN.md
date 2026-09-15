@@ -396,8 +396,22 @@ than the place they were supposed to eventually appear.
 
    Still thin: §8 Work has one question. The brief wants meeting load,
    travel and decision load there, and none of them exist as steps yet.
-4. **The missing measurements**, which section 5 of setup now has a home
-   for.
+4. **The missing measurements.** Blood pressure, lipids and glucose are
+   built; the birth year is next.
+
+   `features/health/bloodwork.ts` carries the three remaining Life's
+   Essential 8 tables from the same 2022 paper the other four come from,
+   including the medication deductions — the part an app is most tempted
+   to drop, because it makes the number worse for people doing the right
+   thing about it. Readings are entered in mmol/L and mmHg, the units an
+   Australian pathology report prints, and they expire: a blood pressure
+   counts for six months and a panel for two years, after which it is
+   still shown and no longer counted.
+
+   These three matter more than the four the app can already see. A person
+   at 100 on activity, sleep, nicotine and BMI with a blood pressure of
+   165/100 does not have excellent cardiovascular health, and "4 of 8
+   observed · High" said to them is the worst sentence in the product.
 5. **Protocol suggestions** through the interrupt frame.
 
 ---

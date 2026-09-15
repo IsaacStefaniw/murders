@@ -24,6 +24,7 @@ import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { protocolById } from '@/features/knowledge/protocols';
 import { computeCohortMetrics, shareableSummary } from '@/features/analytics/cohort';
+import { BloodPanel } from '@/features/health/BloodPanel';
 import { BodyNumbers } from '@/features/health/BodyNumbers';
 import { WellbeingCard } from '@/features/health/WellbeingCard';
 import { FunctionTestList } from '@/features/health/FunctionTests';
@@ -295,6 +296,11 @@ export default function Data() {
       ) : null}
 
       <BodyNumbers />
+
+      {/* The three markers a phone cannot see. Until this existed the
+          screen told people it needed a blood test and gave them nowhere
+          to put one. */}
+      <BloodPanel />
 
       <SectionHeader title="The shape of the month" />
       <Card>

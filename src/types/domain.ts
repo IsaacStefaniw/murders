@@ -130,6 +130,18 @@ export interface LifeProfile {
   sleepQuality?: 'good' | 'broken' | 'varies';
   /** Current pressure level — 'redline' adds a midday NSDR reset. */
   pressure?: 'calm' | 'full' | 'redline';
+  /**
+   * Facts the published Life's Essential 8 tables branch on.
+   *
+   * Being on treatment for blood pressure or lipids costs 20 points in the
+   * AHA's own table, and the diabetes flag decides which half of the
+   * glucose table applies. They exist to score correctly and for nothing
+   * else: nothing in the app reads them to decide what somebody is capable
+   * of, and nothing here is a treatment decision.
+   */
+  bpMedication?: boolean;
+  lipidMedication?: boolean;
+  diabetes?: boolean;
   /** The user's own three-year picture, in their words. */
   lifeVision?: string;
   createdAt: string;

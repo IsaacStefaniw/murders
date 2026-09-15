@@ -150,8 +150,26 @@ export function WellbeingCard() {
           profile?.sexAtBirth === 'male' || profile?.sexAtBirth === 'female'
             ? profile.sexAtBirth
             : null,
+        // The published tables branch on these. Without them a person on
+        // treatment scores 20 points too high on two components.
+        bpMedication: profile?.bpMedication,
+        lipidMedication: profile?.lipidMedication,
+        diabetes: profile?.diabetes,
       }),
-    [plans, routines, cardioLogs, metrics, intentions, events, today, stated, profile?.sexAtBirth],
+    [
+      plans,
+      routines,
+      cardioLogs,
+      metrics,
+      intentions,
+      events,
+      today,
+      stated,
+      profile?.sexAtBirth,
+      profile?.bpMedication,
+      profile?.lipidMedication,
+      profile?.diabetes,
+    ],
   );
   const alcohol = useMemo(
     () => alcoholWeek(intentions, events, today),
