@@ -14,6 +14,7 @@ import { Spacing } from '@/constants/theme';
 import { buildLookingAhead, ideasFor } from '@/features/anticipation/lookAhead';
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import { dueInterventions } from '@/features/behaviours/patterns';
+import { planDelivery } from '@/features/moments/aftermath';
 import { CheckinCard } from '@/features/checkins/CheckinCard';
 import { coachNote } from '@/features/today/coach';
 import { availableStartsFor } from '@/features/planner/generate';
@@ -727,28 +728,51 @@ export default function Today() {
           wins so far, and the next hour if tonight goes wrong. Renders
           nothing when there is no active intention. */}
       <TonightCard date={date} />
-      {interventions.map((iv) => (
-        <Card key={iv.intention.id}>
-          <AppText variant="heading">
-            {formatTime(iv.at)} — ahead of it
-          </AppText>
-          <AppText variant="secondary" style={styles.tonightLine}>
-            {behaviourInfo(iv.intention.behaviour).label} usually lands{' '}
-            {iv.pattern.window!.label}. The hour before is where the evening still bends.
-          </AppText>
-          {iv.pattern.coFactor ? (
-            <AppText variant="caption" color="textTertiary" style={styles.tonightLine}>
-              {iv.pattern.coFactor.label}.
+      {interventions.map((iv) => {
+        /*
+          The person's own plan, delivered at the hour it is for.
+
+          `dueInterventions` always computed the right moment — ahead of
+          the window, on the weekdays the pattern lives on. What arrived
+          was generic: "Line up something else", and a breath session
+          whatever the trigger had been. An implementation intention works
+          by being recalled in the situation it names, and this is that
+          situation arriving on time, so the sentence they wrote after the
+          last slip is what belongs here. See features/moments/aftermath.ts.
+        */
+        const delivery = planDelivery(iv.intention.plan);
+        return (
+          <Card key={iv.intention.id}>
+            <AppText variant="heading">
+              {formatTime(iv.at)} — ahead of it
             </AppText>
-          ) : null}
-          <Button
-            title="Line up something else"
-            variant="secondary"
-            onPress={() => router.push('/session/breathe?urge=1' as never)}
-            style={styles.tonightLine}
-          />
-        </Card>
-      ))}
+            {delivery ? (
+              <AppText variant="body" style={styles.tonightLine}>
+                {delivery.text}
+              </AppText>
+            ) : null}
+            <AppText variant="secondary" style={styles.tonightLine}>
+              {behaviourInfo(iv.intention.behaviour).label} usually lands{' '}
+              {iv.pattern.window!.label}. The hour before is where the evening still bends.
+            </AppText>
+            {iv.pattern.coFactor ? (
+              <AppText variant="caption" color="textTertiary" style={styles.tonightLine}>
+                {iv.pattern.coFactor.label}.
+              </AppText>
+            ) : null}
+            {delivery?.route || !delivery ? (
+              <Button
+                title={delivery ? delivery.label : 'Line up something else'}
+                variant="secondary"
+                onPress={() =>
+                  router.push((delivery?.route ?? '/session/breathe?urge=1') as never)
+                }
+                style={styles.tonightLine}
+              />
+            ) : null}
+          </Card>
+        );
+      })}
       {tonightDinner ? (
         <AppText variant="caption" color="textTertiary">
           Dinner is decided: {tonightDinner}

@@ -26,6 +26,7 @@
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import { coachNotifications } from '@/features/coaches/reach';
 import { dueInterventions } from '@/features/behaviours/patterns';
+import { planDelivery } from '@/features/moments/aftermath';
 import { protocolById } from '@/features/knowledge/protocols';
 import type { MetricObservation } from '@/features/model/metrics';
 import { toMinutes } from '@/lib/dates';
@@ -178,16 +179,23 @@ export function plannedNotifications(input: ScheduleInput, now = new Date()): Pl
       // "and a ten-minute walk flattens most of it" is a plan. The second
       // is the one worth interrupting someone for.
       const lever = (info.effects ?? []).find((e) => e.counterText)?.counterText;
+      // The person's own if-then outranks the generic lever, because it is
+      // the sentence they wrote for exactly this hour and an
+      // implementation intention works by being recalled in the situation
+      // it names. See features/moments/aftermath.ts.
+      const own = planDelivery(iv.intention.plan);
       candidates.push({
         id: `intervention:${iv.intention.id}:${date}`,
         kind: 'intervention',
         at: pullOutOfQuiet(iv.at, quiet),
         date,
         title: 'The hour before',
-        // Names the time, the mechanism's remedy, and nothing about the
-        // behaviour's worth. The engine reports patterns rather than
-        // verdicts and a push must not be where that slips.
-        body: `${info.label} usually lands ${iv.pattern.window?.label ?? 'about now'}.${lever ? ` ${lever}` : ' Good moment to line something else up.'}`,
+        // Names the time, the remedy, and nothing about the behaviour's
+        // worth. The engine reports patterns rather than verdicts and a
+        // push must not be where that slips.
+        body: own
+          ? `${own.text} ${info.label} usually lands ${iv.pattern.window?.label ?? 'about now'}.`
+          : `${info.label} usually lands ${iv.pattern.window?.label ?? 'about now'}.${lever ? ` ${lever}` : ' Good moment to line something else up.'}`,
       });
     }
   }

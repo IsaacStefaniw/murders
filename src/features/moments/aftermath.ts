@@ -403,3 +403,48 @@ export const minuteOf = (d: Date): number => d.getHours() * 60 + d.getMinutes();
 
 /** Re-exported so screens take the one vocabulary from one place. */
 export { TRIGGER_CUES, toMinutes };
+
+/* ── Delivering the plan back, at the hour it is for ───────────────────── */
+
+export interface PlanDelivery {
+  /** The person's own sentence. Said back, not paraphrased. */
+  text: string;
+  /** The label on the one action, where the app can run the stand-in. */
+  label: string;
+  route?: string;
+}
+
+/**
+ * The plan, ready to deliver ahead of the window.
+ *
+ * `dueInterventions` has always computed the right MOMENT — a time taken
+ * from the person's own logged distribution, ahead of the window rather
+ * than inside it, filtered to the weekdays the pattern actually lives on.
+ * What arrived at that moment was generic: a Today card reading "Line up
+ * something else" and a push saying the behaviour "usually lands about
+ * now". Both ignored the if-then the person had written after the last
+ * slip, which is the one sentence that has any chance of working, because
+ * an implementation intention works by being recalled in the situation it
+ * names — and this is that situation, arriving on time.
+ *
+ * Null where no plan has been written yet. The generic line is the right
+ * fallback then; it is only wrong once there is something better to say.
+ */
+export function planDelivery(
+  plan: BehaviourIntentionPlan | undefined,
+): PlanDelivery | null {
+  if (!plan) return null;
+  const trigger = triggerKeyOf(plan.trigger);
+  if (!trigger) return null;
+  const standIn = STAND_INS[trigger].find((s) => s.key === plan.replacement);
+  return {
+    text: plan.text,
+    label: standIn?.route ? 'Do it now' : 'Noted',
+    route: standIn?.route,
+  };
+}
+
+/** The stored shape, kept in domain.ts so leaf types stay leaf-level. */
+type BehaviourIntentionPlan = NonNullable<
+  import('@/types/domain').BehaviourIntention['plan']
+>;

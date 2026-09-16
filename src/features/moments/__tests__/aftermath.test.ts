@@ -14,6 +14,7 @@
 import { behaviourPattern } from '@/features/behaviours/patterns';
 import {
   LATE_CUTOFF_MIN,
+  planDelivery,
   TRIGGER_LABELS,
   TRIGGER_ORDER,
   aftermath,
@@ -276,5 +277,47 @@ describe('which night it was', () => {
   it('knows today from a day already gone', () => {
     expect(loggedToday(at('2026-09-16T08:00:00'), NOW)).toBe(true);
     expect(loggedToday(at('2026-09-15T23:00:00'), NOW)).toBe(false);
+  });
+});
+
+/**
+ * The loop closing.
+ *
+ * `dueInterventions` always computed the right moment — ahead of the
+ * window, on the weekdays the pattern lives on. What arrived there was
+ * generic. An implementation intention only works when it is recalled in
+ * the situation it names, so the plan written after the last slip is what
+ * has to arrive at the hour it is about.
+ */
+describe('the plan, delivered ahead of the window', () => {
+  const stored = {
+    trigger: 'stress',
+    replacement: 'breathe',
+    text: 'When the pressure is on, I do the two-minute breath reset.',
+    writtenAt: '2026-09-16T21:30:00.000Z',
+  };
+
+  it('says the person’s own sentence back, unparaphrased', () => {
+    expect(planDelivery(stored)!.text).toBe(stored.text);
+  });
+
+  it('runs the stand-in itself where it can', () => {
+    const d = planDelivery(stored)!;
+    expect(d.route).toContain('/session/breathe');
+    expect(d.label).toBe('Do it now');
+  });
+
+  it('offers no action it cannot perform', () => {
+    const d = planDelivery({ ...stored, replacement: 'tidy', text: 'When there is nothing to do, I do one small job with my hands.' })!;
+    expect(d.route).toBeUndefined();
+    expect(d.text).toContain('one small job');
+  });
+
+  it('stays out of the way until a plan exists', () => {
+    expect(planDelivery(undefined)).toBeNull();
+  });
+
+  it('reads a plan whose trigger was stored under the old vocabulary', () => {
+    expect(planDelivery({ ...stored, trigger: 'Stress' })).not.toBeNull();
   });
 });
