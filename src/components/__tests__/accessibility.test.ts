@@ -88,6 +88,7 @@ describe('large text', () => {
     'LevelCard.tsx',   // a 6pt progress bar
     'DragToMove.tsx',  // a shadow offset, not a layout width
     '_layout.tsx',     // the 2pt rule marking the active tab
+    'breakout.tsx',    // the 3pt step dots on the intervention frame
   ];
 
   it('never pins a text column to a fixed width', () => {

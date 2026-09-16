@@ -635,6 +635,8 @@ export interface AppState {
 
   addBehaviourIntention: (behaviour: BehaviourKey, intentionText: string) => void;
   setBehaviourIntentionActive: (id: string, active: boolean) => void;
+  /** Keep the if-then written in the breakout after a slip. */
+  setBehaviourPlan: (id: string, plan: NonNullable<BehaviourIntention['plan']>) => void;
   /** Returns the event id so the UI can attach a trigger afterwards. */
   logBehaviourEvent: (
     intentionId: string,
@@ -2224,6 +2226,14 @@ export const useAppStore = create<AppState>()(
           set({
             behaviourIntentions: get().behaviourIntentions.map((b) =>
               b.id === id ? { ...b, active } : b,
+            ),
+          });
+        },
+
+        setBehaviourPlan: (id, plan) => {
+          set({
+            behaviourIntentions: get().behaviourIntentions.map((i) =>
+              i.id === id ? { ...i, plan } : i,
             ),
           });
         },

@@ -535,6 +535,28 @@ export interface BehaviourIntention {
   intentionText: string;
   createdAt: string;
   active: boolean;
+  /**
+   * The if-then written in the breakout after a slip — see
+   * `features/moments/aftermath.ts`.
+   *
+   * Kept because a plan that lives in component state is a plan that
+   * exists for ninety seconds. An implementation intention is the single
+   * best-evidenced technique in this field and it works by being recalled
+   * in the situation it names, which means the app has to be able to say
+   * it back: on the Life card, in the pre-window interruption, and at the
+   * top of the next slip. Written at the moment the situation actually
+   * occurred, so the trigger is the real one rather than a guess made
+   * during intake.
+   */
+  plan?: {
+    /** A TriggerKey. Stored as a string so domain types stay leaf-level. */
+    trigger: string;
+    /** A ReplacementKey. */
+    replacement: string;
+    /** The whole sentence, which is the thing worth remembering. */
+    text: string;
+    writtenAt: string;
+  };
 }
 
 /** A logged occurrence of a behaviour the user is working on. Neutral data, not failure. */

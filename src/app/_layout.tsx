@@ -98,6 +98,10 @@ export default function RootLayout() {
           <Stack.Screen name="review/day" options={{ presentation: 'modal' }} />
           <Stack.Screen name="review/week" options={{ presentation: 'modal' }} />
           <Stack.Screen name="coach/interrupt" options={{ presentation: 'modal' }} />
+          {/* The ten minutes after a slip. The moment a behaviour app exists
+              for, and the one that used to be answered with a caption on a
+              card. See features/moments/aftermath.ts. */}
+          <Stack.Screen name="moment/[eventId]" options={{ presentation: 'modal' }} />
           <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
           <Stack.Screen name="session/breathe" options={{ presentation: 'modal' }} />
           <Stack.Screen name="session/meditate" options={{ presentation: 'modal' }} />

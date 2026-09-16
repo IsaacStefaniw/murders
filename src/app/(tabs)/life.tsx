@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -26,38 +26,21 @@ import { freeCoachArea } from '@/features/plus/entitlement';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
 
-const TRIGGERS = ['Stress', 'Boredom', 'Social', 'After a meal', 'Work', 'Habit', 'Other'];
-
-/** Trigger-appropriate next move — not always "breathe". */
-const TRIGGER_INTERVENTIONS: Record<string, { text: string; label?: string; route?: string }> = {
-  Stress: {
-    text: 'Stress urges fall fastest to a physiological sigh — two minutes, right now.',
-    label: 'Breathe it through',
-    route: '/session/breathe',
-  },
-  Boredom: {
-    text: 'Boredom wants stimulation, not sedation. Ten minutes of your replacement — a walk, a page, a message.',
-    label: 'Journal one line instead',
-    route: '/session/journal',
-  },
-  Social: {
-    text: 'Social triggers are won in advance: decide your drink, your line, and your exit before the next one.',
-  },
-  'After a meal': {
-    text: 'Pair the moment with a 10-minute walk — same cue, better payoff.',
-  },
-  Work: {
-    text: 'Work spikes pass. Two minutes of slow exhales, then one small next action.',
-    label: 'Breathe it through',
-    route: '/session/breathe',
-  },
-  Habit: {
-    text: 'Pure habit runs on cues — change the scene for two minutes and the loop loses its footing.',
-    label: 'Breathe it through',
-    route: '/session/breathe',
-  },
-  Other: { text: 'Noted. The pattern will show itself — keep logging, one tap at a time.' },
-};
+/*
+ * The second trigger vocabulary used to live here.
+ *
+ * Seven capitalised strings ('Stress', 'Boredom', 'After a meal'...) stored
+ * as free text on the event, each mapped to a one-line intervention — a
+ * complete parallel implementation of `features/behaviours/tonight.ts`,
+ * which has its own seven keys written to compose an if-then sentence. The
+ * two lists disagreed about what the triggers even were, so a trigger
+ * captured here could never build a plan.
+ *
+ * Both jobs moved to the breakout that now follows a log: one vocabulary in
+ * `features/moments/aftermath.ts`, asked while the moment is fresh instead
+ * of in a chip row further down a tab, and answered with a plan rather than
+ * a sentence. Old events keep their labels — `triggerKeyOf` reads them.
+ */
 
 /** The dominant trigger once there's enough signal (≥3 of the same). */
 function commonTrigger(events: BehaviourEvent[]): string | null {
@@ -80,7 +63,6 @@ export default function Life() {
   const paths = useAppStore((s) => s.paths);
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
-  const setBehaviourEventTrigger = useAppStore((s) => s.setBehaviourEventTrigger);
   const metrics = useAppStore((s) => s.metrics);
   const assessGoals = useAppStore((s) => s.assessGoals);
 
@@ -92,15 +74,25 @@ export default function Life() {
 
   /** The intention whose logging sheet is open, if any. */
   const [logging, setLogging] = useState<string | null>(null);
-  /** Event awaiting an optional one-tap trigger. */
-  const [pendingTrigger, setPendingTrigger] = useState<{
-    intentionId: string;
-    eventId: string;
-  } | null>(null);
-  /** After a trigger is named, offer the move that fits it. */
-  const [intervention, setIntervention] = useState<{ intentionId: string; trigger: string } | null>(
-    null,
-  );
+  /*
+   * Opened straight into the log sheet by a deep link.
+   *
+   * The gap Isaac hit: "I have drank a few times this week and could only
+   * log yesterday." The picker reaches back seven days, but recording three
+   * occurrences meant walking the whole flow three times, from the tab, with
+   * the sheet closing in between. The breakout that follows a log now ends
+   * with "Log another from this week", which lands here with the intention
+   * already chosen and the sheet already open.
+   */
+  const { log: logParam } = useLocalSearchParams<{ log?: string }>();
+  const [seenParam, setSeenParam] = useState<string | undefined>(undefined);
+  // Adjusted during render rather than in an effect: a second pass is the
+  // supported way to react to a changed prop, and an effect here would
+  // render the tab once without the sheet before opening it.
+  if (logParam !== seenParam) {
+    setSeenParam(logParam);
+    setLogging(logParam ?? null);
+  }
 
   // Rolling 7-day window. The clock read is deliberate and the computation
   // trivial; a stable-per-render anchor would only make counts staler.
@@ -344,46 +336,17 @@ export default function Life() {
                     window rather than inside it.
                   </AppText>
                 ) : null}
-                {pendingTrigger?.intentionId === intention.id ? (
-                  <View style={styles.triggerArea}>
-                    <AppText variant="caption" color="textTertiary">
-                      Noted. What triggered it?
+                {/* The if-then written after the last slip, said back.
+                    An implementation intention works by being recalled in
+                    the situation it names, so a plan the app takes and
+                    never repeats is a plan that did nothing. Written in
+                    the breakout — see features/moments/aftermath.ts. */}
+                {intention.plan ? (
+                  <View style={[styles.planLine, { borderLeftColor: theme.accent }]}>
+                    <AppText variant="label" color="textTertiary">
+                      Your plan
                     </AppText>
-                    <View style={styles.triggerChips}>
-                      {TRIGGERS.map((t) => (
-                        <Chip
-                          key={t}
-                          label={t}
-                          onPress={() => {
-                            setBehaviourEventTrigger(pendingTrigger.eventId, t);
-                            setPendingTrigger(null);
-                            setIntervention({ intentionId: intention.id, trigger: t });
-                          }}
-                        />
-                      ))}
-                      <Chip label="Skip" onPress={() => setPendingTrigger(null)} />
-                    </View>
-                  </View>
-                ) : null}
-                {intervention?.intentionId === intention.id ? (
-                  <View style={styles.triggerArea}>
-                    <AppText variant="secondary">
-                      {TRIGGER_INTERVENTIONS[intervention.trigger]?.text}
-                    </AppText>
-                    <View style={styles.triggerChips}>
-                      {TRIGGER_INTERVENTIONS[intervention.trigger]?.route ? (
-                        <Chip
-                          label={TRIGGER_INTERVENTIONS[intervention.trigger].label!}
-                          selected
-                          onPress={() => {
-                            const route = TRIGGER_INTERVENTIONS[intervention.trigger].route!;
-                            setIntervention(null);
-                            router.push(route as never);
-                          }}
-                        />
-                      ) : null}
-                      <Chip label="Got it" onPress={() => setIntervention(null)} />
-                    </View>
+                    <AppText variant="body">{intention.plan.text}</AppText>
                   </View>
                 ) : null}
                 {info.safetyNote ? (
@@ -446,6 +409,12 @@ const styles = StyleSheet.create({
   triggerArea: { marginTop: Spacing.md, gap: Spacing.sm },
   triggerChips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   note: { marginTop: Spacing.xs },
+  planLine: {
+    marginTop: Spacing.md,
+    paddingLeft: Spacing.md,
+    borderLeftWidth: 3,
+    gap: Spacing.xs,
+  },
   patternLine: { marginTop: Spacing.sm },
   goalHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: Spacing.md },
   goalTitle: { flexShrink: 1 },

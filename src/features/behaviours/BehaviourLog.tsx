@@ -16,11 +16,16 @@
  * become a total, a total would become a chart, and the chart would be a
  * restriction scoreboard aimed at the people least well served by one.
  *
- * It does not judge. The response after logging comes from `momentNote`,
- * which offers a mechanism only where evidence supports one and otherwise
- * shows the person their own pattern.
+ * It does not judge, and it no longer answers. What happened after "Log it"
+ * used to be this component's job: a Card headed "Logged", one sentence
+ * from `momentNote`, a Close button. That is a caption where the moment
+ * needs a screen, so the response moved out to `/moment/[eventId]` — see
+ * `features/moments/aftermath.ts` for what a person actually needs in the
+ * ten minutes after a slip, and why in that order. This component's job
+ * ends at recording an accurate event and handing over.
  */
 
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -31,14 +36,7 @@ import { Field } from '@/components/field';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { behaviourInfo } from '@/features/behaviours/catalog';
-import {
-  behaviourPattern,
-  effectsFor,
-  hoursBeforeSleep,
-  momentNote,
-  type MomentNote,
-} from '@/features/behaviours/patterns';
-import { EVIDENCE_LABELS, protocolById } from '@/features/knowledge/protocols';
+import { effectsFor, hoursBeforeSleep } from '@/features/behaviours/patterns';
 import {
   dayChoices,
   occurredAtFrom,
@@ -62,11 +60,9 @@ interface Props {
 
 export function BehaviourLog({ intention, onDone }: Props) {
   const info = behaviourInfo(intention.behaviour);
+  const router = useRouter();
   const profile = useAppStore((s) => s.profile);
-  const events = useAppStore((s) => s.behaviourEvents);
-  const metrics = useAppStore((s) => s.metrics);
   const logPastBehaviourEvent = useAppStore((s) => s.logPastBehaviourEvent);
-  const toggleProtocol = useAppStore((s) => s.toggleProtocol);
 
   const [now] = useState(() => new Date());
   const [offsetDays, setOffsetDays] = useState(0);
@@ -78,82 +74,27 @@ export function BehaviourLog({ intention, onDone }: Props) {
   const time: TimeChoice = times.find((t) => t.key === timeKey) ?? times[0];
   const [detail, setDetail] = useState('');
   const [size, setSize] = useState<BehaviourEvent['size']>();
-  const [note, setNote] = useState<MomentNote | null>(null);
 
   const occurredAt = useMemo(
     () => occurredAtFrom(now, offsetDays, time),
     [now, offsetDays, time],
   );
 
-  // The pattern as it stands BEFORE this log, so the response describes the
-  // history the person already has rather than counting the tap they just made.
-  const pattern = useMemo(
-    () => behaviourPattern(intention, events, metrics, now),
-    [intention, events, metrics, now],
-  );
-
   const gap = hoursBeforeSleep(occurredAt, profile?.sleepTime ?? null);
 
+  /**
+   * Record it, then hand the moment over.
+   *
+   * The screen that follows is the reason this one can stay a plain form:
+   * nothing here has to soften the act of logging, because nothing here is
+   * the response. See `app/moment/[eventId].tsx`.
+   */
   const submit = () => {
     const trimmed = detail.trim();
-    logPastBehaviourEvent(intention.id, occurredAt, trimmed || undefined, size);
-    setNote(
-      momentNote(
-        { id: 'pending', intentionId: intention.id, occurredAt, detail: trimmed || undefined, size },
-        pattern,
-        profile?.sleepTime ?? null,
-      ),
-    );
+    const id = logPastBehaviourEvent(intention.id, occurredAt, trimmed || undefined, size);
+    onDone();
+    router.push(`/moment/${encodeURIComponent(id)}` as never);
   };
-
-  if (note) {
-    return (
-      <Card>
-        <AppText variant="heading">Logged</AppText>
-        <AppText variant="secondary" style={styles.gap}>
-          {note.text}
-        </AppText>
-        {note.kind === 'mechanism' ? (
-          <>
-            <AppText variant="caption" color="textTertiary" style={styles.gap}>
-              {EVIDENCE_LABELS[note.evidenceLevel]} · {note.attribution}
-            </AppText>
-            {note.also ? (
-              <AppText variant="caption" color="textTertiary" style={styles.gap}>
-                Also, less firmly: {note.also.text} ({EVIDENCE_LABELS[note.also.evidenceLevel]})
-              </AppText>
-            ) : null}
-            {/*
-              The lever, not just the fact. Knowing that a ten-minute walk
-              flattens most of the curve is the half of this that changes
-              anything.
-            */}
-            {note.counterText ? (
-              <Card style={styles.counter}>
-                <AppText variant="body">{note.counterText}</AppText>
-                {note.counterProtocolId && protocolById(note.counterProtocolId) ? (
-                  <Chip
-                    label={`Add: ${protocolById(note.counterProtocolId)!.title}`}
-                    onPress={() => {
-                      toggleProtocol(note.counterProtocolId!);
-                      onDone();
-                    }}
-                  />
-                ) : null}
-              </Card>
-            ) : null}
-          </>
-        ) : null}
-        {pattern.intervention ? (
-          <AppText variant="caption" color="textTertiary" style={styles.gap}>
-            {pattern.intervention.line} That is where IntentNorth will put something else in front of
-            you, rather than a message after the fact.
-          </AppText>
-        ) : null}
-        <Button title="Close" variant="secondary" onPress={onDone} style={styles.gap} />
-      </Card>
-    );
-  }
 
   return (
     <Card>
