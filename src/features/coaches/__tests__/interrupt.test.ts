@@ -7,11 +7,12 @@ import {
   SUGGESTION_GRADES,
   coachForArea,
   coachInterrupts,
+  maySuggest,
   nextInterrupt,
 } from '@/features/coaches/interrupt';
 import { COACH_VOICES } from '@/features/coaches/voices';
 import type { MetricObservation } from '@/features/model/metrics';
-import { protocolById } from '@/features/knowledge/protocols';
+import { PROTOCOLS, isBalance, justification, protocolById } from '@/features/knowledge/protocols';
 import { addDays } from '@/lib/dates';
 import type { DailyPlan, LifeArea, LifeProfile, PlanItem, Routine } from '@/types/domain';
 
@@ -384,7 +385,11 @@ describe('suggesting a practice', () => {
     expect(found.detail).toBe(p.summary);
     expect(found.asks).toContain(`${p.durationMin} minutes`);
     expect(found.because).toContain(COACH_VOICES[found.pathId].name);
-    expect(found.because).toContain(p.why);
+    // Whichever reason the practice actually stands on, and the matching
+    // label — a letter on a balance practice would be the app grading
+    // somebody's marriage. See ProtocolBasis.
+    expect(found.because).toContain(isBalance(p) ? p.balance : p.why);
+    expect(found.because).toContain(justification(p));
     expect(found.answers[0].effect).toEqual({ kind: 'protocol', protocolId: p.id });
     expect(found.answers[1].label).toBe('Not for me');
   });
@@ -397,10 +402,26 @@ describe('suggesting a practice', () => {
   it('never offers a D or an E unprompted', () => {
     const found = suggest()!;
     const p = protocolById(found.id.replace('suggest:', ''))!;
-    expect(SUGGESTION_GRADES).toContain(p.evidenceLevel);
+    // Either it clears the grade bar, or it is not making a research
+    // claim at all — Isaac's correction, and the one case where a low
+    // letter is not what the practice is saying about itself.
+    expect(maySuggest(p)).toBe(true);
+    if (!isBalance(p)) expect(SUGGESTION_GRADES).toContain(p.evidenceLevel);
     expect(SUGGESTION_GRADES).toEqual(['A', 'B', 'C']);
     expect(SUGGESTION_GRADES).not.toContain('D');
     expect(SUGGESTION_GRADES).not.toContain('E');
+  });
+
+  /**
+   * The D and E that ARE claims stay out. The carve-out is for practices
+   * that decline to make one, not for weak evidence wearing a new label.
+   */
+  it('still refuses a weak practice that is making an evidence claim', () => {
+    const weak = PROTOCOLS.filter(
+      (p) => !isBalance(p) && (p.evidenceLevel === 'D' || p.evidenceLevel === 'E'),
+    );
+    expect(weak.length).toBeGreaterThan(50);
+    for (const p of weak) expect(maySuggest(p)).toBe(false);
   });
 
   /**
@@ -409,9 +430,14 @@ describe('suggesting a practice', () => {
    * thinnest shelf would have been the coach that never spoke. Both
    * shelves need more graded practices, and until they have them this is
    * the check that the two smallest coaches can say something at all.
+   *
+   * Isaac later corrected the reading: they did not need more grades.
+   * They needed practices that say plainly they are not evidence claims —
+   * see ProtocolBasis — which is what now makes the enjoyment coach pass
+   * this alongside the other four.
    */
   it('has something to say for every coach, including the thin shelves', () => {
-    const areas: LifeArea[] = ['family', 'relationship', 'health', 'work', 'admin'];
+    const areas: LifeArea[] = ['family', 'relationship', 'health', 'work', 'admin', 'enjoyment'];
     for (const area of areas) {
       const found = coachInterrupts(
         input({

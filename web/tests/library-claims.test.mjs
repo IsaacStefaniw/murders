@@ -60,16 +60,29 @@ async function countLibrary() {
 
   const grades = {};
   let safety = 0;
+  let balance = 0;
   const people = new Set();
   for (const protocol of protocols) {
     const body = protocol.join("\n");
+    // A balance-basis practice carries a letter in the app for the parts
+    // that sort and count by one, and publishes none. Counting it into the
+    // grade spread here would put it back on the page.
+    const isBalance = /^ {2,8}basis: 'balance',/m.test(body);
     const grade = /^ {2,8}evidenceLevel: '([A-E])'/m.exec(body);
-    if (grade) grades[grade[1]] = (grades[grade[1]] ?? 0) + 1;
+    if (isBalance) balance += 1;
+    else if (grade) grades[grade[1]] = (grades[grade[1]] ?? 0) + 1;
     if (/^ {2,8}safety:/m.test(body)) safety += 1;
     const attribution = /^ {2,8}attribution: \[(.*?)\],/ms.exec(body);
     if (attribution) for (const [, n] of attribution[1].matchAll(/'([^']+)'/g)) people.add(n);
   }
-  return { total: protocols.length, grades, safety, people: people.size };
+  return {
+    total: protocols.length,
+    graded: protocols.length - balance,
+    balance,
+    grades,
+    safety,
+    people: people.size,
+  };
 }
 
 async function renderHome() {
@@ -85,36 +98,43 @@ async function renderHome() {
 }
 
 test("the library figures on the page match the library in the app", async () => {
-  const { total, grades, safety, people } = await countLibrary();
+  const { total, graded, balance, grades, safety, people } = await countLibrary();
   const html = await renderHome();
 
+  // Practices that declare basis: 'balance' make no research claim and
+  // carry no published grade — see ProtocolBasis in the app's protocols.ts.
+  // They are counted apart from the graded ones everywhere on the page,
+  // because folding them into "E" would be the page saying a booked
+  // evening with your partner is an unproven treatment.
   const strong = grades.A + grades.B;
-  const weaker = total - strong;
+  const weaker = graded - strong;
 
-  assert.equal(total, 321, "protocol count changed — update the page copy too");
+  assert.equal(total, 323, "protocol count changed — update the page copy too");
+  assert.equal(graded, 318, "graded count changed — update the page copy too");
+  assert.equal(balance, 5, "ungraded count changed — update the page copy too");
   assert.equal(strong, 116, "A/B count changed — update the page copy too");
-  assert.equal(safety, 282, "safety-line count changed — update the page copy too");
+  assert.equal(safety, 284, "safety-line count changed — update the page copy too");
   assert.equal(people, 255, "attribution count changed — update the page copy too");
 
-  // The page leads with the weaker count rather than the A/B one now — "205 of
-  // the 321 are Mixed or weaker" says more than "116 graded A or B", because a
-  // reader can tell what the first one costs us to admit. The data check above
-  // still pins all four figures; this checks what the page actually states.
-  for (const figure of [String(total), String(weaker), String(safety), String(people)]) {
+  // The page leads with the weaker count rather than the A/B one now — "202 of
+  // the 318 we grade are Mixed or weaker" says more than "116 graded A or B",
+  // because a reader can tell what the first one costs us to admit. The data
+  // check above pins every figure; this checks what the page actually states.
+  for (const figure of [String(weaker), String(graded), String(safety), String(people)]) {
     assert.ok(html.includes(figure), `the page should state ${figure}`);
   }
   // The grade breakdown is spelled out in words; those must agree too.
   assert.match(html, new RegExp(`${grades.A === 15 ? "Fifteen" : grades.A} practices are grade A`, "i"));
   assert.ok(
-    html.includes(`two hundred and five`) && weaker === 205,
+    html.includes(`two hundred and two`) && weaker === 202,
     "the weaker-evidence count in the copy must match the data",
   );
 });
 
 test("the page never implies the whole library is strongly evidenced", async () => {
   const html = await renderHome();
-  // The failure mode this guards is "321 evidence-based practices" as a bare
-  // boast. 205 of them are C or below, and the page has to carry that.
+  // The failure mode this guards is "323 evidence-based practices" as a bare
+  // boast. 202 of them are C or below, and the page has to carry that.
   assert.doesNotMatch(html, /\d+ (strongly|well|rigorously) evidenced/i);
   assert.match(html, /C, D or E/, "the weaker grades must be named on the page");
 });

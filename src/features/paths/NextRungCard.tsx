@@ -4,7 +4,7 @@ import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
-import { EVIDENCE_LABELS, protocolById } from '@/features/knowledge/protocols';
+import { justification, protocolById } from '@/features/knowledge/protocols';
 import { liveProtocols } from '@/features/paths/ladder';
 import { nextRungForPath } from '@/features/paths/nextRung';
 import type { PathId } from '@/features/paths/definitions';
@@ -99,7 +99,7 @@ export function NextRungCard({
           ) : null}
           {practices[0] ? (
             <AppText variant="caption" color="textTertiary" style={styles.gap}>
-              {EVIDENCE_LABELS[protocolById(practices[0])!.evidenceLevel]}
+              {justification(protocolById(practices[0])!)}
             </AppText>
           ) : null}
         </>

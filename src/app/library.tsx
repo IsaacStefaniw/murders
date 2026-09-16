@@ -11,11 +11,13 @@ import { Radius, Spacing } from '@/constants/theme';
 import { Disclosure } from '@/components/disclosure';
 import { howToFor } from '@/features/knowledge/howTo';
 import {
+  BALANCE_LABEL,
   EVIDENCE_LABELS,
   EVIDENCE_NOTE,
   EVIDENCE_ORDER,
   PILLAR_LABELS,
   evidenceLine,
+  isBalance,
   AUDIENCE_LABEL,
   listedProtocols,
   optInAudiencesFor,
@@ -140,9 +142,19 @@ function ProtocolCard({ protocol }: { protocol: Protocol }) {
         </Disclosure>
       ) : null}
       <View style={[styles.evidence, { borderColor: theme.border }]}>
+        {/* Grade or balance, never both and never the wrong one. A letter
+            on a practice that makes no research claim is the app saying
+            something untrue about somebody's marriage. */}
         <AppText variant="caption" color="text">
-          Evidence {protocol.evidenceLevel} · {EVIDENCE_LABELS[protocol.evidenceLevel]}
+          {isBalance(protocol)
+            ? BALANCE_LABEL
+            : `Evidence ${protocol.evidenceLevel} · ${EVIDENCE_LABELS[protocol.evidenceLevel]}`}
         </AppText>
+        {isBalance(protocol) && protocol.balance ? (
+          <AppText variant="caption" color="textSecondary">
+            {protocol.balance}
+          </AppText>
+        ) : null}
         <AppText variant="caption" color="textTertiary">
           Source · {sourceLine(protocol)}
         </AppText>

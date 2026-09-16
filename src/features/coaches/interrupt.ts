@@ -43,7 +43,8 @@
 
 import { mayOffer, type CommitmentBudget } from '@/features/budget/commitment';
 import {
-  evidenceLine,
+  isBalance,
+  justification,
   listedProtocols,
   type EvidenceLevel,
   type Protocol,
@@ -364,12 +365,29 @@ function familyInterrupt(input: InterruptInput): CoachInterrupt | null {
  * That is not a reason to lower the bar quietly. It is a reason to lower
  * it to C, which the library already describes as "some evidence, not
  * settled", and to say the grade out loud in the interruption, which the
- * `because` line does. It is also a finding worth acting on separately:
- * the family and relationship shelves need more graded practices before
- * suggestions can serve those two coaches properly, and no amount of
- * arranging the ones that exist will fix it.
+ * `because` line does.
+ *
+ * ── And the diagnosis that followed was wrong ───────────────────────────
+ *
+ * I read the gap as "the family and relationship shelves need more graded
+ * practices". Isaac's correction: "Effective science is only a barometer.
+ * There are things that are not plausible to study but constitute a well
+ * balanced life." Those shelves do not need better grades. A weekly hour
+ * with your partner is not a D-grade finding awaiting a trial, and the
+ * grade was never going to improve, because there is nothing there to
+ * improve — it is not that kind of claim.
+ *
+ * So eligibility is no longer a grade test alone. A practice may be
+ * offered because the research is decent, OR because it is part of a
+ * balanced life and says so. See ProtocolBasis. The interruption prints
+ * whichever reason applies, through `justification`, so the person always
+ * knows which of the two they are being told.
  */
 export const SUGGESTION_GRADES: EvidenceLevel[] = ['A', 'B', 'C'];
+
+/** Offerable: well enough evidenced, or honestly not an evidence claim. */
+export const maySuggest = (p: Protocol): boolean =>
+  isBalance(p) || SUGGESTION_GRADES.includes(p.evidenceLevel);
 
 /** Days between suggestions. A coach that suggests daily is a feed. */
 export const SUGGESTION_GAP_DAYS = 14;
@@ -379,7 +397,10 @@ function suggestionRank(p: Protocol, priorities: readonly string[]): number[] {
   const priority = priorities.indexOf(p.area);
   return [
     priority === -1 ? 99 : priority,
-    SUGGESTION_GRADES.indexOf(p.evidenceLevel),
+    // Balance practices rank with the best-evidenced ones rather than
+    // below the worst. Sorting them by a letter they do not claim is the
+    // same mistake as printing it.
+    isBalance(p) ? 0 : SUGGESTION_GRADES.indexOf(p.evidenceLevel),
     // A smaller thing that happens beats a bigger one that does not — the
     // same rule the weekly pruner shrinks by.
     p.durationMin,
@@ -431,7 +452,7 @@ function suggestionInterrupt(input: InterruptInput): CoachInterrupt | null {
   const candidate = listedProtocols(profile.sexAtBirth)
     .filter((p) => !have.has(p.id))
     .filter((p) => !offered.has(`suggest:${p.id}`))
-    .filter((p) => SUGGESTION_GRADES.includes(p.evidenceLevel))
+    .filter(maySuggest)
     // Only areas the person said matter. A practice from a part of life
     // they did not rank is the app deciding what their week is for.
     .filter((p) => priorities.includes(p.area))
@@ -451,7 +472,9 @@ function suggestionInterrupt(input: InterruptInput): CoachInterrupt | null {
     says: candidate.title,
     detail: candidate.summary,
     asks: `${candidate.durationMin} minutes. Want it in your week?`,
-    because: `${v.name} suggests this: ${candidate.why} ${evidenceLine(candidate.evidenceLevel)}`,
+    because: `${v.name} suggests this: ${
+      isBalance(candidate) ? candidate.balance : candidate.why
+    } ${justification(candidate)}`,
     caveat: candidate.safety,
     adds: true,
     urgency: 4,

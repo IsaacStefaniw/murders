@@ -38,9 +38,9 @@ list of articles. Sessions, meals, practices and reviews placed at specific
 hours around what you already have on. Four-week training plans written for the
 goal you pick. You never build a programme.
 
-**Every practice carries a rating for the evidence behind it.** 321 practices,
+**Every practice carries a rating for the evidence behind it, or says why it does not.** 323 practices, 318 of them graded,
 each graded A to E, with the source named and, where it matters, a plain-words
-safety note. 282 carry one. We publish the weak ratings: 205 of the 321 are
+safety note. 284 carry one. We publish the weak ratings: 202 of the 318 are
 rated Mixed or weaker and the app tells you which. We believe this is the most
 defensible thing we own, and every cold reviewer independently agreed.
 
@@ -102,7 +102,7 @@ remains: **our proof is drawn from the one area that is least universal.**
 The consistent positives, which we would like preserved in anything you
 propose:
 
-- "205 of the 321 are Mixed or weaker" — four of five named this unprompted as
+- "202 of the 318 are Mixed or weaker" — four of five named this unprompted as
   the reason they started trusting us
 - "No verdict. No streak to break." — the only line that stopped our
   habit-change reviewer scrolling
@@ -120,7 +120,7 @@ changing the programme is valuable." Precise, and unreadable. Dead.
 explained *how it works* to people who had not yet been told *what it is*. All
 removed. If you propose motion, it should show the product, not the machinery.
 
-**Vanity numbers.** "321 practices" answered a question nobody asked. Our own
+**Vanity numbers.** "323 practices" answered a question nobody asked. Our own
 founder misremembered it as 178 while briefing us, which settled the argument.
 Numbers now live inside sentences.
 
@@ -258,7 +258,7 @@ understand them.
 does, it is expensive to fake, and four of five cold readers named it
 unprompted as where trust began. It has been promoted into the first
 viewport as a promise — everything it asks of you shows how strong the
-evidence is — with the costly half attached: 205 of 321.
+evidence is — with the costly half attached: 202 of 318.
 
 ## 5. What do we do with traffic before the listing is live?
 

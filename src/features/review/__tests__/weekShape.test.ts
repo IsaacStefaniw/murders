@@ -5,7 +5,7 @@
  * reading this on a Thursday having done nothing needs a way back in, not
  * a sum.
  */
-import { buildWeekShape, weekLine, type PillarWeek } from '@/features/review/weekShape';
+import { balanceLine, buildWeekShape, weekLine, type PillarWeek } from '@/features/review/weekShape';
 import type { DailyPlan, PlanItem, Routine } from '@/types/domain';
 
 const dates = Array.from({ length: 7 }, (_, i) => `2026-09-${String(7 + i).padStart(2, '0')}`);
@@ -93,6 +93,7 @@ describe('the line at the top of the week', () => {
     intendedMin: 135,
     doneMin: 0,
     bestGrade: 'A',
+    balanceLed: false,
   };
 
   it('names the week and its best-evidenced part when nothing has started', () => {
@@ -123,5 +124,83 @@ describe('the line at the top of the week', () => {
 
   it('says so plainly when there is nothing on', () => {
     expect(weekLine([], 0, 0, dates, dates[0])).toBe('Nothing scheduled this week yet.');
+  });
+});
+
+/* ── The holistic reading ─────────────────────────────────────────────── */
+
+/**
+ * Isaac: balance is "evidenced more holistically than specifically". So
+ * the week gets a reading that is not a score: which parts of the life the
+ * person named this week has something in it for, and which it misses.
+ */
+describe('the balance reading', () => {
+  it('says nothing at all when the person has not said what matters', () => {
+    expect(balanceLine(4, [], [])).toBe('');
+  });
+
+  it('names what the week has nothing for', () => {
+    expect(balanceLine(4, ['health', 'family'], ['family'])).toBe(
+      'Nothing for family this week.',
+    );
+  });
+
+  it('lists several without turning into a table', () => {
+    expect(balanceLine(4, ['health', 'family', 'relationship'], ['family', 'relationship'])).toBe(
+      'Nothing for family or your relationship this week.',
+    );
+  });
+
+  it('says so when the week covers everything they named', () => {
+    expect(balanceLine(4, ['health', 'family'], [])).toContain('has something in it');
+  });
+
+  /**
+   * A week that misses every priority is a week that has not been built
+   * yet, or a week in pieces. Either way the reading has nothing useful to
+   * add and would only read as a verdict.
+   */
+  it('stays quiet rather than listing a person\'s whole life back at them', () => {
+    expect(balanceLine(4, ['health', 'family'], ['health', 'family'])).toBe('');
+  });
+
+  it('never scores, rates or grades', () => {
+    const said = balanceLine(4, ['health', 'family'], ['family']);
+    expect(said).not.toMatch(/%|\d+\s*\/\s*\d+|score|\b[ABCDE]\b/);
+  });
+});
+
+/**
+ * The grade tiebreak used to sort a week of family time underneath a week
+ * of Zone 2, because family practices grade themselves honestly at D.
+ */
+describe('a week led by the people in it', () => {
+  const pillarOf = (over: Partial<PillarWeek>): PillarWeek => ({
+    pillar: 'connection',
+    label: 'Connection',
+    intended: 2,
+    done: 0,
+    intendedMin: 200,
+    doneMin: 0,
+    bestGrade: 'E',
+    balanceLed: true,
+    ...over,
+  });
+
+  it('is not told to start with whichever is easiest', () => {
+    const line = weekLine([pillarOf({})], 2, 0, dates, dates[0]);
+    expect(line).toContain('in your week anyway');
+    expect(line).not.toContain('easiest to say yes to');
+  });
+
+  it('still says which is best-evidenced when that is what the week is', () => {
+    const line = weekLine(
+      [pillarOf({ pillar: 'training', label: 'Training', bestGrade: 'A', balanceLed: false })],
+      2,
+      0,
+      dates,
+      dates[0],
+    );
+    expect(line).toContain('best-evidenced');
   });
 });

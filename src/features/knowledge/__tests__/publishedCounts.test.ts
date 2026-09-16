@@ -15,7 +15,15 @@
  * the published copy listed in the failure message, then update the
  * numbers here. Do not just change the numbers.
  */
-import { PROTOCOLS } from '@/features/knowledge/protocols';
+import { PROTOCOLS, isBalance } from '@/features/knowledge/protocols';
+
+/**
+ * The graded library. Practices that declare basis: 'balance' publish no
+ * letter — a fortnightly evening with your partner is not an unproven
+ * treatment — so they are counted apart everywhere, on the page and here.
+ * See ProtocolBasis in protocols.ts.
+ */
+const GRADED = PROTOCOLS.filter((p) => !isBalance(p));
 
 /**
  * Every place a figure below is published. Keep this list current.
@@ -32,12 +40,16 @@ import { PROTOCOLS } from '@/features/knowledge/protocols';
  * only the numbers defeats the point of the test.
  */
 
-it('publishes the real practice count — 321', () => {
-  expect(PROTOCOLS.length).toBe(321);
+it('publishes the real practice count — 323', () => {
+  expect(PROTOCOLS.length).toBe(323);
 });
 
-it('publishes the real safety-line count — 282', () => {
-  expect(PROTOCOLS.filter((p) => p.safety).length).toBe(282);
+it('publishes the real ungraded count — 5', () => {
+  expect(PROTOCOLS.length - GRADED.length).toBe(5);
+});
+
+it('publishes the real safety-line count — 284', () => {
+  expect(PROTOCOLS.filter((p) => p.safety).length).toBe(284);
 });
 
 it('publishes the real number of people credited — 255', () => {
@@ -46,12 +58,13 @@ it('publishes the real number of people credited — 255', () => {
   expect(names.size).toBe(255);
 });
 
-it('publishes the real grade spread — A15 B101 C121 D72 E12', () => {
+it('publishes the real grade spread — A15 B101 C121 D71 E10 across 318 graded', () => {
   const spread: Record<string, number> = {};
-  for (const p of PROTOCOLS) spread[p.evidenceLevel] = (spread[p.evidenceLevel] ?? 0) + 1;
-  expect(spread).toEqual({ A: 15, B: 101, C: 121, D: 72, E: 12 });
+  for (const p of GRADED) spread[p.evidenceLevel] = (spread[p.evidenceLevel] ?? 0) + 1;
+  expect(GRADED.length).toBe(318);
+  expect(spread).toEqual({ A: 15, B: 101, C: 121, D: 71, E: 10 });
 });
 
-it('publishes the real "Mixed or weaker" count on the evidence page — 205', () => {
-  expect(PROTOCOLS.filter((p) => p.evidenceLevel >= 'C').length).toBe(205);
+it('publishes the real "Mixed or weaker" count on the evidence page — 202 of 318', () => {
+  expect(GRADED.filter((p) => p.evidenceLevel >= 'C').length).toBe(202);
 });

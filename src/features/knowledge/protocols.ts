@@ -158,6 +158,57 @@ export function evidenceLine(level: EvidenceLevel): string {
 export const EVIDENCE_NOTE =
   'Most of what is here is not an A. Little of what anyone can teach you about your own life is. You get to see which is which, and decide.';
 
+/* ── The other kind of reason ─────────────────────────────────────────── */
+
+/**
+ * What a practice is here FOR — the claim the app is making by listing it.
+ *
+ * ── Isaac's correction ──────────────────────────────────────────────────
+ *
+ * "Effective science is only a barometer. There are things that are not
+ * plausible to study but constitute a well balanced life — evidenced more
+ * holistically than specifically. E.g. connection → lower stress →
+ * healthy relationship with spouse. These things you can ladder up to:
+ * date nights, creating family holidays, activities with family,
+ * activities with friends. This is about balance. Not measurable science."
+ *
+ * He is right, and the library had the error baked into its shape. Every
+ * practice carried an `evidenceLevel` and nothing else, so a scale built
+ * for treatments was being applied to a marriage. The scale then said
+ * things that are not true: a weekly hour with your partner came out as
+ * E, "unproven — worth testing on yourself, and nothing more than that",
+ * and a booked family outing as D, "early days". Neither is an early-stage
+ * scientific claim awaiting a trial. They are not scientific claims.
+ *
+ * The damage was not only wording. `SUGGESTION_GRADES` gates suggestions
+ * at C and above, so practices honest enough to grade themselves D were
+ * silently unofferable — which is why the family coach had eight eligible
+ * practices to the health coach's hundred and thirty, and why my earlier
+ * reading of that gap ("those shelves need more graded practices") was the
+ * wrong diagnosis. They do not need better grades. They need the right
+ * kind of reason.
+ *
+ * So a protocol declares its basis. `evidence` means the app is making a
+ * claim about research and the letter grade says how strong it is.
+ * `balance` means the app is making a claim about the shape of a life:
+ * this is a part of living well, it is offered as such, and no letter is
+ * shown because no letter would be honest.
+ *
+ * A balance practice may well have research behind it — most of these do,
+ * somewhere. The basis says which reason the app LEADS with, not which
+ * reasons exist.
+ */
+export type ProtocolBasis = 'evidence' | 'balance';
+
+/** What the app says instead of a grade, where the grade would mislead. */
+export const BALANCE_LABEL = 'Part of a balanced life — not a research claim';
+
+/**
+ * The honest close of the balance explainer, the twin of EVIDENCE_NOTE.
+ */
+export const BALANCE_NOTE =
+  'Some of what matters most has never been through a trial and never will be. It is here because a life without it is missing something, and that is the whole of the reason.';
+
 export interface Protocol {
   id: string;
   evidenceLevel: EvidenceLevel;
@@ -230,6 +281,35 @@ export interface Protocol {
    * practices have none.
    */
   finishBeforeSleepMin?: number;
+  /**
+   * Which kind of reason this practice is offered on. Absent means
+   * 'evidence', which is almost all of the library — see ProtocolBasis.
+   */
+  basis?: ProtocolBasis;
+  /**
+   * Why it belongs, in its own terms. Required on a balance practice and
+   * meaningless on an evidence one, which has `why` and a grade instead.
+   *
+   * It is a separate field from `why` on purpose. `why` is written as an
+   * evidence story and reads as one; this is written as a claim about a
+   * life, and the two should not be able to be mistaken for each other in
+   * the library, in an interruption, or by whoever edits this file next.
+   */
+  balance?: string;
+}
+
+/** True where the letter grade would be a misdescription rather than a fact. */
+export const isBalance = (p: Protocol): boolean => p.basis === 'balance';
+
+/**
+ * The one line that says why a practice is here — grade or balance.
+ *
+ * Every surface that used to print `evidenceLine(p.evidenceLevel)` goes
+ * through this instead, so a balance practice can never leak the letter it
+ * still carries for the parts of the app that sort and count by one.
+ */
+export function justification(p: Protocol): string {
+  return isBalance(p) ? BALANCE_LABEL : evidenceLine(p.evidenceLevel);
 }
 
 export const PROTOCOLS: Protocol[] = [
@@ -865,6 +945,12 @@ export const PROTOCOLS: Protocol[] = [
   {
     id: 'partner-checkin-weekly',
     evidenceLevel: 'E',
+    // Its own `why` already said the meeting is untested. Graded E it read
+    // as failed science; it is not science, it is a household running
+    // itself on purpose.
+    basis: 'balance',
+    balance:
+      'Two people who never sit down together end up negotiating everything in the doorway, at the worst moment, tired. Twenty minutes on a Sunday is not a treatment for anything. It is how a household that works is run.',
     title: 'Weekly two-of-you check-in',
     pillar: 'connection',
     area: 'relationship',
@@ -936,6 +1022,51 @@ export const PROTOCOLS: Protocol[] = [
     tier: 'should',
     neverNag: true,
     safety: 'Match the outing to the youngest child’s stamina — an adventure nobody enjoyed is worse than a slow morning at home.',
+  },
+  {
+    id: 'date-night',
+    evidenceLevel: 'E',
+    basis: 'balance',
+    title: 'The night that is the two of you',
+    pillar: 'connection',
+    area: 'relationship',
+    goalDomains: ['relationship', 'experience'],
+    summary:
+      'One evening a fortnight that is booked, out of the house if you can, and not about logistics.',
+    why: 'There are trials of structured couples programmes and there is survey work on shared leisure, and none of it tests this. A booked evening is not an intervention with an effect size.',
+    balance:
+      'Two people who only ever meet over the dishes and the calendar are running a household together, which is not the same as being together. This is the evening that is not the household. It is offered because a life with it in is better than a life without it, and that is the whole of the argument.',
+    attribution: [],
+    days: [5],
+    durationMin: 150,
+    anchor: { kind: 'fixed', start: '19:00', windowMin: 90 },
+    energy: 'evening',
+    tier: 'should',
+    neverNag: true,
+    safety: `Booked, not performed. A fortnight where it does not happen is a fortnight, not a verdict on anything. ${VIOLENCE_ROUTE}`,
+  },
+  {
+    id: 'family-holiday-plan',
+    evidenceLevel: 'E',
+    basis: 'balance',
+    title: 'Make the next one exist',
+    pillar: 'connection',
+    area: 'family',
+    goalDomains: ['family', 'experience'],
+    summary:
+      'Half an hour a month on the next family trip: one decision made and, when it is time, one thing actually booked.',
+    why: 'Holidays have been studied mostly as recovery from work, and that literature is about the fortnight off rather than about the year with something in it.',
+    balance:
+      'The holidays people remember for twenty years did not happen because a month was free. Somebody booked something, usually long before it was convenient. This is the half hour where that somebody is you — one decision at a time, so the year has something in it rather than a gap where it was always going to be.',
+    attribution: [],
+    days: [0],
+    durationMin: 30,
+    anchor: { kind: 'fixed', start: '11:00', windowMin: 300 },
+    energy: 'any',
+    tier: 'could',
+    neverNag: true,
+    safety:
+      'Plan to what you can afford. A trip booked on money you do not have buys a year of dread rather than a week away.',
   },
   {
     id: 'one-on-one-child',

@@ -22,6 +22,17 @@ type Practice = (typeof library.practices)[number];
 
 const GRADES = ["A", "B", "C", "D", "E"] as const;
 
+/**
+ * The filter for the practices that carry no grade.
+ *
+ * They are not an F and not an E. A fortnightly evening with your partner
+ * is not a treatment that failed its trial — it is not a treatment. The
+ * library says so rather than inventing a letter, and the filter has to be
+ * able to say so too, or the five of them are unreachable on a page whose
+ * whole promise is that you can see everything.
+ */
+const BALANCE = "balance";
+
 export function EvidenceSearch() {
   const [query, setQuery] = useState("");
   const [grade, setGrade] = useState<string | null>(null);
@@ -30,9 +41,10 @@ export function EvidenceSearch() {
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return library.practices.filter((p: Practice) => {
-      if (grade && p.grade !== grade) return false;
+      if (grade === BALANCE && p.grade) return false;
+      if (grade && grade !== BALANCE && p.grade !== grade) return false;
       if (!needle) return true;
-      return [p.title, p.summary, p.why, p.pillar, ...(p.attribution ?? [])]
+      return [p.title, p.summary, p.why, p.balance, p.pillar, ...(p.attribution ?? [])]
         .filter(Boolean)
         .some((text) => String(text).toLowerCase().includes(needle));
     });
@@ -65,10 +77,24 @@ export function EvidenceSearch() {
               {g} <em>{library.counts[g as keyof typeof library.counts]}</em>
             </button>
           ))}
+          <button
+            className={`ev-g ev-g--balance${grade === BALANCE ? " is-on" : ""}`}
+            onClick={() => setGrade(grade === BALANCE ? null : BALANCE)}
+            type="button"
+          >
+            Ungraded <em>{library.balance}</em>
+          </button>
         </div>
       </div>
 
-      {grade ? (
+      {grade === BALANCE ? (
+        <p className="ev-meaning">
+          <strong>Ungraded.</strong> {library.balance} practices make no claim about research,
+          so we publish no letter for them. A booked evening with your partner is not an
+          unproven treatment; it is part of a life, and saying anything else about it would
+          be the dishonest half of grading.
+        </p>
+      ) : grade ? (
         <p className="ev-meaning">
           <strong>{grade} — {library.gradeMeaning[grade as keyof typeof library.gradeMeaning].label}.</strong>{" "}
           {library.gradeMeaning[grade as keyof typeof library.gradeMeaning].meaning}
@@ -87,21 +113,28 @@ export function EvidenceSearch() {
           return (
             <li className={isOpen ? "is-open" : ""} key={p.id}>
               <button aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : p.id)} type="button">
-                <span className={`ev-dot ev-dot--${p.grade.toLowerCase()}`}>{p.grade}</span>
+                <span className={`ev-dot ev-dot--${p.grade ? p.grade.toLowerCase() : "balance"}`}>
+                  {p.grade ?? "·"}
+                </span>
                 <span className="ev-title">
                   <strong>{p.title}</strong>
                   {p.summary ? <small>{p.summary}</small> : null}
                 </span>
-                <span className="ev-grade-label">{p.gradeLabel}</span>
+                <span className="ev-grade-label">{p.grade ? p.gradeLabel : "Ungraded"}</span>
               </button>
               {isOpen ? (
                 <div className="ev-body">
+                  {p.balance ? <p className="ev-why">{p.balance}</p> : null}
                   {p.why ? <p className="ev-why">{p.why}</p> : null}
                   {p.safety ? (
                     <p className="ev-safety"><strong>Before you try it:</strong> {p.safety}</p>
                   ) : null}
                   <p className="ev-meta">
-                    <span>Rated {p.grade} — {p.gradeLabel?.toLowerCase()}</span>
+                    <span>
+                      {p.grade
+                        ? `Rated ${p.grade} — ${p.gradeLabel?.toLowerCase()}`
+                        : library.balanceLabel}
+                    </span>
                     {p.durationMin ? <span>{p.durationMin} minutes</span> : null}
                     {p.attribution?.length ? <span>Taught publicly by {p.attribution.join(", ")}</span> : null}
                   </p>

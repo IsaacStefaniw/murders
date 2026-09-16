@@ -278,3 +278,73 @@ itself.
 dependency standing between the app and an OTA update. A future milestone
 that wants this writes the contract again from this entry, which is a
 morning's work and will be a better contract for knowing what it is for.
+
+---
+
+## ADR-018 — Evidence is a barometer, so some practices carry no grade (2026-09-16)
+
+**Decision:** A protocol declares its `basis`. `evidence` — the default and
+almost all of the library — means the app is making a claim about research,
+and the A–E letter says how strong it is. `balance` means the app is making
+a claim about the shape of a life: this is part of living well, it says so
+in its own words, and **no letter is published for it**, because no letter
+would be honest. A single accessor, `justification()`, is the only way any
+surface prints the reason, in the app and on the website.
+
+**Reason:** Isaac: *"Effective science is only a barometer. There are things
+that are not plausible to study but constitute a well balanced life —
+evidenced more holistically than specifically. E.g. connection → lower
+stress → healthy relationship with spouse. These things you can ladder up
+to: date nights, creating family holidays, activities with family,
+activities with friends. This is about balance. Not measurable science."*
+
+He is right and the error was baked into the library's shape. Every practice
+carried an `evidenceLevel` and nothing else, so a scale built for treatments
+was being applied to a marriage — and it then said things that are not true.
+A weekly hour with your partner came out as E, *"unproven — worth testing on
+yourself, and nothing more than that"*. A carer's two hours came out as D,
+*"early days"*. Neither is an early-stage scientific claim awaiting a trial.
+Neither is a scientific claim.
+
+Two of those cards had already reached this conclusion in prose and had
+nowhere to put it: `solitude-counts` says *"this is unproven as a practice
+because it is not really a practice"*, and `what-the-break-is-for` says *"the
+hours are worth having because they are hours"*. The data model could not
+hold what the copy already knew.
+
+**What it was silently costing.** `SUGGESTION_GRADES` gates unprompted
+suggestions at C and above, so practices honest enough to grade themselves D
+were unofferable. The family coach had eight eligible practices to the health
+coach's hundred and thirty; the enjoyment coach could not clear the bar at
+all. My earlier reading of that gap — *"the family and relationship shelves
+need more graded practices"* — was the wrong diagnosis, and no amount of
+research would have fixed it, because there is nothing there to grade.
+Eligibility is now "well enough evidenced, **or** honestly not an evidence
+claim", and a balance practice ranks with the well-evidenced ones rather than
+below the worst.
+
+**What it is not.** Not an escape hatch for weak evidence. A D or an E that
+*is* making a research claim stays out of suggestions exactly as before, and
+a test fails the build if the balance set grows past a twentieth of the
+library or if a balance reason rests on evidence language. A balance practice
+may well have research behind it; the basis says which reason the app leads
+with, not which reasons exist.
+
+**Five carry it today,** three of them corrections and two new rungs Isaac
+named that the library simply lacked: `partner-checkin-weekly`,
+`solitude-counts`, `what-the-break-is-for`, and the new `date-night` and
+`family-holiday-plan`.
+
+**The week reads holistically too.** `weekShape` gained a balance line —
+which parts of the life the person *named themselves* this week has something
+in it for, and which it misses. Not a score, not a rate, and only ever
+against priorities they gave. It also stopped ranking a balance-led pillar
+below the worst-graded one: the grade tiebreak was putting somebody's
+children under their cardio, on a scale that was never built to compare the
+two.
+
+**Consequences:** The published counts change shape and the copy changes with
+them — 323 practices, 318 graded A–E, 5 carrying no grade — which is a
+stronger claim than the one it replaces, and the reason the count test exists.
+The evidence page gains an "Ungraded" filter so those five are reachable, and
+shows the reason where the letter would have been.

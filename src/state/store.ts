@@ -1435,17 +1435,29 @@ export const useAppStore = create<AppState>()(
            * Fixing it here rather than in QuickLog fixes every caller at
            * once, including `logCardio`, which routes through this too.
            *
-           * Matching is deliberately narrow. A routine id is exact and wins
-           * outright; otherwise the title has to be the same, which is the
-           * case that matters because a logged practice takes its title
-           * from the same protocol the scheduled one did. An item already
-           * COMPLETED is never absorbed, so a second walk on the same day
-           * is still a second walk.
+           * Matching is deliberately narrow. Two routine ids that both
+           * exist are exact and win outright, either way they compare: two
+           * different routines can share a title, and completing the wrong
+           * one is worse than adding a duplicate. Everywhere else the title
+           * decides, which is the case that matters because a logged
+           * practice takes its title from the same protocol the scheduled
+           * one did. An item already COMPLETED is never absorbed, so a
+           * second walk on the same day is still a second walk.
+           *
+           * The title fallback used to bail out whenever exactly one side
+           * carried a routine id — and that is the shape of the original
+           * bug. QuickLog, the chip row Isaac was actually tapping, sends
+           * no routine id; the sauna the planner put on the day has one.
+           * So the guard declined to match in precisely the case it was
+           * written to fix, and the day still read as one sauna done and
+           * one sauna missed. The test missed it too: it added its own
+           * routine-less sauna and absorbed that instead, and only went
+           * red when the calendar rolled onto a weekday the planner
+           * schedules a sauna on.
            */
           const existing = (get().plans[date]?.items ?? []).find((i) => {
             if (i.status === 'completed') return false;
             if (input.routineId && i.routineId) return i.routineId === input.routineId;
-            if (input.routineId || i.routineId) return false;
             return i.title === input.title;
           });
           if (existing) {

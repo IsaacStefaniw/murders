@@ -1009,6 +1009,10 @@ footer { border-top: 1px solid var(--fog); }
 .ev-dot--a { background: #2f6b45; } .ev-dot--b { background: #4b8a5f; }
 .ev-dot--c { background: #9a9a72; } .ev-dot--d { background: #b08a55; }
 .ev-dot--e { background: #a97b7b; }
+/* The ungraded five carry no letter and no grade colour. An outline
+   rather than a fill, so the eye reads "this is not on that scale"
+   rather than "this is the worst one on it". */
+.ev-dot--balance { background: transparent; border: 1px solid var(--fog); color: var(--muted); }
 .ev-title { min-width: 0; }
 .ev-title strong { display: block; font-size: 15px; font-weight: 700; }
 .ev-title small { display: block; margin-top: 3px; color: var(--muted); font-size: 12.5px; line-height: 1.45; }

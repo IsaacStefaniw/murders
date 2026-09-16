@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import {
   EVIDENCE_LABELS,
   EVIDENCE_NOTE,
+  isBalance,
   EVIDENCE_ORDER,
   EVIDENCE_PLAIN,
   EVIDENCE_PRECISE,
@@ -62,7 +63,7 @@ describe('every grade leads with the plain words', () => {
 describe('the honest note about the grades', () => {
   it('says most of the library is not an A, and that is the case', () => {
     expect(EVIDENCE_NOTE).toMatch(/not an A/i);
-    const graded = PROTOCOLS.map((p) => p.evidenceLevel as EvidenceLevel);
+    const graded = PROTOCOLS.filter((p) => !isBalance(p)).map((p) => p.evidenceLevel as EvidenceLevel);
     const aGrade = graded.filter((l) => l === 'A').length;
     expect(graded.length).toBeGreaterThan(50);
     expect(aGrade).toBeLessThan(graded.length / 2);
@@ -81,7 +82,7 @@ describe('the library explains the letters where they are shown', () => {
 
   it('keeps the grade, the source and where it stops together on a card', () => {
     const block = library.slice(library.indexOf('styles.evidence'), library.indexOf('title={active'));
-    expect(block).toContain('Evidence {protocol.evidenceLevel}');
+    expect(block).toContain('Evidence ${protocol.evidenceLevel}');
     expect(block).toMatch(/Source ·/);
     expect(block).toMatch(/Where it stops ·/);
     // Every practice shows all three, including the ones with no caution
@@ -92,5 +93,18 @@ describe('the library explains the letters where they are shown', () => {
     // have no messenger to name and the card must say that in words
     // instead of trailing off after "from the public work of".
     expect(block).toContain('sourceLine(protocol)');
+  });
+
+  /**
+   * And on a practice that makes no research claim, it shows the reason
+   * rather than a letter. A grade on a fortnightly evening with your
+   * partner is the app saying something untrue about somebody's marriage —
+   * see ProtocolBasis.
+   */
+  it('shows the balance reason in the grade\'s place, where there is no grade', () => {
+    const block = library.slice(library.indexOf('styles.evidence'), library.indexOf('title={active'));
+    expect(block).toContain('isBalance(protocol)');
+    expect(block).toContain('BALANCE_LABEL');
+    expect(block).toContain('protocol.balance');
   });
 });

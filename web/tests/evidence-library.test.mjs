@@ -50,11 +50,24 @@ test("the published library matches the app's practice files", async () => {
   assert.equal(json.total, declared, "the published count disagrees with the app");
   assert.equal(json.practices.length, declared);
 
+  // Only the graded ones. A balance-basis practice publishes no letter —
+  // see ProtocolBasis in the app's protocols.ts — so the source count has
+  // to skip them the same way the build does, or this test would demand
+  // the page print the grade the whole change exists to withhold.
+  const blocks = source.split(/^ {2,8}id: '/gm).slice(1);
   const grades = {};
-  for (const [, g] of source.matchAll(/^ {2,8}evidenceLevel: '([A-E])'/gm)) {
-    grades[g] = (grades[g] ?? 0) + 1;
+  let balance = 0;
+  for (const body of blocks) {
+    if (/^ {2,8}basis: 'balance',/m.test(body)) {
+      balance += 1;
+      continue;
+    }
+    const g = /^ {2,8}evidenceLevel: '([A-E])'/m.exec(body);
+    if (g) grades[g[1]] = (grades[g[1]] ?? 0) + 1;
   }
   assert.deepEqual(json.counts, grades, "the published grade counts disagree with the app");
+  assert.equal(json.balance, balance, "the published ungraded count disagrees with the app");
+  assert.equal(json.graded, declared - balance);
 
   const declaresSafety = [...source.matchAll(/^ {2,8}safety:/gm)].length;
   const carries = json.practices.filter((p) => p.safety).length;
@@ -67,7 +80,12 @@ test("the published library matches the app's practice files", async () => {
   // Every practice needs the three things the page promises to show.
   for (const practice of json.practices) {
     assert.ok(practice.title, `a practice has no title: ${practice.id}`);
-    assert.match(practice.grade, /^[A-E]$/, `bad grade on ${practice.id}`);
+    if (practice.grade === null) {
+      // Ungraded means a reason in its place, never a blank.
+      assert.ok(practice.balance, `no balance reason on ungraded ${practice.id}`);
+    } else {
+      assert.match(practice.grade, /^[A-E]$/, `bad grade on ${practice.id}`);
+    }
     assert.ok(practice.gradeLabel, `no plain-word label on ${practice.id}`);
   }
 

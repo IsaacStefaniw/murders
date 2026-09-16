@@ -32,6 +32,9 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const appFile = path.resolve(here, "../../src/features/knowledge/protocols.ts");
 const out = path.resolve(here, "../app/evidence/library.json");
 
+/** Said in the grade's place, matching BALANCE_LABEL in protocols.ts. */
+const BALANCE_LABEL = "Part of a balanced life — not a research claim";
+
 const GRADE_MEANING = {
   A: { label: "Strong", meaning: "Repeatedly tested in people, with results that agree." },
   B: { label: "Good", meaning: "Solid human studies, with some room left for argument." },
@@ -128,12 +131,24 @@ if (starts.length === 0) throw new Error("no protocols found — the app file's 
 
 const practices = starts.map((start, i) => {
   const block = source.slice(start, starts[i + 1] ?? source.length);
-  const grade = field(block, "evidenceLevel");
+  // A practice that declares basis: 'balance' is not making a research
+  // claim, so it has no grade to publish — see ProtocolBasis in
+  // protocols.ts. It still carries a letter in the app for the parts that
+  // sort and count by one, and printing that letter on a public evidence
+  // page would be the app calling somebody's marriage unproven. The
+  // `balance` field is the reason, and it goes out in the grade's place.
+  const balance = field(block, "balance", constants);
+  const isBalance = /^ {2,8}basis: 'balance',/m.test(block);
+  if (isBalance && !balance) {
+    throw new Error(`${field(block, "id")} declares basis: 'balance' with no balance reason to publish`);
+  }
+  const grade = isBalance ? null : field(block, "evidenceLevel");
   return {
     id: field(block, "id"),
     title: field(block, "title"),
     grade,
-    gradeLabel: GRADE_MEANING[grade]?.label ?? null,
+    gradeLabel: grade ? (GRADE_MEANING[grade]?.label ?? null) : BALANCE_LABEL,
+    balance,
     pillar: field(block, "pillar"),
     summary: field(block, "summary"),
     why: field(block, "why"),
@@ -154,18 +169,20 @@ if (declaresSafety !== carriesSafety) {
   );
 }
 
-const missing = practices.filter((p) => !p.id || !p.title || !p.grade);
-if (missing.length) throw new Error(`${missing.length} practices are missing an id, title or grade`);
+const missing = practices.filter((p) => !p.id || !p.title || !(p.grade || p.balance));
+if (missing.length) throw new Error(`${missing.length} practices are missing an id, title, or either a grade or a balance reason`);
 
-const counts = practices.reduce((acc, p) => ({ ...acc, [p.grade]: (acc[p.grade] ?? 0) + 1 }), {});
+const graded = practices.filter((p) => p.grade);
+const balanced = practices.filter((p) => !p.grade);
+const counts = graded.reduce((acc, p) => ({ ...acc, [p.grade]: (acc[p.grade] ?? 0) + 1 }), {});
 
 await mkdir(path.dirname(out), { recursive: true });
 await writeFile(
   out,
-  `${JSON.stringify({ generated: "by scripts/build-evidence.mjs from the app's protocols.ts", total: practices.length, counts, gradeMeaning: GRADE_MEANING, practices }, null, 1)}\n`,
+  `${JSON.stringify({ generated: "by scripts/build-evidence.mjs from the app's protocols.ts", total: practices.length, graded: graded.length, balance: balanced.length, balanceLabel: BALANCE_LABEL, counts, gradeMeaning: GRADE_MEANING, practices }, null, 1)}\n`,
 );
 
-console.log(`evidence: ${practices.length} practices — ${Object.entries(counts).sort().map(([g, n]) => `${g} ${n}`).join(", ")}`);
+console.log(`evidence: ${practices.length} practices — ${graded.length} graded ${Object.entries(counts).sort().map(([g, n]) => `${g} ${n}`).join(", ")}; ${balanced.length} not graded`);
 console.log(`  with a safety note: ${practices.filter((p) => p.safety).length}`);
 console.log(`  read from protocols.ts and ${satellites.length} spread files`);
 console.log(`  written to ${path.relative(process.cwd(), out)}`);

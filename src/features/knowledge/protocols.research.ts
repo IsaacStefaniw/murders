@@ -76,6 +76,12 @@ export const RESEARCH_PROTOCOLS: Protocol[] = [
   {
     id: 'solitude-counts',
     evidenceLevel: 'E',
+    // Its own `why` says it outright: not really a practice, so not really
+    // gradeable. E called it failed science; it is a statement about what
+    // a good week is allowed to look like.
+    basis: 'balance',
+    balance:
+      'A week with hours in it you spent on your own, because you wanted to, is a week that worked. Nothing needs to be proved about that, and an app that treated it as a shortfall would be wrong about your life rather than short of evidence.',
     title: 'Some of the week alone is fine',
     pillar: 'connection',
     area: 'enjoyment',
@@ -235,6 +241,11 @@ export const RESEARCH_PROTOCOLS: Protocol[] = [
   {
     id: 'what-the-break-is-for',
     evidenceLevel: 'D',
+    // "The hours are worth having because they are hours" is not a D-grade
+    // finding. It is the reason itself, and now it can be stored as one.
+    basis: 'balance',
+    balance:
+      'Two hours a week that belong to you are not a treatment for carer burden, and the trials are clear that they do not work as one. They are two hours. A life with none of them in it is missing something, whatever the outcome measures say.',
     title: 'What the break is actually for',
     pillar: 'connection',
     area: 'family',

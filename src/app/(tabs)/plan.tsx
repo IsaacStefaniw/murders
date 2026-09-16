@@ -32,8 +32,8 @@ export default function Plan() {
 
   const routines = useAppStore((s) => s.routines);
   const shape = useMemo(
-    () => buildWeekShape(dates, plans, routines ?? [], today),
-    [dates, plans, routines, today],
+    () => buildWeekShape(dates, plans, routines ?? [], today, profile?.priorities ?? []),
+    [dates, plans, routines, today, profile?.priorities],
   );
   const momentum = useMemo(() => weekMomentum(today, plans, goals), [today, plans, goals]);
 
@@ -89,6 +89,16 @@ export default function Plan() {
               {shape.pillars
                 .map((p) => `${p.label} ${p.done}/${p.intended}`)
                 .join(' · ')}
+            </AppText>
+          ) : null}
+          {/* The holistic reading, which is the only kind balance has. Not
+              a score and not a scold: which parts of the life they named
+              this week has something in it for. A person inside the week
+              cannot see seven days at once; this is the thing the app can
+              do and they cannot. See weekShape.balanceLine. */}
+          {shape.balanceLine ? (
+            <AppText variant="caption" color="textSecondary" style={styles.shapeDetail}>
+              {shape.balanceLine}
             </AppText>
           ) : null}
         </Card>

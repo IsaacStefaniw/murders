@@ -370,6 +370,20 @@ with the finding, puts the decision under it, and drops the grid to
 *"where that came from"* with the cells the finding was read off ringed.
 The full reasoning for both is in `REDESIGN.md` §5.
 
+✅ **Evidence is a barometer — some practices carry no grade.** Isaac:
+*"There are things that are not plausible to study but constitute a well
+balanced life... date nights, creating family holidays, activities with
+family, activities with friends. This is about balance. Not measurable
+science."* A protocol now declares its `basis`; a `balance` one publishes
+no letter, because a weekly hour with your partner is not an unproven
+treatment. It also unblocked the thin coaches: suggestions were gated at
+grade C, so the family coach had eight eligible practices to health's
+hundred and thirty, and my earlier diagnosis — "those shelves need more
+graded practices" — was wrong. They needed the right kind of reason. Two
+rungs Isaac named and the library lacked were added: the fortnightly
+evening that is the two of you, and the half hour that makes the next
+family trip exist. Full reasoning in `DECISIONS.md` ADR-018.
+
 **Then** — ✅ the three coach rebuilds above, cheapest-first: family's
 17:15 defence, work's wiring fixes (`decisionLoad` → decision journal,
 delete `direct-reports`, stop asserting 09:15), money's `goalDomains`

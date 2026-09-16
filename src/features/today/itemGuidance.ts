@@ -23,7 +23,7 @@
  * beside this file asserts that the generator never produces one.
  */
 
-import { protocolById } from '@/features/knowledge/protocols';
+import { isBalance, protocolById } from '@/features/knowledge/protocols';
 import type { EvidenceLevel } from '@/features/knowledge/protocols';
 import type { Goal, PlanItem, Routine } from '@/types/domain';
 
@@ -31,6 +31,11 @@ export interface ItemHow {
   summary: string;
   why: string;
   evidenceLevel: EvidenceLevel;
+  /**
+   * Set where the practice makes no research claim, in which case the
+   * grade above is not the reason and must not be shown as one.
+   */
+  balance?: string;
   attribution: string[];
   safety?: string;
 }
@@ -57,6 +62,7 @@ export function guidanceFor(
         summary: protocol.summary,
         why: protocol.why,
         evidenceLevel: protocol.evidenceLevel,
+        balance: isBalance(protocol) ? protocol.balance : undefined,
         attribution: protocol.attribution,
         safety: protocol.safety,
       }

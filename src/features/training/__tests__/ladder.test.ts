@@ -57,17 +57,19 @@ describe('latestMaxes is the weighted read', () => {
 
 describe('measuredTrainingLevel', () => {
   it('is nothing without a profile to place the lifts against', () => {
-    expect(measuredTrainingLevel([session('strength.bench.e1rm', 128, 0)], null)).toBeNull();
-    expect(measuredTrainingLevel([session('strength.bench.e1rm', 128, 0)], undefined)).toBeNull();
-    expect(measuredTrainingLevel([], man)).toBeNull();
+    expect(measuredTrainingLevel([session('strength.bench.e1rm', 128, 0)], null, NOW)).toBeNull();
+    expect(measuredTrainingLevel([session('strength.bench.e1rm', 128, 0)], undefined, NOW)).toBeNull();
+    expect(measuredTrainingLevel([], man, NOW)).toBeNull();
   });
 
   it('starts an intermediate lifter at developing and an advanced one at established', () => {
-    // Clear of the band edges: the measurement is read against the real
-    // clock, so a reading exactly on a bar drifts under it by the time
-    // the test runs.
-    expect(measuredTrainingLevel([session('strength.bench.e1rm', 90, 0)], man)).toBe('developing');
-    expect(measuredTrainingLevel([session('strength.bench.e1rm', 130, 0)], man)).toBe('established');
+    // Against the fixture's own clock, which is what the third argument
+    // exists for. Left to the real one, a reading taken "today" in the
+    // fixture ages by however long it has been since the fixture was
+    // written, the baseline decays, and the suite goes red on a date
+    // nobody changed anything on.
+    expect(measuredTrainingLevel([session('strength.bench.e1rm', 90, 0)], man, NOW)).toBe('developing');
+    expect(measuredTrainingLevel([session('strength.bench.e1rm', 130, 0)], man, NOW)).toBe('established');
   });
 
   it('never measures anyone into advanced — that rung is earned', () => {
@@ -77,11 +79,11 @@ describe('measuredTrainingLevel', () => {
       session('strength.deadlift.e1rm', 260, 0),
       session('strength.ohp.e1rm', 100, 0),
     ];
-    expect(measuredTrainingLevel(elite, man)).toBe('established');
+    expect(measuredTrainingLevel(elite, man, NOW)).toBe('established');
   });
 
   it('puts a beginner at foundation rather than below it', () => {
-    expect(measuredTrainingLevel([session('strength.bench.e1rm', 70, 0)], man)).toBe('foundation');
+    expect(measuredTrainingLevel([session('strength.bench.e1rm', 70, 0)], man, NOW)).toBe('foundation');
   });
 
   it('reads the lifts against the clock it is given, so a reading on a band bar does not drift', () => {

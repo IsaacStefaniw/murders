@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
+import { BALANCE_LABEL } from '@/features/knowledge/protocols';
 import { guidanceFor } from '@/features/today/itemGuidance';
 import { useAppStore } from '@/state/store';
 import type { PlanItem } from '@/types/domain';
@@ -38,10 +39,15 @@ export function ItemGuidanceView({ item }: { item: PlanItem }) {
         <View style={styles.block}>
           <AppText variant="secondary">{guidance.how.summary}</AppText>
           <AppText variant="caption" color="textTertiary">
-            {guidance.how.why}
+            {guidance.how.balance ?? guidance.how.why}
           </AppText>
+          {/* A grade note under a practice that claims no research is the
+              app grading somebody's marriage on a scale built for
+              treatments. It says what it is instead. */}
           <AppText variant="caption" color="textTertiary">
-            {GRADE_NOTE[guidance.how.evidenceLevel] ?? guidance.how.evidenceLevel}
+            {guidance.how.balance
+              ? BALANCE_LABEL
+              : (GRADE_NOTE[guidance.how.evidenceLevel] ?? guidance.how.evidenceLevel)}
             {guidance.how.attribution.length > 0 ? ` · ${guidance.how.attribution.join(', ')}` : ''}
           </AppText>
           {guidance.how.safety ? (
