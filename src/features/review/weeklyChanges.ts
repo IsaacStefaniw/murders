@@ -5,6 +5,7 @@
  */
 
 import { MODALITIES } from '@/features/modalities/registry';
+import { protocolById } from '@/features/knowledge/protocols';
 import { detectSlotMismatch } from '@/lib/scheduling/adaptation';
 import { addDays } from '@/lib/dates';
 import type { DailyPlan, PlanItem, Routine } from '@/types/domain';
@@ -38,6 +39,42 @@ export const CONNECTION_AREAS = new Set(['relationship', 'family', 'enjoyment'])
  * appears on one screen and not the other would be the app disagreeing
  * with itself about what it is allowed to take away.
  */
+/**
+ * A practice whose own library entry says a skipped day means nothing.
+ *
+ * ── The flag that was honoured everywhere except here ───────────────────
+ *
+ * `Protocol.neverNag` exists for one person and its doc comment names
+ * them: "Someone three weeks after a bereavement or a redundancy does not
+ * need the adaptation engine reporting that they are 40% adherent, and the
+ * engine cannot know not to." The suggestion pipeline honours it. The
+ * notifier honours it. The two code paths that actually TAKE SOMETHING
+ * AWAY — this one, feeding both the weekly panel's proposal and the End of
+ * Week grid's "Drop it" button — never read `protocolId` at all.
+ *
+ * Worked through on the app's own data. `transition-anchor`, "One thing
+ * that still happens", is `neverNag`, daily, fifteen minutes, tier
+ * `should`, and carries a comment three lines above saying it is THE ONE
+ * THING MEANT TO SURVIVE minimal-capacity trimming. Somebody three weeks
+ * into a bereavement completes it two days in seven. That clears the
+ * skip-rate gate; it has no `sessionType` so it takes the default
+ * ten-minute floor; week one shrinks it fifteen to ten. Week two it is
+ * already at the floor, so the branch below offers to rest it. The app
+ * removes the fixed point from the week of the person it was written for.
+ *
+ * The flag's own wording settles what to do: if a skipped day carries no
+ * meaning, it cannot be evidence for removal. So these leave the droppable
+ * set entirely — no rest, and no shrink either, because the shrink branch
+ * reads this same list and a fixed point cut in half has stopped being a
+ * fixed point.
+ *
+ * The cohort was re-run with and without this filter across all ten
+ * personas: identical completion, identical coach benefit. It costs
+ * nothing and it stops the one case it was written for.
+ */
+const neverNagged = (r: Routine): boolean =>
+  Boolean(r.protocolId && protocolById(r.protocolId)?.neverNag);
+
 export function droppableRoutines(routines: Routine[]): Routine[] {
   const activeByArea = new Map<string, number>();
   for (const r of routines) {
@@ -45,6 +82,7 @@ export function droppableRoutines(routines: Routine[]): Routine[] {
   }
   return routines
     .filter((r) => r.active && !r.protected && r.tier !== 'must')
+    .filter((r) => !neverNagged(r))
     .filter((r) => !(CONNECTION_AREAS.has(r.area) && (activeByArea.get(r.area) ?? 0) <= 1));
 }
 
