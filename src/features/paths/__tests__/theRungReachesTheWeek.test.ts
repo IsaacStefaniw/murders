@@ -30,7 +30,7 @@ const profile = (): LifeProfile =>
   ({
     firstName: 'Isaac',
     priorities: ['health', 'family'],
-    capacity: 'moderate',
+    capacity: 'steady',
     workDays: [1, 2, 3, 4, 5],
     workStart: '09:00',
     workEnd: '17:30',
@@ -42,6 +42,9 @@ const profile = (): LifeProfile =>
     people: [],
     moreOf: [],
     lessOf: [],
+    trainingDurationMin: 45,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
   }) as LifeProfile;
 
 const INTAKE: Record<string, Record<string, string>> = {

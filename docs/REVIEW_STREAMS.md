@@ -2004,3 +2004,143 @@ finding, not after the tests fail.*
 the width of the shelf that must stay defendable, including an assertion
 that `neverAskAhead` has not spread across the library. If that second
 test ever fails, somebody has quietly switched the family coach off again.
+
+---
+
+# Round three — the design and coach review
+
+Isaac asked for a pure design and interface review, a coach review, a
+programme-design review across all seven, and a protocol-explanation
+review. The brief is `docs/ROUND_THREE_BRIEF.md`, written before the
+agents ran.
+
+**109 agents. 34 findings raised, 21 confirmed, 13 refuted.**
+
+| | Round 1 | Round 2 | Round 3 |
+| --- | --- | --- | --- |
+| Agents | 102 | 56 | 109 |
+| Raised | 31 | 24 | 34 |
+| Confirmed | 15 (48%) | 3 (12%) | **21 (62%)** |
+| Best items from | the 1 critic | the 3 critics | **the screenshots** |
+
+## Why this round worked when round two did not
+
+One change, and it is the whole story: **the design agents did not read
+the code. They looked at the app.**
+
+The web export was built, served and driven at 390pt; 29 screens were
+captured as 76 images; the agents were handed the images. Everything in
+the "house rules broken in four places" commit came from that, and two
+rounds of code review — 158 agents — had found none of it, because none of
+it is visible in a diff. `Math.round(rate * 100)` under a variable called
+`completionRate` reads as arithmetic. On a screen it is an adherence grade
+in the largest type in the product, three lines under the words "No
+grades".
+
+The corollary, stated so the next round does not forget it: **a review of
+the repo cannot find what is wrong with the product.** The docstrings
+defend the code against exactly the reviewer who only reads the code.
+
+## What was confirmed and fixed this round
+
+1. **Four house-rule violations, all on screens whose own copy denies
+   them.** `report.tsx:111` printed an adherence percentage as the largest
+   numeral in the product. `data.tsx:391` and `:394` printed a completion
+   rate and a resetting streak on the Progress tab, under a header reading
+   "no adherence percentage, no streak, no grade".
+   `WeeklyReviewPanel:142` printed a third percentage. All four now show a
+   count and its denominator. `activeWeekStreak` became `activeWeeks` — a
+   total, so a bad week costs one week instead of erasing the eight before
+   it. Pinned by `noScores.test.ts`, verified to catch all five original
+   lines.
+
+2. **The rung a person earns never reached the week they are handed.** The
+   headline finding, reached independently by two reviewers from different
+   directions. `withLadder` reads `answers.level`; nothing in the codebase
+   ever wrote it. Read in one place, assigned in none. Every pathway built
+   at `foundation` for every person forever, while the Level card said
+   Established. `withLadder`'s own docstring says it exists to prevent
+   exactly this, having been starved of its input one layer up.
+
+3. **Six coaches had a top rung they could not reach.** `earnedLevel`
+   gated `advanced` on `standardsMet`, which only `trainingEvidence` ever
+   sets. Measured: two years of perfect daily adherence left all six at
+   Established, and the family coach told people they needed *strength
+   standards*.
+
+4. **The training block deleted itself on day 29.** `weekOf` returns null
+   both before a block starts and after it ends, and the session screen
+   read null as "no programme" — so the stock beginner session took over
+   in silence, taking the person's loads, swaps, drops and four weeks of
+   progression with it. It punished precisely the person who adhered best.
+   Now an end-of-block screen that offers the next one.
+
+5. **The how-to was written and never delivered.** 22 practices carry
+   numbered first-attempt steps, rendered only on the Library browse tab —
+   absent from the moment the plan meets the week. Now in the Today item
+   detail.
+
+6. **The injury the training coach would not hear** (carried from round
+   two, finding 1) and **the unanswerable daily question** (round two,
+   finding 3) both shipped this round.
+
+## What died, and why it matters that it did
+
+Thirteen findings were refuted, and the pattern in them is worth keeping:
+
+- **Two described code I had already fixed during the run.** The aftermath
+  ordering and the how-to placement were both fixed mid-round, and the
+  code lens caught both — "the reviewer is describing a pre-fix version of
+  the repo and proposing work that is already merged at HEAD."
+- **"Money is not a ladder"** was refuted, and my own first test agreed
+  with the reviewer before being corrected. Money's higher rungs deliver
+  milestones rather than routines, deliberately, because a quarterly
+  review cannot be a weekly block — and the reasoning is written at every
+  rung. Both the agent and I were wrong; the code was right.
+- **"The adaptation engine has three verbs and all three are retreat"** —
+  factually wrong, and the change it proposed already exists.
+- **Several design findings died on the consequence lens**, correctly: a
+  colour-token audit that is entirely accurate and changes nothing a
+  person would notice is not a finding.
+
+One refutation is worth quoting as a rule. On the evidence-grade finding,
+the house lens rejected the proposed fix while accepting the diagnosis:
+setting A/B in ink and C/D/E in a quieter grey would put 207 of 323 grades
+in the de-emphasis colour, making **the weak grades literally quieter than
+the flattering ones** — an inversion of the protected item it was trying
+to serve. The diagnosis stands; that fix does not. *Nothing is built
+straight off the board* earned its keep here.
+
+## Still open from this round
+
+Confirmed, not yet acted on, in rough order of value:
+
+- **The evidence grade is unreadable at scroll speed** (two reviewers).
+  `library.tsx:148` sets it at 14px/400 inside a sentence whose only
+  variable is one glyph, while the same 12-word gloss prints on all 123 C
+  cards. The claim that earns this app its shelf space is invisible. Fix
+  the hierarchy; do **not** fix it by dimming the bad grades.
+- **Drop, swap and add are keyed to a session title that repeats in all
+  four weeks**, so "just for today" is really "for the rest of the block"
+  — and `sessionEdits.ts`'s own docstring promises the opposite.
+- **A and B sessions are byte-identical**, and a 3-day gym block contains
+  no vertical press, no vertical pull and no unilateral work.
+- **The session card tells the lifter to hold the weight and pre-fills a
+  heavier one.**
+- **"This is too hard" / "This is too easy" do nothing on six of seven
+  coaches**, and both are written in training's voice.
+- **Seven page-header treatments and two competing layout systems** — the
+  modal flows are designed, the four tabs are accumulated.
+- **How-to coverage stops where the practice gets technical**: 59 of 79
+  ladder protocols have none, and the two Isaac named got one while their
+  exact twins did not.
+
+## The rule this round adds
+
+Round two's lesson was *measure the blast radius before writing the
+finding*. It paid twice here — the `neverNag` guard would have silenced 34
+of 36 family practices, and "money is not a ladder" fell to a measurement.
+
+Round three's lesson: **review the running app, not the repository.** A
+reviewer with a screenshot found four house-rule violations in an
+afternoon that 158 code-reading agents had walked past twice.

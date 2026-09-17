@@ -19,7 +19,7 @@ import { applyConstraints } from '@/features/training/constraints';
 import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/training/log';
 import { defaultRepsFrom, SetLogger, topRepsFrom } from '@/features/training/SetLogger';
 import { readinessFrom } from '@/features/health/readiness';
-import { autoRegulate, complexLiftsAllowed, weekOf } from '@/features/training/programme';
+import { autoRegulate, blockComplete, complexLiftsAllowed, weekOf } from '@/features/training/programme';
 import {
   addedKey,
   applySessionEdits,
@@ -135,6 +135,7 @@ export default function WorkoutSession() {
 
   const trainingPreference = profile?.trainingPreference ?? 'mixed';
   const constraints = profile?.constraints;
+  const buildTrainingBlock = useAppStore((s) => s.buildTrainingBlock);
   const session = useMemo(() => {
     // Training v2: when a block is active, today runs the PROGRAMME —
     // your lifts, your loads — auto-regulated to the time that exists
@@ -361,6 +362,50 @@ export default function WorkoutSession() {
   // Leaving the session — finished, cancelled or swiped away — takes the
   // pending rest with it. A set you finished ten minutes ago never buzzes.
   useEffect(() => () => void cancelRestNotification(), []);
+
+  /**
+   * Four weeks done, said out loud instead of silently rolled over.
+   *
+   * `weekOf` returns null both BEFORE a block starts and AFTER it ends,
+   * and this screen read null as "no programme". So on day 29 the block
+   * stopped being used without a word: the stock session took over, and
+   * the person's own loads, their swaps, their drops and four weeks of
+   * progression were simply not there any more.
+   *
+   * It punished precisely the person the product most wants to keep.
+   * Training through four weeks earns the peak week and then, the
+   * following Monday, a beginner's workout with no explanation. Somebody
+   * who drifted never reaches day 29 at all.
+   *
+   * So the end of a block is a screen. The next one is built rather than
+   * repeated, because `buildProgramme` reads the numbers that four weeks
+   * of logging have just moved — and this is the one moment where doing
+   * that is obviously right rather than a surprise.
+   */
+  if (programme && blockComplete(programme)) {
+    return (
+      <Screen>
+        <AppText variant="label" color="textTertiary">
+          FOUR WEEKS DONE
+        </AppText>
+        <AppText variant="title">That block is finished.</AppText>
+        <AppText variant="secondary">
+          Everything you logged stays — your lifts, your numbers and your history are all still
+          there. The next block is built from where they are now rather than where they were four
+          weeks ago.
+        </AppText>
+        <Button
+          title="Build the next block"
+          onPress={() => {
+            buildTrainingBlock();
+            router.replace('/session/workout' as never);
+          }}
+          style={styles.footer}
+        />
+        <Button title="Not now" variant="ghost" onPress={() => router.back()} />
+      </Screen>
+    );
+  }
 
   if (!session) {
     return (

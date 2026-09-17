@@ -1102,4 +1102,34 @@ export function weekOf(programme: TrainingProgramme, nowIso = new Date().toISOSt
   return week >= 1 && week <= 4 ? week : null;
 }
 
+/**
+ * Whether a block has run its four weeks, as opposed to not having started.
+ *
+ * ── The cliff on day 29 ─────────────────────────────────────────────────
+ *
+ * `weekOf` returns null for both "before this block began" and "after it
+ * ended", and its one screen-level caller treated null as "no programme".
+ * So on day 29 the block silently stopped being used: `session/workout`
+ * fell through to `buildWorkout`, the generic stock session, and the
+ * person's own loads, their swaps, their drops and four weeks of
+ * progression vanished with no message at all.
+ *
+ * It lands hardest on exactly the person the product most wants to keep.
+ * Somebody who trains through four weeks is rewarded with the peak week,
+ * and then, the following Monday, with a beginner's workout and no
+ * explanation. Somebody who drifted never reaches day 29.
+ *
+ * Finishing a block is a real moment and it should be marked rather than
+ * rolled over silently — and a new block genuinely wants rebuilding
+ * rather than repeating, because `buildProgramme` reads the numbers that
+ * four weeks of logging have just changed.
+ */
+export function blockComplete(
+  programme: TrainingProgramme,
+  nowIso = new Date().toISOString(),
+): boolean {
+  const days = Math.floor((Date.parse(nowIso) - Date.parse(programme.createdAt)) / 86400e3);
+  return Math.floor(days / 7) + 1 > 4;
+}
+
 export { estimate1Rm };
