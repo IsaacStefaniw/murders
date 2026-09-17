@@ -61,6 +61,7 @@ export function ItemActions({
   const moveItemToDate = useAppStore((s) => s.moveItemToDate);
   const shortenItem = useAppStore((s) => s.shortenItem);
   const updateRoutine = useAppStore((s) => s.updateRoutine);
+  const removePlanItem = useAppStore((s) => s.removePlanItem);
   const goals = useAppStore((s) => s.goals);
 
   const setMilestoneDone = useAppStore((s) => s.setMilestoneDone);
@@ -305,8 +306,22 @@ export function ItemActions({
   if (mode === 'skip') {
     return (
       <View style={styles.column}>
+        {/*
+          The caption used to ask only about today — "Not today?" — while
+          the chips below it included the two permanent answers. Isaac's
+          question was "how do you delete something from your day or week
+          or plan?", and the honest reading is that he could not find the
+          thing that does it, because the sheet that holds it announces
+          itself as being about one day.
+
+          It now names both halves: this once, or from now on.
+        */}
         <AppText variant="caption" color="textTertiary">
-          {isEffort ? `Can't fit ${duration} minutes?` : isTogether ? "Can't make it?" : 'Not today?'}
+          {isEffort
+            ? `Can't fit ${duration} minutes? Just today, or from now on.`
+            : isTogether
+              ? "Can't make it? Just this week, or from now on."
+              : 'Just today, or from now on.'}
         </AppText>
         <View style={styles.chips}>
           {isEffort && duration > 20 ? (
@@ -358,7 +373,28 @@ export function ItemActions({
                 finish();
               }}
             />
-          ) : null}
+          ) : (
+            /*
+              The one block that had no way off the day.
+
+              Every stop verb in this app worked on the thing BEHIND a
+              block — turn the routine off, drop the goal, stop the
+              programme. Something added by hand has nothing behind it, so
+              none of them applied, and Skip left it sitting there greyed
+              out for ever. A thing you put on your own day by mistake was
+              the only thing you could not take off it.
+
+              A real delete, and only here: a routine's block would be back
+              tomorrow, which is what "Stop scheduling this" is for.
+            */
+            <Chip
+              label="Remove it"
+              onPress={() => {
+                removePlanItem(date, item.id);
+                finish();
+              }}
+            />
+          )}
           <Chip label="Cancel" onPress={() => setMode('idle')} />
         </View>
       </View>

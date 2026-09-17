@@ -302,6 +302,30 @@ export interface AppState {
   moveItemToDate: (date: string, itemId: string, targetDate: string) => Displacement[];
   /** Shorten an item to fit the time that exists — recovery, not compliance. */
   shortenItem: (date: string, itemId: string, newDurationMin: number) => void;
+  /**
+   * Take a one-off back off the day, for good.
+   *
+   * ── The hole this closes ──────────────────────────────────────────────
+   *
+   * Isaac: "How do you delete something from your day or week or plan?"
+   *
+   * Every stop verb in the app worked on the thing BEHIND a block — turn
+   * the routine off, drop the goal, stop the programme. A block somebody
+   * added themselves through QuickAdd has nothing behind it: no
+   * `routineId`, so "Stop scheduling this" never appeared on it, and no
+   * goal to drop. The only thing on offer was Skip, which marks it skipped
+   * and leaves it sitting on the day, greyed out, for ever.
+   *
+   * So the one kind of block that is purely somebody's own — including the
+   * one they created by mis-tapping — was the only kind that could not be
+   * removed.
+   *
+   * Scoped to one-offs on purpose. A block a routine generates must NOT be
+   * deletable from here: deleting it would take it off today and the
+   * routine would put it back tomorrow, which is the worst of both and
+   * exactly the confusion "Stop scheduling this" exists to avoid.
+   */
+  removePlanItem: (date: string, itemId: string) => void;
   /** Add a one-off item (an anticipation plan, a spontaneous commitment). */
   addPlanItem: (
     date: string,
@@ -1435,6 +1459,14 @@ export const useAppStore = create<AppState>()(
               newDurationMin,
             }),
           );
+        },
+
+        removePlanItem: (date, itemId) => {
+          const item = get().plans[date]?.items.find((i) => i.id === itemId);
+          // Only a block with nothing behind it. A routine's block would
+          // come straight back tomorrow, so it is turned off, not deleted.
+          if (!item || item.routineId || item.fixed) return;
+          updatePlanItems(date, (items) => items.filter((i) => i.id !== itemId));
         },
 
         addPlanItem: (date, input) => {
