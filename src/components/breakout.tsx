@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { ThemeOverride, useBreakoutTheme } from '@/hooks/use-theme';
 
 /**
  * The frame the app uses when it needs to stop being a list.
@@ -86,14 +86,42 @@ export function Breakout({
   children,
   actions = [],
 }: Props) {
-  const theme = useTheme();
+  /**
+   * The inverted surface, and the reason this frame is worth having.
+   *
+   * ── What was wrong with it ────────────────────────────────────────────
+   *
+   * This used `theme.background`. So did `Screen`. The eyebrow used
+   * `variant="label"` in `textTertiary` — the app's single most repeated
+   * label style, the one on TODAY and NOW and END OF WEEK — and the route
+   * carried `presentation: 'modal'`, shared with eleven other routes
+   * including Settings. The ten minutes after a slip arrived with the same
+   * animation, the same paper, the same gutter and the same eyebrow as the
+   * settings screen.
+   *
+   * Isaac's ask was for intervention screens that break out of the usual
+   * UI more often, and the honest reading of that is not "use this frame
+   * more" — routing more moments through a frame that looks like Settings
+   * produces more screens that look like Settings. It is "make the frame a
+   * break".
+   *
+   * The palette swap is a context, not a prop, so every AppText, Card,
+   * Button, Chip and Field inside comes out correct without knowing it is
+   * in a breakout. That is what makes the next one cheap, which is what
+   * the header above promises.
+   */
+  const theme = useBreakoutTheme();
   const insets = useSafeAreaInsets();
 
   return (
+    <ThemeOverride value={theme}>
     <View style={[styles.root, { backgroundColor: theme.background }]}>
       <View style={[styles.head, { paddingTop: insets.top + Spacing.md }]}>
         <View style={styles.eyebrowWrap}>
-          <AppText variant="label" color="textTertiary">
+          {/* Accent, not textTertiary. This one mark says "a different
+              thing is happening and here is who is talking"; in the app's
+              most repeated label style it said nothing at all. */}
+          <AppText variant="label" color="accent">
             {eyebrow}
           </AppText>
           {steps > 1 ? (
@@ -154,6 +182,7 @@ export function Breakout({
         </View>
       ) : null}
     </View>
+    </ThemeOverride>
   );
 }
 
@@ -177,6 +206,21 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   body: {
     flexGrow: 1,
+    /**
+     * Short content sits in the optical centre, not at the top with a
+     * chasm under it.
+     *
+     * On the paper background this barely showed; inverted and full-bleed
+     * it was nine hundred points of void between one sentence and the
+     * button. A breakout is one thing at a time, and the one thing should
+     * be where the eye lands rather than pinned to a corner of a dark
+     * field.
+     *
+     * Harmless once content is taller than the frame: `flexGrow` has
+     * nothing left to distribute, centring stops applying and it scrolls
+     * from the top as before.
+     */
+    justifyContent: 'center',
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xl,
     width: '100%',

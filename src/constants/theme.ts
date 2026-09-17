@@ -56,6 +56,83 @@ export const Colors = {
     dangerSoft: '#372420',
     success: '#8FB8A5',
   },
+
+  /**
+   * The breakout surface — the one place the app looks different.
+   *
+   * ── Why this exists ──────────────────────────────────────────────────
+   *
+   * Isaac asked for intervention screens that "break out of the usual UI a
+   * bit more often". A frame was built for it and it did not break out of
+   * anything: `Breakout` painted `theme.background`, `Screen` painted
+   * `theme.background`, the eyebrow used `variant="label"` in
+   * `textTertiary` — the app's single most repeated label style, the one
+   * on TODAY and NOW and END OF WEEK — and `presentation: 'modal'` was
+   * shared with twelve routes including Settings. The ten minutes after a
+   * slip arrived with the same animation as the settings screen.
+   *
+   * So the answer to "break out more often" was never to route more
+   * moments through that frame. It was to make the frame a break.
+   *
+   * ── Why the ink, and not a colour ────────────────────────────────────
+   *
+   * No red, no alarm, nothing loud. A breakout is a de-escalation: the
+   * person has just told the app something went wrong, and the screen's
+   * job is to be calm and singular, not to shout. Inverting paper and ink
+   * uses two colours the system already owns and says "different mode"
+   * before a word is read — the same move a phone makes for a focus mode.
+   *
+   * ── Why dark mode does not invert ────────────────────────────────────
+   *
+   * The obvious symmetry is to flip dark mode to light. It is wrong, and
+   * the reason is the hour: the moment this frame exists for is a drink
+   * logged at eleven at night. A white screen then is a flashbang from an
+   * app that is supposed to be helping. Dark mode goes DEEPER instead,
+   * with a sage cast that ties it to the accent, so it reads as a
+   * different surface rather than a light switch.
+   */
+  breakoutLight: {
+    background: '#1B201D',
+    surface: '#252B27',
+    surfacePressed: '#2F3632',
+    border: '#3A423D',
+    text: '#F4F2ED',
+    textSecondary: '#BCC2BD',
+    textTertiary: '#939996',
+    accent: '#8FBFA8',
+    accentSoft: '#2B3A33',
+    onAccent: '#14211B',
+    must: '#D8AE77',
+    mustSoft: '#3A3024',
+    should: '#8FBFA8',
+    shouldSoft: '#2B3A33',
+    could: '#BCC2BD',
+    couldSoft: '#2E3431',
+    danger: '#DD9389',
+    dangerSoft: '#3E2A26',
+    success: '#8FBFA8',
+  },
+  breakoutDark: {
+    background: '#0A100D',
+    surface: '#141C18',
+    surfacePressed: '#1D2721',
+    border: '#27332C',
+    text: '#EDEFEB',
+    textSecondary: '#A3A9A4',
+    textTertiary: '#7A817C',
+    accent: '#8FBFA8',
+    accentSoft: '#1B2B23',
+    onAccent: '#0A100D',
+    must: '#D0A66E',
+    mustSoft: '#2C2519',
+    should: '#8FBFA8',
+    shouldSoft: '#1B2B23',
+    could: '#A3A9A4',
+    couldSoft: '#1C2420',
+    danger: '#D08A80',
+    dangerSoft: '#301F1C',
+    success: '#8FBFA8',
+  },
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;

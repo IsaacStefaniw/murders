@@ -7,7 +7,7 @@ import { Breakout, type BreakoutAction } from '@/components/breakout';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
 import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { useBreakoutTheme } from '@/hooks/use-theme';
 import { behaviourPattern } from '@/features/behaviours/patterns';
 import {
   TRIGGER_LABELS,
@@ -41,7 +41,25 @@ type Step = 'steady' | 'trigger' | 'plan' | 'cost';
 
 export default function MomentScreen() {
   const router = useRouter();
-  const theme = useTheme();
+  /**
+   * The breakout palette, read directly, because this line runs ABOVE it.
+   *
+   * `Breakout` provides the inverted palette to its subtree, so every
+   * AppText, Card, Chip and Button inside comes out correct without
+   * knowing where it is. This function body is not in that subtree — it is
+   * the component that RENDERS the Breakout — so a plain `useTheme()` here
+   * returns the ordinary light palette while everything it draws is on the
+   * dark one.
+   *
+   * It showed up on the one line that could least afford it: the if-then
+   * plan, the best-evidenced thing this app hands anybody, was drawn with
+   * `theme.accentSoft` from the light palette and near-white text from the
+   * dark one. The sentence was almost invisible.
+   *
+   * `breakoutRoutesUseTheBreakoutPalette` in `__tests__/breakoutFrame`
+   * keeps every future breakout screen off the same rock.
+   */
+  const theme = useBreakoutTheme();
   const { eventId } = useLocalSearchParams<{ eventId: string }>();
 
   const events = useAppStore((s) => s.behaviourEvents);

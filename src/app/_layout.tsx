@@ -100,8 +100,19 @@ export default function RootLayout() {
           <Stack.Screen name="coach/interrupt" options={{ presentation: 'modal' }} />
           {/* The ten minutes after a slip. The moment a behaviour app exists
               for, and the one that used to be answered with a caption on a
-              card. See features/moments/aftermath.ts. */}
-          <Stack.Screen name="moment/[eventId]" options={{ presentation: 'modal' }} />
+              card. See features/moments/aftermath.ts.
+
+              `fullScreenModal`, and it is the only route that gets it.
+              Twelve routes shared `presentation: 'modal'`, so the ten
+              minutes after a slip arrived with the same sheet animation as
+              the settings screen — a sheet is a drawer you pulled open,
+              and this is not that. Reserved for routes that render
+              `Breakout`, so the arrival is part of the signature rather
+              than a detail. */}
+          <Stack.Screen
+            name="moment/[eventId]"
+            options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+          />
           <Stack.Screen name="goals/new" options={{ presentation: 'modal' }} />
           <Stack.Screen name="session/breathe" options={{ presentation: 'modal' }} />
           <Stack.Screen name="session/meditate" options={{ presentation: 'modal' }} />
