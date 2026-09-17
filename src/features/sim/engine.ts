@@ -6,6 +6,7 @@
  * human (personas.ts).
  */
 
+import { protocolById } from '@/features/knowledge/protocols';
 import { detectAnticipationGap } from '@/features/anticipation/lookAhead';
 import { detectGoalStalled, STALL_DAYS } from '@/features/goals/stalled';
 import { detectGoalUnderserved } from '@/features/goals/underserved';
@@ -21,6 +22,7 @@ import {
   detectMissedTwice,
   detectMoveOutcome,
   detectMovePattern,
+  detectRegrow,
   detectShrinkToFit,
   detectSlotMismatch,
   type ManualMove,
@@ -338,6 +340,9 @@ export function runUser(
       detectSlotMismatch(history, routines),
       detectShrinkToFit(history, routines, floorFor),
       detectMissedTwice(history, routines),
+      detectRegrow(history, routines, (r) =>
+        r.protocolId ? protocolById(r.protocolId)?.durationMin : undefined,
+      ),
     ]) {
       for (const s of detected) {
         if (claimed.has(routineIdOf(s))) continue;

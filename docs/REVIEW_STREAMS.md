@@ -1027,3 +1027,87 @@ Two rules for round 2, both learned the hard way:
    the damage rather than removing it. That pattern is the signal that the
    thing being tuned needs redesigning, and continuing past it is how a
    cohort gets over-fitted to whichever persona was measured last.
+
+
+---
+
+# Round 1, second pass — 17 September 2026
+
+## Shipped
+
+**The suggestion memory.** Three defects in one line, compounding:
+every accepted and dismissed record was deleted the moment any new
+suggestion appeared; the duplicate guard read only the open ones so a
+dismissed card came straight back on the next Today mount; and the three
+cooldowns that keep the app quiet count answered nudges from that same
+list, so the caps were being erased by the mechanism that makes it speak.
+Answers are kept for 60 days, muted by key for 14, and `resolvedAt` is new
+because the cooldown has to run from when it was answered.
+
+**Two coaches that could not speak.** `coachForArea` resolves the
+training/nutrition/recovery collision by excluding two of them, so of
+seven coaches nutrition could never say anything at all and every food
+practice was offered in the training coach's voice. `coachForProtocol`
+routes on the practice's pillar instead: Mara has 36, Sol 21, where both
+had none.
+
+**`HISTORY_DAYS` 14 → 21.** The app read fourteen days of history; the
+cohort that calibrated every threshold in `adaptation.ts` ran on
+twenty-one. Six months of simulated weeks validated the detectors against
+a third more evidence than the shipped app ever gave them.
+
+**A detector that proposes making something bigger.** `detectShrinkToFit`
+takes a third off each time it fires, there is a floor and no ceiling, and
+nothing in `src` had ever offered to put any of it back — while shrink's
+own reason line promised "you can grow it back any time". Twice on a bad
+month and a 45-minute session is 20 and stays there through every good
+week after. `detectRegrow` offers one step back once the smaller version
+has been kept six times at 80%, never past the size it was built at.
+Slower to fire than a shrink on purpose: shrinking is a rescue and being
+slow to rescue is the costlier mistake; growing is an ask, and an ask made
+too early is the app not believing the person's week.
+
+**Protecting something already protected is no longer offered.**
+
+## Attempted and withdrawn — the protect-time trap
+
+The finding is real and it is nasty. "Strength slipped twice in a row.
+Protect the next one?" sets `tier: 'must'`. `detectMissedTwice` skips
+`must` and `droppableRoutines` excludes it, so the app goes permanently
+blind to the routine it has just been asked to look after, and there is no
+path back down anywhere in the product. One tap re-classifies a routine
+for good, and nobody agreed to that by tapping Protect.
+
+The obvious fix is `protected: true` — the field that means exactly
+"hold this time", which the scheduler already honours and which
+`droppableRoutines` already respects. Measured across the ten personas it
+costs: the shift nurse's coach benefit goes from 0.00 to −0.04 and the new
+parent's from 1.92 to 0.77. The reason is in `lib/scheduling/engine.ts:700`
+— a protected routine is placed **even when the day is already full**,
+which for somebody at minimal capacity is more plan they will not
+complete. `must` has no such escape hatch.
+
+So the two flags are not interchangeable and the swap is not free.
+Withdrawn. What protect-time should be is a time-boxed hold on the next
+session, which is what its own copy says, rather than a permanent tier
+change — and that is a design job.
+
+## Standing tally of things found, fixed, and deliberately not fixed
+
+| Found | State |
+| --- | --- |
+| `neverNag` ignored by the only paths that remove something | Fixed |
+| Dismissing a suggestion did nothing | Fixed |
+| Nutrition and recovery coaches structurally mute | Fixed |
+| App read 14 days of history, cohort calibrated on 21 | Fixed |
+| The app could only ever propose shrinking | Fixed |
+| Unlived days counted as misses | **Withdrawn** — the rescue is calibrated on the miscount; redesign |
+| The day cut at 11:00 for everybody | **Withdrawn** — three slots cannot describe a night shift; redesign |
+| Protect-time blinds the engine permanently | **Withdrawn** — the safe-looking swap costs the personas who need it most; redesign |
+| Money and work coaches have no trigger of their own | Not started — new capability, not a fix |
+
+The three withdrawals share a shape, and it is the finding under the
+findings: **every destructive or protective power in this app is
+miscalibrated, and each one is load-bearing for the person it serves
+worst.** They cannot be corrected one knob at a time. That is one piece of
+design work, and it is the most valuable thing on this board.

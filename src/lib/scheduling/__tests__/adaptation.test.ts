@@ -5,6 +5,8 @@ import {
   detectMissedTwice,
   detectMoveOutcome,
   detectMovePattern,
+  detectRegrow,
+  REGROW_MIN_OBSERVATIONS,
   detectShrinkToFit,
   detectSlotMismatch,
 } from '@/lib/scheduling/adaptation';
@@ -266,5 +268,86 @@ describe('detectShrinkToFit', () => {
     ];
     expect(detectShrinkToFit(mostlyDone, [gym], floorFor)).toHaveLength(0);
     expect(detectShrinkToFit(skippedLots.slice(0, 3), [gym], floorFor)).toHaveLength(0);
+  });
+});
+
+/**
+ * The only detector in the app that proposes making something bigger.
+ *
+ * `detectShrinkToFit` takes a third off every time it fires, there is a
+ * floor but no ceiling, and until this existed nothing anywhere in `src`
+ * ever offered to put any of it back — while shrink's own reason line
+ * promised "you can grow it back any time". Run twice on a bad month, a
+ * 45-minute session is 20 and stays there through every good week that
+ * follows.
+ */
+describe('detectRegrow', () => {
+  const shrunk: Routine = { ...gym, durationMin: 20, protocolId: 'strength' };
+  const built = (r: Routine) => (r.protocolId === 'strength' ? 45 : undefined);
+
+  const kept = (n: number, completed: number) =>
+    Array.from({ length: n }, (_, i) =>
+      item({
+        id: `k${i}`,
+        date: `2026-09-${String(i + 1).padStart(2, '0')}`,
+        status: i < completed ? 'completed' : 'skipped',
+      }),
+    );
+
+  it('offers one step back once the smaller version is sticking', () => {
+    const [s] = detectRegrow(kept(6, 6), [shrunk], built);
+    expect(s).toBeDefined();
+    const payload = s.payload as { newDurationMin: number };
+    expect(payload.newDurationMin).toBe(25);
+    expect(s.message).toContain('Try 25?');
+  });
+
+  it('never offers past the size it was built at', () => {
+    const nearlyBack: Routine = { ...shrunk, durationMin: 40 };
+    const [s] = detectRegrow(kept(8, 8), [nearlyBack], built);
+    expect((s.payload as { newDurationMin: number }).newDurationMin).toBe(45);
+  });
+
+  /**
+   * Growing is an ask and shrinking is a rescue, so this is slower to fire
+   * on purpose. An ask made too early is the app not believing the week.
+   */
+  it('waits for more evidence than a shrink needs', () => {
+    expect(detectRegrow(kept(REGROW_MIN_OBSERVATIONS - 1, 999), [shrunk], built)).toEqual([]);
+  });
+
+  it('says nothing while the smaller version is still being missed', () => {
+    expect(detectRegrow(kept(8, 5), [shrunk], built)).toEqual([]);
+  });
+
+  it('says nothing about a routine that was never shrunk', () => {
+    expect(detectRegrow(kept(8, 8), [{ ...gym, protocolId: 'strength' }], built)).toEqual([]);
+  });
+
+  it('says nothing about a routine with no built size to return to', () => {
+    expect(detectRegrow(kept(8, 8), [{ ...shrunk, protocolId: undefined }], built)).toEqual([]);
+  });
+
+  it('is applied by the same duration-setting action as a shrink', () => {
+    const [s] = detectRegrow(kept(6, 6), [shrunk], built);
+    expect(applyShorten([shrunk], s)[0].durationMin).toBe(25);
+  });
+});
+
+/**
+ * "Protect the next one" used to set tier: must — which `detectMissedTwice`
+ * skips and `droppableRoutines` excludes, so the app went permanently blind
+ * to the routine it had just been asked to look after, with no path back
+ * down. The blindness is recorded in docs/REVIEW_STREAMS.md; what is fixed
+ * here is the app asking for something it has already been given.
+ */
+describe('protecting something already protected', () => {
+  it('is not offered again', () => {
+    const history = [
+      item({ id: 'a', date: '2026-09-01', status: 'skipped' }),
+      item({ id: 'b', date: '2026-09-03', status: 'skipped' }),
+    ];
+    expect(detectMissedTwice(history, [{ ...gym, protected: true }])).toEqual([]);
+    expect(detectMissedTwice(history, [gym]).length).toBe(1);
   });
 });

@@ -103,6 +103,7 @@ import {
   detectMissedTwice,
   detectMoveOutcome,
   detectMovePattern,
+  detectRegrow,
   detectShrinkToFit,
   detectSlotMismatch,
   learnedDurationMinutes,
@@ -880,8 +881,19 @@ function measuredMinutes(item: PlanItem): number | undefined {
   return Math.max(1, Math.min(planned * ELAPSED_CAP_MULTIPLE, elapsed));
 }
 
-/** How far back the adaptation engine looks. */
-const HISTORY_DAYS = 14;
+/**
+ * How far back the adaptation engine looks.
+ *
+ * Twenty-one, matching `features/sim/engine.ts`. It was fourteen here and
+ * twenty-one there, so every threshold in `lib/scheduling/adaptation.ts`
+ * was calibrated over six months of simulated weeks against a third more
+ * evidence than the shipped app ever gives it. A detector needing four
+ * observations before it speaks reaches fewer people on the short window,
+ * which makes the app quieter than the cohort said it would be — quiet in
+ * the wrong direction, since the mechanisms this feeds are the ones that
+ * rescue somebody drowning in their own plan.
+ */
+const HISTORY_DAYS = 21;
 
 /**
  * How long a dismissal holds before the app may raise the same thing again.
@@ -2346,6 +2358,11 @@ export const useAppStore = create<AppState>()(
             // No better slot exists → shrink the ask before protecting it.
             detectShrinkToFit(history, routines, routineFloorMin),
             detectMissedTwice(history, routines),
+            // Last, and the only detector that proposes making something
+            // bigger. Nothing else in the app ever has — see detectRegrow.
+            detectRegrow(history, routines, (r) =>
+              r.protocolId ? protocolById(r.protocolId)?.durationMin : undefined,
+            ),
           ]) {
             for (const s of detected) {
               if (claimed.has(routineIdOf(s))) continue;

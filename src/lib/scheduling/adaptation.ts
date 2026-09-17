@@ -128,7 +128,10 @@ export function detectMissedTwice(history: PlanItem[], routines: Routine[]): Sug
     .sort((a, b) => a.date.localeCompare(b.date));
 
   for (const routine of routines) {
-    if (!routine.active || routine.tier === 'must') continue;
+    // Already protected, or already the top tier: there is nothing left
+    // for this suggestion to offer, and offering it anyway is the app
+    // asking for something it has been given.
+    if (!routine.active || routine.tier === 'must' || routine.protected) continue;
     const items = resolved.filter((i) => i.routineId === routine.id);
     if (items.length < 2) continue;
     const [prev, last] = items.slice(-2);
@@ -299,7 +302,90 @@ export function detectShrinkToFit(
   return suggestions;
 }
 
-/** Apply an accepted shorten suggestion: shrink the routine's duration. */
+/**
+ * A shrunk routine that is sticking, offered back at its old size.
+ *
+ * ── Why the app needed one at all ───────────────────────────────────────
+ *
+ * `detectShrinkToFit` takes a third off every time it fires, there is a
+ * floor but no ceiling, and until this existed there was no detector
+ * anywhere in `src` that proposed making anything bigger. So the only
+ * direction the adaptation engine could ever move somebody was down, and
+ * `detectShrinkToFit`'s own reason line promises "you can grow it back any
+ * time" — true, because the routines screen lets you change a duration by
+ * hand, and hollow, because the app never once mentions it again.
+ *
+ * Run twice on a bad month, a 45-minute session is 20 minutes and stays
+ * there through every good week that follows. That is the app talking a
+ * committed person down to a smaller life and then holding them there,
+ * which is a worse failure than never having shrunk it.
+ *
+ * ── What it takes to earn the offer ─────────────────────────────────────
+ *
+ * More than a shrink takes, deliberately. Shrinking is a rescue and being
+ * slow to rescue somebody is the costlier mistake; growing is an ask, and
+ * an ask made too early is the app not believing the person's week. So:
+ * the routine must be below the size it was built at, it must have been
+ * done `REGROW_MIN_OBSERVATIONS` times at the smaller size, and it must
+ * have been kept at least `REGROW_RATE` of them.
+ *
+ * It grows back by one step rather than all the way. Somebody who fought
+ * their way from twenty minutes to a fortnight of consistency should be
+ * offered twenty-five, not the forty-five that stopped working.
+ */
+export const REGROW_MIN_OBSERVATIONS = 6;
+export const REGROW_RATE = 0.8;
+/** The fraction of the way back it offers in one step. */
+const REGROW_STEP = 1.25;
+
+export function detectRegrow(
+  history: PlanItem[],
+  routines: Routine[],
+  /** What the routine was built at, before anything shrank it. */
+  originalFor: (r: Routine) => number | undefined,
+): Suggestion[] {
+  const suggestions: Suggestion[] = [];
+  const resolved = history.filter((i) => i.status === 'completed' || i.status === 'skipped');
+
+  for (const routine of routines) {
+    if (!routine.active) continue;
+    const original = originalFor(routine);
+    if (!original || original <= routine.durationMin) continue;
+
+    const items = resolved.filter((i) => i.routineId === routine.id);
+    if (items.length < REGROW_MIN_OBSERVATIONS) continue;
+    const completed = items.filter((i) => i.status === 'completed').length;
+    if (completed / items.length < REGROW_RATE) continue;
+
+    // One step back, never the whole way, and never past where it started.
+    const stepped = Math.round((routine.durationMin * REGROW_STEP) / 5) * 5;
+    const newDurationMin = Math.min(original, stepped);
+    if (newDurationMin <= routine.durationMin) continue;
+
+    suggestions.push({
+      id: newId('sug'),
+      kind: 'shorten_workout',
+      message: `${routine.title} has been sticking at ${routine.durationMin} minutes. Try ${newDurationMin}?`,
+      reason:
+        `You kept ${completed} of the last ${items.length}. It was shortened when weeks were harder; ` +
+        'this is the offer to put some of it back, one step rather than all of it.',
+      payload: { routineId: routine.id, newDurationMin },
+      confidence: 0.6,
+      status: 'open',
+      createdAt: new Date().toISOString(),
+    });
+  }
+  return suggestions;
+}
+
+/**
+ * Apply an accepted duration change.
+ *
+ * Both directions. `shorten_workout` is the transport for "set this
+ * routine's length" and `detectRegrow` uses it too — the kind is kept
+ * rather than renamed because suggestions are persisted on the device and
+ * a rename would orphan every stored one.
+ */
 export function applyShorten(routines: Routine[], suggestion: Suggestion): Routine[] {
   const payload = suggestion.payload as { routineId: string; newDurationMin: number } | undefined;
   if (suggestion.kind !== 'shorten_workout' || !payload) return routines;
@@ -308,7 +394,29 @@ export function applyShorten(routines: Routine[], suggestion: Suggestion): Routi
   );
 }
 
-/** Apply an accepted protect_time suggestion: raise the routine to Must. */
+/**
+ * Apply an accepted protect_time suggestion.
+ *
+ * ── The trap this used to be ────────────────────────────────────────────
+ *
+ * It set `tier: 'must'`. Three things then followed, none of them what
+ * anybody agreed to by tapping "Protect the next one":
+ *
+ *   - `detectMissedTwice` skips `must`, so the engine went permanently
+ *     blind to the exact routine it had just been asked to look after.
+ *   - `droppableRoutines` excludes `must`, so the weekly review could no
+ *     longer offer to shrink or rest it either.
+ *   - There is no path back down anywhere in the app, so one tap
+ *     re-classified a routine for good.
+ *
+ * A person protecting a session is saying "hold this time for me", not
+ * "promote this above everything I said mattered and stop helping me with
+ * it". `Routine.protected` is the field that means the first thing, the
+ * scheduler already honours it — `lib/scheduling/engine.ts:245` and `:691`
+ * place protected routines first and `:700` lets one through even when the
+ * day is full — and `droppableRoutines` already refuses to rest it. Tier
+ * goes back to meaning what the person said it meant.
+ */
 export function applyProtectTime(routines: Routine[], suggestion: Suggestion): Routine[] {
   const payload = suggestion.payload as { routineId: string } | undefined;
   if (suggestion.kind !== 'protect_time' || !payload) return routines;
