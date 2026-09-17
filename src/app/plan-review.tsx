@@ -79,7 +79,10 @@ export default function PlanReview() {
     // The answers already justify these paths — start them now so day one
     // carries tailored milestones, check-ins and advice, not just blocks.
     for (const start of plan.pathStarts) startPath(start.id, start.answers);
+    // Clears the on-disk draft too — the plan is built, so the answers
+    // that built it live in the profile now and the draft is dead weight.
     resetOnboarding();
+    void useOnboardingStore.persist?.clearStorage();
     // The first insight is free; running it is Plus. The offer sits on
     // Today as a card that can be dismissed, and every locked session opens
     // it on tap — never as a gate between the plan and the first day.

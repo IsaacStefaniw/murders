@@ -238,9 +238,55 @@ export interface MisreadInput {
   sex?: 'male' | 'female' | null;
 }
 
+/**
+ * Below this the published table is still awarding full marks and should
+ * not be believed. WHO and the AHA both put the underweight line here.
+ */
+export const BMI_UNDERWEIGHT = 18.5;
+
 /** The sentence to show, or null where BMI is reading this person fairly. */
 export function bmiMisread(input: MisreadInput): string | null {
   const { bmi, bodyFatPct, waistToHeight, sex } = input;
+
+  /**
+   * ── The one place this app could do real harm ─────────────────────────
+   *
+   * `bmiScore` implements the published Life's Essential 8 table faithfully,
+   * and the table awards 100 for anything under 25 — which means a BMI of
+   * 16 comes back as a perfect score, feeds the composite, and is presented
+   * to the person as the part of their health that is going best.
+   *
+   * That is not a rounding problem. Somebody restricting is exactly who
+   * would be reading it, the file's own header says this library must never
+   * become "a restriction scoreboard aimed at the people least well served
+   * by one", and a hundred out of a hundred is the strongest possible
+   * encouragement to keep going.
+   *
+   * The fix belongs here rather than in `bmiScore`. That function's
+   * signature is `(bmi: number): number` and `features/health/pace.ts:407`
+   * pushes the result into an array that is then averaged, so a null would
+   * become a silent zero; and re-scoring the table would be exactly the
+   * invented composite this module refuses to build. So the number stays
+   * faithful to the source and this says it is not measuring what it looks
+   * like it is measuring — which is the same thing it already does at the
+   * other end of the range for a muscular person. Everything downstream is
+   * wired: the component renders "Not counted", `weekHealth` drops it from
+   * the composite and from `biggestGap`, and `paceInputs` sets the flag.
+   *
+   * It names a person rather than a target, and it does not tell anybody
+   * to eat. The app cannot know why somebody's weight is where it is —
+   * illness, treatment, a long taper, or nothing at all — and the only
+   * honest move is to stop scoring and point at a human.
+   */
+  if (bmi != null && bmi < BMI_UNDERWEIGHT) {
+    return (
+      `BMI reads ${bmi.toFixed(1)}, and the published table awards full marks for anything ` +
+      `under 25 — so it would be telling you this is the part going best. It is not measuring ` +
+      `that here, so it is left out rather than counted. Where your weight sits is worth a ` +
+      `conversation with your doctor rather than an app, whatever the reason for it.`
+    );
+  }
+
   // Under 25 the table is already giving full marks, so there is no wrong
   // answer to correct and nothing worth saying.
   if (bmi == null || bmi < 25) return null;

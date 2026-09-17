@@ -2,6 +2,7 @@ import { asPercent } from '@/features/health/summarise';
 import {
   LEAN_CEILING,
   WAIST_HEIGHT_HEALTHY,
+  BMI_UNDERWEIGHT,
   bmiMisread,
   bmiScore,
   weekHealth,
@@ -153,5 +154,47 @@ describe('body fat arriving from Health', () => {
     expect(asPercent(undefined)).toBeNull();
     expect(asPercent(0.001)).toBeNull();
     expect(asPercent(95)).toBeNull();
+  });
+});
+
+/**
+ * The one place this app could do real harm.
+ *
+ * `bmiScore` implements the published Life's Essential 8 table faithfully
+ * and the table awards 100 for anything under 25. So a BMI of 16 came back
+ * as a perfect score, fed the composite, and was presented to the person as
+ * the part of their health going best — to exactly the person the file's
+ * own header says this library must never become "a restriction scoreboard"
+ * for.
+ */
+describe('a BMI the table would give full marks to and should not', () => {
+  it('stops counting below the underweight line', () => {
+    expect(bmiMisread({ bmi: 16 })).toBeTruthy();
+    expect(bmiMisread({ bmi: BMI_UNDERWEIGHT - 0.1 })).toBeTruthy();
+  });
+
+  it('leaves a healthy weight alone', () => {
+    expect(bmiMisread({ bmi: BMI_UNDERWEIGHT })).toBeNull();
+    expect(bmiMisread({ bmi: 21 })).toBeNull();
+  });
+
+  it('fires on BMI alone — it must not wait for a body-fat reading', () => {
+    // The person least likely to have entered a body-fat percentage is the
+    // person this branch exists for.
+    expect(bmiMisread({ bmi: 16, bodyFatPct: null, waistToHeight: null })).toBeTruthy();
+  });
+
+  it('points at a human and never at a target', () => {
+    const said = bmiMisread({ bmi: 16 })!;
+    expect(said).toMatch(/doctor/i);
+    // No instruction to eat, gain, or reach a number. The app cannot know
+    // why somebody's weight is where it is.
+    expect(said).not.toMatch(/\beat\b|gain weight|put on|should weigh|aim for|target/i);
+    // And it does not diagnose.
+    expect(said).not.toMatch(/anorexi|eating disorder|unhealthy|dangerous|too thin/i);
+  });
+
+  it('says why the number is left out rather than silently dropping it', () => {
+    expect(bmiMisread({ bmi: 16 })).toMatch(/left out|not counted|not measuring/i);
   });
 });

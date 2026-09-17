@@ -44,8 +44,12 @@ import { track } from '@/lib/telemetry';
 export default function Interview() {
   const router = useRouter();
   const theme = useTheme();
-  const { answers, setAnswer } = useOnboardingStore();
-  const [stepIndex, setStepIndex] = useState(0);
+  /*
+    The step lives on disk with the answers, not in component state.
+    Restoring fifty answers and dropping somebody back at question one is
+    the same loss with extra steps. See features/onboarding/state.ts.
+  */
+  const { answers, setAnswer, stepIndex, setStepIndex } = useOnboardingStore();
   const [textDraft, setTextDraft] = useState('');
   /** The payout, held on this screen until it is read. */
   const [payout, setPayout] = useState<string | null>(null);

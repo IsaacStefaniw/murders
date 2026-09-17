@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -74,26 +74,6 @@ export default function Life() {
 
   /** The intention whose logging sheet is open, if any. */
   const [logging, setLogging] = useState<string | null>(null);
-  /*
-   * Opened straight into the log sheet by a deep link.
-   *
-   * The gap Isaac hit: "I have drank a few times this week and could only
-   * log yesterday." The picker reaches back seven days, but recording three
-   * occurrences meant walking the whole flow three times, from the tab, with
-   * the sheet closing in between. The breakout that follows a log now ends
-   * with "Log another from this week", which lands here with the intention
-   * already chosen and the sheet already open.
-   */
-  const { log: logParam } = useLocalSearchParams<{ log?: string }>();
-  const [seenParam, setSeenParam] = useState<string | undefined>(undefined);
-  // Adjusted during render rather than in an effect: a second pass is the
-  // supported way to react to a changed prop, and an effect here would
-  // render the tab once without the sheet before opening it.
-  if (logParam !== seenParam) {
-    setSeenParam(logParam);
-    setLogging(logParam ?? null);
-  }
-
   // Rolling 7-day window. The clock read is deliberate and the computation
   // trivial; a stable-per-render anchor would only make counts staler.
   // eslint-disable-next-line react-hooks/purity

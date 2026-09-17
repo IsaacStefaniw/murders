@@ -50,6 +50,7 @@ export default function MomentScreen() {
   const profile = useAppStore((s) => s.profile);
   const setBehaviourEventTrigger = useAppStore((s) => s.setBehaviourEventTrigger);
   const setBehaviourPlan = useAppStore((s) => s.setBehaviourPlan);
+  const removeBehaviourEvent = useAppStore((s) => s.removeBehaviourEvent);
 
   const [now] = useState(() => new Date());
   const event = events.find((e) => e.id === eventId);
@@ -261,13 +262,27 @@ export default function MomentScreen() {
           onPress: close,
         },
         {
-          // The gap Isaac hit: several occurrences in a week, and a flow
-          // that makes you walk the whole way round for each one.
-          label: 'Log another from this week',
+          /*
+            Undoing the mis-tap where it was made.
+
+            "Log another from this week" used to sit here and was dead on
+            the second tap: it pushed the same deep link every time and the
+            Life tab only reacted when the parameter changed, which it
+            never did. Recording several nights belongs in the log sheet,
+            where the day chips already are, so that three nights produce
+            one aftermath rather than three — see BehaviourLog.
+
+            What belongs here instead is the undo. This screen already
+            holds the event id and it is what somebody is looking at
+            seconds after a wrong tap, and the whole pattern engine is
+            built on `occurredAt`: a wrong entry moves the window every
+            later interruption is computed from.
+          */
+          label: 'Actually, remove that',
           secondary: true,
           onPress: () => {
-            router.back();
-            router.push(`/(tabs)/life?log=${encodeURIComponent(intention.id)}` as never);
+            removeBehaviourEvent(event.id);
+            close();
           },
         },
       ]}

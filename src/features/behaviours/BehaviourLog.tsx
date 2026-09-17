@@ -16,6 +16,14 @@
  * become a total, a total would become a chart, and the chart would be a
  * restriction scoreboard aimed at the people least well served by one.
  *
+ * It records several at a sitting. Somebody catching up on Wednesday,
+ * Friday and Saturday should not walk the whole aftermath three times to
+ * do it, and the first attempt at this — a deep link from the aftermath
+ * back into the tab — was dead on the second tap, because the tab only
+ * reacted when the URL parameter CHANGED and it never did. The repeat
+ * belongs here, where the day and time chips already are: log it, and the
+ * sheet offers to take another before it hands over.
+ *
  * It does not judge, and it no longer answers. What happened after "Log it"
  * used to be this component's job: a Card headed "Logged", one sentence
  * from `momentNote`, a Close button. That is a caption where the moment
@@ -63,6 +71,7 @@ export function BehaviourLog({ intention, onDone }: Props) {
   const router = useRouter();
   const profile = useAppStore((s) => s.profile);
   const logPastBehaviourEvent = useAppStore((s) => s.logPastBehaviourEvent);
+  const removeBehaviourEvent = useAppStore((s) => s.removeBehaviourEvent);
 
   const [now] = useState(() => new Date());
   const [offsetDays, setOffsetDays] = useState(0);
@@ -74,6 +83,8 @@ export function BehaviourLog({ intention, onDone }: Props) {
   const time: TimeChoice = times.find((t) => t.key === timeKey) ?? times[0];
   const [detail, setDetail] = useState('');
   const [size, setSize] = useState<BehaviourEvent['size']>();
+  /** Ids recorded in this sitting, newest last. Empty until the first. */
+  const [logged, setLogged] = useState<string[]>([]);
 
   const occurredAt = useMemo(
     () => occurredAtFrom(now, offsetDays, time),
@@ -92,9 +103,60 @@ export function BehaviourLog({ intention, onDone }: Props) {
   const submit = () => {
     const trimmed = detail.trim();
     const id = logPastBehaviourEvent(intention.id, occurredAt, trimmed || undefined, size);
-    onDone();
-    router.push(`/moment/${encodeURIComponent(id)}` as never);
+    setLogged((prev) => [...prev, id]);
   };
+
+  /** Clear the answers, keep the day list, stay in the sheet. */
+  const another = () => {
+    setDetail('');
+    setSize(undefined);
+    setLogged((prev) => prev);
+  };
+
+  /**
+   * One aftermath, for the most recent one recorded.
+   *
+   * Not one per event. The breakout is a de-escalation and a plan; running
+   * it three times for three nights logged in one sitting would turn it
+   * into a form, which is the thing it was built to stop being.
+   */
+  const finish = () => {
+    const last = logged[logged.length - 1];
+    onDone();
+    if (last) router.push(`/moment/${encodeURIComponent(last)}` as never);
+  };
+
+  if (logged.length > 0) {
+    return (
+      <Card>
+        <AppText variant="heading">
+          {logged.length === 1 ? 'Logged.' : `${logged.length} logged.`}
+        </AppText>
+        <AppText variant="secondary" style={styles.gap}>
+          {logged.length === 1
+            ? `${whenSummary(days[offsetDays], time)}. Was there another one this week?`
+            : 'Anything else from this week?'}
+        </AppText>
+        <View style={styles.actions}>
+          <Button title="Add another" variant="secondary" onPress={another} />
+          <Button title="That is all" onPress={finish} />
+        </View>
+        {/* Undoes the mis-tap where the mis-tap was made. The pattern engine
+            is built on occurredAt, so a wrong entry moves the window every
+            later interruption is computed from. */}
+        <Button
+          title="Remove the last one"
+          variant="ghost"
+          onPress={() => {
+            const last = logged[logged.length - 1];
+            if (last) removeBehaviourEvent(last);
+            setLogged((prev) => prev.slice(0, -1));
+          }}
+          style={styles.gap}
+        />
+      </Card>
+    );
+  }
 
   return (
     <Card>

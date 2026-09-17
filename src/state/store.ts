@@ -655,6 +655,18 @@ export interface AppState {
     trigger?: string,
   ) => string;
   setBehaviourEventTrigger: (eventId: string, trigger: string) => void;
+  /**
+   * Undo a mis-tap.
+   *
+   * The whole pattern engine is built on `occurredAt`, and until these
+   * existed a logged event was permanent: a wrong day, a double tap, or a
+   * chip pressed on the wrong intention sat in the record forever, moving
+   * the window the app computes its interventions from. Somebody who
+   * cannot correct a mistake stops trusting the record, and then stops
+   * keeping it — which costs far more than the mis-tap did.
+   */
+  removeBehaviourEvent: (eventId: string) => void;
+  setBehaviourEventOccurredAt: (eventId: string, occurredAt: string) => void;
 
   saveReflection: (reflection: Omit<Reflection, 'id' | 'createdAt'>) => void;
 
@@ -2306,6 +2318,18 @@ export const useAppStore = create<AppState>()(
             ],
           });
           return id;
+        },
+
+        removeBehaviourEvent: (eventId) => {
+          set({ behaviourEvents: get().behaviourEvents.filter((e) => e.id !== eventId) });
+        },
+
+        setBehaviourEventOccurredAt: (eventId, occurredAt) => {
+          set({
+            behaviourEvents: get().behaviourEvents.map((e) =>
+              e.id === eventId ? { ...e, occurredAt } : e,
+            ),
+          });
         },
 
         setBehaviourEventTrigger: (eventId, trigger) => {
