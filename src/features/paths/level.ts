@@ -230,10 +230,54 @@ const meets = (ev: LevelEvidence, gate: LevelThreshold): boolean =>
  * The highest level this log supports on its own, ignoring what the
  * person said about themselves.
  */
+/**
+ * Whether this pathway has a standard that can be proven from a log.
+ *
+ * `PROVEN_ADVANCED_GATE` already records it — training is the only entry
+ * that is not null, and its comment says why: "Only training has a
+ * standard that can be proven from a log. The rest gate on volume alone."
+ * Read from there rather than restated, so the two can never drift.
+ */
+const hasProvableStandard = (path: PathId): boolean => PROVEN_ADVANCED_GATE[path] !== null;
+
+/**
+ * The highest level this log supports on its own, ignoring what the
+ * person said about themselves.
+ *
+ * ── The line that locked six coaches out of their own top rung ─────────
+ *
+ * This read `if (level === 'advanced' && !evidence.standardsMet) break`,
+ * with no test for whether the pathway HAS a standard. `standardsMet` is
+ * only ever computed by `trainingEvidence`; `completionEvidence`, which
+ * the other six use, returns false by construction. So `advanced` was
+ * unreachable by nutrition, money, work, recovery, relationship and
+ * family — not difficult, unreachable — and measuring it says so plainly:
+ * two years of perfect daily adherence leaves all six at `established`.
+ *
+ * Two docstrings in this file disagreed about that, which is how it
+ * survived. `LevelEvidence.standardsMet` says "Pathways without one pass
+ * `true` and are gated on volume alone"; `completionEvidence` says
+ * "`standardsMet` is false by construction — there is nothing to prove".
+ * Both are reasonable readings of an ambiguous field name, and the
+ * consumer took the one that means "blocked forever".
+ *
+ * Neither docstring had to lose. The question this line actually wants to
+ * ask is not "was the standard met" but "is there a standard in the way",
+ * and the file already knows: `PROVEN_ADVANCED_GATE[path]`. So
+ * `completionEvidence` stays honest — nothing is proven, because there is
+ * nothing to prove — and a pathway with nothing to prove is no longer
+ * held at the door by it.
+ *
+ * The gates it opens onto are not soft. Nutrition's advanced rung is 90
+ * sessions across 32 weeks; money's is 30 across 32. Eight months of real
+ * work, and every one of these pathways already has an `advanced` blurb
+ * written describing what it unlocks.
+ */
 export function earnedLevel(path: PathId, evidence: LevelEvidence): PathLevel {
   let earned: PathLevel = 'foundation';
+  const gatedOnAStandard = hasProvableStandard(path);
   for (const level of LEVEL_ORDER) {
-    if (level === 'advanced' && !evidence.standardsMet) break;
+    if (level === 'advanced' && gatedOnAStandard && !evidence.standardsMet) break;
     if (meets(evidence, gateFor(path, level, evidence))) earned = level;
     else break;
   }
@@ -337,7 +381,15 @@ export function levelProgress(
   const sessionsToGo = Math.max(0, gate.sessions - evidence.sessions);
   const weeksToGo = Math.max(0, gate.weeks - evidence.weeks);
   const volumeMet = sessionsToGo === 0 && weeksToGo === 0;
-  const blockedBy = next === 'advanced' && volumeMet && !evidence.standardsMet ? standardText : null;
+  // The same question as in `earnedLevel`, and it has to be the same
+  // answer: a pathway with no provable standard cannot be blocked by one.
+  // Without this, all six non-training coaches printed the DEFAULT
+  // `standardText` on their own hub — the family coach told somebody that
+  // reaching Advanced "also needs the strength standards for this level".
+  const blockedBy =
+    next === 'advanced' && volumeMet && hasProvableStandard(path) && !evidence.standardsMet
+      ? standardText
+      : null;
 
   if (blockedBy) {
     return { current, next, sessionsToGo, weeksToGo, blockedBy, text: `${LEVEL_LABEL[next]} also needs ${blockedBy}.` };
