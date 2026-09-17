@@ -884,6 +884,26 @@ function measuredMinutes(item: PlanItem): number | undefined {
 const HISTORY_DAYS = 14;
 
 /**
+ * How long a dismissal holds before the app may raise the same thing again.
+ *
+ * A fortnight, matching the connection cap and the underserved-goal
+ * cooldown beside it. Not permanent on purpose: weeks change, and a move
+ * that was wrong in March can be right in June. What the app may not do is
+ * ask again tomorrow, which is exactly what it did before — see
+ * `refreshSuggestions`.
+ */
+export const SUGGESTION_COOLDOWN_DAYS = 14;
+
+/**
+ * How long an answered suggestion is kept at all.
+ *
+ * Longer than every cooldown that counts answered nudges, so those caps
+ * have something to count; short enough that the list cannot grow without
+ * bound on a device that never syncs anywhere.
+ */
+export const SUGGESTION_MEMORY_DAYS = 60;
+
+/**
  * How many readings the metric stream keeps. It is a cap on what a phone
  * has to serialise on every tap, and it drops the oldest first — so
  * anything appending in bulk has to say whose readings it would evict.
@@ -2381,13 +2401,70 @@ export const useAppStore = create<AppState>()(
           // engine is movement toward what the user said matters.
           fresh.unshift(...goalFresh);
 
-          // Keep existing open suggestions; add only genuinely new ones.
-          const open = suggestions.filter((s) => s.status === 'open');
+          /**
+           * ── Remembering that you already said no ────────────────────────
+           *
+           * This line used to read `set({ suggestions: [...open, ...additions] })`
+           * where `open` was the suggestions still unanswered. Three
+           * separate things were wrong with it, and they compounded.
+           *
+           * 1. THE PURGE. Every accepted and dismissed record was deleted
+           *    the moment any new suggestion appeared. The app kept no
+           *    memory of a single answer anybody had ever given it.
+           *
+           * 2. THE RE-OFFER. `existingKeys` was built from the OPEN ones
+           *    only, so a dismissed suggestion's key was not in the set and
+           *    the same suggestion came straight back on the next refresh —
+           *    which happens on every Today mount. Dismissing was a gesture
+           *    with no effect at all: the card disappeared and returned.
+           *
+           * 3. THE CAPS IT ERASED. The three cooldowns above — one
+           *    connection nudge per fortnight, one underserved nudge per
+           *    goal per fortnight, one stall nudge per `STALL_DAYS` — all
+           *    filter `suggestions` by `createdAt`, and their own comments
+           *    say they count "answered nudges". After a purge there were
+           *    no answered nudges left to count. The mechanisms written to
+           *    keep the app quiet were being deleted by the mechanism that
+           *    makes it speak.
+           *
+           * So: answers are kept, and they are honoured. A suggestion
+           * answered inside the cooldown is muted by key rather than
+           * re-raised; older answers stay for `SUGGESTION_MEMORY_DAYS` so
+           * the caps have something to count; anything past that is
+           * pruned, because the alternative is a list that grows forever
+           * on a device.
+           *
+           * The cooldown runs from when it was ANSWERED, not from when it
+           * was raised — see `Suggestion.resolvedAt`.
+           *
+           * A cooldown rather than a permanent mute is deliberate. Weeks
+           * change, and a move that was wrong in March can be right in
+           * June. What the app may not do is ask again tomorrow.
+           */
           const keyOf = (s: Suggestion) =>
             `${s.kind}:${(s.payload as { routineId?: string; goalId?: string; date?: string })?.routineId ?? (s.payload as { goalId?: string })?.goalId ?? (s.payload as { date?: string })?.date ?? ''}`;
-          const existingKeys = new Set(open.map(keyOf));
+          const nowMs = Date.now();
+          const since = (days: number) => new Date(nowMs - days * 86400e3).toISOString();
+          const cooldownFrom = since(SUGGESTION_COOLDOWN_DAYS);
+          const memoryFrom = since(SUGGESTION_MEMORY_DAYS);
+
+          const open = suggestions.filter((s) => s.status === 'open');
+          const answeredAt = (s: Suggestion) => s.resolvedAt ?? s.createdAt;
+          const answered = suggestions.filter(
+            (s) => s.status !== 'open' && answeredAt(s) >= memoryFrom,
+          );
+          const muted = new Set(
+            answered.filter((s) => answeredAt(s) >= cooldownFrom).map(keyOf),
+          );
+          const existingKeys = new Set([...open.map(keyOf), ...muted]);
           const additions = fresh.filter((s) => !existingKeys.has(keyOf(s)));
-          if (additions.length > 0) set({ suggestions: [...open, ...additions] });
+
+          const next = [...answered, ...open, ...additions];
+          // Written only when something actually moved: on every Today
+          // mount otherwise, which is a re-render for nothing.
+          if (additions.length > 0 || next.length !== suggestions.length) {
+            set({ suggestions: next });
+          }
         },
 
         acceptSuggestion: (id) => {
@@ -2420,17 +2497,21 @@ export const useAppStore = create<AppState>()(
             set({ routines: nextRoutines });
             get().regeneratePlan(todayKey());
           }
+          const at = new Date().toISOString();
           set({
             suggestions: get().suggestions.map((s) =>
-              s.id === id ? { ...s, status: 'accepted' as const } : s,
+              s.id === id ? { ...s, status: 'accepted' as const, resolvedAt: at } : s,
             ),
           });
         },
 
         dismissSuggestion: (id) => {
+          // Stamped, because the cooldown that stops this coming back runs
+          // from the moment it was answered — see refreshSuggestions.
+          const at = new Date().toISOString();
           set({
             suggestions: get().suggestions.map((s) =>
-              s.id === id ? { ...s, status: 'dismissed' as const } : s,
+              s.id === id ? { ...s, status: 'dismissed' as const, resolvedAt: at } : s,
             ),
           });
         },

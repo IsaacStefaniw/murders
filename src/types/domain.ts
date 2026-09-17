@@ -617,6 +617,16 @@ export interface Suggestion {
   confidence: number; // 0..1
   status: 'open' | 'accepted' | 'dismissed' | 'expired';
   createdAt: string;
+  /**
+   * When the person answered it.
+   *
+   * Separate from `createdAt` because the cooldown that stops the app
+   * raising the same thing again has to run from the moment it was
+   * answered, not from the moment it was raised. A suggestion created
+   * thirteen days ago and dismissed this morning would otherwise be
+   * offered again tomorrow.
+   */
+  resolvedAt?: string;
 }
 
 export interface WeeklyReview {

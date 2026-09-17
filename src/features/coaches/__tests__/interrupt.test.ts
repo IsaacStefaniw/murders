@@ -6,11 +6,13 @@ import {
   SUGGESTION_GAP_DAYS,
   SUGGESTION_GRADES,
   coachForArea,
+  coachForProtocol,
   coachInterrupts,
   maySuggest,
   nextInterrupt,
 } from '@/features/coaches/interrupt';
 import { COACH_VOICES } from '@/features/coaches/voices';
+import { PATH_AREA } from '@/features/paths/definitions';
 import type { MetricObservation } from '@/features/model/metrics';
 import { PROTOCOLS, isBalance, justification, protocolById } from '@/features/knowledge/protocols';
 import { addDays } from '@/lib/dates';
@@ -557,5 +559,53 @@ describe('resolving one that has already been shown', () => {
       coachInterrupts(input({ routines: [running], seen: log.filter((s) => s.id !== first.id) }))
         .some((i) => i.id === first.id),
     ).toBe(true);
+  });
+});
+
+/**
+ * Two coaches that could not speak.
+ *
+ * `PATH_AREA` puts training, nutrition and recovery on the same life area,
+ * and `coachForArea` resolves that collision by excluding two of them.
+ * Correct for its own job; wrong as the thing that decides who offers a
+ * practice. The audit: of seven coaches, nutrition could never say
+ * anything at all, and every food practice in the library was offered in
+ * the training coach's voice. Recovery had exactly one way in.
+ */
+describe('which coach owns a practice', () => {
+  const offerable = PROTOCOLS.filter(maySuggest);
+
+  it('gives every coach something to say', () => {
+    const counts = new Map<string, number>();
+    for (const p of offerable) {
+      const id = coachForProtocol(p);
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+    for (const id of Object.keys(PATH_AREA)) {
+      expect({ coach: id, offerable: counts.get(id) ?? 0 }).toEqual({
+        coach: id,
+        offerable: expect.any(Number),
+      });
+      expect(counts.get(id) ?? 0).toBeGreaterThan(0);
+    }
+  });
+
+  it('sends the food practices to the food coach', () => {
+    const food = offerable.filter((p) => p.pillar === 'nutrition');
+    expect(food.length).toBeGreaterThan(20);
+    for (const p of food) expect(coachForProtocol(p)).toBe('nutrition');
+  });
+
+  it('sends the sleep practices to the recovery coach', () => {
+    const sleep = offerable.filter((p) => p.pillar === 'sleep');
+    expect(sleep.length).toBeGreaterThan(10);
+    for (const p of sleep) expect(coachForProtocol(p)).toBe('recovery');
+  });
+
+  it('still uses the life area for everything a pillar does not settle', () => {
+    const connection = offerable.filter((p) => p.pillar === 'connection');
+    for (const p of connection) {
+      expect(coachForProtocol(p)).toBe(coachForArea(p.area));
+    }
   });
 });

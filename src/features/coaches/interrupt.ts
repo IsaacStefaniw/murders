@@ -47,6 +47,7 @@ import {
   justification,
   listedProtocols,
   type EvidenceLevel,
+  type Pillar,
   type Protocol,
 } from '@/features/knowledge/protocols';
 import type { MetricObservation } from '@/features/model/metrics';
@@ -132,6 +133,46 @@ export function coachForArea(area: LifeArea): PathId {
     (id) => PATH_AREA[id] === area && id !== 'recovery' && id !== 'nutrition',
   );
   return exact ?? 'training';
+}
+
+/**
+ * Which coach owns a practice — by what it is about, not by which area it
+ * sits in.
+ *
+ * ── Two coaches that could not speak ────────────────────────────────────
+ *
+ * `PATH_AREA` maps three coaches onto the same life area: training,
+ * nutrition and recovery are all `health`. `coachForArea` resolves that
+ * collision by excluding two of them and returning `training`, which is
+ * correct for its own job — a life area has to pick one coach — and wrong
+ * as the thing that decides who offers a practice.
+ *
+ * The result, audited across the library: of seven coaches, **nutrition
+ * could never say anything at all**. Every one of the 130 offerable health
+ * practices, including all the food ones, was offered in the training
+ * coach's voice, and there is no nutrition-specific trigger to make up for
+ * it. Recovery had exactly one way in — the short-nights interrupt — and
+ * every sleep practice in the library was likewise attributed to training.
+ * Money and work can still only ever offer a practice, which is a separate
+ * and larger gap.
+ *
+ * A protocol already carries what it is about: `pillar`. That is the thing
+ * to route on, with the area as the fallback for everything a pillar does
+ * not settle. So Mara offers the food practices, Sol offers the sleep
+ * ones, and the training coach stops being the voice of things it has
+ * nothing to do with.
+ */
+const PILLAR_COACH: Partial<Record<Pillar, PathId>> = {
+  nutrition: 'nutrition',
+  sleep: 'recovery',
+  training: 'training',
+  longevity: 'training',
+  wealth: 'money',
+  leadership: 'work',
+};
+
+export function coachForProtocol(p: Protocol): PathId {
+  return PILLAR_COACH[p.pillar] ?? coachForArea(p.area);
 }
 
 /* ── Triggers ─────────────────────────────────────────────────────────── */
@@ -464,7 +505,7 @@ function suggestionInterrupt(input: InterruptInput): CoachInterrupt | null {
     })[0];
   if (!candidate) return null;
 
-  const pathId = coachForArea(candidate.area);
+  const pathId = coachForProtocol(candidate);
   const v = voiceFor(pathId);
   return {
     id: `suggest:${candidate.id}`,
