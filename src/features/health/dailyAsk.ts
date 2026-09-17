@@ -24,9 +24,26 @@
  * ── SO: ASK AT THE RATE THE THING ACTUALLY MOVES ────────────────────────
  *
  *   Sleep timing      nightly    — genuinely varies, and see below
- *   Habits            daily      — only while somebody has one running
  *   Self-rated health monthly    — it is an "in general" instrument
  *   Function tests    quarterly  — they move over months
+ *
+ * ── THE HABITS ASK, DELETED ─────────────────────────────────────────────
+ *
+ * There was a fourth: "Anything yesterday you are keeping an eye on?",
+ * emitted daily for anyone who named a single thing in `lessOf` during
+ * setup. It had no cadence gate, no answered-state, and — the part that
+ * settles it — no control on the card. The whole UI was one sentence
+ * saying the log lives under Coaches.
+ *
+ * So it was an unanswerable question, asked every morning, forever, of
+ * the person who had committed to the most during setup. This file argued
+ * against it two paragraphs above without noticing: "a question whose
+ * answer changes nothing teaches people to dismiss the app, and the cost
+ * is paid on the day a question does matter."
+ *
+ * Nothing was lost. Logging already lives on the Life tab's intention card
+ * and in `moment/[eventId]`, where the four-step aftermath actually does
+ * something with it.
  *
  * And the rule that removes most of the asking: NEVER ask for something
  * Apple Health already knows. A person with Health connected should be
@@ -68,7 +85,7 @@
 import type { MetricObservation } from '@/features/model/metrics';
 import { addDays } from '@/lib/dates';
 
-export type AskId = 'sleepTiming' | 'habits' | 'selfRatedHealth';
+export type AskId = 'sleepTiming' | 'selfRatedHealth';
 
 export interface DailyAsk {
   id: AskId;
@@ -76,6 +93,53 @@ export interface DailyAsk {
   prompt: string;
   /** Why it is being asked, when that is not obvious. */
   why?: string;
+}
+
+/**
+ * The one ask on the card, given what has already been waved away today.
+ *
+ * ── The bug this closes ─────────────────────────────────────────────────
+ *
+ * `asksFor` said what COULD be asked; the card decided what WAS asked, by
+ * filtering that list against a `dismissed` array held in `useState`. Two
+ * consequences followed, and the second is the serious one.
+ *
+ * The dismissal did not survive a remount, so "Not today" lasted until the
+ * person switched tabs and came back — the app asked again the same
+ * morning, which is precisely the behaviour "Not today" promises it will
+ * not do.
+ *
+ * Worse, Today's arbiter computed `available.dailyAsk` from the unfiltered
+ * `asksFor(...).length > 0` while the card rendered null. So tapping "Not
+ * today" left the arbitrated attention slot CLAIMED AND EMPTY, beneath a
+ * caption reading "3 more things to look at, tomorrow". `today.tsx` states
+ * the rule it was breaking: "a slot is never claimed by something that
+ * then renders nothing."
+ *
+ * Both are the same defect — availability and dismissal read from
+ * different places — so there is now one function, and the arbiter and the
+ * card both call it. If it returns null there is nothing to show and the
+ * slot goes to whatever is behind it.
+ */
+/**
+ * The asks waved away on this date, from the stored record.
+ *
+ * Keyed by date rather than cleared overnight, because there is no
+ * overnight on a device that is simply opened again: "Not today" has to
+ * mean today and stop meaning it tomorrow, with nothing running in
+ * between to make that happen.
+ */
+export function dismissedToday(
+  dismissed: Record<string, string>,
+  today: string,
+): AskId[] {
+  return Object.entries(dismissed)
+    .filter(([, date]) => date === today)
+    .map(([id]) => id as AskId);
+}
+
+export function pendingAsk(input: AskInputs, dismissedToday: AskId[] = []): DailyAsk | null {
+  return asksFor(input).find((a) => !dismissedToday.includes(a.id)) ?? null;
 }
 
 /** Self-rated health is an "in general" instrument. Monthly at most. */
@@ -91,10 +155,6 @@ export interface AskInputs {
    * hole is the thing worth asking about.
    */
   nightsRecorded: string[];
-  /** Behaviours the person currently has running, if any. */
-  activeHabits: string[];
-  /** Whether they said they currently smoke or drink above the low band. */
-  hasStandingHabit: boolean;
   metrics: MetricObservation[];
   /** Date key of the last self-rated health answer, if there is one. */
   lastSelfRatedHealth?: string;
@@ -118,17 +178,6 @@ export function asksFor(input: AskInputs): DailyAsk[] {
       id: 'sleepTiming',
       prompt: 'When did you fall asleep, and when did you wake?',
       why: 'The two times, not the hours between them. How steady your timing is predicts more than how long you sleep — and it is the one thing here that cannot be worked out later from an average.',
-    });
-  }
-
-  // Habits: only while somebody has one running. Asking a non-smoker every
-  // morning whether they smoked is the definition of a question whose
-  // answer changes nothing.
-  if (input.activeHabits.length > 0 || input.hasStandingHabit) {
-    out.push({
-      id: 'habits',
-      prompt: 'Anything yesterday you are keeping an eye on?',
-      why: 'Neutral either way. Nothing counts up, and a yes is data rather than a failure.',
     });
   }
 

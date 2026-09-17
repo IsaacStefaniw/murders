@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { effortWords } from '@/features/training/effort';
+import { CONSTRAINT_OPTIONS, constraintNote } from '@/features/training/constraints';
 
 import { AppText } from '@/components/text';
 import { Button } from '@/components/button';
@@ -17,6 +18,7 @@ import { HiitPicker } from '@/features/training/HiitPicker';
 import { LogCardio } from '@/features/training/LogCardio';
 import { weekOf } from '@/features/training/programme';
 import { useAppStore } from '@/state/store';
+import type { PhysicalConstraint } from '@/types/domain';
 import { strengthBaseline } from '@/features/training/baseline';
 import { latestMaxes } from '@/features/training/level';
 import {
@@ -108,6 +110,55 @@ export function TrainingHub() {
   const knownLifts = LIFTS.filter((l) => latest(metrics, l.key));
 
   const profile = useAppStore((s) => s.profile);
+
+  /**
+   * "Change what I am working around" — the injury the app could not hear.
+   *
+   * `constraints` decides whether the training coach prescribes a loaded
+   * lift at all, and it could be given exactly once, during setup. It is a
+   * `multi` step, so `YourAnswers` filtered it out; nothing deferred it;
+   * and `profilePatchFor` had no case for it, so even a re-answer never
+   * reached the profile. Meanwhile the interview promised "you can add
+   * something here any time — the plan will adjust from that day".
+   *
+   * So a man who tore a shoulder in week six had nowhere to say so. The
+   * app could hear "I moved to a home gym" and could not hear "my back
+   * has gone", which is the most common reason people stop training.
+   *
+   * It lives behind the same affordance as "Change what I'm training for"
+   * rather than as a standing line on this screen, because a permanent
+   * "anything to work around?" asks a healthy person about injury every
+   * single visit, and this screen already carries five asks.
+   *
+   * It does NOT rebuild the block. A rebuild mints a new programme id,
+   * which resets `weekOf` to one and orphans every swap and drop — an
+   * injury report must not cost somebody their block. The constraint
+   * takes effect on the next session instead: `session/workout.tsx`
+   * applies the same swap table over the programmed session as it is
+   * read. Tomorrow's press is a kinder press, and week four is still
+   * week four.
+   */
+  const updateProfile = useAppStore((s) => s.updateProfile);
+  const [working, setWorking] = useState(false);
+  const [around, setAround] = useState<PhysicalConstraint[]>([]);
+  const [aroundNote, setAroundNote] = useState<string | null>(null);
+  const openWorking = () => {
+    setAround(profile?.constraints ?? []);
+    setAroundNote(null);
+    setWorking(true);
+  };
+  const applyWorking = () => {
+    // The empty case is the point of the other direction: "the back is
+    // better now" has to be sayable, or an injury becomes permanent the
+    // moment it is reported.
+    updateProfile({ constraints: around.length > 0 ? around : undefined });
+    setAroundNote(
+      constraintNote(around) ??
+        'Nothing to work around now. The full range of movements comes back from your next session.',
+    );
+    setWorking(false);
+  };
+
   // `band` is the conservative median, and it is what the PROGRAMME reads.
   // Nothing on this screen prints it: see strengthProfile.
   const { band } = useMemo(
@@ -423,12 +474,58 @@ export function TrainingHub() {
                 lifts are now.
               </AppText>
             </Card>
+          ) : working ? (
+            <Card style={styles.stack}>
+              <AppText variant="heading">Anything the plan should work around?</AppText>
+              <AppText variant="body" color="textSecondary">
+                Nothing here is medical advice — it keeps the plan sensible. Take something off when it
+                is better.
+              </AppText>
+              <View style={styles.chips}>
+                {CONSTRAINT_OPTIONS.map((o) => (
+                  <Chip
+                    key={o.value}
+                    label={o.label}
+                    selected={around.includes(o.value)}
+                    onPress={() =>
+                      setAround((cur) =>
+                        cur.includes(o.value) ? cur.filter((c) => c !== o.value) : [...cur, o.value],
+                      )
+                    }
+                  />
+                ))}
+              </View>
+              <View style={styles.inputRow}>
+                <Button
+                  title="Save this"
+                  hint="Changes your next session. Your block, your week and your logged sessions stay exactly as they are."
+                  onPress={applyWorking}
+                />
+                <Button title="Cancel" variant="ghost" onPress={() => setWorking(false)} />
+              </View>
+              <AppText variant="caption" color="textTertiary">
+                Movements that do not suit are replaced, not removed — the same pattern, a version that
+                works. A swapped lift goes by effort rather than a weight, because the number was
+                worked out for the other movement.
+              </AppText>
+            </Card>
           ) : (
-            <Button title="Change what I'm training for" variant="ghost" onPress={openChange} />
+            <>
+              <Button title="Change what I'm training for" variant="ghost" onPress={openChange} />
+              {/* The injury half. Behind the same affordance rather than
+                  standing on the screen, so a healthy person is not asked
+                  about injury on every visit. */}
+              <Button title="Change what I am working around" variant="ghost" onPress={openWorking} />
+            </>
           )}
           {changed ? (
             <AppText variant="caption" color="accent">
               {changed}
+            </AppText>
+          ) : null}
+          {aroundNote ? (
+            <AppText variant="caption" color="accent">
+              {aroundNote}
             </AppText>
           ) : null}
         </View>

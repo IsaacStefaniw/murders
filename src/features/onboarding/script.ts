@@ -36,6 +36,7 @@
  * the questions the reveal rather than the toll before it.
  */
 
+import { CONSTRAINT_OPTIONS } from '@/features/training/constraints';
 import {
   ambitionPlaceholder,
   committedBlockLabel,
@@ -561,17 +562,10 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
     kind: 'multi',
     prompt: () =>
       'Anything the plan should work around? Nothing here is medical advice — it just keeps the plan sensible.',
-    options: [
-      { value: 'joints', label: 'Sore joints or back' },
-      { value: 'balance', label: 'Balance is not what it was' },
-      { value: 'heart', label: 'A heart or breathing condition' },
-      { value: 'recovering', label: 'Recovering from injury or illness' },
-      { value: 'pregnancy', label: 'Pregnant or recently postpartum' },
-      { value: 'energy', label: 'Energy is unreliable' },
-      { value: 'bloodSugar', label: 'Blood sugar or a metabolic condition' },
-      { value: 'hormonal', label: 'Menopause or hormonal changes' },
-      { value: 'mentalHealth', label: 'Medication, or managing mental health' },
-    ],
+    // Shared with the training hub, which asks this again whenever
+    // something changes. Two lists would let the same injury be described
+    // two different ways to the same person.
+    options: CONSTRAINT_OPTIONS,
     reveal: (a) => {
       const picked = Array.isArray(a.constraints) ? a.constraints : [];
       if (picked.length === 0) {

@@ -6,7 +6,7 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
 import { Spacing } from '@/constants/theme';
-import { asksFor, type AskId } from '@/features/health/dailyAsk';
+import { dismissedToday, pendingAsk } from '@/features/health/dailyAsk';
 import { formatTime, toHHMM, toMinutes, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 
@@ -58,31 +58,35 @@ export function DailyAsk() {
   const profile = useAppStore((s) => s.profile);
   const sleepNights = useAppStore((s) => s.sleepNights);
   const metrics = useAppStore((s) => s.metrics);
-  const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
+  const dismissedAsks = useAppStore((s) => s.dismissedAsks);
+  const dismissAsk = useAppStore((s) => s.dismissAsk);
   const interviewAnswers = useAppStore((s) => s.interviewAnswers);
   const recordSleepNight = useAppStore((s) => s.recordSleepNight);
   const answerDeferredQuestion = useAppStore((s) => s.answerDeferredQuestion);
 
   const today = todayKey();
   const [bed, setBed] = useState<number | null>(null);
-  const [dismissed, setDismissed] = useState<AskId[]>([]);
 
-  const ask = useMemo(() => {
-    const active = behaviourIntentions.filter((b) => b.active);
-    const all = asksFor({
-      today,
-      nightsRecorded: sleepNights.map((n) => n.date),
-      activeHabits: active.map((b) => b.behaviour),
-      hasStandingHabit: active.length > 0,
-      metrics,
-      lastSelfRatedHealth: interviewAnswers.selfRatedHealthAt as string | undefined,
-    });
-    return all.find((a) => !dismissed.includes(a.id)) ?? null;
-  }, [today, sleepNights, behaviourIntentions, metrics, interviewAnswers, dismissed]);
+  // The same call Today's arbiter makes, from the same persisted
+  // dismissals. When these diverged, "Not today" left the attention slot
+  // claimed and empty — see `pendingAsk`.
+  const ask = useMemo(
+    () =>
+      pendingAsk(
+        {
+          today,
+          nightsRecorded: sleepNights.map((n) => n.date),
+          metrics,
+          lastSelfRatedHealth: interviewAnswers.selfRatedHealthAt as string | undefined,
+        },
+        dismissedToday(dismissedAsks, today),
+      ),
+    [today, sleepNights, metrics, interviewAnswers, dismissedAsks],
+  );
 
   if (!ask || !profile) return null;
 
-  const skip = () => setDismissed((d) => [...d, ask.id]);
+  const skip = () => dismissAsk(ask.id, today);
 
   return (
     <Card style={styles.card}>
@@ -130,14 +134,6 @@ export function DailyAsk() {
               }}
             />
           ))}
-        </View>
-      ) : null}
-
-      {ask.id === 'habits' ? (
-        <View style={styles.block}>
-          <AppText variant="secondary">
-            Nothing counts up, and a yes is data rather than a failure. The log is under Coaches.
-          </AppText>
         </View>
       ) : null}
 

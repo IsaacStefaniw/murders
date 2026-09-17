@@ -12,6 +12,8 @@ import {
   REGULARITY_NOTE,
   SELF_RATED_HEALTH_EVERY_DAYS,
   asksFor,
+  dismissedToday,
+  pendingAsk,
   sleepRegularity,
   type AskInputs,
 } from '@/features/health/dailyAsk';
@@ -28,8 +30,6 @@ function input(over: Partial<AskInputs> = {}): AskInputs {
   return {
     today: TODAY,
     nightsRecorded: [],
-    activeHabits: [],
-    hasStandingHabit: false,
     metrics: [],
     lastSelfRatedHealth: TODAY,
     ...over,
@@ -67,12 +67,20 @@ describe('what is worth asking today', () => {
     expect(ask.why).toMatch(/two times, not the hours between/i);
   });
 
-  it('asks about habits only while somebody has one running', () => {
-    // Asking a non-smoker every morning whether they smoked is the
-    // definition of a question whose answer changes nothing.
+  /**
+   * The habits ask is gone, and this is the test that keeps it gone.
+   *
+   * It was emitted daily for anyone who named a single thing in `lessOf`
+   * during setup, with no cadence gate, no answered-state and no control
+   * on the card — the whole UI was a sentence saying the log lives under
+   * Coaches. An unanswerable question, every morning, forever, asked of
+   * the person who had committed to the most.
+   */
+  it('never asks a question the card cannot take an answer to', () => {
     expect(asksFor(input()).map((a) => a.id)).not.toContain('habits');
-    expect(asksFor(input({ activeHabits: ['alcohol'] })).map((a) => a.id)).toContain('habits');
-    expect(asksFor(input({ hasStandingHabit: true })).map((a) => a.id)).toContain('habits');
+    expect(
+      asksFor(input({ lastSelfRatedHealth: undefined })).map((a) => a.id),
+    ).not.toContain('habits');
   });
 
   it('asks self-rated health monthly, not daily', () => {
@@ -89,26 +97,63 @@ describe('what is worth asking today', () => {
 
   it('never asks more than two things at once', () => {
     // Three every day was the proposal, and three every day is noise.
-    const worst = asksFor(
-      input({ hasStandingHabit: true, lastSelfRatedHealth: '2026-01-01' }),
-    );
-    expect(worst.length).toBeLessThanOrEqual(3);
-    // And on any ordinary day, at most two.
-    const ordinary = asksFor(input({ hasStandingHabit: true }));
-    expect(ordinary.length).toBeLessThanOrEqual(2);
+    // Tightened from three once the habits ask went: the worst day this
+    // can now produce is the sleep question and the monthly one.
+    const worst = asksFor(input({ lastSelfRatedHealth: '2026-01-01' }));
+    expect(worst.length).toBeLessThanOrEqual(2);
+    // And on any ordinary day, one.
+    expect(asksFor(input()).length).toBeLessThanOrEqual(1);
   });
 
   it('says why it is asking, wherever the reason is not obvious', () => {
-    for (const ask of asksFor(input({ lastSelfRatedHealth: undefined, hasStandingHabit: true }))) {
+    for (const ask of asksFor(input({ lastSelfRatedHealth: undefined }))) {
       expect(ask.why).toBeTruthy();
       expect(ask.prompt.length).toBeGreaterThan(10);
     }
   });
 
-  it('frames the habits question so a yes is not a failure', () => {
-    const habits = asksFor(input({ hasStandingHabit: true })).find((a) => a.id === 'habits')!;
-    expect(habits.why).toMatch(/nothing counts up/i);
-    expect(habits.why).toMatch(/data rather than a failure/i);
+});
+
+/**
+ * "Not today" meaning today.
+ *
+ * The dismissal lived in a `useState` inside the card, so it did not
+ * survive a remount — tab away, come back, and the app asked the same
+ * question the same morning. And because Today's arbiter read availability
+ * from the unfiltered list while the card filtered by that local state, a
+ * dismissal left the attention slot claimed and empty under a caption
+ * saying there were more things to look at.
+ */
+describe('an ask that was waved away', () => {
+  it('is not offered again the same day', () => {
+    const asks = asksFor(input());
+    expect(asks.map((a) => a.id)).toContain('sleepTiming');
+    expect(pendingAsk(input(), ['sleepTiming'])).toBeNull();
+  });
+
+  it('comes back tomorrow, because it is a daily question', () => {
+    // Keyed by date rather than cleared overnight: there is no overnight
+    // on a device that is simply opened again.
+    const yesterday = { sleepTiming: '2026-09-13' };
+    expect(dismissedToday(yesterday, TODAY)).toEqual([]);
+    expect(pendingAsk(input(), dismissedToday(yesterday, TODAY))?.id).toBe('sleepTiming');
+  });
+
+  it('falls through to the next question rather than showing nothing', () => {
+    // Waving away the sleep question on a month-boundary day should leave
+    // the monthly one, not an empty card.
+    const monthly = input({ lastSelfRatedHealth: undefined });
+    expect(pendingAsk(monthly, ['sleepTiming'])?.id).toBe('selfRatedHealth');
+  });
+
+  /**
+   * The rule Today states and this was breaking: "a slot is never claimed
+   * by something that then renders nothing." Availability and the card now
+   * ask the same function the same question.
+   */
+  it('releases the attention slot when there is nothing left to ask', () => {
+    const both = ['sleepTiming', 'selfRatedHealth'] as const;
+    expect(pendingAsk(input({ lastSelfRatedHealth: undefined }), [...both])).toBeNull();
   });
 });
 

@@ -83,8 +83,15 @@ export function BehaviourLog({ intention, onDone }: Props) {
   const time: TimeChoice = times.find((t) => t.key === timeKey) ?? times[0];
   const [detail, setDetail] = useState('');
   const [size, setSize] = useState<BehaviourEvent['size']>();
-  /** Ids recorded in this sitting, newest last. Empty until the first. */
-  const [logged, setLogged] = useState<string[]>([]);
+  /**
+   * What was recorded in this sitting, in the order it was typed.
+   *
+   * The time is carried alongside the id because typing order is not time
+   * order. The day chips let somebody log Thursday, then remember Monday —
+   * and "the last one I entered" would then hand the aftermath to a night
+   * four days gone.
+   */
+  const [logged, setLogged] = useState<{ id: string; occurredAt: string }[]>([]);
 
   const occurredAt = useMemo(
     () => occurredAtFrom(now, offsetDays, time),
@@ -103,7 +110,7 @@ export function BehaviourLog({ intention, onDone }: Props) {
   const submit = () => {
     const trimmed = detail.trim();
     const id = logPastBehaviourEvent(intention.id, occurredAt, trimmed || undefined, size);
-    setLogged((prev) => [...prev, id]);
+    setLogged((prev) => [...prev, { id, occurredAt }]);
   };
 
   /** Clear the answers, keep the day list, stay in the sheet. */
@@ -114,16 +121,32 @@ export function BehaviourLog({ intention, onDone }: Props) {
   };
 
   /**
-   * One aftermath, for the most recent one recorded.
+   * One aftermath, for the most recent NIGHT — not the last thing typed.
    *
-   * Not one per event. The breakout is a de-escalation and a plan; running
-   * it three times for three nights logged in one sitting would turn it
-   * into a form, which is the thing it was built to stop being.
+   * Not one per event: the breakout is a de-escalation and a plan, and
+   * running it three times for three nights logged in one sitting would
+   * turn it into a form, which is the thing it was built to stop being.
+   *
+   * Which one it runs on is the part that was wrong. This took the last
+   * entry in the list, which is typing order, and the day chips make
+   * typing order arbitrary — somebody catching up usually starts with the
+   * night they remember best. Isaac's own case was "I have drank a few
+   * times this week and could only log yesterday", and logging yesterday
+   * first and Monday second handed the aftermath to Monday.
+   *
+   * That is not a cosmetic mismatch. Everything the breakout says is about
+   * what happens NEXT: `steady()` counts the week, `rightNow()` reads the
+   * hours to the next window, and the plan it produces is delivered ahead
+   * of it. Anchored to a Tuesday four days gone, all three are answering a
+   * question nobody asked.
    */
   const finish = () => {
-    const last = logged[logged.length - 1];
+    const latest = logged.reduce<{ id: string; occurredAt: string } | null>(
+      (best, e) => (best === null || e.occurredAt > best.occurredAt ? e : best),
+      null,
+    );
     onDone();
-    if (last) router.push(`/moment/${encodeURIComponent(last)}` as never);
+    if (latest) router.push(`/moment/${encodeURIComponent(latest.id)}` as never);
   };
 
   if (logged.length > 0) {
@@ -148,8 +171,10 @@ export function BehaviourLog({ intention, onDone }: Props) {
           title="Remove the last one"
           variant="ghost"
           onPress={() => {
+            // Typing order is the right order HERE, unlike `finish`: this
+            // undoes the last thing they did, not the latest night.
             const last = logged[logged.length - 1];
-            if (last) removeBehaviourEvent(last);
+            if (last) removeBehaviourEvent(last.id);
             setLogged((prev) => prev.slice(0, -1));
           }}
           style={styles.gap}

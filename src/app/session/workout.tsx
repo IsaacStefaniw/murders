@@ -160,12 +160,63 @@ export default function WorkoutSession() {
         programme.id,
         programmed.title,
       );
+      /**
+       * The injury reported after the block was built.
+       *
+       * Constraints used to reach a programme in exactly one place —
+       * `buildProgramme`, at build time. So somebody who tore a shoulder
+       * in week two of a four-week block kept being handed the overhead
+       * press every Tuesday until the block ran out, and the only way to
+       * change it was to rebuild — which mints a new programme id, resets
+       * `weekOf` to one, and orphans every swap and drop they had made.
+       * Reporting an injury should not cost somebody their block.
+       *
+       * So the same swap runs here, over the session as it is about to be
+       * read. It is the identical table (`JOINT_SAFE`) and the identical
+       * rule as the stock path below; it simply applies to a programme
+       * that already existed. An injury reported tonight changes
+       * tomorrow's session, and nothing else moves.
+       *
+       * The load does not travel with the swap. `swap.ts` states the rule
+       * and it holds here for the same reason: a number computed for the
+       * programmed lift belongs to that lift, and printing it beside a
+       * movement the app has never measured would be a guess wearing the
+       * typeface of a calculation. A constraint swap goes by effort.
+       */
+      const constrained = constraints?.length
+        ? (() => {
+            const slots = applyConstraints(
+              exercises.map((e) => ({ name: e.name, lift: null, primary: !e.accessory })),
+              constraints,
+            );
+            // A balance slot, when added, comes first and is the only
+            // extra — the same shape the stock path handles below.
+            const added = slots.length - exercises.length;
+            const balance = slots.slice(0, added).map((b) => ({
+              name: b.name,
+              sets: 2,
+              reps: '30 sec each side',
+              restSec: 30,
+              loadKg: undefined,
+              rpe: undefined,
+              swappedFrom: undefined,
+              accessory: true,
+            }));
+            const mapped = exercises.map((e, i) => {
+              const name = slots[i + added].name;
+              if (name === e.name) return e;
+              return { ...e, name, loadKg: undefined, swappedFrom: e.name };
+            });
+            return [...balance, ...mapped];
+          })()
+        : exercises;
+
       return {
         title: `Week ${week} · ${adjusted.title}`,
         programmedTitle: programmed.title,
         estimatedMin: adjusted.estimatedMin,
         note: adjusted.note ?? wk.focus,
-        exercises: exercises.map((e) => ({
+        exercises: constrained.map((e) => ({
           name: e.name,
           sets: e.sets,
           reps: `${e.reps}${e.loadKg ? ` @ ${e.loadKg} kg` : e.rpe ? ` · ${effortWords(e.rpe)}` : ''}`,

@@ -51,7 +51,7 @@ import { returnSummary } from '@/features/today/returning';
 import { distinctWeeks } from '@/features/paths/level';
 import { claimAttention, shows, waiting } from '@/features/today/attention';
 import { DailyAsk } from '@/features/health/DailyAsk';
-import { asksFor } from '@/features/health/dailyAsk';
+import { dismissedToday, pendingAsk } from '@/features/health/dailyAsk';
 import { RitualCard } from '@/features/cadence/RitualCard';
 import { displacedLine } from '@/features/planner/displaced';
 import { useAppStore } from '@/state/store';
@@ -111,6 +111,7 @@ export default function Today() {
   const rituals = useAppStore((s) => s.rituals);
   const experiments = useAppStore((s) => s.experiments);
   const dismissedCheckins = useAppStore((s) => s.dismissedCheckins);
+  const dismissedAsks = useAppStore((s) => s.dismissedAsks);
   const plusNudgeDismissedAt = useAppStore((s) => s.plusNudgeDismissedAt);
   const sleepNights = useAppStore((s) => s.sleepNights);
   const interviewAnswers = useAppStore((s) => s.interviewAnswers);
@@ -287,15 +288,21 @@ export default function Today() {
           statedPurpose('month-setup', date.slice(0, 7), rituals),
       ),
       trial: dueExperiments(experiments, date).length > 0,
-      dailyAsk:
-        asksFor({
-          today: date,
-          nightsRecorded: sleepNights.map((n) => n.date),
-          activeHabits: behaviourIntentions.filter((b) => b.active).map((b) => b.behaviour),
-          hasStandingHabit: behaviourIntentions.some((b) => b.active),
-          metrics,
-          lastSelfRatedHealth: interviewAnswers.selfRatedHealthAt as string | undefined,
-        }).length > 0,
+      // `pendingAsk`, not `asksFor`: availability has to be the same
+      // question the card answers, or "Not today" claims this slot and
+      // then renders nothing — which is the one thing the rule above says
+      // must never happen.
+      dailyAsk: Boolean(
+        pendingAsk(
+          {
+            today: date,
+            nightsRecorded: sleepNights.map((n) => n.date),
+            metrics,
+            lastSelfRatedHealth: interviewAnswers.selfRatedHealthAt as string | undefined,
+          },
+          dismissedToday(dismissedAsks, date),
+        ),
+      ),
       checkin: Boolean(nextCheckin(goals, metrics, dismissedCheckins)),
       plus: !plus && !plusNudgeDismissedAt && !firstDay,
       budget: budget.state !== 'stable',
@@ -312,9 +319,9 @@ export default function Today() {
     rituals,
     experiments,
     sleepNights,
-    behaviourIntentions,
     interviewAnswers,
     dismissedCheckins,
+    dismissedAsks,
     plus,
     plusNudgeDismissedAt,
     firstDay,

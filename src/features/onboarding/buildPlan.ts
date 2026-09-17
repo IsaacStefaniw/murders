@@ -807,6 +807,35 @@ export function profilePatchFor(
       return { lessOf: many as BehaviourKey[] };
     case 'existingHabits':
       return { existingHabits: many.length > 0 ? (many as ExistingHabitKey[]) : undefined };
+    case 'constraints':
+      /**
+       * The one input this coach refused to hear a second time.
+       *
+       * `constraints` is the only injury or health input that decides
+       * whether the training coach prescribes a loaded lift —
+       * `applyConstraints` in `training/constraints.ts` is the single
+       * thing standing between a bad knee and a barbell back squat — and
+       * it could be given exactly once, during setup. It is a `multi`
+       * step, so `YourAnswers` filtered it out; it has no `deferTo`, so
+       * `DeferredQuestions` never offered it; and this switch fell
+       * through to `default: null`, so even a re-answer never reached the
+       * profile. The interview's own reveal at `script.ts:578` promised
+       * the opposite: "You can add something here any time — the plan
+       * will adjust from that day."
+       *
+       * So a man who tore a shoulder in week six had nowhere to say so,
+       * and the coach opened his Tuesday with an overhead press at a load
+       * computed from his own e1RM, every week, for the rest of the
+       * block. The app could hear "I moved to a home gym" and could not
+       * hear "my back has gone". Injury is the most common reason people
+       * stop training, and it was the one thing this coach would not
+       * listen to.
+       *
+       * The `undefined` branch is deliberate and load-bearing in the
+       * other direction: "the back is better now" has to be sayable, or
+       * an injury becomes permanent the moment it is reported.
+       */
+      return { constraints: many.length > 0 ? (many as PhysicalConstraint[]) : undefined };
     case 'trainingSetup':
       return {
         trainingPreference:
@@ -916,6 +945,10 @@ export function answersFromProfile(profile: LifeProfile): InterviewAnswers {
   if (profile.moreOf.length > 0) answers.moreOf = profile.moreOf;
   if (profile.lessOf.length > 0) answers.lessOf = profile.lessOf;
   if (profile.existingHabits?.length) answers.existingHabits = profile.existingHabits;
+  // Without this the round trip is broken in the other direction: an
+  // existing user's injuries read as unanswered, and the chips in the
+  // re-ask come up empty, which is how a Skip silently clears them.
+  if (profile.constraints?.length) answers.constraints = profile.constraints;
   if (profile.kidsCount) answers.kidsCount = String(profile.kidsCount);
 
   // 'outdoors' is where both 'outdoors' and 'walking' land, so it cannot

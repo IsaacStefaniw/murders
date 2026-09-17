@@ -22,8 +22,6 @@ const TODAY = '2026-09-15';
 const base = {
   today: TODAY,
   nightsRecorded: [] as string[],
-  activeHabits: [] as string[],
-  hasStandingHabit: false,
   metrics: [],
 };
 
@@ -35,9 +33,9 @@ describe('what it asks', () => {
     );
   });
 
-  it('asks about habits only while somebody has one running', () => {
+  it('does not ask the question the card could not take an answer to', () => {
+    // The habits ask rendered one sentence and no control. Deleted.
     expect(asksFor(base).map((a) => a.id)).not.toContain('habits');
-    expect(asksFor({ ...base, hasStandingHabit: true }).map((a) => a.id)).toContain('habits');
   });
 
   it('asks about health in general about once a month', () => {

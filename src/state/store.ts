@@ -509,6 +509,18 @@ export interface AppState {
    */
   dismissedCheckins: Record<string, string>;
   dismissCheckin: (specId: string) => void;
+  /**
+   * askId → the date key it was waved away on. "Not today" means today.
+   *
+   * It lived in a `useState` inside the card, so it did not survive a
+   * remount: tab away, come back, and the app asked the same question the
+   * same morning. Worse, Today's arbiter read availability from the
+   * unfiltered ask list while the card filtered by that local state, so a
+   * dismissal left the attention slot claimed and empty. One place, read
+   * by both.
+   */
+  dismissedAsks: Record<string, string>;
+  dismissAsk: (askId: string, date: string) => void;
   /** Answer a check-in: records the reading and re-runs the evidence pass. */
   answerCheckin: (specId: string, metricKey: string, value: number) => void;
 
@@ -736,6 +748,7 @@ const initialData = {
   healthHistoryReadAt: null as string | null,
   questionLog: {} as Record<string, string>,
   dismissedCheckins: {} as Record<string, string>,
+  dismissedAsks: {} as Record<string, string>,
   trainingProgramme: null as TrainingProgramme | null,
   sessionSwaps: {} as Record<string, number>,
   exerciseSwaps: {} as Record<string, string>,
@@ -1704,6 +1717,10 @@ export const useAppStore = create<AppState>()(
           const log = get().workoutLogs.find((l) => l.id === logId);
           if (!log) return;
           get().saveWorkoutLog({ ...log, sets: log.sets.filter((s) => s.id !== setId) });
+        },
+
+        dismissAsk: (askId, date) => {
+          set({ dismissedAsks: { ...get().dismissedAsks, [askId]: date } });
         },
 
         dismissCheckin: (specId) => {

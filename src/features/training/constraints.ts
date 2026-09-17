@@ -106,6 +106,28 @@ const BALANCE_SLOT: MovementSlot = {
   primary: false,
 };
 
+/**
+ * The constraints, in the person's own words, defined once.
+ *
+ * The interview asks this at `onboarding/script.ts` and the training hub
+ * asks it again whenever something changes, and they must offer the same
+ * nine things in the same words — an injury reported in one place and
+ * described differently in the other is two different answers to the
+ * person, whatever the data says. So the list lives with the code that
+ * acts on it, and both screens read it from here.
+ */
+export const CONSTRAINT_OPTIONS: { value: PhysicalConstraint; label: string }[] = [
+  { value: 'joints', label: 'Sore joints or back' },
+  { value: 'balance', label: 'Balance is not what it was' },
+  { value: 'heart', label: 'A heart or breathing condition' },
+  { value: 'recovering', label: 'Recovering from injury or illness' },
+  { value: 'pregnancy', label: 'Pregnant or recently postpartum' },
+  { value: 'energy', label: 'Energy is unreliable' },
+  { value: 'bloodSugar', label: 'Blood sugar or a metabolic condition' },
+  { value: 'hormonal', label: 'Menopause or hormonal changes' },
+  { value: 'mentalHealth', label: 'Medication, or managing mental health' },
+];
+
 /** A constraint that means "start lower than you think and build". */
 const CONSERVATIVE: PhysicalConstraint[] = ['heart', 'recovering', 'pregnancy', 'energy'];
 
