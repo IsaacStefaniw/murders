@@ -1111,3 +1111,896 @@ findings: **every destructive or protective power in this app is
 miscalibrated, and each one is load-bearing for the person it serves
 worst.** They cannot be corrected one knob at a time. That is one piece of
 design work, and it is the most valuable thing on this board.
+
+
+---
+
+# Round 2 — 17 September 2026
+
+Four streams: design-and-interface, coaches-and-programmes,
+protocol-explanations, subtraction. Twenty-four findings were produced;
+three survived and twenty-one died.
+
+The bar was raised this round. Round 1 ran three lenses and survived on
+two of three. Round 2 ran **two** — a **code lens** (are the file facts
+true at this commit, checked against the working tree and, where it
+mattered, by running the real modules) and a **house lens** (does the fix
+make the app naggier, score somebody, overclaim evidence, add first-run
+weight, or add where the app should subtract) — and a finding had to
+survive **both**. No consequence lens and no majority: one refutation
+killed a finding outright. That is why the death rate is seven in eight
+rather than one in two, and it is the right trade — every one of the three
+survivors is a defect a person meets with their hands, and the
+corrections attached to them are again where the real fix is. All three
+had their scope cut by their own verifiers.
+
+Three patterns worth naming before the list.
+
+**The reviewers kept finding settled arguments and reporting them as
+bugs.** `WeeklyReviewPanel`, the constraints block on plan-review,
+`BloodPanel`'s data-entry doors, `YourAnswers`' reassigned purpose in
+`docs/REDESIGN.md:379`, the plan-review approval ordering already logged
+done at `docs/DEVELOPMENT_PUSH.md:43` — in each case a docstring recorded
+a past trade-off and the stream read the trade-off as the defect. This
+codebase documents itself well enough that a reviewer who reads only the
+code will keep rediscovering decisions that were already argued and won.
+
+**Two proposed fixes would have destroyed user data.** The Breakout
+proposal would have wired `save` on `check-in/evening.tsx:94` to
+`onClose`, throwing away the day. The constraints fix, taken literally,
+would have let a Skip silently clear somebody's injury, and would have
+orphaned every exercise swap and drop through a fresh programme id. Both
+were caught by a verifier, not a stream.
+
+**Not one finding, confirmed or refuted, names a file under
+`src/lib/scheduling/`, `src/features/notifications/` or
+`src/features/roster/`.** The adaptation engine, the delivery layer and
+the week-shape layer went unread by all four streams — which is exactly
+where the standing tally at the end of round 1 says the most valuable work
+is. The first critic went there instead and came back with four findings
+better than most of the board.
+
+---
+
+## The board
+
+Three entries, ranked across all four streams by *would this change a
+life* multiplied by *how cheap*. Each carries its verifiers' corrections
+folded into the fix, because in every case the verifiers cut the scope.
+
+### 1. Let somebody say they got hurt
+
+**Stream:** coaches-and-programmes · **Effort:** hours
+
+**Claim.** `constraints` is the only health or injury input that decides
+whether the training coach prescribes a loaded lift, and it can be given
+exactly once, during setup. It is a `multi` step, so `YourAnswers` — "the
+missing half of the interview" — filters it out; it has no `deferTo`, so
+`DeferredQuestions` never offers it; and `profilePatchFor` has no
+`constraints` case, so even a re-answer would not reach the profile. The
+interview's own reveal says the opposite.
+
+**Evidence.** `src/features/onboarding/script.ts:558-561` — `id:
+'constraints'`, `core: true`, `kind: 'multi'`; `script.ts:578` promises
+"Good. You can add something here any time — the plan will adjust from
+that day." Against that:
+`src/features/onboarding/YourAnswers.tsx:52-55` filters
+`INTERVIEW_STEPS` to `kind === 'single'` with the comment "multi-select
+belong to their own screens" — and no such screen exists.
+`src/features/onboarding/buildPlan.ts:785-850`, `profilePatchFor`,
+switches on fifteen step ids and falls through to `default: return null`
+at `:848`. `grep -rn 'Sore joints' src/app` returns nothing. The only
+route is `src/app/settings.tsx:484` — delete everything and start over.
+`answersFromProfile` (`buildPlan.ts:896-926`) has no `constraints` line
+either, so the round trip is broken in both directions.
+
+**What it costs today.** A man in week six tears something in his
+shoulder. He opens the app to say so, and there is nowhere to say it.
+Every Tuesday for the rest of the block the training coach opens his
+session with an overhead press at a load computed from his own e1RM,
+because `intensityCeiling` still returns 0.9, `rulesOutComplexLifts` still
+returns false, and `rulesOutHardIntervals` still lets the conditioning day
+run near-maximal. The one thing he can do is drop the movement per session,
+which lapses the moment the block rebuilds. Contrast the equipment case,
+which works fine: `trainingSetup` is a `single` step, so `YourAnswers`
+shows it and the block rebuilds. The app can hear "I moved to a home gym"
+and cannot hear "my back has gone". Injury is the most common reason
+people stop training, and it is the one input this coach refuses.
+`applyConstraints` (`src/features/training/constraints.ts:161`) is the
+single thing standing between a person with a bad knee and a barbell back
+squat, and it reads a field that can never be updated.
+
+**Fix.** The load-bearing half is one `case` in one switch. In
+`buildPlan.ts`, before the `default` at `:848`:
+`case 'constraints': return { constraints: many.length > 0 ? (many as
+PhysicalConstraint[]) : undefined };` — the `undefined` branch matters,
+because "the back is better now" has to be sayable too. Add the matching
+line to `answersFromProfile` so an existing user's constraints do not read
+as unanswered. Then three guards the verifiers added, all of which are
+load-bearing:
+
+- **Do not let a Skip erase an injury.** `DeferredQuestions.tsx:107-111`
+  submits `undefined` on Skip and never seeds `multi` state from the
+  current answer. Reuse that shape as-is and a man with "joints" on file
+  who opens the card and taps Skip has his constraint silently cleared.
+  Seed the chips from the existing answer, and do not call
+  `profilePatchFor` for `constraints` when `value === undefined` arrives
+  from a skip. "The back is better now" must be sayable; "ask me later"
+  must not be mistaken for it.
+- **Guard the rebuild on an actual change, and hold it.**
+  `store.ts:1030` rebuilds on `trainingSetup` unconditionally.
+  `buildProgramme` mints a new `id` and `createdAt`, `weekOf` counts from
+  `createdAt`, and `exerciseSwaps`/`droppedExercises` are programme-id
+  scoped — so any rebuild drops the person to week 1 and orphans every
+  swap and drop they made, on a screen whose own button hint reads "Your
+  logged sessions stay". At minimum, rebuild only when the set actually
+  differs from `profile.constraints`, and say so rather than doing it
+  silently. Better: ship the patch and the surface now and hold the
+  rebuild trigger until the programme-id memory is fixed, or the honest
+  fix becomes a quiet data-loss path opened by an injury report.
+- **Put it where the app already does this.** Not a permanent "Anything
+  the plan should work around?" line at the foot of the training hub —
+  that asks a healthy person about injury every visit and adds a standing
+  surface to a 471-line screen that already carries five asks.
+  `TrainingHub.tsx:80-105` already has the pattern: "Change what I'm
+  training for" opens the intake inline, rebuilds, and prints one sentence
+  from `describeChange(before, after)`. Add "Change what I am working
+  around" as a second entry behind the same affordance, reuse
+  `describeChange` for the confirmation, and show `constraintNote()`
+  beneath it so the professional line travels with the change.
+
+**Do not** widen `YourAnswers` to `multi` as part of this. It is the
+reviewer being thorough and it is the worst trade in the set: it admits
+nine more steps to a screen that sorts unanswered-first under "N questions
+have not been put to you yet… the app assumes the most cautious answer"
+and per-row "Not answered — the app is guessing", when setup now asks
+everything and those are skips, not gaps. `sections.ts:279` says a skip is
+a decision, not a debt. The training-hub line delivers the whole
+user-visible benefit. And do not have the session screen infer a
+constraint from a dropped movement or a bad set — that is the app deciding
+somebody is injured from data, which it has disclaimed.
+
+---
+
+### 2. Stop booking a yearly appointment every week
+
+**Stream:** protocol-explanations · **Effort:** hours for the honest half,
+weeks for the cadence primitive
+
+**Claim.** `Protocol.days: Weekday[]` is the library's only cadence unit
+and `toRoutine` copies it verbatim, so a practice whose `summary` says
+monthly, quarterly, fortnightly or yearly is placed on the calendar 4×,
+13× or 52× more often than its own instruction says. Forty-six of the 323
+protocols have such a summary. `src/features/cadence/rituals.ts:22-26`
+states this exact limitation as a rule — "a routine cannot recur less
+often than weekly, so a monthly review scheduled weekly would be that
+review twelve times over" — and solves it only for the four rituals.
+
+**Evidence.** `src/features/knowledge/protocols.ts:2592-2596` —
+`capacity-benchmark`: "Once a year, the same three tests on the same
+morning…" with `days: [6], durationMin: 45`. The library card prints
+`1× a week · 45 min` directly under that sentence
+(`src/app/library.tsx:52-54`). Same shape at `protocols.ts:2643`
+(`health-conversation`, "Once a year, book the appointment" → every
+Wednesday), `:1358` (`think-day`, "Once a quarter" → 120 min every
+Friday), `protocols.research.ts:722` (`bill-smoothing`, "One afternoon,
+once" → every Tuesday forever). The library spans seven files, not two,
+and `PROTOCOLS` aggregates all of them — a guard test that reads two files
+misses `help-debt-timing` in `protocols.money.ts`.
+
+**What it costs today.** For most of the forty-six the block only lands if
+a person taps Add, on a card that prints the "Once a quarter" summary two
+lines above the button — bad, but self-inflicted and visible. The ones
+that matter are the handful the app places itself. The worst is
+`state-of-us` (`protocols.ts:976`): `days: [6]`, `durationMin: 45`,
+summary "Roughly monthly", `why` reading *"minutes a year, not hours a
+week"* — and `src/features/paths/definitions.ts:1005` hands it to the
+ordinary relationship pathway, so the default build books a forty-five-
+minute state-of-the-relationship conversation every Saturday forever, at
+twelve times the dose its own evidence sentence cites. That is the app
+overclaiming its own research on the calendar, which is the one rule this
+product cannot break. For the not-`neverNag` subset — `capacity-benchmark`,
+`health-conversation`, `think-day`, `bill-smoothing`,
+`shared-money-agreement`, `subscription-audit` — the person cannot do the
+thing, taps Skip, and `detectSlotMismatch` eventually tells them the
+yearly health conversation "keeps slipping in the middle of the day" and
+offers to move it. The app diagnosing a person's discipline for a mistake
+the app made in arithmetic.
+
+**Fix.** Four pieces, in this order, and only the first two are this
+week's work.
+
+1. **`DAY_LABEL` at `src/app/library.tsx:52-54`.** Never print "1× a week"
+   over a summary that says otherwise. One line, no schema change, removes
+   the most visible lie today.
+2. **The six the app places itself, by hand**, starting with `state-of-us`
+   out of the default relationship ladder or down to a cadence its own
+   `why` can defend. This is the part that is an evidence-overclaim rather
+   than a tidiness problem.
+3. **A `neverNag` guard on the slot-mismatch path.** `detectSlotMismatch`
+   has none, and `weeklyChanges.ts:167` does not apply the `neverNagged`
+   filter that the drop/shorten branch applies at `:85` — so a practice
+   flagged in data as never-to-be-chased can still be told it keeps
+   slipping. Two lines, pure subtraction, same neighbourhood.
+4. **Then, and not before, the cadence primitive.** Do not invent
+   `everyNWeeks` as a fourth unit beside `cadenceDays`, `cadencePerWeek`
+   and `MoneyCadence`. Extend `MoneyCadence` (`src/features/money/year.ts`,
+   already `'once' | 'quarterly' | 'yearly'`, already rendered honestly by
+   `CADENCE_LABEL`) with `'fortnightly' | 'monthly'` and put it on
+   `Protocol`; a protocol whose cadence is `'once'` must not become a
+   recurring routine at all. `everyNWeeks` cannot express a third of the
+   forty-six: "once and never again", event-triggered with no period
+   (`pre-mortem`), and setup-then-recur are all in that list. Honour it in
+   one exported `occursOn(routine, dateKey)` used at
+   `src/lib/scheduling/engine.ts:638`, `generate.ts:123` and
+   `src/features/plus/entitlement.ts:187` — the fix as first written named
+   only `generate.ts:123`, which is inside `carveSpan` and handles only
+   `duringWork` carve-outs, so it would have left the yearly practice on
+   the plan every week for everybody. There is no `createdAt` on `Routine`
+   to anchor the phase on, so either add `startedOn` in `toRoutine` and
+   the ladder/path producers, or derive phase from a hash of `routine.id`
+   and keep `occursOn` pure. And make `year.ts` read cadence off the
+   protocol rather than keep its own copy, or thirteen money cards will
+   say "Four times a year" on MoneyHub and appear on four consecutive
+   Tuesdays on Today.
+
+The guard test needs an allowlist, not a bare regex: `/a year|a month|a
+quarter/` over `summary` fires on `best-possible-self` ("a year from
+now"), `pre-mortem` ("assume a year has passed") and `think-day` ("the
+three-year question"), and a test that fails on correct entries gets
+deleted within a month. Do not solve any of this by rewording the
+summaries to say "weekly" — the summaries are right and the scheduler is
+wrong.
+
+---
+
+### 3. Delete the daily habits question
+
+**Stream:** subtraction · **Effort:** hours
+
+**Claim.** `asksFor()` emits the `habits` ask whenever any behaviour
+intention is active, with no cadence gate and no answered-state, and the
+card it renders has no control on it — it is a sentence pointing at
+another tab. `available.dailyAsk` on Today is `asksFor(...).length > 0`,
+and `dailyAsk` sits sixth in `ATTENTION_ORDER`, above `checkin`, `plus`,
+`budget` and `suggestion`.
+
+**Evidence.** `src/features/health/dailyAsk.ts:127` pushes the ask with no
+`lastAnswered` anywhere in `AskInputs`.
+`src/features/health/DailyAsk.tsx:136-142` is the whole UI: a
+`variant="secondary"` sentence saying "The log is under Coaches", then a
+"Not today" button whose dismissal is `useState`, so it returns on the
+next mount — tab away and back and the app asks again the same morning.
+`src/app/(tabs)/today.tsx:290-298` computes availability from the
+unfiltered `asksFor` result. `dailyAsk.ts:21-22` argues the case against
+itself: "A question whose answer changes nothing teaches people to dismiss
+the app."
+
+**What it costs today.** A card that cannot be answered, every day,
+forever, for anyone who named anything in `lessOf` during setup — which is
+the opening committing question of §1. Worse than that: because
+availability is computed from `asksFor` while dismissal is component-local,
+a person who taps "Not today" leaves the arbitrated slot **claimed and
+empty**, under a caption reading "3 more things to look at, tomorrow".
+That directly contradicts `today.tsx:262-265` — "a slot is never claimed
+by something that then renders nothing."
+
+**Fix.** Remove `'habits'` from `AskId` (`dailyAsk.ts:71`), the branch at
+`:124-133`, and `activeHabits`/`hasStandingHabit` from `AskInputs`
+(`:94-97`); the two call sites lose two arguments each
+(`today.tsx:294-295`, `DailyAsk.tsx:75-76` — note `:76` was already
+redundant with `:75`). Remove the render branch at `DailyAsk.tsx:136-142`.
+Then five more test sites than the finding named:
+`dailyAsk.test.ts:70-76`, `:108-112`, the `input()` fixture at `:27-37`
+and the `hasStandingHabit: true` literals at `:93,:97,:102,:109`, plus
+`dailyAskWiring.test.ts:22-28` and `:38-41`. Tighten
+"never asks more than two things at once" rather than leaving it trivially
+true. Nothing is lost that the app can do: logging already lives on the
+Life tab's intention card and in `moment/[eventId]`.
+
+**Ship it as hygiene, not as the fix to `ATTENTION_ORDER` starvation.**
+The claimed benefit — that `checkin`, `plus`, `budget` and `suggestion`
+can finally render — is false. `asksFor` emits `sleepTiming` on any day
+where `nightsRecorded` lacks today, which for anyone without a
+sleep-tracking watch is every day, permanently. `dailyAsk` keeps winning
+the slot after the deletion. The two real defects underneath are the
+arbiter/component divergence and the fact that `dismissed` is local
+`useState`, and neither is touched by this change. Fix those on their own
+terms: any ask's dismissal and its availability need one source of truth.
+
+---
+
+## What died, and why
+
+Twenty-one findings were refuted. One line each. The design-and-interface
+stream lost all six, and lost them the same way every time.
+
+**design-and-interface — nought of six.**
+
+- **"Order matters" and nothing shows order** — `interview.tsx:167-175`
+  renders the step's `reveal` at 28pt accent on a screen holding nothing
+  else: "Noted. When two things want the same hour, Health wins." The
+  finding called a full-screen confirmation nonexistent. The residue —
+  ranks 2 and 3 are never shown and there is no reorder affordance — is
+  moderate, and the proposed drag fix was built on `DragToMove`, which
+  converts vertical drag into a *time of day* and has no list semantics.
+- **The app's own voice has no fixed place on Today** — the observation
+  holds, but hoisting the arbitrated block above the Now header puts the
+  Plus nudge back as the first card on the screen, which is the exact
+  defect `attention.ts:47-53` and Wave 0 item 1 record as fixed.
+- **Twenty identical rectangles on plan-review** — the density is real;
+  demoting the constraints block to caption walks back
+  `onboarding/constraints.ts:7-15`, which exists because reviewers who
+  named a bad knee read a plan that never mentioned it and assumed they
+  had been ignored; and pinning "This is my plan" costs a quarter of an
+  iPhone SE and asks for approval before a single switch has been seen.
+- **The Breakout frame has one tenant** — true, and the proposed fix wires
+  `save` on `check-in/evening.tsx:94` to `onClose`, throwing the day away;
+  it also adds a second, vaguer exit to the two session screens whose
+  single control already states what leaving costs.
+- **The Progress tab on day one** — "every heavy component renders
+  unconditionally" is false; `WorkNumbers.tsx:36-38` early-returns `null`
+  twice and was in the finding's own evidence list. The proposed early
+  return would remove the only route in the product to enter blood
+  pressure, HbA1c, height and weight, on the day nothing has been entered.
+- **The scale and the touch floor** — the diagnosis is exact and the fix
+  is not implementable: a source-regex `Pressable` rule would fail on
+  fourteen legitimately large targets, and folding Button's 16 and Field's
+  22 into the named scale breaks the ratio test that pins it.
+
+**coaches-and-programmes — one of five.**
+
+- **Every pathway plan is built at the foundation rung** — the defect is
+  real and high severity, but auto-injecting calendar blocks when an
+  evidence counter ticks over duplicates and contradicts `NextRungCard`,
+  bypasses `fitLadderToBudget` (four climbs accrue 630 minutes against a
+  260 ceiling), reads the level before the write lands, and makes the "this
+  is too hard" lever silently delete work.
+- **The block ends on day 28 with no moment** — the orphaning is real and
+  is the live bug, but it fires mid-block through `setHiitChoice` and
+  `setPathIntensityPush`, not at day 28; and the proposed interrupt would
+  ambush a person on Today with a modal, spend the day's one interruption,
+  mis-declare `adds: false` to bypass `mayOffer`, and state a derived e1RM
+  as fact.
+- **Advanced is unreachable on six coaches** — confirmed exactly, and all
+  three proposed branches fail: forcing `blockedBy` to null swaps a false
+  sentence for a false promise ("Advanced is unlocked") that `earnedLevel`
+  will not honour; deleting the rungs deletes shipped content; inventing a
+  proxy is the thing the finding forbids two sentences later. The root
+  cause is one word: `level.ts:218` documents `standardsMet` as "pathways
+  without one pass `true`", and `completionEvidence:377` passes `false`.
+- **No coach teaches at the moment it asks** — `library.tsx:106` already
+  ships the proposed pattern; the gap is one component, `NextRungCard`. The
+  "session screen the routine opens into" the fix would edit does not
+  exist, and an unconditional inline reveal hands the paywalled half of
+  the library away free.
+- **The practices a ladder says can start any time** — `alongside` is
+  genuinely dead, but the fix ships nothing for five of the seven ids
+  because `nextRungForPath` reads only the first ladder and `MIND_LADDER`
+  is never first; and it puts up to five more Add chips on the card whose
+  whole purpose is to offer one thing.
+
+**protocol-explanations — one of five.**
+
+- **The rung card adds a practice from a bare chip** — every particular
+  confirmed, including the seven grade overclaims; the fix renders up to
+  3,442 characters on a shift worker's first rung, with seven Add buttons
+  in a column, on the card whose own copy says "alternatives, not a
+  checklist".
+- **Every first rung has how-to steps and none above it** — 36 rungs, not
+  35, and one of them has steps. The proposed test turns the suite red for
+  35 files' worth of unwritten prose, and its worst-first ordering puts
+  numbered procedures on a D-graded practice whose own `why` says there is
+  no evidence for doing it at home.
+- **The bare letter E on the session screen** — the grade half is right
+  and should ship (`EVIDENCE_PLAIN.E = 'Unproven'`); the `sourceTail` half
+  does not compile (no `protocol` in scope) and lengthens 178 rows to fix
+  a line that is quieter, not wrong.
+- **Eleven cards are facts, booked as appointments** — nothing books
+  them; most of the eleven do name an act; `solitude-counts` is already
+  standing on the `basis: 'balance'` shelf the finding says does not
+  exist; and excluding it from `toRoutine` parks the friendship ladder on
+  an unsolidifiable rung forever.
+- **The safety test keys on pillar** — the central exposure claim is
+  refuted by a test the finding itself cites:
+  `publishedCounts.test.ts:51-52` pins `p.safety` at 284, so no safety
+  line can be deleted and no uncautioned practice added. The residue is
+  that an existing line can be *reworded* weaker.
+
+**subtraction — one of five.**
+
+- **Delete the Weekly Review panel** — it is board finding 1 re-raised
+  with deletion as the remedy; after it, `buildWeeklyChanges` has no
+  production caller while `sim/engine.ts:446` keeps running it, so the
+  cohort would be measuring a rescue nobody can reach. It also deletes the
+  only producer of `shorten_routine`, keeping the harsher power and losing
+  the gentler one.
+- **Delete `src/lib/ai` and the Supabase client** — the subtraction is
+  right and the reasoning is not: `src/lib/telemetry.ts` posts funnel
+  events to an env-gated URL from nine live call sites, so removing
+  Supabase does not make the on-device promise unconditional, and
+  `docs/WEARABLE_POSITIONING.md:431` already forbids writing that it does.
+- **Stop asking walking pace and self-rated health** — the diagnosis
+  stands (both reveals promise a screen `MARKERS_ENABLED` keeps out of the
+  build), but cutting §5's `unlocks` leaves a section with no payout and
+  fails a green test, and four more markers promises survive the fix,
+  one of them in `birthYear`, which cannot be deleted. The overclaim is in
+  the wording, not the questions.
+- **Delete `/answers` and `YourAnswers`** — `docs/REDESIGN.md:379-382`
+  assigned the screen its current purpose in the same change that
+  un-deferred the interview: it "becomes the place to *change* answers".
+  Deleting it removes the only post-setup edit path in the product. What
+  is stale is the header comment. (The scolding copy and the
+  unanswered-first sort are real and are edits.)
+- **Delete the evening check-in** — the route is genuinely unreachable,
+  and the diagnosis is inverted: the evening check-in is the only writer
+  that could ever make `hasEveningReflection` true, so reducing the gate to
+  bare `isEvening` hardwires "Close the day" into every evening from 5pm
+  forever and deletes the copy that would acknowledge closure.
+
+---
+
+## The three critics
+
+Three critics read the board after the streams closed, each with a
+different brief, none with a brief to be fair to it. They are the most
+valuable output of this run and they are reproduced at length rather than
+summarised, because the summary is always the part that loses the file
+paths.
+
+### Critic one — what the four streams did not read
+
+Read the board, then went where the four streams didn't:
+`src/lib/scheduling/`, `src/features/notifications/`,
+`src/features/roster/`, `src/state/hygiene.ts`, and the profile-edit
+graph. Nothing modified.
+
+**1. The roster is promised in setup, never collected in setup, and
+honoured by exactly one consumer.** `src/features/onboarding/script.ts:173`
+answers "Shifts, or hours that move" with the reveal *"Then the plan
+follows your roster rather than a fixed week"* — and setup then asks
+`workDays` (a fixed weekday multi, `:348`) and one "usual" shift
+(`:390-404`) and never writes `profile.roster`. The roster editor exists
+and is good (`src/app/plan/week-shape.tsx`, with real presets: Nights
+stores `wakeTime: '15:00', sleepTime: '09:00'`), but it is reachable only
+from an unpromoted card at `src/app/(tabs)/plan.tsx:139`. Worse, when it
+*is* set, `profileForDate` (`src/features/roster/roster.ts:75`) has one
+non-test caller — `src/features/planner/generate.ts:252`. Everything that
+judges or delivers that plan reads the flat profile: `quietHoursFor`
+(`src/features/notifications/schedule.ts:111-114`), the wind-down push
+(`:233-241`), `DragToMove.tsx:45`, `QuickAdd.tsx:79,98`,
+`item-actions.tsx:133,182`, `ReadinessCard.tsx:34`. Concretely, on a
+night-shift day the nurse's plan is correctly built around 19:00–07:00
+while her quiet hours are still computed from her day-shift bedtime, so
+the app is free to push at 11:00 while she is asleep and is silenced at
+03:00 when she is awake and could act; `plannedAcross` (`schedule.ts:261`)
+queues three days this way in one pass. This is the withdrawn "day cut for
+a nine-to-five" finding, except the redesign it asked for is already
+half-built and stranded behind one import.
+
+**2. The one notification category that speaks when a person says yes to
+notifications is the one that skips the `neverNag` guard.**
+`DEFAULT_NOTIFICATION_SETTINGS` has `sessions: false` but `coach: true`
+(`src/features/notifications/schedule.ts:81,83`), and the `neverNag` check
+lives only inside the `settings.sessions` branch at `:218-220`. The coach
+branch at `:203-208` calls `coachNotifications`, whose `defendedItems`
+(`src/features/coaches/reach.ts:63-66`) filters on `!i.fixed && status ===
+'planned' && DEFENDED.has(i.area)` where `DEFENDED = new
+Set(['family','relationship'])` — no protocol lookup anywhere. Those are
+the two areas where `neverNag` is densest: 27 of the 85 `neverNag`
+protocols sit in `family`/`relationship`, including `say-the-loss-out-loud`
+("Say it to one person", a bereavement practice) and `carer-ask-for-cover`
+("Ask for cover, once a week"). If either is the first defended block of
+the day, the app sends a push titled with the coach's name reading *"Say
+it to one person in 45 minutes. Making it, or shall I move it?"* — an
+accountability question about grief, from the only category that is on.
+`src/features/review/weeklyChanges.ts:75-85` gets this right
+(`neverNagged`); the push path does not, and `schedule.ts:21` claims in its
+own header that it does.
+
+**3. The adaptation engine's only upward detector reads the wrong number,
+so it invents a shrink that never happened and is blind to the ones that
+did.** `detectRegrow` (`src/lib/scheduling/adaptation.ts:341-356`) takes
+`originalFor`, and `src/state/store.ts:2387-2389` supplies
+`r.protocolId ? protocolById(r.protocolId)?.durationMin : undefined` — the
+library's default length, not the length the routine was built at, which
+is stored nowhere. Two failures fall out. (a)
+`src/features/onboarding/buildPlan.ts:169` sets `trainingDurationMin:
+capacity === 'minimal' ? 30 : 45` and `:261` builds "Strength workout"
+with `protocolId: 'strength'` at that length, while the `strength`
+protocol is 45 — so for every person who told the app their capacity is
+minimal, after six sessions kept at 80% the engine fires *"Strength
+workout has been sticking at 30 minutes. Try 40?"* with the reason "It was
+shortened when weeks were harder; this is the offer to put some of it
+back." Nothing shortened it; they chose it, and the app is narrating a
+past they did not have to a person who already said they have the least
+room. "Family adventure" (built 90, protocol 180) does the same at 115.
+(b) The routines that actually get shrunk cannot come back: `Date night`
+(`buildPlan.ts:360`, 120 min) and the anchor set at `:300-320` — `Caring`
+at 180 min, `Paid work`, `Appointments` — carry no `protocolId`, so
+`originalFor` returns `undefined` and `detectRegrow` skips them while
+`detectShrinkToFit` (`:270`) takes a third off each time it fires. That is
+precisely the asymmetry `detectRegrow`'s own docstring (`:305-312`) says
+it was written to end, still live for every routine the interview builds
+itself.
+
+**4. Nothing in the app can be told that a person is gone.**
+`profile.people` is written from exactly two interview steps: `household`
+(`script.ts:217`, `kind: 'multi'`) and `partnerName` (`:258`, `kind:
+'text'`), applied at `buildPlan.ts:823-847`. `YourAnswers.tsx:53` filters
+to `kind === 'single'`, so neither is listed; `deferredSteps` only offers
+unanswered steps, and setup now asks everything. So after a death, a
+separation, or a child moving out, there is no surface anywhere that can
+change it — and even if there were, `answerDeferredQuestion` rebuilds only
+on `trainingSetup`, so the `Date night` routine, the `Family dinner` daily
+anchor and the `partner-*` practices would survive the correction
+regardless. Meanwhile `src/features/family/householdWeek.ts:112`,
+`src/features/anticipation/lookAhead.ts:75`, `src/app/household.tsx:55`
+and every defended-block push keep using the name. This is the *same*
+mechanism as the confirmed `constraints` finding and it is the more
+expensive instance: widening `YourAnswers` should be justified by
+`household`/`partnerName`, not by `constraints`, and the fix needs the
+routine rebuild that `constraints` alone does not force. (There is no
+rename or delete for routines anywhere — `src/app/plan/routines.tsx` only
+offers `active: false`.)
+
+**5. Actively good, and one line of it doesn't deliver:
+`src/features/today/returning.ts`.** Its three rules — nothing missed is
+ever counted, what survived is named, the stale plan says so — are the
+most defensible thing in this codebase and the direct answer to "the
+moment people delete"; `WelcomeBack.tsx:55-98` then does something almost
+no app does and *asks what changed*, with three answers that each do real
+work. Two streams proposed re-ordering or thinning the Today block it
+lives in; it should be the last card anyone touches. But the first of its
+three answers is wrong: `WelcomeBack.tsx:75` promises "Rebuilds this week
+from today" and `:77` calls `regeneratePlan(date)` — one day. The person
+was just told at `returning.ts:80` that "the week on file was built before
+you went quiet, so it is out of date", taps the button that says it fixes
+that, and six of the seven days stay stale, because `today.tsx:133` calls
+`ensurePlan`, which returns existing plans untouched. The idiom for the
+correct fix is four lines away in the same feature area:
+`src/app/plan/week-shape.tsx:84`, `for (let i = 0; i <= 6; i++)
+regeneratePlan(addDays(today, i))`.
+
+**Weakest stream, bluntly: design-and-interface.** Nought of six survived,
+and the failure mode was consistent rather than unlucky — it asserted
+absence without checking the render path. It said the priorities order is
+never shown while a 28pt full-screen reveal shows it
+(`interview.tsx:167-175`); it said "every heavy component on the Data tab
+renders unconditionally" while `WorkNumbers.tsx:36-38` early-returns
+`null` twice and was cited in its own evidence list; it built a
+drag-reorder fix on `DragToMove`, which converts vertical drag into a
+*time of day* and has no list semantics; and its Breakout proposal would
+have wired `save` on `check-in/evening.tsx:94` to `onClose`, discarding
+the day. It reviewed the app it inferred from JSX rather than the app that
+renders. The deeper gap is shared by all four: not one finding this round,
+confirmed or refuted, names a file under `src/lib/scheduling/`,
+`src/features/notifications/` or `src/features/roster/` — the adaptation
+engine, the delivery layer and the week-shape layer went unread, which is
+where points 1, 2 and 3 above came from, and which the board itself
+(`docs/REVIEW_STREAMS.md:1108-1113`) calls "the most valuable thing on
+this board".
+
+### Critic two — what this round adds, and what it inherits
+
+**1. Nothing here lengthens first run — the weight all lands on one
+post-setup screen, `src/features/training/TrainingHub.tsx`.** None of the
+three confirmed findings adds an interview step: `constraints` is already
+asked in setup, the cadence field is data, and the habits deletion is pure
+removal. So the round's real risk is not signup weight, it is that the
+constraints fix's part (c) parks a new prompt, a chip row and a Save
+button at the foot of a hub that already carries the four-week block list,
+`HiitPicker`, `LogCardio`, the block-complete/rebuild pair, the "Change
+what I'm training for" panel with two chip rows and two buttons, and a
+"Log a lift" section — 471 lines and five distinct asks before anything is
+added. A quiet line is the right instinct; it should replace the rebuild
+copy that sits three lines above it, not stack under it.
+
+**2. Two of the three route through mechanisms this same round documented
+as broken, and they inherit the bugs silently.** Constraints fix (b) adds
+`constraints` to the `buildTrainingBlock` trigger at
+`src/state/store.ts:1018`. `buildTrainingBlock` (`store.ts:1870`) calls
+`buildProgramme`, which mints a fresh programme id, while
+`swapKey`/`dropKey`/`addedKey` (`src/features/training/swap.ts:170`,
+`sessionEdits.ts:45-51`) stay keyed to the old one — the exact orphaning
+the refuted "block ends on day 28" finding verified. So "the back is
+better now" would silently delete every exercise swap and drop the person
+made, on a screen whose own button hint reads "Your logged sessions stay"
+(`TrainingHub.tsx:414`). Ship (a) and the surface; hold (b) until the
+programme-id memory is fixed, or the honest fix becomes a quiet data-loss
+path opened by an injury report.
+
+**3. The habits deletion is right and its stated benefit is false — the
+slot does not free.** In `src/app/(tabs)/today.tsx:290-297`,
+`available.dailyAsk` is `asksFor(...).length > 0`, while
+`src/features/health/DailyAsk.tsx:68-84` keeps its own local `dismissed`
+set. So the arbiter awards the slot from the unfiltered list and the
+component can then render `null` — claimed, empty, and
+`checkin`/`plus`/`budget`/`suggestion` still blocked. Worse, `asksFor`
+(`src/features/health/dailyAsk.ts:116`) emits `sleepTiming` whenever last
+night is missing, which for anyone without a wearable is every single day.
+Removing `'habits'` deletes a card with no control, which is correct, but
+the permanent slot capture is the arbiter/component divergence plus the
+daily sleep ask, and that survives the deletion untouched. Ship it as
+hygiene, not as the fix to `ATTENTION_ORDER` starvation.
+
+**4. Widening `YourAnswers` to `multi` makes a scold longer, and two
+refuters already flagged that screen's copy.**
+`src/features/onboarding/YourAnswers.tsx:53` filters to `single` (22 of 31
+steps); dropping the filter admits 9 more, each rendered as a Card that
+sorts unanswered-first (`:57-60`) under the headline "N questions have not
+been put to you yet… the app assumes the most cautious answer" (`:69`) and
+per-row "Not answered — the app is guessing" (`:87`). Setup now asks
+everything, so those are skips, not gaps — and
+`src/features/onboarding/sections.ts:279` says a skip is a decision, not a
+debt. Adding `priorities`, `lessOf`, `household`, `weekAnchors` and the
+rest to a nine-card debt list to reach one of them (`constraints`) is the
+worst trade in the set. Drop this clause entirely; the training-hub line
+delivers the whole user-visible benefit.
+
+**5. The cadence finding is the only genuine subtraction, and only its two
+cheap halves should go first.** `src/features/planner/generate.ts:123`
+expands `r.days` verbatim, so 46–52 practices whose `summary` in
+`src/features/knowledge/protocols.ts` says monthly or quarterly are placed
+4× to 52× too often; fixing it removes blocks from real calendars rather
+than adding anything, which is the one thing this round is short of. But
+it is the "weeks" item, it touches the single function every routine
+passes through, and the same lens that withdrew three findings on the
+board's tally (`docs/REVIEW_STREAMS.md:1104-1106`) applies — a scheduler
+change is measured against the personas before it is written. Take the
+guard test and the `DAY_LABEL` fix at `src/app/library.tsx:52-53` now (a
+card that says "once a quarter" while printing "1× a week" is an honesty
+bug fixable in an hour), and let `everyNWeeks` wait for a round that is
+not also opening a new door into `buildTrainingBlock`.
+
+### Critic three — what is actually worth the week
+
+**1. The constraints one is the only confirmed finding that is genuinely a
+"before people use this" item, and it is smaller than the write-up makes
+it sound.** I verified the mechanism: `profilePatchFor` in
+`src/features/onboarding/buildPlan.ts` ends at a bare `default: return
+null` with no `constraints` case, and `constraints` appears nowhere in
+`src/app/settings.tsx`, `DeferredQuestions.tsx` or `TrainingHub.tsx` — so
+the answer given once in §4 of setup is permanent for the life of the
+install. What makes it worth the hours is not the interview's broken
+promise, it is `src/features/training/constraints.ts:161` —
+`applyConstraints` is the single thing standing between a person with a
+bad knee and a barbell back squat, and it reads a field that can never be
+updated. A man who tweaks his back in week three has no sentence he can
+say to this app. That is the one confirmed finding where the failure mode
+is physical rather than aesthetic, and the load-bearing half of the fix is
+one `case` in one switch plus one edit affordance. Do part (a) and a line
+at the foot of the training hub; skip the `YourAnswers` widening, which is
+the reviewer being thorough.
+
+**2. The cadence finding is right about six protocols and tidy about the
+other forty.** The scheduler really does copy `days` verbatim
+(`src/features/knowledge/protocols.ts:3941`), but the severity depends
+entirely on whether anything *places* the practice or a person taps Add —
+and for most of the 46 it is Add, on a library card that prints the "Once
+a quarter" summary two lines above the button. The ones that matter are
+the handful put on the calendar by the app itself. The worst is
+`state-of-us` (`protocols.ts:976`): `days: [6]`, `durationMin: 45`,
+summary "Roughly monthly", `why` reading *"minutes a year, not hours a
+week"* — and `src/features/paths/definitions.ts:1005` hands it to the
+ordinary relationship pathway, so the default build books a
+forty-five-minute state-of-the-relationship conversation every Saturday
+forever, at twelve times the dose its own evidence sentence cites. That is
+the app overclaiming its own research on the calendar, which is the one
+rule this product cannot break. Fix those six by hand; the `everyNWeeks`
+field, the 46 ids and the guard test are a week you do not have.
+
+**3. The habits-ask deletion should happen, but not for the reason given,
+and it buys almost none of what it promises.** Deleting the branch is
+correct — `src/features/health/DailyAsk.tsx` renders it as a paragraph and
+a "Not today" button with no control, which is a card that cannot be
+answered. But the claim that it "eats Today's only attention slot forever"
+and that the four blocks below can then render is wrong: `asksFor` in
+`src/features/health/dailyAsk.ts` pushes `sleepTiming` on any day where
+`nightsRecorded` lacks today, which for anyone without a sleep-tracking
+watch is every day, permanently. `dailyAsk` keeps winning the slot after
+the deletion. Meanwhile the real defect in that file went unreported by
+the stream that was reading it: `dismissed` is component-local `useState`,
+so "Not today" is forgotten the moment Today unmounts — tab away and back
+and the app asks again the same morning. That is the naggy bug, it is in
+the file, and nobody saw it. Half an hour, not "hours".
+
+**4. Most of this board is not worth the week, and the refutations are
+better than the findings.** Across four streams, three survived and
+seventeen died, and the pattern in the deaths is consistent: reviewers
+read a docstring recording a past decision and reported the decision as
+the bug (`WeeklyReviewPanel`, `plan-review.tsx`'s constraints block,
+`BloodPanel.tsx`'s data-entry doors, `YourAnswers`' reassigned purpose in
+`docs/REDESIGN.md:379`). Two proposed fixes would have destroyed user data
+outright, one would have re-broken a paywall-ordering decision already
+logged as done in `docs/DEVELOPMENT_PUSH.md:43`. What you bought with this
+round is a strong verification layer and a weak generation layer — the
+streams are auditing internal consistency in a codebase whose docstrings
+already record every trade-off, so they keep rediscovering settled
+arguments. You are not pre-launch at risk from inconsistency. Do not run a
+fifth stream of the same shape.
+
+**5. What is missing is the only number that decides whether any of this
+gets used: nobody read the funnel.** `src/app/welcome.tsx:28` — the first
+sentence in the product — promises "Twelve quick questions, about two
+minutes." `src/features/onboarding/sections.ts:155` maps thirty-seven
+steps across eight sections, only twelve of which carry a `skipIf`, and
+nothing exists until the last one is answered. A person is told two
+minutes, gives you ten, and the plan — the entire payoff — is gated behind
+all of it. `track()` is already wired at `interview.tsx:58,74` and
+`plan-review.tsx:64`, so you have the instrument and no stream asked the
+question. Four reviews argued about the typography on the payoff screen;
+none asked how many people reach it. Before any of the three confirmed
+findings, sit ten people down with a TestFlight build and watch where they
+stop — and either make the welcome sentence true or make the first six
+questions produce something. Second missing question, same family: nothing
+on the board asks why anyone opens this on day three.
+
+---
+
+## What to build first
+
+The three critics do not agree, and the disagreement is the useful part.
+Critic three says most of this board is not worth the week and the funnel
+is the only number that matters. Critic two says the two fixes that touch
+`buildTrainingBlock` and the scheduler inherit bugs this same round
+documented. Critic one says the four streams read the wrong third of the
+codebase. Reconciled, that is not three opinions — it is one week's work
+and one instruction about what not to do.
+
+**One. Ship the two halves all three critics agree on, and nothing more.**
+Both are hours, neither touches a rebuild path, and between them they are
+the entire user-visible benefit of the two best findings on the board.
+
+- The `constraints` case in `profilePatchFor`, its twin in
+  `answersFromProfile`, and one entry behind the existing "Change what I'm
+  training for" affordance on the training hub, with `constraintNote()`
+  under it. **Hold the `store.ts:1030` rebuild trigger.** All three
+  critics arrive at that independently: critic two because the rebuild
+  orphans every swap and drop, critic one because the same mechanism is
+  what makes the `household`/`partnerName` case expensive, critic three
+  because the value is in `applyConstraints` reading a field that can be
+  updated at all, and `applyConstraints` runs per session — it does not
+  need the block rebuilt to stop prescribing the squat. Without the
+  trigger this is a one-`case` change and a reused panel.
+- `DAY_LABEL` at `src/app/library.tsx:52-54`, so no card prints "1× a
+  week" over a summary that says otherwise, and the six protocols the app
+  places itself fixed by hand — `state-of-us` first, because a default
+  build booking a forty-five-minute relationship conversation every
+  Saturday against a `why` that says "minutes a year, not hours a week" is
+  the app contradicting its own evidence on somebody's calendar. Critic
+  two and critic three reach the same place from opposite directions: two
+  says the cadence primitive is a scheduler change and round 1's rule
+  requires it to be measured against the ten personas before it is
+  written; three says six by hand is an afternoon and the field is a week
+  you do not have. Both are right. The `MoneyCadence` extension, the
+  shared `occursOn` helper and the guard test go on the list for a round
+  that is not also opening a door into `buildTrainingBlock`.
+
+**Two. Remove three things.** This round found almost nothing to add and
+the removals are its real yield.
+
+- **The `habits` daily ask.** `AskId`, the branch at `dailyAsk.ts:124-133`,
+  `activeHabits` and `hasStandingHabit` from `AskInputs`, the render branch
+  at `DailyAsk.tsx:136-142`, both call sites and seven test sites. A card
+  that cannot be answered, shown every day, forever. Ship it as hygiene
+  and do not claim it frees the attention slot — `sleepTiming` still wins
+  it every day for anyone without a wearable.
+- **The `neverNag` hole in the coach push path.** Critic one's second
+  finding is the cheapest genuinely dangerous thing anybody found this
+  round: `coach: true` is the default-on category, `defendedItems`
+  (`reach.ts:63-66`) filters on area with no protocol lookup, and 27 of
+  the 85 `neverNag` protocols live in `family`/`relationship`. A push
+  asking whether somebody is going to make their bereavement practice is a
+  failure mode of a different order to anything on the board proper. The
+  filter already exists at `weeklyChanges.ts:75-85`; apply it. While in
+  the file, apply it to `detectSlotMismatch` too, which has the same hole.
+- **The scolding copy on `YourAnswers`.** Not the screen —
+  `docs/REDESIGN.md:379` gave it its job and it is the only post-setup
+  edit path in the product. The headline at `:69`, the per-row "Not
+  answered — the app is guessing" at `:87`, and the unanswered-first sort
+  at `:57-60`, all of which describe a world where the interview deferred
+  questions, and none of which survived the un-deferring.
+  `sections.ts:279` already says what this screen should say: a skip is a
+  decision, not a debt.
+
+**Three. One free line, because it is four lines away from being right.**
+`WelcomeBack.tsx:75` promises "Rebuilds this week from today" and calls
+`regeneratePlan(date)` for one day. The idiom is at
+`src/app/plan/week-shape.tsx:84`. `returning.ts` is the best-argued file
+in this codebase and the one card in the product aimed at the moment
+people delete the app; it should not be the card that does not do what its
+button says.
+
+**What not to do next, and what to do instead.** Do not run a fifth stream
+of this shape. Two rounds have now produced a strong verification layer
+and a weak generation layer: the streams audit internal consistency in a
+codebase whose docstrings already record every trade-off, so they keep
+rediscovering settled arguments and proposing fixes that walk them back.
+The next round has two targets and neither is a screen.
+
+The first is the third of the codebase nobody read — `src/lib/scheduling/`,
+`src/features/notifications/`, `src/features/roster/`. Critic one got four
+findings out of an afternoon there, including the one that explains a
+withdrawal from round 1: the night-shift redesign the tally calls "the
+most valuable thing on this board" is **already half-built**, and stranded
+behind a single import — `profileForDate` has one non-test caller while
+`quietHoursFor`, the wind-down push, `DragToMove`, `QuickAdd`,
+`item-actions` and `ReadinessCard` all read the flat profile. That is a
+finished feature nobody can reach, which is a better use of a week than
+anything on this board.
+
+The second is not a code review at all. Nobody read the funnel.
+`welcome.tsx:28` promises twelve questions and about two minutes;
+`sections.ts:155` maps thirty-seven steps across eight sections, twelve of
+which can be skipped, and nothing exists until the last one is answered.
+`track()` is already wired at `interview.tsx:58,74` and
+`plan-review.tsx:64`. Four streams argued about the typography on the
+payoff screen and not one asked how many people reach it. Ten people, a
+TestFlight build, and a note of where each of them stops will outrank this
+entire board — and will decide whether the honest answer is to make the
+welcome sentence true or to make the first six questions produce
+something.
+
+---
+
+## Acted on — the coach push hole, and the guard that nearly closed the coach
+
+Critic one's second finding was the most dangerous thing either round
+produced, and it verified exactly as written. `coach: true` is the only
+notification category on by default. `defendedItems` filtered on area with
+no protocol lookup. `say-the-loss-out-loud` — written for bereavement,
+area `relationship` — was therefore pushable as *"Say it to one person in
+45 minutes. Making it, or shall I move it?"* Its own safety line reads
+"there is no correct timeline for this."
+
+**The obvious fix was wrong, and the measurement is why.** The finding
+proposed the filter `weeklyChanges.ts` uses: skip anything `neverNag`.
+Applied to the library:
+
+```
+family + relationship protocols: 36
+  of those, neverNag:            34
+  left defendable:                2  (shared-money-agreement, money-date)
+```
+
+The wide guard silences `date-night`, `family-adventure`,
+`device-free-meal`, `partner-reunion`, `one-on-one-child` — the entire
+shelf the 17:15 defence was built for, and the practices Isaac named
+directly in the balance reframe — and leaves the family coach two money
+conversations. That is not a fix; it is switching the coach off and
+calling it safety.
+
+**What the measurement showed.** `neverNag` had been carrying two claims
+in one boolean. Its docstring says "no streak, no adherence score, no
+missed-it suggestion, **no nudge**". The first three are about the look
+back and are right for all 34. The fourth is about the look ahead and is
+wrong for almost all of them: nobody should be *scored* on a missed date
+night, and everybody should be *asked* whether they are still making it,
+because that question is the product.
+
+So the flag split. `neverNag` keeps the look back, unchanged at every
+existing call site. `neverAskAhead` is new, narrow, and reads: this
+practice refuses a schedule, so do not ask for a commitment against one.
+Five protocols carry it, each because its own copy refuses a timetable —
+`say-the-loss-out-loud`, `shrink-the-plan`, `one-small-act`,
+`one-person-a-week`, `write-it-three-times`. The test for the flag, in the
+type: *is this a commitment the person made, or a door the app left open?
+A commitment can be defended. A door is not knocked on.*
+
+Of the five, exactly one (`say-the-loss-out-loud`) sits in an area the
+coach push can reach. The dangerous case is closed and the coach keeps 33
+of its 34 blocks.
+
+**Why this is recorded rather than just shipped.** It is the fifth time
+this round that a correct-looking guard had a large hidden behavioural
+cost, and the first one that survived — because it was measured against
+the library before it was written rather than after. Four earlier
+attempts were withdrawn. The rule added to the machine after those
+withdrawals is now paying: *measure the blast radius before writing the
+finding, not after the tests fail.*
+
+`reach.test.ts` pins both halves — the practice that must stay silent, and
+the width of the shelf that must stay defendable, including an assertion
+that `neverAskAhead` has not spread across the library. If that second
+test ever fails, somebody has quietly switched the family coach off again.

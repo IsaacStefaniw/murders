@@ -1,11 +1,12 @@
 import { COACH_LEAD_MIN, LATE_MINUTES, coachNotifications, defendedItems, latenessMessage } from '@/features/coaches/reach';
+import { PROTOCOLS } from '@/features/knowledge/protocols';
 import { COACH_VOICES } from '@/features/coaches/voices';
 import {
   DEFAULT_NOTIFICATION_SETTINGS,
   plannedNotifications,
   quietHoursFor,
 } from '@/features/notifications/schedule';
-import type { DailyPlan, LifeProfile, PlanItem } from '@/types/domain';
+import type { DailyPlan, LifeProfile, PlanItem, Routine } from '@/types/domain';
 
 /**
  * A coach that can only speak to somebody already holding the phone is not
@@ -180,5 +181,117 @@ describe('the message it writes for you', () => {
   it('never signs itself, names the app, or reads as automated', () => {
     const text = latenessMessage(item());
     expect(text).not.toMatch(/IntentNorth|sent from|automatically|your coach/i);
+  });
+});
+
+/**
+ * The only notification category that is on by default was the one that
+ * skipped the guard — and then the obvious guard broke the coach.
+ *
+ * `defendedItems` filtered on area alone, so the `coach` branch (ON by
+ * default, unlike `sessions`) could push "Say it to one person in 45
+ * minutes. Making it, or shall I move it?" — an accountability question
+ * about bereavement, from an app, at a time it chose.
+ *
+ * The obvious fix was to skip anything `neverNag`. Measured against the
+ * library that silences 34 of 36 family and relationship practices,
+ * `date-night` and `family-adventure` included, because they are marked
+ * "don't score a miss" rather than "don't ask me". So the flag split, and
+ * these tests pin both halves: the one practice that must never be asked
+ * about ahead, and the width of everything that must still be defended.
+ */
+describe('a practice that refuses a schedule', () => {
+  const plan = (items: Partial<PlanItem>[]): DailyPlan =>
+    ({
+      date: '2026-09-17',
+      items: items.map((i, n) => ({
+        id: `pi-${n}`,
+        date: '2026-09-17',
+        start: '17:15',
+        end: '18:00',
+        title: 'Say it to one person',
+        area: 'relationship',
+        tier: 'should',
+        status: 'planned',
+        fixed: false,
+        ...i,
+      })),
+    }) as DailyPlan;
+
+  const routine = (over: Partial<Routine>): Routine =>
+    ({
+      id: 'r-1',
+      title: 'Say it to one person',
+      area: 'relationship',
+      days: [1, 2, 3, 4, 5],
+      durationMin: 20,
+      preferredStart: '17:15',
+      preferredEnd: '17:35',
+      energy: 'evening',
+      flexible: true,
+      protected: false,
+      tier: 'should',
+      active: true,
+      ...over,
+    }) as Routine;
+
+  it('is never defended out loud', () => {
+    const items = plan([{ routineId: 'r-1' }]);
+    const grief = [routine({ protocolId: 'say-the-loss-out-loud' })];
+    expect(defendedItems(items, grief)).toEqual([]);
+    expect(coachNotifications({ date: '2026-09-17', plan: items, profile: null, routines: grief }))
+      .toEqual([]);
+  });
+
+  /**
+   * The half the first attempt got wrong. `device-free-meal` is `neverNag`
+   * — nobody is scored on a missed family dinner — and it is exactly the
+   * block the 17:15 defence was built for.
+   */
+  it('still defends an ordinary family block, which is the whole point', () => {
+    const items = plan([{ routineId: 'r-1', title: 'Dinner together', area: 'family' }]);
+    const ordinary = [routine({ protocolId: 'device-free-meal', area: 'family' })];
+    expect(defendedItems(items, ordinary)).toHaveLength(1);
+  });
+
+  it('does not silence a block with no practice behind it', () => {
+    // A block somebody put there themselves resolves to no protocol, and
+    // an unresolvable protocol must not be read as a reason to stay quiet.
+    expect(defendedItems(plan([{ routineId: 'r-1' }]), [routine({})])).toHaveLength(1);
+    expect(defendedItems(plan([{}]), [])).toHaveLength(1);
+  });
+
+  /**
+   * The measurement that caused the split, kept as a test so the next
+   * person to reach for the wide guard sees the number first.
+   *
+   * If this ever fails because `neverAskAhead` has spread across the
+   * library, the coach has been quietly switched off again.
+   */
+  it('leaves the family shelf defendable, not two money conversations', () => {
+    const shelf = PROTOCOLS.filter((p) => p.area === 'family' || p.area === 'relationship');
+    const nagFree = shelf.filter((p) => !p.neverNag);
+    const askable = shelf.filter((p) => !p.neverAskAhead);
+
+    // What the wide guard would have left: two, both about money.
+    expect(nagFree.length).toBeLessThan(5);
+    // What the narrow one leaves.
+    expect(askable.length).toBeGreaterThan(shelf.length - 3);
+    for (const id of ['date-night', 'family-adventure', 'device-free-meal', 'partner-reunion']) {
+      expect(askable.map((p) => p.id)).toContain(id);
+    }
+  });
+
+  /**
+   * A flag this quiet is only honest if it is rare. Five practices, each
+   * one whose own copy refuses a timetable.
+   */
+  it('is applied to a handful of practices, not a category', () => {
+    const silent = PROTOCOLS.filter((p) => p.neverAskAhead);
+    expect(silent.length).toBeGreaterThan(0);
+    expect(silent.length).toBeLessThan(10);
+    // Every one of them is also never scored on a miss. The stricter flag
+    // implies the looser one, and data that says otherwise is a mistake.
+    for (const p of silent) expect(p.neverNag).toBe(true);
   });
 });

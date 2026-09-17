@@ -241,8 +241,48 @@ export interface Protocol {
    * engine reporting that they are 40% adherent, and the engine cannot know
    * not to: it learns the same way on everything. This is the protocol
    * saying, in data, that it is not that kind of practice.
+   *
+   * It is about the LOOK BACK. A miss carries no meaning, so nothing may
+   * score it, count it, or mention it afterwards. What the app is allowed
+   * to say *before* a block is a separate question — see `neverAskAhead`.
    */
   neverNag?: boolean;
+  /**
+   * Never ask ahead of this one whether they are making it.
+   *
+   * ── Why this is not `neverNag` ────────────────────────────────────────
+   *
+   * It looked like one flag. It is two, and collapsing them cost the family
+   * coach almost everything it was built for.
+   *
+   * The coach's out-of-app voice defends a block forty-five minutes before
+   * it starts: "Dinner in 45. Making it, or shall I move it?" The obvious
+   * guard — skip anything `neverNag` — silences 34 of the 36 family and
+   * relationship practices in the library, `date-night` and
+   * `family-adventure` among them. Those are the precise practices the
+   * 17:15 defence exists to protect, and they are marked `neverNag` because
+   * nobody should be scored on a missed date night, not because nobody
+   * should be asked whether they are still making it.
+   *
+   * So the two questions separate cleanly:
+   *
+   *   `neverNag`       — don't judge the miss, afterwards.
+   *   `neverAskAhead`  — don't ask for a commitment, beforehand.
+   *
+   * Most practices want the first and not the second. Dinner at six is a
+   * commitment somebody made, and defending it against work running over is
+   * the whole product. A handful want both, and they are the ones whose own
+   * copy refuses a timetable: `say-the-loss-out-loud` says outright that
+   * "there is no correct timeline for this", and `shrink-the-plan` exists
+   * to take things off somebody and *stop asking*. A push reading "Say it
+   * to one person in 45 minutes. Making it, or shall I move it?" asserts
+   * the schedule the protocol spent a paragraph refusing.
+   *
+   * The test for this flag: is this a commitment the person made, or a door
+   * the app left open? A commitment can be defended. A door is not knocked
+   * on.
+   */
+  neverAskAhead?: boolean;
   /**
    * Who this practice is for, when it is not everybody.
    *
@@ -3055,6 +3095,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'evening',
     tier: 'should',
     neverNag: true,
+    neverAskAhead: true,
     safety: 'There is no schedule you are behind on and no right way to be doing this. Cutting the plan to almost nothing for a while is a reasonable answer, not a failure. This is scheduling structure and nothing else — not therapy, not counselling, and it does not assess how you are doing. If you cannot function after several weeks, if hopelessness or numbness is not shifting, or if you are having thoughts of not wanting to be here or of harming yourself, contact your doctor today; if it feels urgent, use your local emergency number or crisis line now.',
   },
   {
@@ -3073,6 +3114,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'any',
     tier: 'could',
     neverNag: true,
+    neverAskAhead: true,
     safety: 'Small means small — a shower, a walk to the corner, one email. If planning it makes the day worse, drop it; a skipped day carries no meaning and nothing here is a measure of how you are coping. Not a stand-in for care: if you have been unable to function for weeks, or hopelessness is not lifting, that is a conversation with your doctor.',
   },
   {
@@ -3091,6 +3133,7 @@ export const PROTOCOLS: Protocol[] = [
     energy: 'evening',
     tier: 'should',
     neverNag: true,
+    neverAskAhead: true,
     safety: 'One person is the whole target, and sitting together saying nothing counts. Nobody has to talk it through, and there is no benefit to be had from being made to. If the honest answer is that there is no one, that is worth saying to your doctor, who can point you at bereavement or support services near you.',
   },
 

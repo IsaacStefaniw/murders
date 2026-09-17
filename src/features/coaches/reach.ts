@@ -39,7 +39,8 @@ import { voiceFor } from '@/features/coaches/voices';
 import { coachForArea } from '@/features/coaches/interrupt';
 import type { PlannedNotification } from '@/features/notifications/schedule';
 import { formatTime, toHHMM, toMinutes } from '@/lib/dates';
-import type { DailyPlan, LifeProfile, PlanItem } from '@/types/domain';
+import { protocolById } from '@/features/knowledge/protocols';
+import type { DailyPlan, LifeProfile, PlanItem, Routine } from '@/types/domain';
 
 /**
  * How long before the block the coach speaks.
@@ -60,9 +61,44 @@ const DEFENDED = new Set(['family', 'relationship']);
  * excludes them: they are the person's own diary, and the app did not put
  * them there.
  */
-export function defendedItems(plan: DailyPlan | null | undefined): PlanItem[] {
+export function defendedItems(
+  plan: DailyPlan | null | undefined,
+  /** Needed to resolve a practice that must never be asked about ahead. */
+  routines: Routine[] = [],
+): PlanItem[] {
+  /**
+   * ── The hole this closes, and the one the obvious fix opened ──────────
+   *
+   * This filtered on area alone and never resolved a protocol, so the one
+   * notification category that is ON by default could push
+   * `say-the-loss-out-loud` — "Say it to one person in 45 minutes. Making
+   * it, or shall I move it?" That practice is written for bereavement and
+   * its own safety line says there is no correct timeline for it. The app
+   * asserting one, on a lock screen, at a time it chose, is the worst
+   * sentence in the product.
+   *
+   * The obvious guard was `neverNag`, which `schedule.ts` uses in its
+   * `sessions` branch. Measured against the library, it is far too wide:
+   * 34 of the 36 family and relationship practices carry `neverNag`,
+   * including `date-night`, `family-adventure` and `device-free-meal`.
+   * Filtering on it leaves the family coach two money conversations to
+   * defend and silences the 17:15 defence it exists for.
+   *
+   * `neverNag` is about the look back — don't score a miss. Asking ahead
+   * of a block somebody committed to is a different question, and for
+   * almost everything here the answer is yes, please do. So the two are
+   * separate flags, and this one reads `neverAskAhead`: five practices
+   * across the library whose own copy refuses a schedule. See the type in
+   * `protocols.ts` for why they are not one flag.
+   */
+  const byId = new Map(routines.map((r) => [r.id, r]));
+  const mayAsk = (i: PlanItem): boolean => {
+    const protocolId = i.routineId ? byId.get(i.routineId)?.protocolId : undefined;
+    return !(protocolId && protocolById(protocolId)?.neverAskAhead);
+  };
   return (plan?.items ?? [])
     .filter((i) => !i.fixed && i.status === 'planned' && DEFENDED.has(i.area))
+    .filter(mayAsk)
     .slice()
     .sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
 }
@@ -79,8 +115,9 @@ export function coachNotifications(input: {
   date: string;
   plan: DailyPlan | null | undefined;
   profile: LifeProfile | null;
+  routines?: Routine[];
 }): PlannedNotification[] {
-  const item = defendedItems(input.plan)[0];
+  const item = defendedItems(input.plan, input.routines ?? [])[0];
   if (!item) return [];
 
   const at = toMinutes(item.start) - COACH_LEAD_MIN;

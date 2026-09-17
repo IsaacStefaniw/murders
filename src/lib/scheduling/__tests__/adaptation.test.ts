@@ -282,8 +282,12 @@ describe('detectShrinkToFit', () => {
  * follows.
  */
 describe('detectRegrow', () => {
-  const shrunk: Routine = { ...gym, durationMin: 20, protocolId: 'strength' };
-  const built = (r: Routine) => (r.protocolId === 'strength' ? 45 : undefined);
+  // Shrunk BY THE APP from 45 to 20 — which is the only thing that earns
+  // an offer back. A routine somebody simply built short has no
+  // `shrunkFrom` and must never be told it "was shortened when weeks were
+  // harder", which is what reading a library default used to do to every
+  // minimal-capacity person.
+  const shrunk: Routine = { ...gym, durationMin: 20, shrunkFrom: 45 };
 
   const kept = (n: number, completed: number) =>
     Array.from({ length: n }, (_, i) =>
@@ -295,17 +299,31 @@ describe('detectRegrow', () => {
     );
 
   it('offers one step back once the smaller version is sticking', () => {
-    const [s] = detectRegrow(kept(6, 6), [shrunk], built);
+    const [s] = detectRegrow(kept(6, 6), [shrunk]);
     expect(s).toBeDefined();
     const payload = s.payload as { newDurationMin: number };
     expect(payload.newDurationMin).toBe(25);
     expect(s.message).toContain('Try 25?');
   });
 
-  it('never offers past the size it was built at', () => {
+  it('never offers past the size it was shrunk from', () => {
     const nearlyBack: Routine = { ...shrunk, durationMin: 40 };
-    const [s] = detectRegrow(kept(8, 8), [nearlyBack], built);
+    const [s] = detectRegrow(kept(8, 8), [nearlyBack]);
     expect((s.payload as { newDurationMin: number }).newDurationMin).toBe(45);
+  });
+
+  it('records what it shrank from, once, and forgets it when it is back', () => {
+    const shrinkTo = (r: Routine, to: number) =>
+      applyShorten([r], {
+        id: 's', kind: 'shorten_workout', message: '', reason: '', confidence: 0.5,
+        status: 'open', createdAt: '', payload: { routineId: r.id, newDurationMin: to },
+      })[0];
+    const once = shrinkTo({ ...gym, durationMin: 45 }, 30);
+    expect(once.shrunkFrom).toBe(45);
+    // Twice, and the offer back is still to where it started.
+    expect(shrinkTo(once, 20).shrunkFrom).toBe(45);
+    // All the way back, and the record is cleared for next time.
+    expect(shrinkTo(once, 45).shrunkFrom).toBeUndefined();
   });
 
   /**
@@ -313,23 +331,39 @@ describe('detectRegrow', () => {
    * on purpose. An ask made too early is the app not believing the week.
    */
   it('waits for more evidence than a shrink needs', () => {
-    expect(detectRegrow(kept(REGROW_MIN_OBSERVATIONS - 1, 999), [shrunk], built)).toEqual([]);
+    expect(detectRegrow(kept(REGROW_MIN_OBSERVATIONS - 1, 999), [shrunk])).toEqual([]);
   });
 
   it('says nothing while the smaller version is still being missed', () => {
-    expect(detectRegrow(kept(8, 5), [shrunk], built)).toEqual([]);
+    expect(detectRegrow(kept(8, 5), [shrunk])).toEqual([]);
   });
 
-  it('says nothing about a routine that was never shrunk', () => {
-    expect(detectRegrow(kept(8, 8), [{ ...gym, protocolId: 'strength' }], built)).toEqual([]);
+  /**
+   * The bug this replaced. `buildPlan.ts:169` builds a minimal-capacity
+   * person's strength session at 30 minutes where the `strength` protocol
+   * says 45, so reading the library default announced "it was shortened
+   * when weeks were harder" to somebody who chose 30 and had already said
+   * they have the least room.
+   */
+  it('says nothing about a routine the person simply built short', () => {
+    const chosenShort: Routine = { ...gym, durationMin: 30, protocolId: 'strength' };
+    expect(detectRegrow(kept(8, 8), [chosenShort])).toEqual([]);
   });
 
-  it('says nothing about a routine with no built size to return to', () => {
-    expect(detectRegrow(kept(8, 8), [{ ...shrunk, protocolId: undefined }], built)).toEqual([]);
+  /**
+   * And the other half: the routines that really do get shrunk and carry
+   * no protocolId — Date night, Caring, Paid work — could be cut a third
+   * at a time and never offered back.
+   */
+  it('offers back a shrunk routine that never came from the library', () => {
+    const dateNight: Routine = { ...gym, title: 'Date night', durationMin: 80, shrunkFrom: 120 };
+    const [s] = detectRegrow(kept(6, 6), [dateNight]);
+    expect(s).toBeDefined();
+    expect((s.payload as { newDurationMin: number }).newDurationMin).toBe(100);
   });
 
   it('is applied by the same duration-setting action as a shrink', () => {
-    const [s] = detectRegrow(kept(6, 6), [shrunk], built);
+    const [s] = detectRegrow(kept(6, 6), [shrunk]);
     expect(applyShorten([shrunk], s)[0].durationMin).toBe(25);
   });
 });

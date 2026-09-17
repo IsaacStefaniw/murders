@@ -2384,9 +2384,7 @@ export const useAppStore = create<AppState>()(
             detectMissedTwice(history, routines),
             // Last, and the only detector that proposes making something
             // bigger. Nothing else in the app ever has — see detectRegrow.
-            detectRegrow(history, routines, (r) =>
-              r.protocolId ? protocolById(r.protocolId)?.durationMin : undefined,
-            ),
+            detectRegrow(history, routines),
           ]) {
             for (const s of detected) {
               if (claimed.has(routineIdOf(s))) continue;
@@ -2575,7 +2573,13 @@ export const useAppStore = create<AppState>()(
                 };
               }
               if (change.kind === 'shorten_routine' && change.payload?.newDurationMin) {
-                return { ...r, durationMin: change.payload.newDurationMin };
+                // Remembered on the way down so detectRegrow has something
+                // true to offer back. See Routine.shrunkFrom.
+                return {
+                  ...r,
+                  durationMin: change.payload.newDurationMin,
+                  shrunkFrom: r.shrunkFrom ?? r.durationMin,
+                };
               }
               return r;
             }),

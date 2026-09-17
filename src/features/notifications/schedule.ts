@@ -18,9 +18,14 @@
  * the scheduler's `deadline` anchor. A reminder about a late-night habit is
  * worth sending at 22:45; the same reminder at 03:00 is an alarm clock.
  *
- * Nothing about a protocol marked `neverNag`, ever. That flag says in data
- * that a practice must never generate a streak, a score, or a missed-it
- * message, and a push notification is the loudest possible version of one.
+ * Nothing about a protocol the data says not to speak about. Two flags,
+ * because they turned out to be two questions. `neverNag` means a miss
+ * carries no meaning, so no session push goes out about it — a "your
+ * window opens now" that nobody answers becomes a missed-it message by
+ * Friday. `neverAskAhead` means the practice refuses a schedule at all,
+ * so the coach will not defend it either. Both are honoured here; the
+ * coach branch applies the second inside `coaches/reach.ts`, where the
+ * choice of what to defend belongs.
  */
 
 import { behaviourInfo } from '@/features/behaviours/catalog';
@@ -204,7 +209,14 @@ export function plannedNotifications(input: ScheduleInput, now = new Date()): Pl
     // The coaches' only out-of-app voice. Everything about what to say and
     // when lives with the coaches; this module owns the cap and the quiet
     // hours, and applies both to this exactly as to everything else.
-    for (const n of coachNotifications({ date, plan: input.plan, profile })) {
+    for (const n of coachNotifications({
+      date,
+      plan: input.plan,
+      profile,
+      // Without these the `neverAskAhead` guard in `defendedItems` has
+      // nothing to resolve, and this is the ONE category on by default.
+      routines: input.routines,
+    })) {
       candidates.push({ ...n, at: pullOutOfQuiet(n.at, quiet) });
     }
   }
@@ -216,8 +228,10 @@ export function plannedNotifications(input: ScheduleInput, now = new Date()): Pl
       const routine = item.routineId ? byRoutine.get(item.routineId) : undefined;
       const protocol = routine?.protocolId ? protocolById(routine.protocolId) : undefined;
       // `neverNag` says in data that this practice must never produce a
-      // missed-it message. A push is the loudest possible one.
-      if (protocol?.neverNag) continue;
+      // missed-it message. A push is the loudest possible one, and an
+      // unanswered one is a missed-it message with a delay. `neverAskAhead`
+      // is the stricter flag and always implies this one.
+      if (protocol?.neverNag || protocol?.neverAskAhead) continue;
       if (isQuiet(item.start, quiet)) continue;
       candidates.push({
         id: `session:${item.id}`,

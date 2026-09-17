@@ -338,18 +338,17 @@ export const REGROW_RATE = 0.8;
 /** The fraction of the way back it offers in one step. */
 const REGROW_STEP = 1.25;
 
-export function detectRegrow(
-  history: PlanItem[],
-  routines: Routine[],
-  /** What the routine was built at, before anything shrank it. */
-  originalFor: (r: Routine) => number | undefined,
-): Suggestion[] {
+export function detectRegrow(history: PlanItem[], routines: Routine[]): Suggestion[] {
   const suggestions: Suggestion[] = [];
   const resolved = history.filter((i) => i.status === 'completed' || i.status === 'skipped');
 
   for (const routine of routines) {
     if (!routine.active) continue;
-    const original = originalFor(routine);
+    // Only what the APP shrank. Reading a library default here told every
+    // minimal-capacity person their session had been "shortened when weeks
+    // were harder" when they had simply chosen a shorter one — see
+    // Routine.shrunkFrom.
+    const original = routine.shrunkFrom;
     if (!original || original <= routine.durationMin) continue;
 
     const items = resolved.filter((i) => i.routineId === routine.id);
@@ -389,9 +388,23 @@ export function detectRegrow(
 export function applyShorten(routines: Routine[], suggestion: Suggestion): Routine[] {
   const payload = suggestion.payload as { routineId: string; newDurationMin: number } | undefined;
   if (suggestion.kind !== 'shorten_workout' || !payload) return routines;
-  return routines.map((r) =>
-    r.id === payload.routineId ? { ...r, durationMin: payload.newDurationMin } : r,
-  );
+  return routines.map((r) => {
+    if (r.id !== payload.routineId) return r;
+    const grew = payload.newDurationMin > r.durationMin;
+    return {
+      ...r,
+      durationMin: payload.newDurationMin,
+      // Remembered on the way down, and only the FIRST time — shrink
+      // twice and the offer back should still be to where it started.
+      // Cleared once it is all the way back, so a later shrink starts a
+      // fresh record rather than inheriting an ancient one.
+      shrunkFrom: grew
+        ? payload.newDurationMin >= (r.shrunkFrom ?? 0)
+          ? undefined
+          : r.shrunkFrom
+        : (r.shrunkFrom ?? r.durationMin),
+    };
+  });
 }
 
 /**

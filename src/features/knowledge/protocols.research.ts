@@ -400,6 +400,7 @@ export const RESEARCH_PROTOCOLS: Protocol[] = [
     energy: 'evening',
     tier: 'could',
     neverNag: true,
+    neverAskAhead: true,
     sessionType: 'journal',
     finishBeforeSleepMin: 90,
     safety: 'This is for something that has settled enough to look at, not for something you are still inside. Do not use it for recent trauma, for an ongoing situation that is frightening you, or while grief is very raw — writing straight into those without support can make things worse, and a psychologist is the right person for them. Feeling low for an hour or two afterwards is expected; feeling worse for days is a reason to stop and talk to someone. Lifeline is 13 11 14.',
@@ -421,6 +422,7 @@ export const RESEARCH_PROTOCOLS: Protocol[] = [
     energy: 'any',
     tier: 'could',
     neverNag: true,
+    neverAskAhead: true,
     safety: 'There is no correct timeline for this and nothing here is a standard to measure yourself against. If the grief is not shifting at all after many months, or if you are not safe, that is a GP or a psychologist rather than an app. Lifeline is 13 11 14, and 13YARN is 13 92 76.',
   },
   // ── Money round (25) ─────────────────────────────────────────────────

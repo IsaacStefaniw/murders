@@ -330,6 +330,26 @@ export interface Routine {
   goalId?: string;
   /** Links to the evidence-based knowledge base (features/knowledge). */
   protocolId?: string;
+  /**
+   * The length this routine had before the app shortened it.
+   *
+   * Set only by the app's own shrink paths — `applyShorten` and the weekly
+   * review's `shorten_routine`. It is the honest answer to "what should we
+   * offer to grow back to", and the only one: a routine's built length is
+   * stored nowhere, and the library default is NOT it.
+   *
+   * `detectRegrow` first read `protocolById(r.protocolId)?.durationMin`,
+   * which produced a lie for every person who told the app their capacity
+   * is minimal. `buildPlan.ts:169` builds their strength session at 30
+   * minutes where the `strength` protocol says 45, so after six kept
+   * sessions the app announced "Strength workout has been sticking at 30
+   * minutes. Try 40? It was shortened when weeks were harder" — to
+   * somebody who was never shortened, who chose 30, and who had already
+   * said they have the least room. It also meant the routines that really
+   * do get shrunk and carry no `protocolId` — Date night, Caring, Paid
+   * work — could be cut a third at a time and never offered back.
+   */
+  shrunkFrom?: number;
   days: Weekday[];
   durationMin: number;
   /** Preferred start window. The engine tries this window first. */
