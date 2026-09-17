@@ -19,6 +19,7 @@ import { CoachIntro } from '@/features/coaches/CoachIntro';
 import { coachLine } from '@/features/coaches/voices';
 import { PATHS, type PathId } from '@/features/paths/definitions';
 import { LevelCard } from '@/features/paths/LevelCard';
+import { LEVEL_BLURB, LEVEL_LABEL, levelRank, type PathLevel } from '@/features/paths/level';
 import { NextRungCard } from '@/features/paths/NextRungCard';
 import { StopProgramme } from '@/features/behaviours/StopProgramme';
 import { DeferredQuestions } from '@/features/onboarding/DeferredQuestions';
@@ -56,6 +57,8 @@ export default function PathHub() {
   const setMilestoneDone = useAppStore((s) => s.setMilestoneDone);
   const pathLevelState = useAppStore((s) => s.pathLevelState);
   const setPathLevelStepBack = useAppStore((s) => s.setPathLevelStepBack);
+  const advancePathToEarnedLevel = useAppStore((s) => s.advancePathToEarnedLevel);
+  const [stepped, setStepped] = useState<string | null>(null);
   const setPathIntensityPush = useAppStore((s) => s.setPathIntensityPush);
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -281,6 +284,48 @@ export default function PathHub() {
             pushing={levelState.pushing}
             onPush={(push) => setPathIntensityPush(def.id, push)}
           />
+          {/*
+            The rung, taken rather than merely announced.
+
+            `withLadder` reads `answers.level` and nothing ever wrote it,
+            so every pathway built at `foundation` forever while this card
+            told people they were Established. `levelProgress` even
+            promised the sequel — "the next block steps up" — and no block
+            ever stepped anywhere.
+
+            Offered, not applied. `levelProgress`'s own docstring says a
+            level that changes without warning is a bug report, and the
+            rung adds practices to somebody's week. So it is a card with a
+            button, and taking it says what it added.
+          */}
+          {levelRank(levelState.level) >
+          levelRank((entry.answers.level as PathLevel | undefined) ?? 'foundation') ? (
+            <Card style={{ marginTop: Spacing.sm }}>
+              <AppText variant="heading">
+                {LEVEL_LABEL[levelState.level]} is yours — your week has not caught up yet
+              </AppText>
+              <AppText variant="body" color="textSecondary">
+                {LEVEL_BLURB[def.id][levelState.level]}
+              </AppText>
+              <Button
+                title={`Step up to ${LEVEL_LABEL[levelState.level]}`}
+                hint="Adds what this rung asks for. Everything you are already doing stays exactly as it is."
+                onPress={() => {
+                  const added = advancePathToEarnedLevel(def.id);
+                  setStepped(
+                    added
+                      ? `Stepped up. What this rung adds is in your week from today; nothing you were already doing has moved.`
+                      : `You are already building at ${LEVEL_LABEL[levelState.level]}.`,
+                  );
+                }}
+              />
+              {stepped ? (
+                <AppText variant="caption" color="accent">
+                  {stepped}
+                </AppText>
+              ) : null}
+            </Card>
+          ) : null}
         </>
       ) : null}
 

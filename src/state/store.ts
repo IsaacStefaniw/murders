@@ -72,6 +72,7 @@ import {
 } from '@/features/work/programme';
 import {
   completionEvidence,
+  levelRank,
   levelFor,
   levelProgress,
   type LevelEvidence,
@@ -369,6 +370,19 @@ export interface AppState {
   removeCardioLog: (id: string) => void;
 
   addGoal: (goal: Goal, routines: Routine[]) => void;
+  /**
+   * Take the rung the log has earned, and actually build at it.
+   *
+   * The level a pathway BUILDS from and the level it SHOWS were two
+   * different numbers, and only one of them ever moved. `withLadder` reads
+   * `answers.level`, which nothing in the codebase ever wrote — it was
+   * read in exactly one place and assigned in none — so every pathway,
+   * for every person, forever, was built at `foundation`, while the Level
+   * card told them they were Established.
+   *
+   * Returns true when something was added, so the caller can say what.
+   */
+  advancePathToEarnedLevel: (path: PathId) => boolean;
   /** Toggle a knowledge-base protocol on the plan. Returns true if now active. */
   toggleProtocol: (protocolId: string) => boolean;
 
@@ -2036,13 +2050,22 @@ export const useAppStore = create<AppState>()(
           set({ workBlock: buildExecutiveBlock(deriveWorkInputs(profile, paths.work?.answers)) });
         },
 
-        startPath: (id, answers) => {
+        startPath: (id, rawAnswers) => {
           const def = PATHS[id];
           const { paths, profile } = get();
           // Retaking a path retires the old program cleanly first.
           const previous = paths[id];
           if (previous) get().setGoalStatus(previous.goalId, 'dropped');
 
+          // Record the rung this build was made at, so `advancePathToEarnedLevel`
+          // can tell later whether the ladder has moved past it. Without a
+          // stamp the two ladders cannot even be compared — which is how
+          // one of them sat at `foundation` forever.
+          const startingLevel: PathLevel =
+            paths[id] || Object.keys(get().plans).length > 0
+              ? get().pathLevelState(id).level
+              : 'foundation';
+          const answers: Record<string, string> = { ...rawAnswers, level: startingLevel };
           const plan = def.build(answers, profile);
           get().addGoal(plan.goal, plan.routines);
           // The recovery path protects a behaviour — make sure its
@@ -2099,6 +2122,61 @@ export const useAppStore = create<AppState>()(
           if (id === 'work' && workBlock && profile) {
             set({ workBlock: retargetBlock(workBlock, deriveWorkInputs(profile, answers)) });
           }
+        },
+
+        advancePathToEarnedLevel: (id) => {
+          const entry = get().paths[id];
+          const profile = get().profile;
+          if (!entry || !profile) return false;
+
+          /**
+           * ── The two ladders that never met ────────────────────────────
+           *
+           * `pathLevelState` computes the rung from the log and the Level
+           * card prints it. `levelFromAnswers` (definitions.ts:120) reads
+           * `answers.level` and hands it to `withLadder`, which is what
+           * actually decides the practices in somebody's week.
+           *
+           * Nothing ever wrote `answers.level`. It is read in one place
+           * and assigned in none, so `levelFromAnswers` returned
+           * `'foundation'` for every person on every pathway forever, and
+           * `withLadder` — whose own docstring says it exists because "an
+           * audit of 7,000 profiles found 100% of builds identical across
+           * all four levels ... LEVEL_BLURB promised the user something
+           * specific changed at each rung and nothing did" — reintroduced
+           * that exact defect one layer up, by never being told the rung.
+           *
+           * So somebody twelve weeks in was told Established and handed
+           * the foundation programme.
+           *
+           * ── Why this ADDS rather than rebuilds ────────────────────────
+           *
+           * `withLadder` merges against what is already in the plan, and
+           * `mergeRoutines` dedupes on identity. So building at the higher
+           * rung yields the foundation practices the person already has
+           * plus the rung's additions, and merging it keeps everything
+           * they have been doing. A rebuild that replaced the plan would
+           * charge somebody for their own consistency.
+           *
+           * The goal does not change either — same goal, further along —
+           * so the new routines are re-pointed at the goal that already
+           * exists rather than a new one being minted beside it.
+           */
+          const earned = get().pathLevelState(id).level;
+          const builtAt = (entry.answers.level as PathLevel | undefined) ?? 'foundation';
+          if (levelRank(earned) <= levelRank(builtAt)) return false;
+
+          const answers = { ...entry.answers, level: earned };
+          const plan = PATHS[id].build(answers, profile);
+          const owned = plan.routines.map((r) => ({ ...r, goalId: entry.goalId }));
+          const before = get().routines.length;
+          set({
+            routines: mergeRoutines(get().routines, owned),
+            paths: { ...get().paths, [id]: { ...entry, answers } },
+          });
+          const today = todayKey();
+          for (let i = 0; i <= 6; i++) get().regeneratePlan(addDays(today, i));
+          return get().routines.length > before;
         },
 
         toggleProtocol: (protocolId) => {
