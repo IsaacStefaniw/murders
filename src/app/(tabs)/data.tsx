@@ -383,15 +383,25 @@ export default function Data() {
           <SectionHeader title="How it's going" />
           <Card style={styles.stack}>
             <Stat label="Days using IntentNorth" value={String(cohort.daysSince)} />
+            {/*
+              These two were "Plans you kept" as a percentage and "Weeks in
+              a row with something done" — an adherence rate and a streak,
+              eighty lines below this screen's own caption saying it has
+              neither. Both now say the same thing without scoring anybody:
+              a count, and what it is out of.
+            */}
             <Stat
-              label="Plans you kept"
+              label="Things you planned, and did"
               value={
                 cohort.completionRate === null
                   ? '—'
-                  : `${Math.round(cohort.completionRate * 100)}%`
+                  : `${cohort.weeks.reduce((n, w) => n + w.completed, 0)} of ${cohort.weeks.reduce((n, w) => n + w.resolved, 0)}`
               }
             />
-            <Stat label="Weeks in a row with something done" value={String(cohort.activeWeekStreak)} />
+            <Stat
+              label="Weeks with something done"
+              value={`${cohort.activeWeeks} of ${cohort.weeks.length}`}
+            />
             {cohort.daysToFirstWin !== null ? (
               <Stat label="Days to your first win" value={String(cohort.daysToFirstWin)} />
             ) : null}

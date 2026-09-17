@@ -50,6 +50,34 @@ export function ItemGuidanceView({ item }: { item: PlanItem }) {
               : (GRADE_NOTE[guidance.how.evidenceLevel] ?? guidance.how.evidenceLevel)}
             {guidance.how.attribution.length > 0 ? ` · ${guidance.how.attribution.join(', ')}` : ''}
           </AppText>
+          {/*
+            The steps, at the rack rather than on the browse tab.
+            `HOW_TO` existed and rendered in exactly one place: the Library
+            screen, which somebody opens when they are curious — not at
+            06:40 holding a dumbbell, which is the moment this whole app is
+            built around.
+
+            Under the summary and above the caution, because the order is
+            what it is, how to do it, then what to watch for. Not behind a
+            disclosure here, unlike the library: this view is ALREADY the
+            disclosure — somebody has tapped a row to ask "what is this,
+            actually" — and a second tap to reach the answer is the browse
+            tab's problem repeated one level down.
+          */}
+          {guidance.how.steps ? (
+            <View style={styles.steps}>
+              {guidance.how.steps.steps.map((step, i) => (
+                <AppText key={step} variant="secondary" style={styles.step}>
+                  {i + 1}. {step}
+                </AppText>
+              ))}
+              {guidance.how.steps.example ? (
+                <AppText variant="caption" color="textTertiary" style={styles.step}>
+                  {guidance.how.steps.example}
+                </AppText>
+              ) : null}
+            </View>
+          ) : null}
           {guidance.how.safety ? (
             <AppText variant="caption" color="must">
               {guidance.how.safety}
@@ -71,4 +99,6 @@ export function ItemGuidanceView({ item }: { item: PlanItem }) {
 const styles = StyleSheet.create({
   wrap: { gap: Spacing.sm, paddingBottom: Spacing.sm },
   block: { gap: Spacing.xs },
+  steps: { gap: Spacing.xs, paddingTop: Spacing.xs },
+  step: { lineHeight: 20 },
 });

@@ -40,6 +40,58 @@ describe('what a block can tell you', () => {
     expect(g.bare).toBe(false);
   });
 
+  /**
+   * `HOW_TO` was written, tested, and rendered in exactly one place: the
+   * Library tab, behind a disclosure, on a browse screen. It was absent
+   * from the moment the plan meets the week — which is the only moment
+   * this product claims to be for. Somebody opening "Zone 2, 40 min" at
+   * 06:40 got a title, a sentence and an evidence grade, while the
+   * instructions for doing the thing sat on another screen.
+   */
+  it('carries the steps to the block, not only to the browse tab', () => {
+    const routine: Routine = {
+      id: 'r-fibre',
+      title: 'Thirty grams of fibre',
+      area: 'health',
+      protocolId: 'fibre-30',
+      days: [1],
+      durationMin: 10,
+      preferredStart: '07:00',
+      preferredEnd: '08:00',
+      energy: 'morning',
+      flexible: true,
+      protected: false,
+      tier: 'should',
+      active: true,
+    };
+    const g = guidanceFor(item({ routineId: 'r-fibre' }), [routine], []);
+    expect(g.how!.steps).toBeDefined();
+    expect(g.how!.steps!.steps.length).toBeGreaterThan(2);
+  });
+
+  it('says nothing where no steps were written, rather than inventing any', () => {
+    // Most of the library has none, and a fabricated method is worse than
+    // an honest absence — the summary and the evidence still show.
+    const routine: Routine = {
+      id: 'r-light',
+      title: 'Morning light',
+      area: 'health',
+      protocolId: 'morning-light',
+      days: [1],
+      durationMin: 10,
+      preferredStart: '06:45',
+      preferredEnd: '08:00',
+      energy: 'morning',
+      flexible: true,
+      protected: false,
+      tier: 'should',
+      active: true,
+    };
+    const g = guidanceFor(item({ routineId: 'r-light' }), [routine], []);
+    expect(g.how).not.toBeNull();
+    expect(g.how!.summary.length).toBeGreaterThan(0);
+  });
+
   it('names the goal and the rung the block is moving', () => {
     const goal: Goal = {
       id: 'g1',

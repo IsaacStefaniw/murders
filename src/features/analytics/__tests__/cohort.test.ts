@@ -59,7 +59,7 @@ describe('metrics derived rather than collected', () => {
     expect(m.weeks[0].completed).toBe(0);
   });
 
-  it('does not break a streak just because a new week started this morning', () => {
+  it('does not count the week in progress against anybody', () => {
     const m = computeCohortMetrics(
       profile,
       plansFrom({
@@ -68,7 +68,32 @@ describe('metrics derived rather than collected', () => {
       }),
       '2026-01-19', // day 14 — a fresh week with nothing in it yet
     )!;
-    expect(m.activeWeekStreak).toBe(2);
+    // Counting the week in progress would drop this number every Monday
+    // morning before anybody had done anything.
+    expect(m.activeWeeks).toBe(2);
+  });
+
+  /**
+   * This used to be `activeWeekStreak`, counting back from the most recent
+   * complete week and stopping at the first zero. It reset, and it was
+   * rendered on the Progress tab eighty lines under a caption reading "Not
+   * a streak — a missed Tuesday is a missed Tuesday, not a reset to zero."
+   */
+  it('does not erase the good weeks because one week was bad', () => {
+    const m = computeCohortMetrics(
+      profile,
+      plansFrom({
+        '2026-01-06': [item('Walk', 'completed')],
+        '2026-01-13': [item('Walk', 'completed')],
+        // Week three: planned, and it did not happen.
+        '2026-01-20': [item('Walk', 'planned')],
+        '2026-01-27': [item('Walk', 'completed')],
+      }),
+      '2026-02-05',
+    )!;
+    // A streak would say 1. The bad week costs one week, which is what a
+    // bad week actually costs.
+    expect(m.activeWeeks).toBe(3);
   });
 
   it('shares numbers and nothing that identifies anyone', () => {

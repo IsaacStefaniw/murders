@@ -15,6 +15,7 @@ import { weeklyNarrative } from '@/lib/ai/agents';
 import { todayKey, weekStartOf } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 import { reviewPeriod } from '@/features/review/period';
+import type { WeeklyReview } from '@/types/domain';
 
 /**
  * The week's read, and what IntentNorth would change about the next one.
@@ -25,6 +26,19 @@ import { reviewPeriod } from '@/features/review/period';
  * asks: how did that go, and what should change. So it lives here now, and
  * the tab bar lost the word that needed explaining.
  */
+/**
+ * The two counts behind what used to be a percentage.
+ *
+ * Read back out of `completionByArea`, which already holds both halves per
+ * area — so nothing new is computed and nothing can drift from the rate
+ * the highlights are chosen with.
+ */
+const resolved = (stats: WeeklyReview['stats']): number =>
+  Object.values(stats.completionByArea).reduce((n, a) => n + a.planned, 0);
+
+const done = (stats: WeeklyReview['stats']): number =>
+  Object.values(stats.completionByArea).reduce((n, a) => n + a.completed, 0);
+
 export function WeeklyReviewPanel() {
   const router = useRouter();
   // "Next week" on a Monday means the week you are standing in. The panel
@@ -138,8 +152,17 @@ export function WeeklyReviewPanel() {
               ))}
             </View>
           ) : null}
+          {/*
+            Was "{n}% of planned activities happened". `completionRate`
+            still exists and still drives which area gets named a
+            highlight — a rate is the right tool for comparing areas to
+            each other. It is the wrong thing to show a person about their
+            own week, because it is an adherence grade, and because it
+            punishes the bigger week: eight of twelve reads as 67, three of
+            three as 100.
+          */}
           <AppText variant="caption" color="textTertiary" style={styles.reviewSection}>
-            {Math.round(review.data.stats.completionRate * 100)}% of planned activities happened ·{' '}
+            {done(review.data.stats)} of {resolved(review.data.stats)} planned things happened ·{' '}
             {review.data.stats.checkInsCompleted} check-ins
           </AppText>
 

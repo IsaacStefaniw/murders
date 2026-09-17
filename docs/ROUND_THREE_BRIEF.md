@@ -129,15 +129,35 @@ number instead of spending a turn finding it:
   carrying a how-to of any kind:         0   ← there is no such field
 ```
 
+**Correction, written after the round ran.** The last line of that audit
+was wrong, and the protocol reviewer caught it. There is no `howTo` FIELD,
+which is what I checked — but there is a `HOW_TO` map in
+`features/knowledge/howTo.ts` holding numbered, first-attempt steps for 22
+practices, with a worked example where a target needs one. It is good
+writing and it was already tested.
+
+It rendered in exactly one place: the Library tab, behind a disclosure, on
+a browse screen somebody opens when they are curious. It was absent from
+the moment the plan meets the week — the only moment this product claims
+to be for. Somebody opening "Zone 2, 40 min" at 06:40 got a title, a
+sentence and an evidence grade, while the instructions for doing the thing
+sat on a different screen. It is now shown in the Today item detail too.
+
+Which makes the real finding better than the one this brief set up: the
+missing half was not unwritten, it was written and not delivered. The rest
+of the section stands, and the open question sharpens — 22 of 323 is not
+an answer anybody should be satisfied with.
+
 So the explanation Isaac is asking about is not missing — it does not
-exist as a concept. Every protocol says what to do in one sentence and why
+exist as a concept for most of the library. Every protocol says what to do in one sentence and why
 it works in a paragraph. **Neither of those tells somebody how to actually
 do it.** "Zone 2" has a beautiful `why` and a one-line `summary`, and a
 person who has never done it still cannot do it.
 
-That is pending work item §2.1 ("render the protocol how-to in the Today
-item detail"), which has been open since before either round, and it turns
-out the blocker is not the screen — it is that there is nothing to render.
+That was pending work item §2.1 ("render the protocol how-to in the Today
+item detail"), open since before either round. The blocker was never the
+screen and never the writing — the steps existed and the detail view was
+already there. They had simply never been connected. Now done.
 The question for the review is not "are explanations missing" (measured:
 they are not) but **"is one sentence and a paragraph of evidence enough to
 act on, and for which protocols is it plainly not?"**

@@ -23,6 +23,7 @@
  * beside this file asserts that the generator never produces one.
  */
 
+import { howToFor, type HowTo } from '@/features/knowledge/howTo';
 import { isBalance, protocolById } from '@/features/knowledge/protocols';
 import type { EvidenceLevel } from '@/features/knowledge/protocols';
 import type { Goal, PlanItem, Routine } from '@/types/domain';
@@ -38,6 +39,19 @@ export interface ItemHow {
   balance?: string;
   attribution: string[];
   safety?: string;
+  /**
+   * The numbered steps, for the practices that have them.
+   *
+   * `HOW_TO` was written, tested and rendered in exactly one place: the
+   * Library tab, behind a disclosure, on a browse screen somebody visits
+   * when they are curious. It was absent from the one place this app says
+   * everything is FOR — the moment the plan meets the week.
+   *
+   * Somebody opening "Zone 2, 40 min" at 06:40 got a title, a sentence and
+   * an evidence grade. The instructions for doing the thing existed, on a
+   * different screen, and nothing on this one said so.
+   */
+  steps?: HowTo;
 }
 
 export interface ItemGuidance {
@@ -65,6 +79,7 @@ export function guidanceFor(
         balance: isBalance(protocol) ? protocol.balance : undefined,
         attribution: protocol.attribution,
         safety: protocol.safety,
+        steps: howToFor(protocol.id),
       }
     : null;
 

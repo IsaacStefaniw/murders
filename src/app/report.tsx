@@ -79,7 +79,6 @@ export default function WeekReportScreen() {
     );
   }
 
-  const rate = report.planned > 0 ? Math.round((report.done / report.planned) * 100) : 0;
 
   return (
     <Screen>
@@ -107,10 +106,27 @@ export default function WeekReportScreen() {
             milestones moved
           </AppText>
         </Card>
+        {/*
+          This was "{rate}% of plans kept", set in `title` — the largest
+          type on the screen — three lines under a subtitle reading "No
+          grades — just what happened". It was the biggest numeral in the
+          product and it was an adherence score, which is the one thing
+          this app says it will never do to anybody.
+
+          A percentage also punishes the wrong person twice. Somebody who
+          planned twelve things and did eight is shown 67; somebody who
+          planned three and did three is shown 100. The first had the
+          bigger week. A rate rewards planning less, which is the opposite
+          of what this product is for.
+
+          So: a count and its denominator, in the app's own idiom — the
+          same shape as "12 of 28" on the Progress tab. Eight of twelve is
+          a fact about a week. Sixty-seven per cent is a grade.
+        */}
         <Card style={styles.stat}>
-          <AppText variant="title">{report.planned > 0 ? `${rate}%` : '—'}</AppText>
+          <AppText variant="title">{report.planned > 0 ? String(report.planned) : '—'}</AppText>
           <AppText variant="caption" color="textTertiary">
-            of plans kept
+            things planned
           </AppText>
         </Card>
       </View>

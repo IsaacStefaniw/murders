@@ -67,8 +67,21 @@ export interface CohortMetrics {
   retainedWeek4: boolean;
   /** Completion rate across everything resolved, 0..1. Null before any. */
   completionRate: number | null;
-  /** Consecutive weeks, most recent first, with at least one completion. */
-  activeWeekStreak: number;
+  /**
+   * Weeks with at least one completion — the total, not a run.
+   *
+   * It was `activeWeekStreak`, counting back from the most recent complete
+   * week and stopping at the first zero. That is a streak, it resets, and
+   * it was rendered on the Progress tab eighty lines below a caption
+   * reading "Not a streak — a missed Tuesday is a missed Tuesday, not a
+   * reset to zero."
+   *
+   * The reset is the whole objection. Somebody eleven weeks in who had one
+   * bad week in August was shown a 3, and the eight good weeks before it
+   * stopped existing. A total cannot do that: a bad week costs one week,
+   * which is what a bad week actually costs.
+   */
+  activeWeeks: number;
 }
 
 const MS_PER_DAY = 86_400_000;
@@ -157,16 +170,12 @@ export function computeCohortMetrics(
     weeks.push({ index: i + 1, from, to, activeDays, completed, resolved });
   }
 
-  // Streak counts back from the most recent COMPLETE week. The week in
-  // progress is not yet a week, and letting it count would show a streak
-  // breaking every Monday morning before anyone had done anything.
+  // Counted over COMPLETE weeks only. The week in progress is not yet a
+  // week, and counting it would show the number drop every Monday morning
+  // before anybody had done anything.
   const complete = weeks.filter((w) => w.to <= today && daysBetween(w.to, today) >= 0);
   const finished = complete.filter((w) => daysBetween(w.to, today) > 0);
-  let activeWeekStreak = 0;
-  for (let i = finished.length - 1; i >= 0; i -= 1) {
-    if (finished[i].completed > 0) activeWeekStreak += 1;
-    else break;
-  }
+  const activeWeeks = finished.filter((w) => w.completed > 0).length;
 
   return {
     since,
@@ -177,7 +186,7 @@ export function computeCohortMetrics(
     retainedWeek1: (weeks[0]?.completed ?? 0) > 0,
     retainedWeek4: (weeks[3]?.completed ?? 0) > 0,
     completionRate: resolvedAll > 0 ? completedAll / resolvedAll : null,
-    activeWeekStreak,
+    activeWeeks,
   };
 }
 
@@ -201,7 +210,7 @@ export function shareableSummary(m: CohortMetrics | null, weekShape?: string): s
     `Week shape: ${weekShape ?? 'unspecified'}`,
     `First win after: ${m.daysToFirstWin === null ? 'not yet' : `${m.daysToFirstWin} day${m.daysToFirstWin === 1 ? '' : 's'}`}`,
     `Completion rate: ${pct}`,
-    `Active weeks in a row: ${m.activeWeekStreak}`,
+    `Weeks with something done: ${m.activeWeeks} of ${m.weeks.length}`,
     `Week 1 active: ${m.retainedWeek1 ? 'yes' : 'no'}`,
     m.weeks.length >= 4 ? `Week 4 active: ${m.retainedWeek4 ? 'yes' : 'no'}` : null,
     `Weekly active days: ${m.weeks.map((w) => w.activeDays).join(', ')}`,
