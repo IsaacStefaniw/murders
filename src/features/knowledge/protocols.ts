@@ -3979,6 +3979,28 @@ export function evidenceRankFor(routines: Routine[]): Record<string, number> {
 }
 
 /** A protocol as a schedulable routine, anchored to the user's real day. */
+
+/**
+ * Whether the hour is part of what this practice IS.
+ *
+ * Explicit where a protocol says so; otherwise any anchor that is not a
+ * bare clock time — wake, sleep, the start of the work day — because those
+ * are relative to something real about the person's day and moving them
+ * off it changes the practice. A fixed 12:45 message to a friend is still
+ * that message at 20:00; breakfast at 16:00 is not breakfast.
+ *
+ * Exported because it was inlined in `toRoutine` and the ladder needed the
+ * same answer. `paths/programme.ts` built "Protein at breakfast" as a
+ * hand-written copy of `protein-breakfast` with no link, so the scheduler
+ * gave it infinite drift and put it at four in the afternoon. Reading
+ * `anchor.timeAnchored` directly is not enough and was the first thing I
+ * got wrong fixing it: wake-anchored protocols carry no such field, and
+ * the rule that makes them anchored lived here.
+ */
+export function anchoredToTheClock(p: Protocol): boolean {
+  return p.anchor.timeAnchored ?? p.anchor.kind !== 'fixed';
+}
+
 export function toRoutine(p: Protocol, profile: LifeProfile | null, goalId?: string): Routine {
   const start = startFor(p, profile);
   const days =
@@ -4000,7 +4022,7 @@ export function toRoutine(p: Protocol, profile: LifeProfile | null, goalId?: str
     flexible: !p.duringWork && !p.anchor.deadline,
     // Anything hung off waking or sleeping is tied to the body clock, so it
     // is time-anchored by definition; a fixed anchor has to declare it.
-    timeAnchored: p.anchor.timeAnchored ?? p.anchor.kind !== 'fixed',
+    timeAnchored: anchoredToTheClock(p),
     protected: false,
     finishBeforeSleepMin: p.finishBeforeSleepMin,
     duringWork: p.duringWork,

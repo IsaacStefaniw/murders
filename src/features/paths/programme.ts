@@ -34,6 +34,7 @@
  * indistinguishable from a bug.
  */
 
+import { anchoredToTheClock, protocolById } from '@/features/knowledge/protocols';
 import { newId } from '@/lib/dates';
 import type { GoalMilestone, LifeProfile, Routine, SessionType, Weekday } from '@/types/domain';
 
@@ -82,6 +83,36 @@ export interface RungRoutine {
   duringWork?: boolean;
   /** See Routine.anchorToWorkEnd. */
   anchorToWorkEnd?: boolean;
+  /**
+   * The hour is part of what this IS, not merely when it suits.
+   *
+   * ── Protein at breakfast, at four in the afternoon ────────────────────
+   *
+   * Isaac, from his own plan: "Protein at breakfast is showing at 4pm."
+   *
+   * `engine.ts` is explicit about why:
+   *
+   *     const drift = routine.timeAnchored ? bounded : Infinity;
+   *
+   * with the comment "any hour will do, and an errand done at 20:00
+   * instead of 12:45 is still the errand". That is right for an errand and
+   * wrong for a meal, and nothing in the ladder ever said which was which:
+   * of twenty-four rung routines, not one carried `timeAnchored`, so every
+   * one of them had infinite drift. When the morning filled up, breakfast
+   * went wherever there was room.
+   *
+   * A protocol declares this for itself, and a rung that names one now
+   * inherits it — which is the better fix where it applies, because the
+   * protocol also brings its safety line, its evidence grade and its
+   * how-to. This flag is for the rungs that have no protocol behind them
+   * and are still shaped by the clock.
+   *
+   * Used sparingly on purpose. Anchoring everything would make the
+   * scheduler brittle in the other direction; most rungs are reviews and
+   * planning blocks, and a review at ten instead of five is still the
+   * review.
+   */
+  timeAnchored?: boolean;
 }
 
 const WEEKEND: Weekday[] = [6];
@@ -196,6 +227,23 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       routines: [
         {
           title: 'Protein at breakfast',
+          /**
+           * The library already had this practice and the rung was a
+           * hand-written copy of it, linked to nothing.
+           *
+           * That cost three things at once. No time anchoring, so the
+           * scheduler gave it infinite drift and put breakfast at four in
+           * the afternoon when the morning filled up. No safety line —
+           * `protein-breakfast` carries one about kidney disease and
+           * disordered eating, and the block that reached a person's week
+           * carried none of it. And no evidence grade or how-to, because
+           * both hang off the protocol id.
+           *
+           * Naming the practice fixes all three and keeps the rung's own
+           * window, which is what makes it a breakfast rather than a
+           * wake-time default.
+           */
+          protocolId: 'protein-breakfast',
           durationMin: 10,
           days: [1, 2, 3, 4, 5, 6, 0],
           preferredStart: '07:00',
@@ -212,6 +260,11 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       routines: [
         {
           title: 'Weekly weigh-in — the trend, not the number',
+          // The whole value is a trend, and a trend built from a 7am
+          // reading one week and a 9pm reading the next is noise: a day's
+          // food and water is a kilo or more. Same hour or it measures
+          // nothing.
+          timeAnchored: true,
           durationMin: 5,
           days: WEEKEND,
           preferredStart: '07:00',
@@ -426,6 +479,10 @@ const LADDER: Record<PathId, Record<PathLevel, Rung>> = {
       routines: [
         {
           title: 'Evening check — did the moment come, what happened',
+          // "Evening" is not a preference here, it is the practice: the
+          // check asks what happened TODAY, and a day is not over at two
+          // in the afternoon.
+          timeAnchored: true,
           // The evening check IS the urge log: one line per urge, written
           // before any judgement, which is the best-supported single
           // ingredient in this area. The rung used to be an empty block
@@ -754,6 +811,25 @@ export function ladderFor(
         flexible: !r.protectedBlock,
         protected: r.protectedBlock === true,
         protocolId: r.protocolId,
+        /**
+         * Inherited from the practice where there is one, declared by the
+         * rung where there is not.
+         *
+         * `ladderFor` copied `protocolId` and then dropped the one fact
+         * that stops the scheduler treating a meal like an errand. A rung
+         * naming `protein-breakfast` still built a block with infinite
+         * drift, because the anchoring lives on the protocol and nothing
+         * carried it across.
+         */
+        timeAnchored: (() => {
+          if (r.timeAnchored !== undefined) return r.timeAnchored;
+          const p = r.protocolId ? protocolById(r.protocolId) : undefined;
+          // `anchoredToTheClock`, not `anchor.timeAnchored`: a wake- or
+          // sleep-anchored protocol carries no such field and is anchored
+          // all the same. Reading the field directly was the first thing I
+          // got wrong here.
+          return p ? anchoredToTheClock(p) : undefined;
+        })(),
         sessionType: r.sessionType,
         duringWork: r.duringWork,
         anchorToWorkEnd: r.anchorToWorkEnd,
