@@ -15,6 +15,7 @@ import {
   MARK_STATUS,
   dayResult,
   dayRows,
+  dayAlsoHeld,
   dayTold,
   tomorrowFirst,
   unresolvedRows,
@@ -84,6 +85,22 @@ export default function DayReview() {
   const rows = useMemo(() => dayRows(plans[date]), [plans, date]);
   const open = useMemo(() => unresolvedRows(plans[date]), [plans, date]);
   const told = useMemo(() => dayTold(rows), [rows]);
+  /**
+   * What the day held that was not on the plan.
+   *
+   * Without this the screen whose entire job is the truth about today
+   * could not see a logged drink — and worse, reported the urge protocol
+   * as Done because its plan item had been ticked earlier in the evening.
+   * A review run as the target persona logged a drink at 21:50 and was
+   * told, four minutes later, that the thing designed to prevent it had
+   * happened.
+   */
+  const behaviourEvents = useAppStore((s) => s.behaviourEvents);
+  const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
+  const alsoHeld = useMemo(
+    () => dayAlsoHeld(behaviourEvents, behaviourIntentions, date),
+    [behaviourEvents, behaviourIntentions, date],
+  );
   const result = useMemo(() => dayResult(plans, date), [plans, date]);
   const next = useMemo(() => tomorrowFirst(plans, date), [plans, date]);
   const [instead, setInstead] = useState(false);
@@ -116,6 +133,13 @@ export default function DayReview() {
       <AppText variant="title" style={styles.told}>
         {told.headline}
       </AppText>
+      {/* Counted, never judged. The aftermath flow owns the response; this
+          screen's job is only to not lie by omission. */}
+      {alsoHeld ? (
+        <AppText variant="secondary" color="textSecondary">
+          {alsoHeld}
+        </AppText>
+      ) : null}
       {told.note ? (
         <AppText variant="secondary" style={styles.note}>
           {told.note}

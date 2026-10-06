@@ -331,6 +331,22 @@ export default function Today() {
   const claimed = claimAttention(available);
   const heldBack = waiting(available);
 
+  /**
+   * Does the plan actually have training on it today?
+   *
+   * Read from the day's own items rather than from the routine list, so a
+   * session moved into today counts and one moved out of it does not.
+   */
+  const trainingToday = useMemo(
+    () =>
+      (plan?.items ?? []).some((i) => {
+        if (i.sessionType === 'workout') return true;
+        const routine = i.routineId ? routines.find((r) => r.id === i.routineId) : undefined;
+        return routine?.sessionType === 'workout';
+      }),
+    [plan, routines],
+  );
+
   if (!profile || !plan) return <Screen tabbed />;
 
   const pending = plan.items.filter((i) => i.status === 'planned' && meaningful(i));
@@ -418,7 +434,27 @@ export default function Today() {
         <Chip label="Journal" onPress={() => router.push('/session/journal' as never)} />
         <Chip label="Meditate" onPress={() => router.push('/session/meditate' as never)} />
         <Chip label="Plan meals" onPress={() => router.push('/session/meals' as never)} />
-        <Chip label="Train" onPress={() => router.push('/session/workout' as never)} />
+        {/*
+          Only when today is actually a training day.
+
+          This chip was unconditional, and `/session/workout` builds a
+          stock strength session whatever the plan says — so on a Tuesday
+          the routines screen records as NOT a lifting day, the app would
+          hand over a full strength session headed "It's all decided."
+
+          A review run as the target persona found both screens and lost
+          confidence in the product at that point, which is the correct
+          response: an intermediate lifter who catches the app asserting
+          authority over a session its own scheduler never scheduled has
+          no reason to trust the next thing it says.
+
+          The chip stays for the days training IS on, because an "any
+          time" entrance to the session is useful — it is the claim of
+          authority on the wrong day that was the problem.
+        */}
+        {trainingToday ? (
+          <Chip label="Train" onPress={() => router.push('/session/workout' as never)} />
+        ) : null}
       </View>
     </View>
   );

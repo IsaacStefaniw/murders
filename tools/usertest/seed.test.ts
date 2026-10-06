@@ -128,6 +128,31 @@ it('writes a lived week per persona', () => {
       user.rng,
     );
 
+    /**
+     * Today has not happened yet.
+     *
+     * The simulation lives through its last day, so the snapshot arrives
+     * with that evening's items already marked completed or skipped. A
+     * reviewer opening at 06:40 was therefore told, at breakfast, that
+     * they had skipped tonight's walk — and reported it as the product
+     * pre-resolving the day, which is a reasonable reading of a screen
+     * that genuinely said that.
+     *
+     * It was the harness, not the app. The fix belongs here rather than in
+     * the brief: the last day is reset to `planned` so the reviewer meets
+     * a day that is still ahead of them, which is the only kind of day
+     * anybody opens an app at breakfast to look at. Everything before
+     * today keeps its real outcomes — that history is the point.
+     */
+    const plans = { ...snap.plans };
+    const today = plans[snap.lastDate];
+    if (today) {
+      plans[snap.lastDate] = {
+        ...today,
+        items: today.items.map((i) => ({ ...i, status: 'planned' as const })),
+      };
+    }
+
     const state = {
       onboarded: true,
       // Plus on, because a reviewer blocked by a paywall is reviewing the
@@ -140,7 +165,7 @@ it('writes a lived week per persona', () => {
       },
       profile: snap.profile,
       routines: snap.routines,
-      plans: snap.plans,
+      plans,
       goals: snap.goals,
       behaviourIntentions: intentions,
       behaviourEvents: events,

@@ -36,7 +36,14 @@
  * where it would be easiest to break the promise.
  */
 
-import type { DailyPlan, PlanItem, PlanItemStatus } from '@/types/domain';
+import type {
+  BehaviourEvent,
+  BehaviourIntention,
+  DailyPlan,
+  PlanItem,
+  PlanItemStatus,
+} from '@/types/domain';
+import { behaviourInfo } from '@/features/behaviours/catalog';
 import { addDays, durationMinutes, toMinutes } from '@/lib/dates';
 
 /** What a person can say about one row. */
@@ -145,6 +152,63 @@ export interface DayTold {
  * the reason `dayResult` gives — one day is noise — so this says what the
  * day contained and stops there.
  */
+/**
+ * What the day held that was not on the plan.
+ *
+ * ── The worst sentence the product has said ───────────────────────────
+ *
+ * A review run as the target persona logged a drink at 21:50 and opened
+ * the end-of-day screen four minutes later, specifically to be held to it.
+ * The screen said:
+ *
+ *     "Easy cardio, talking pace and The urge answer happened.
+ *      The daily walk and Get into the best shape of … didn't."
+ *
+ * The drink is absent — and worse than absent, the protocol built to
+ * prevent it is reported as Done, because that plan item was ticked
+ * earlier in the evening. So the last thing the product said before bed
+ * was that the urge answer had worked, ninety seconds after being told it
+ * had not.
+ *
+ * The cause is structural rather than a slip: `dayRows` reads
+ * `plan.items` and nothing else, so the day review could not see a
+ * behaviour event if it tried. For a person whose stated reason for being
+ * here is "hold me to it", the one screen whose job is the truth about
+ * today was built unable to see the thing they most wanted held.
+ *
+ * ── Why it is counted and not judged ──────────────────────────────────
+ *
+ * It reports. Three drinks is "three", not "three again" and not a
+ * number going down — the house rule against scoreboards holds here as
+ * everywhere, and the aftermath flow already owns the de-escalation. The
+ * day review's job is only to not lie by omission.
+ */
+export function dayAlsoHeld(
+  events: BehaviourEvent[],
+  intentions: BehaviourIntention[],
+  date: string,
+): string | null {
+  const byId = new Map(intentions.map((i) => [i.id, i]));
+  const counts = new Map<string, number>();
+  for (const e of events) {
+    if (e.occurredAt.slice(0, 10) !== date) continue;
+    const behaviour = byId.get(e.intentionId)?.behaviour;
+    if (!behaviour) continue;
+    counts.set(behaviour, (counts.get(behaviour) ?? 0) + 1);
+  }
+  if (counts.size === 0) return null;
+
+  const parts = [...counts.entries()].map(([behaviour, n]) => {
+    const label = behaviourInfo(behaviour as BehaviourIntention['behaviour']).label.toLowerCase();
+    return n === 1 ? `one ${label}` : `${n} ${label}`;
+  });
+  const said =
+    parts.length <= 2 ? parts.join(' and ') : `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`;
+  // Plain and flat. "Logged today" rather than "you had", because the
+  // second is an accusation and the first is a record.
+  return `Also logged today: ${said}.`;
+}
+
 export function dayTold(rows: DayRow[]): DayTold {
   if (rows.length === 0) return { headline: 'Nothing was on today.', note: '' };
 

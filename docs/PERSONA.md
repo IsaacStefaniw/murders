@@ -212,3 +212,78 @@ Read that against §3.
 None of this is a bug in the sense of something being broken. Every piece
 works as designed. It is what the product does when it is built for a
 population and met by the person we are actually selling to.
+
+---
+
+## 8. The review, as Alex, on the current build
+
+Three sessions on `tools/usertest`, each with a question and about thirty
+actions of patience: **06:40** (is today a gym day, before or after work?),
+**21:50 after a couple of drinks** (does it know this is a pattern?), and
+**Sunday 10:15** (am I better than six weeks ago?). All three ran for real
+— 26, 23 and 26 actions.
+
+Fifteen findings, every one anchored to a quote. The six that matter, by
+what they cost Alex:
+
+### 1. "It's all decided" — except the one number he came for
+
+Tapping the squat row gives an empty box labelled **kg** and a reps box
+prefilled 5. No prescription, no "last time 92.5", no history. The header
+says *"STRENGTH — ~36 minutes. It's all decided."* and the footer says
+*"Form over load; leave one rep in the tank"* — the beginner line, to an
+intermediate lifter, on the one screen where loads belong.
+
+### 2. The app gives two opposite answers to "is today a lifting day"
+
+`/plan/routines` says *"Strength workout — M W F S"*. Tuesday is not in
+it. The **Train** chip on Today opens a full strength session anyway and
+calls it decided. **Verified in code and fixed**: the chip was
+unconditional, and `/session/workout` builds a stock session whatever the
+plan says.
+
+### 3. The end of the day omits the drink and reports the protocol that failed as Done
+
+**The worst moment, and the worst sentence this product has said.** Alex
+logs a drink at 21:50. The app responds well — *"That is five this week"*,
+*"11 of your last 11 have been 20:15–23:00."* Four minutes later the
+end-of-day screen says *"Easy cardio and The urge answer happened"*, never
+mentions the drink, and reports the two-minute reset as **Done**.
+
+Structural, not a slip: `dayRows` reads `plan.items` and nothing else, so
+the screen could not have seen a behaviour event if it tried. **Verified
+and fixed** — it now says what the day also held, counted and not graded.
+
+### 4. The scheduler put his whole week in the hour he does not have
+
+Every health item is scheduled between 17:30 and 18:45. Alex finishes at
+18:30. The review grid, on the same account, knows the 6pm slot is ✗ ✗ ✗.
+The one sentence a coach would write — *your evening slot has failed three
+weeks running and you finish at half six; train before work or move it to
+the weekend* — is derivable from two screens the app already renders, and
+it is never said.
+
+### 5. A 0–100 score, on a number that is wrong, in a product that forbids scoreboards
+
+*"Physical activity — 100"* on a full bar, captioned "235 minutes of
+training the app watched this week", on a morning the Week tab reads
+*"Training 1/12"*. Both the forbidden thing and a false version of it.
+This is work item §1, now with a second reason.
+
+### 6. The Coaches tab, six weeks in, is an unanswered setup question
+
+It cannot be scrolled past its own onboarding: *"If life is genuinely
+working three years from now — what does it look like?"*, asked at 06:40
+on a Tuesday and again at 21:52 on a bad night. The tab named after the
+thing he is paying for.
+
+### What was NOT a finding, and why that matters
+
+The reviewer reported the app pre-resolving the day — tonight's walk
+marked *Skipped* at breakfast. **That was my harness, not the app.** The
+simulation lives through its last day, so the seed arrived with that
+evening already resolved. Fixed in `seed.test.ts`: today resets to
+`planned`, history before it stands.
+
+Worth stating plainly, because a review instrument that cannot be caught
+lying is not an instrument.
