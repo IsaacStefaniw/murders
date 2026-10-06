@@ -30,7 +30,15 @@ import { HABIT_PROTOCOL } from '@/features/onboarding/buildPlan';
 import { PATHS } from '@/features/paths/definitions';
 import { dedupeRoutines } from '@/features/planner/mergeRoutines';
 import { addDays, toHHMM, toMinutes } from '@/lib/dates';
-import type { DailyPlan, Goal, LifeArea, PlanItem, Routine, Suggestion } from '@/types/domain';
+import type {
+  DailyPlan,
+  Goal,
+  LifeArea,
+  LifeProfile,
+  PlanItem,
+  Routine,
+  Suggestion,
+} from '@/types/domain';
 import type { GroundTruth, SimUser, Slot } from './personas';
 
 const SLOT_STARTS: Record<Slot, string> = { morning: '06:45', midday: '12:15', evening: '17:45' };
@@ -90,6 +98,46 @@ export interface UserResult {
   goalsStalledAtEnd: number;
   /** Week index at which each milestone-bearing goal became fully done. */
   goalDoneWeeks: number[];
+  /**
+   * The state this life arrived at, shaped like the app's own store.
+   *
+   * ── Why the review machine needed this ────────────────────────────────
+   *
+   * Three rounds of review ran against a hand-written fixture: one store
+   * file, one week, frozen. Isaac then found two bugs in ten minutes of
+   * real use that 109 agents had walked past, and both escaped for the
+   * same reason — the fixture could not express them.
+   *
+   * "Protein at breakfast is showing at 4pm" only happens when the morning
+   * is full. The fixture's morning was empty, so every screenshot showed
+   * breakfast correctly at half seven. And not one of the fixture's ten
+   * routines mapped to any of the practices that carry a how-to, so the
+   * missing-how-to bug was literally not renderable in any image an agent
+   * was given.
+   *
+   * This engine already simulates a life: six months of real days, with
+   * misses, moves, shortened sessions, adaptations and a diary that fills
+   * up. It threw all of it away and returned metrics. Returning the state
+   * as well is what lets a reviewer open the app on a week somebody LIVED
+   * rather than a week somebody wrote down.
+   */
+  snapshot: SimSnapshot;
+}
+
+/** A lived week, in the shape `state/store.ts` persists. */
+export interface SimSnapshot {
+  profile: LifeProfile;
+  routines: Routine[];
+  plans: Record<string, DailyPlan>;
+  goals: Goal[];
+  /**
+   * Urge logging is NOT here, because this engine does not simulate it.
+   * `GroundTruth.behaviourEventRate` exists and the loop never reads it,
+   * so a snapshot claiming behaviour events would be inventing them. The
+   * seeder adds them from the persona's own rate and says that it did.
+   */
+  /** The last date the simulation lived through — "today", for the run. */
+  lastDate: string;
 }
 
 export interface SimOptions {
@@ -500,5 +548,12 @@ export function runUser(
     goalsFullyMilestoned,
     goalsStalledAtEnd: detectGoalStalled(addDays(startDate, days - 1), goals).length,
     goalDoneWeeks,
+    snapshot: {
+      profile,
+      routines,
+      plans,
+      goals,
+      lastDate: addDays(startDate, days - 1),
+    },
   };
 }
