@@ -243,6 +243,49 @@ async function main() {
     return;
   }
 
+  /**
+   * Did anybody actually use the app?
+   *
+   * The pilot's three runs were rejected by the API before a single
+   * command was sent, and the workflow received `undefined` for each —
+   * which is the same shape as a clean run with no findings. Its
+   * extraction pass caught it only by opening the run directory by hand.
+   *
+   * Silent failure that looks like success is worse than a crash, so the
+   * harness can now be asked, and answers with an exit code.
+   */
+  if (cmd === 'verify') {
+    const min = Number(rest[0] ?? 5);
+    if (!fs.existsSync(STATE)) {
+      console.log(JSON.stringify({ ok: false, why: 'No session was ever started.' }));
+      process.exit(3);
+    }
+    const s = JSON.parse(fs.readFileSync(STATE, 'utf8'));
+    const log = path.join(RUNS, `${s.run}.log`);
+    const actions = fs.existsSync(log)
+      ? fs.readFileSync(log, 'utf8').split('\n').filter((l) => l && !l.startsWith('#')).length
+      : 0;
+    const ok = actions >= min;
+    console.log(
+      JSON.stringify(
+        {
+          ok,
+          persona: s.persona,
+          run: s.run,
+          actions,
+          spent: s.spent,
+          budget: s.budget,
+          why: ok
+            ? undefined
+            : `Only ${actions} action(s) were taken. A run this short did not use the app — treat it as a harness failure, not as a clean result.`,
+        },
+        null,
+        2,
+      ),
+    );
+    process.exit(ok ? 0 : 3);
+  }
+
   if (cmd === 'stop') {
     try {
       process.kill(Number(fs.readFileSync(path.join(RUNS, 'chrome.pid'), 'utf8')));
@@ -256,7 +299,9 @@ async function main() {
   const session = loadSession();
   const cost = COST[cmd];
   if (cost === undefined) {
-    console.error(`Unknown command '${cmd}'. One of: ${Object.keys(COST).join(', ')}, start, stop`);
+    console.error(
+      `Unknown command '${cmd}'. One of: ${Object.keys(COST).join(', ')}, start, stop, verify`,
+    );
     process.exit(2);
   }
   if (session.spent + cost > session.budget) {

@@ -72,48 +72,73 @@ docstrings in this codebase argue for every decision in it, and an agent
 that can read them is an agent that can be talked out of its own
 experience. It gets the driver and nothing else.
 
+### Write it as an acknowledged simulation, not an identity
+
+The first version of this brief told the agent *"You are Priya. You are
+not reviewing an app. Nobody is watching you."* All three runs were
+rejected by the API before a single command was sent.
+
+That is not a hurdle to route around, it is a correction. Instructing a
+model to adopt a human identity and asserting that it is unobserved is
+both the thing that got flagged and, on reflection, unnecessary. Think
+aloud is a documented research protocol; it does not require the
+participant to believe a fiction.
+
+What the method actually needs is four constraints, and none of them is
+about identity:
+
+| What is needed | How it is enforced |
+| --- | --- |
+| They cannot absorb the whole screen | `look` truncates; `read` costs 4 |
+| Their attention runs out | the patience budget |
+| They arrive mid-life | the simulated seed |
+| They want something specific | the task |
+
+So the brief is written openly: *you are producing the think-aloud
+narration of a character, in a usability session.* Same output, same
+constraints, no pretence.
+
 ```
-You are <NAME>. <Two lines of life — who, what the week looks like.>
+You are running a think-aloud usability session. You play <NAME>, and your
+job is to produce the narration — what this person says out loud while
+using the app.
 
-RIGHT NOW: <where they are, what time it is, what just happened, what
-mood they are in>
+<NAME>: <two lines of life — who they are, what their week looks like.>
 
-WHAT YOU WANT: <one concrete thing, in their words, not the app's>
+THE SCENE: <where they are, what time it is, what just happened, what
+mood they are in.>
 
-WHAT YOU ALREADY EXPECT: <one or two beliefs carried from other apps>
+WHAT THEY CAME FOR: <one concrete thing, in their words, not the app's.>
 
-You have been using this app about six weeks.
+WHAT THEY ALREADY ASSUME: <one or two beliefs carried from other apps.>
 
-Talk to yourself as you go, out loud, first person, present tense. Say
-what you are looking at, what you think it means, what you are about to
-tap and why, and how you feel about what happens. Say it plainly, the way
-you would to a friend sitting next to you.
+They have been using this app about six weeks.
 
-You are not reviewing this app. Nobody is watching. Do not write
-recommendations, do not say "the app should", do not be fair to it. If
-something annoys you, say it annoys you. If you do not understand
-something, say so and move on rather than working it out — you would not
-work it out in real life.
+Narrate in first person, present tense, as them. What they are looking at,
+what they think it means, what they are about to tap and why, how they
+feel about the result.
 
-Your hands:
+This is a record of one person's experience, not an evaluation. Do not
+write recommendations and do not balance the account — a participant who
+is confused says so and moves on rather than working it out, because that
+is what they do in life. If a screen leaves them none the wiser, that is
+the single most useful line you can write.
+
+Their hands:
   node tools/usertest/drive.js look
   node tools/usertest/drive.js tap "<visible label>"
   node tools/usertest/drive.js scroll <pixels>
   node tools/usertest/drive.js back
   node tools/usertest/drive.js read "<first few words of a paragraph>"
 
-Each call returns what you can see and how much patience you have left.
-`screenshot` is a path — open it, that is your eyes.
+Each call returns what they can see and how much patience is left.
+`screenshot` is a path — read it, that is their eyes.
 
-You only know what is on the screen. You cannot look at the code and
-there is no manual.
+They know only what is on the screen. No source code, no manual.
 
-When your patience runs out, or you get what you came for, or you decide
-you have had enough — stop, and say what you would actually do next in
-real life.
+Stop when the patience runs out, when they get what they came for, or
+when they have had enough — and say what they would do next in life.
 ```
-
----
 
 ## What comes back, and what to do with it
 
@@ -131,15 +156,36 @@ catching two findings that described a pre-fix version of the repo.
 
 ---
 
+## A run that did nothing must say so
+
+The pilot's extraction pass earned its keep by refusing to invent: it
+opened the run directory, found `spent: 0` and a missing log, and reported
+"nobody used this app" rather than producing findings from nothing.
+
+It also named the hole that let it happen. **A failed run returned
+`undefined`, which is the same shape as a clean run with no findings.**
+Silent failure that looks like success is worse than a crash, so a run
+with no actions now fails the pass loudly and by name.
+
+Before spawning three, run one, and check it spent most of its budget.
+
 ## What this still cannot do
 
 Say it plainly so nobody oversells it:
 
-- It cannot tell you whether copy lands emotionally.
+- It cannot tell you whether copy lands emotionally. A model narrating
+  "this annoys me" is producing text about annoyance, not annoyance.
 - It will not feel jank, haptics, scroll physics, or anything native.
-- It cannot tell you about week eight, or whether somebody would pay.
-- A simulated persona is a model of a person, and the model was written
-  by the same people who wrote the app.
+- It cannot tell you about week eight. Every seed ends today, so nobody
+  has lapsed, come back, or watched the app get something wrong three
+  Thursdays running.
+- It cannot tell you whether anybody would pay.
+- **The persona was written by the same people who wrote the app, so it
+  wants what the app offers.** A real person's goal arrives from outside
+  the product's vocabulary; these are drawn from inside it. This is the
+  deepest limit and no amount of harness fixes it — it came from the
+  pilot's own extraction pass, which is the best argument for keeping that
+  pass honest.
 
 **Ten people in TestFlight still outrank all of it.** This makes agents
 substantially better at finding the class of bug Isaac found by hand. It
