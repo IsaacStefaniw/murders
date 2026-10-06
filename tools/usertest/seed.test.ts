@@ -40,11 +40,19 @@ const DAYS = Number(process.env.USERTEST_DAYS ?? 45);
 const OUT = join(__dirname, 'seeds');
 
 /**
- * The personas a reviewer can be. Chosen for the shapes that break things:
- * a crowded professional morning, a night-shift week, and somebody whose
- * capacity is genuinely small.
+ * The person a reviewer is.
+ *
+ * One, on purpose. Isaac, 6 Oct 2026: "This is our first target market,
+ * let's design the app and review solely for this style of persona." A
+ * review spread across three lives tells you about three products, and
+ * `docs/PERSONA.md` is the argument for only having one.
+ *
+ * The sim's ten-persona cohort is untouched and stays weighted as it was.
+ * They are different instruments: the cohort proves a change has not
+ * broken somebody, this proves the product is good for the person we are
+ * selling it to. Narrowing the second must not narrow the first.
  */
-const CAST = ['busy_parent_exec', 'shift_nurse', 'young_professional'] as const;
+const CAST = ['career_optimiser'] as const;
 
 /**
  * Urges, added here rather than taken from the snapshot.
@@ -136,7 +144,7 @@ it('writes a lived week per persona', () => {
       goals: snap.goals,
       behaviourIntentions: intentions,
       behaviourEvents: events,
-      paths: {},
+      paths: snap.paths,
       notifications: { enabled: true },
     };
 

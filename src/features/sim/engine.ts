@@ -136,6 +136,16 @@ export interface SimSnapshot {
    * so a snapshot claiming behaviour events would be inventing them. The
    * seeder adds them from the persona's own rate and says that it did.
    */
+  /**
+   * The pathways that were started, in the shape the store keeps them.
+   *
+   * The engine started them (`opts.startPaths`) and then recorded only
+   * their goals and routines, so a snapshot seeded into the app showed
+   * somebody with six weeks of history and not a single coach running.
+   * The Coaches tab is where this persona's whole product lives, so a
+   * review built on that seed would have been reviewing the wrong app.
+   */
+  paths: Record<string, { startedAt: string; answers: Record<string, string>; goalId: string }>;
   /** The last date the simulation lived through — "today", for the run. */
   lastDate: string;
 }
@@ -206,6 +216,7 @@ export function runUser(
   }));
 
   // The same thing the approval screen does, in the same order.
+  const startedPaths: SimSnapshot['paths'] = {};
   if (opts.startPaths) {
     for (const start of user.plan.pathStarts) {
       const build = PATHS[start.id].build(start.answers, profile);
@@ -215,6 +226,14 @@ export function runUser(
         milestones: build.goal.milestones?.map((m) => ({ ...m })),
       });
       routines.push(...build.routines.map((r) => ({ ...r })));
+      // Recorded, not just built. `startPath` in the store writes this and
+      // every coach screen reads it; without it a seeded account has the
+      // routines a pathway created and no pathway.
+      startedPaths[start.id] = {
+        startedAt: `${startDate}T08:00:00.000Z`,
+        answers: start.answers,
+        goalId: build.goal.id,
+      };
     }
     routines = dedupeRoutines(routines);
   }
@@ -553,6 +572,7 @@ export function runUser(
       routines,
       plans,
       goals,
+      paths: startedPaths,
       lastDate: addDays(startDate, days - 1),
     },
   };

@@ -455,6 +455,170 @@ export const PERSONAS: PersonaSpec[] = [
       behaviourEventRate: 0.1,
     }),
   },
+  {
+    /**
+     * The target market. See `docs/PERSONA.md`.
+     *
+     * Isaac, 6 Oct 2026: "Working Professional, doing well in career but
+     * needs guidance and coaching to do better, conscious of health and
+     * appearance, likes training / workouts, nutrition and hacks to get
+     * better, needs to be held accountable to not get stuck in bad
+     * habits, highly stressful, time poor. This is our first target
+     * market."
+     *
+     * ── Why none of the existing five was close enough ──────────────────
+     *
+     * `young_professional` is the nearest and is missing the two things
+     * that define this person: they are being coached on purpose, and
+     * they care how they look. `entrepreneur` has the optimiser's
+     * appetite but is a founder with an 05:30 wake and control of their
+     * own diary — the opposite of the binding constraint here, which is a
+     * calendar somebody else fills.
+     *
+     * ── What the numbers encode ─────────────────────────────────────────
+     *
+     * Capacity is `push` because they will say yes to a big week, and
+     * `adherence` is 0.72 because the week will not let them have it.
+     * That gap IS the persona: a person who is not lazy and not failing,
+     * who is simply outrun by their job, and who therefore needs a plan
+     * that survives a bad Tuesday rather than one that assumes a good
+     * one.
+     *
+     * Morning affinity is low and stated energy is 'morning', because
+     * this is somebody who believes they will train before work and does
+     * not. Evening affinity is high and falls on the days work runs over.
+     * `behaviourEventRate` is high: the drinking and the scrolling are
+     * why they want accountability in the first place.
+     *
+     * ── Intermediate in the gym, and it matters ─────────────────────────
+     *
+     * Isaac, same day: "the person is also an intermediate gym user."
+     *
+     * Not a beginner: they know the lifts, they have numbers, and a block
+     * that opens with "learn the patterns before load" is an insult that
+     * loses them in week one. Not advanced either — no competition, no
+     * top singles, and `measuredTrainingLevel` would not give them that
+     * rung on these lifts anyway.
+     *
+     * `trainingExperience: 'consistent'` is what carries it:
+     * `LEVEL_FROM_EXPERIENCE` maps it to `established`, which is the band
+     * that gets full volume and intensity rather than a technical
+     * foundation block. The habit odds for `workout` are high for the
+     * same reason — this is somebody who already trains, inconsistently,
+     * not somebody starting.
+     */
+    key: 'career_optimiser',
+    /**
+     * Isaac: "quite social, with lots of healthy habits."
+     *
+     * High across the board, and that is the point rather than flavour.
+     * `existingHabits` decides whether the plan builds a routine as an
+     * ESTABLISHED ANCHOR or prescribes it back as something new — the
+     * interview's own note says an app that gets this wrong "would have
+     * spent its first week telling someone who has meditated daily for a
+     * decade to try meditating."
+     *
+     * This persona is the hardest case for that machinery: somebody who
+     * already does most of it, inconsistently, and wants help holding it
+     * rather than a list of things to start. A plan that reads as new
+     * instructions has misread them completely.
+     */
+    habitOdds: {
+      workout: 0.85,
+      walking: 0.7,
+      running: 0.4,
+      meditation: 0.45,
+      sauna: 0.4,
+      cold: 0.4,
+      fasting: 0.35,
+    },
+    /**
+     * Deliberately OUT of the weighted cohort, at weight 0.
+     *
+     * The obvious move is to weight the target market heavily, and it is
+     * wrong. `makeUser` picks a persona by weighted draw from the seed, so
+     * adding a weighted entry reassigns every seed in the cohort — and it
+     * did: `health_rebuilder` landed on different seeds and her coach
+     * benefit went negative, failing `scenarios.test.ts` on a change that
+     * had nothing to do with her.
+     *
+     * That test is the safety net that proves a change has not broken
+     * somebody, and its floor is only meaningful against a stable
+     * population. Re-baselining it to accommodate a new persona is exactly
+     * the move its own comment forbids: "never lower it to make a build go
+     * green."
+     *
+     * So the two instruments stay separate, which is what PERSONA.md §4
+     * says: the cohort is for not breaking people, this persona is for
+     * design and review. The harness reaches it by name through
+     * `makeUserOf`, which ignores weight entirely.
+     *
+     * It sits LAST in this array for the same reason. `scenarios.test.ts`
+     * seeds each persona with its array index, so inserting anywhere but
+     * the end renumbers the whole cohort and silently changes what the
+     * floor is measuring.
+     */
+    weight: 0,
+    answers: (rng) => ({
+      name: 'Alex',
+      priorities: ['health', 'work', 'growth'],
+      household: rng() < 0.55 ? ['partner'] : ['solo'],
+      partnerName: 'Sam',
+      workDays: ['1', '2', '3', '4', '5'],
+      // Long, and the finish time is a hope rather than a fact.
+      workHours: '08:30-18:30',
+      sleep: '06:15-23:00',
+      // Says push. The week disagrees — see `adherence` below.
+      capacity: 'push',
+      energy: 'morning',
+      trainingDays: rng() < 0.6 ? '4' : '3',
+      trainingSetup: 'gym',
+      // Intermediate: knows the lifts, has numbers, would be insulted by a
+      // foundation block. Maps to `established` through
+      // LEVEL_FROM_EXPERIENCE.
+      trainingExperience: 'consistent',
+      mind: rng() < 0.35 ? ['breathing'] : [],
+      // Social: friends and the people around them are not a nice-to-have
+      // to be trimmed when the week gets tight, they are part of what
+      // "doing well" means to this person.
+      moreOf: ['Seeing friends', 'Deep work', 'Time outdoors', 'Date nights'],
+      /**
+       * The two they want held. Both are social or end-of-day, not
+       * solitary: the drinking happens with people after a long week, and
+       * the scrolling is what the evening collapses into. A product that
+       * treats either as a discipline problem has the wrong model of this
+       * person.
+       */
+      lessOf: ['alcohol', 'doomscrolling'],
+      ambition: 'Get into the best shape of my life without the work slipping',
+    }),
+    truth: (rng) => ({
+      affinity: {
+        // Believes in the 06:30 gym session. Does it about a fifth of the
+        // time, and far more often after work than before it.
+        health: { morning: 0.22 + rng() * 0.08, midday: 0.3, evening: 0.68 },
+        work: { morning: 0.85, midday: 0.75, evening: 0.6 },
+        growth: { morning: 0.4, midday: 0.35, evening: 0.55 },
+        // The social half holds up when nothing else does. Plans with
+        // other people in them survive a bad week; plans with only
+        // themselves in them do not.
+        enjoyment: { morning: 0.3, midday: 0.45, evening: 0.8 },
+        relationship: { morning: 0.25, midday: 0.3, evening: 0.72 },
+      },
+      baseAffinity: { morning: 0.35, midday: 0.4, evening: 0.6 },
+      // The gap against `capacity: 'push'`. Not a failing person — an
+      // outrun one.
+      adherence: 0.72 + rng() * 0.08,
+      // Will move a thing rather than drop it, which is the behaviour the
+      // coaching is for.
+      moveTendency: 0.6,
+      // Takes advice readily. That is what they came for.
+      acceptProb: 0.75,
+      applyReviewProb: 0.7,
+      // The reason accountability is on the list.
+      behaviourEventRate: 0.45,
+    }),
+  },
 ];
 
 export interface SimUser {
