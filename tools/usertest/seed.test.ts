@@ -164,7 +164,6 @@ it('writes a lived week per persona', () => {
       weight: spec.weight,
     };
     index.push(row);
-    // eslint-disable-next-line no-console
     console.log('SEED', JSON.stringify(row));
   });
 

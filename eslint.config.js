@@ -13,6 +13,22 @@ module.exports = defineConfig([
     languageOptions: { globals: { jest: "readonly", require: "readonly" } },
   },
   {
+    // The user-test driver is a Node CLI an agent runs by hand, not app
+    // code. CommonJS, with a filesystem and a process.
+    files: ["tools/**/*.js"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: {
+        require: "readonly",
+        module: "writable",
+        __dirname: "readonly",
+        process: "readonly",
+        console: "readonly",
+        fetch: "readonly",
+      },
+    },
+  },
+  {
     // CI helper scripts run under Node, not React Native.
     files: [".github/scripts/**/*.mjs"],
     languageOptions: {
