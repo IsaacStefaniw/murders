@@ -53,7 +53,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const HERE = __dirname;
-const SEEDS = path.join(HERE, 'seeds');
+const SEEDS = process.env.USERTEST_SEEDS ?? path.join(HERE, 'seeds');
 const RUNS = path.join(HERE, 'runs');
 const STATE = path.join(RUNS, 'session.json');
 const EXE = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
