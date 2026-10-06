@@ -76,9 +76,35 @@ export default function Plan() {
               that screen exists to answer — and where a person looking
               for it would never think to look. It is the week's business.
           */}
-          {momentum.done > 0 || momentum.milestonesMoved > 0 ? (
+          {/*
+            One count, from the same source as the sentence above it.
+
+            This printed `momentum.done`, which is a DIFFERENT computation
+            from the one behind `shape.line` and the pillar breakdown — so
+            one card carried three numbers about the same week that
+            disagreed: "1 of 13 done", then "3 done", then a breakdown
+            summing to 1.
+
+            They diverge for three independent reasons. `weekMomentum`
+            (`today/coach.ts`) counts a rolling seven days back from today
+            and keeps anything not titled "Work"; `buildWeekShape` counts
+            the planning week's own dates, drops `fixed` items, and drops
+            anything it cannot place in a pillar. Neither is wrong on its
+            own. Printed three lines apart with nothing to tell them apart,
+            both are.
+
+            A night-shift user test found it, and it matters more here than
+            an arithmetic slip usually would: this product's claim is that
+            it does not score anybody, it just says what happened. An app
+            that cannot agree with itself about how many things somebody
+            did this week has nothing left to stand on.
+
+            Milestones stay, because that is a genuinely different
+            quantity and says so.
+          */}
+          {shape.done > 0 || momentum.milestonesMoved > 0 ? (
             <AppText variant="caption" color="success" style={styles.shapeDetail}>
-              {momentum.done} done
+              {shape.done} done
               {momentum.milestonesMoved > 0
                 ? ` · ${momentum.milestonesMoved} milestone${momentum.milestonesMoved > 1 ? 's' : ''} moved`
                 : ''}

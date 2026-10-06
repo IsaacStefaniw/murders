@@ -2144,3 +2144,96 @@ of 36 family practices, and "money is not a ladder" fell to a measurement.
 Round three's lesson: **review the running app, not the repository.** A
 reviewer with a screenshot found four house-rule violations in an
 afternoon that 158 code-reading agents had walked past twice.
+
+---
+
+# Round four — one simulated person, with a lived week and no ability to read
+
+Isaac, 6 Oct 2026, after finding two real bugs in ten minutes of ordinary
+use that 267 review agents had walked past: *"how can you structure the
+reviewers to be more like actual users?"*
+
+**One session. 25 actions. It outproduced all three earlier rounds.**
+
+## What changed
+
+| | Rounds 1–3 | Round 4 |
+| --- | --- | --- |
+| State | one hand-written fixture, frozen | a week the simulator lived, ending today |
+| Input | code, or screenshots of that fixture | the running app, driven over CDP |
+| Vision | full `innerText`, read perfectly | a glance; paragraphs cost four actions |
+| Time | unbounded | a patience budget that runs out |
+| Framing | "review this screen" | "answer this question using only the app" |
+
+The glance is the one that mattered most. An agent handed `innerText`
+absorbs eleven hundred characters of rationale perfectly and therefore
+never discovers that a screen told somebody nothing.
+
+## What it found
+
+A night-shift account at 16:40, asked only whether anything could
+realistically happen before a 18:30 shift.
+
+1. **Today says "Day complete — 1 of 1 done. Nothing left that needs you."**
+   to somebody who leaves for a shift in 110 minutes, and never mentions
+   the 7pm work block the app itself has on the calendar.
+2. **Two nudges fire mid-shift.** "7:15pm — ahead of it" and "8:15pm —
+   ahead of it" both land inside the app's own "7pm · 5h · Work" block.
+   Nothing flags the collision. "Bed by 12:15am" is mid-shift too.
+3. **Family dinner appears at three different times on three screens** —
+   6am on `/plan/routines`, 8:30am on the day timeline, 8am in the week
+   review headline.
+4. **The week review's only remedy is "Move to 9am"** — a one-hour nudge
+   still inside a night worker's sleep window. Same shape for "12pm
+   Wednesday → Move to 1pm".
+5. **Three numbers about one week, on one card**: "1 of 13 done", then "3
+   done" three lines below, above a breakdown summing to 1.
+6. **The urge card advises a routine that `/plan/routines` lists as TURNED
+   OFF.**
+7. **The roster screen shows "Days · 7am–7pm" selected** for a night
+   nurse, and nothing anywhere displays her actual shift setting.
+8. Time formats mix inside a single card: "between 8pm and 11pm" and
+   "20:00–23:00" for the same window.
+
+## Verified, and one corrected
+
+**Finding 5 is confirmed and fixed.** `weekMomentum` counts a rolling
+seven days and keeps anything not titled "Work"; `buildWeekShape` counts
+the planning week's own dates, drops `fixed` items and drops anything it
+cannot place in a pillar. Neither is wrong alone. Three lines apart and
+unlabelled, both are — and it matters more than an arithmetic slip
+normally would, because this product's claim is that it does not score
+anybody, it only says what happened.
+
+**The grid claim is a symptom, not a cause.** The reviewer said the week
+grid "has no hour between midnight and 8am, so the half of her week she is
+awake for is not representable". The grid drops empty hours by design;
+those rows are missing because her *plan* has nothing in them. The deeper
+bug is the one underneath — her whole plan is on a day-shift clock.
+
+## The two runs before it both failed, and that is in the record
+
+Attempts one and two were rejected by the API before a single command was
+sent. The first returned `undefined`, which is the same shape as a clean
+run with no findings — its extraction pass caught the difference only by
+opening the run directory by hand, and named the hole: **silent failure
+that looks like success is worse than a crash.** `drive.js verify` now
+answers with an exit code.
+
+The rejections were also a correction. Both prompts asked for first-person
+human narration. The constraints that make this work are all in the
+harness — the glance, the budget, the seed, the task — and not one of them
+is about identity. The third attempt dropped roleplay entirely, asked a
+plain question, and ran.
+
+## What it still cannot do
+
+From the pilot's own extraction pass, which is a better statement of the
+limit than the one in the brief:
+
+> *"The persona is written by the same people who wrote the app, so it
+> wants what the app offers. A real person's goal arrives from outside the
+> product's vocabulary; these goals are drawn from inside it."*
+
+Plus: no affect, no jank or haptics, no week eight, no willingness to pay.
+Ten people in TestFlight still outrank all of it.
