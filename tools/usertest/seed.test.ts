@@ -66,7 +66,7 @@ function urges(
   const intentions: BehaviourIntention[] = lessOf.map((behaviour) => ({
     id: newId('bi'),
     behaviour: behaviour as BehaviourIntention['behaviour'],
-    intention: behaviourInfo(behaviour as BehaviourIntention['behaviour']).intentionTemplate,
+    intentionText: behaviourInfo(behaviour as BehaviourIntention["behaviour"]).intentionTemplate,
     active: true,
     createdAt: `${addDays(lastDate, -60)}T08:00:00.000Z`,
   }));

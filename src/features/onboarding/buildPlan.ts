@@ -6,7 +6,7 @@
 
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import { buildGoalPlan, parseGoal } from '@/features/goals/goalPlanner';
-import { protocolById, toRoutine } from '@/features/knowledge/protocols';
+import { anchoredToTheClock, protocolById, toRoutine } from '@/features/knowledge/protocols';
 import type { PathId } from '@/features/paths/definitions';
 import { dedupeRoutines } from '@/features/planner/mergeRoutines';
 import { isPlausibleBirthYear } from '@/features/health/age';
@@ -753,7 +753,50 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
     });
   }
 
-  return { profile, goals, routines: dedupedRoutines, behaviourIntentions, pathStarts };
+  return {
+    profile,
+    goals,
+    routines: dedupedRoutines.map(inheritAnchoring),
+    behaviourIntentions,
+    pathStarts,
+  };
+}
+
+/**
+ * A routine that names a practice keeps that practice's relationship to
+ * the clock.
+ *
+ * ── The second place this was lost ────────────────────────────────────
+ *
+ * Isaac: "Protein at breakfast is showing at 4pm." That one was the
+ * ladder in `paths/programme.ts` — a rung hand-written as a copy of a
+ * library practice, linked to nothing, so the scheduler gave it infinite
+ * drift. Building the user-test harness surfaced the same bug here,
+ * before a single persona had run: this file hand-builds four routines
+ * that DO name a protocol and still drop its anchoring.
+ *
+ *     device-free-meal        → "Family dinner"
+ *     wind-down               → "Wind down, screens away"
+ *     deep-work               → "Deep work block"
+ *     weekly-business-review  → "Growth block"
+ *
+ * The first two are the ones that bite. `engine.ts` reads
+ * `timeAnchored ? bounded : Infinity`, so family dinner was free to land
+ * at any hour of the day — and in the night nurse's simulated week it
+ * landed at six in the morning. The family coach's whole product is
+ * defending the evening meal against work running over, and the block it
+ * defends could be anywhere.
+ *
+ * Applied to the finished list rather than at each of the four sites, so
+ * the fifth hand-built routine somebody adds inherits it without having
+ * to remember. An explicit value on a routine still wins: a few are
+ * deliberately set, and this only fills a gap.
+ */
+function inheritAnchoring(routine: Routine): Routine {
+  if (routine.timeAnchored !== undefined || !routine.protocolId) return routine;
+  const protocol = protocolById(routine.protocolId);
+  if (!protocol) return routine;
+  return { ...routine, timeAnchored: anchoredToTheClock(protocol) };
 }
 
 function minusMinutes(hhmm: string, minutes: number): string {
