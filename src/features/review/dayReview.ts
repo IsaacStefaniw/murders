@@ -187,6 +187,19 @@ export function dayAlsoHeld(
   events: BehaviourEvent[],
   intentions: BehaviourIntention[],
   date: string,
+  /**
+   * Whether `date` is today.
+   *
+   * The line said "Also logged today" unconditionally, which was right
+   * while this screen could only ever show today. Once it took a date, the
+   * browser put "Also logged today: one alcohol." under a heading reading
+   * TUESDAY, OCTOBER 6 — a sentence that is simply false about the day it
+   * is on, on the one screen whose entire job is not lying about a day.
+   *
+   * Defaults true, which is the behaviour every existing caller and test
+   * already relies on.
+   */
+  isToday = true,
 ): string | null {
   const byId = new Map(intentions.map((i) => [i.id, i]));
   const counts = new Map<string, number>();
@@ -204,9 +217,12 @@ export function dayAlsoHeld(
   });
   const said =
     parts.length <= 2 ? parts.join(' and ') : `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`;
-  // Plain and flat. "Logged today" rather than "you had", because the
-  // second is an accusation and the first is a record.
-  return `Also logged today: ${said}.`;
+  // Plain and flat. "Logged" rather than "you had", because the second is
+  // an accusation and the first is a record. On a past day the word
+  // "today" comes off rather than becoming "that day": the heading above
+  // already names the day, and a second mention is the app explaining
+  // itself.
+  return isToday ? `Also logged today: ${said}.` : `Also logged: ${said}.`;
 }
 
 export function dayTold(rows: DayRow[]): DayTold {
@@ -307,4 +323,59 @@ export function rowLength(item: PlanItem): string | null {
   const m = mins % 60;
   if (h === 0) return `${m}m`;
   return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
+
+/* ── Which day you are looking at ─────────────────────────────────────── */
+
+export interface ReviewableDay {
+  /** The day to show, after clamping. */
+  date: string;
+  /** The earliest day there is a record for. */
+  earliest: string;
+  /** Whether the back arrow does anything. */
+  canGoBack: boolean;
+  isToday: boolean;
+}
+
+/**
+ * The day the review screen should show, given what was asked for.
+ *
+ * Isaac, on his own week: *"I can't remember what was or wasn't included
+ * but I need to check."* (`docs/NEXT_SESSION.md` §2.2.) The screen was
+ * pinned to today. It now takes a date, and this is the rule about which
+ * dates are real — extracted from the component because it is a rule
+ * rather than a layout, and because every one of its edges is a way to
+ * show somebody a day that does not exist.
+ *
+ * Three clamps:
+ *
+ *   - **Never ahead of today.** Tomorrow is a plan, not a review, and the
+ *     Week tab is where a plan gets changed. A forward arrow into an
+ *     unlived day would invite marking things done before they happen.
+ *   - **Never before the record.** The store keeps 120 days of plans
+ *     item-by-item and then drops them, so walking back past the first one
+ *     hands over a run of identical empty screens with no way to tell
+ *     "nothing happened" from "the app has forgotten".
+ *   - **Never a malformed date.** A route parameter is a string from
+ *     outside; anything that is not YYYY-MM-DD falls back to today rather
+ *     than rendering a screen about `NaN`.
+ */
+export function reviewableDay(input: {
+  requested: string | undefined | null;
+  today: string;
+  plans: Record<string, DailyPlan>;
+}): ReviewableDay {
+  const { requested, today, plans } = input;
+
+  const past = Object.keys(plans)
+    .filter((d) => d <= today)
+    .sort();
+  const earliest = past.length > 0 ? past[0] : today;
+
+  let date = today;
+  if (typeof requested === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(requested)) {
+    date = requested > today ? today : requested < earliest ? earliest : requested;
+  }
+
+  return { date, earliest, canGoBack: date > earliest, isToday: date === today };
 }

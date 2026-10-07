@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -17,6 +17,7 @@ import {
   dayRows,
   dayAlsoHeld,
   dayTold,
+  reviewableDay,
   tomorrowFirst,
   unresolvedRows,
   type DayMark,
@@ -77,10 +78,39 @@ const MARKS: { value: DayMark; glyph: string; label: string }[] = [
 export default function DayReview() {
   const router = useRouter();
   const theme = useTheme();
-  const date = todayKey();
 
   const plans = useAppStore((s) => s.plans);
+  const today = todayKey();
+
+  /**
+   * Which day this is, and the arrows to leave it by.
+   *
+   * ── Isaac, on his own week ────────────────────────────────────────────
+   *
+   * *"I can't remember what was or wasn't included but I need to check."*
+   * (`docs/NEXT_SESSION.md` §2.2.) Today was today-only, and the backdating
+   * work already shipped is a different thing — it files something under an
+   * earlier date FROM today's screen; it never let him go and look at
+   * Tuesday.
+   *
+   * This screen was already the right one for the job and was simply
+   * pinned to `todayKey()`. It tells the day back, says what else the day
+   * held, and takes an answer on anything still open — which is exactly
+   * "step back and adjust". So it takes a date now, and Today's tab stays
+   * one job rather than growing a date picker.
+   */
+  const { date: requested } = useLocalSearchParams<{ date?: string }>();
   const setItemStatus = useAppStore((s) => s.setItemStatus);
+
+  // The clamps live in features/review/dayReview.ts, because which dates
+  // are real is a rule rather than a layout and every one of its edges is
+  // a way to show somebody a day that does not exist.
+  const { date, canGoBack, isToday } = useMemo(
+    () => reviewableDay({ requested, today, plans }),
+    [requested, today, plans],
+  );
+  const step = (days: number) =>
+    router.setParams({ date: addDays(date, days) } as never);
 
   const rows = useMemo(() => dayRows(plans[date]), [plans, date]);
   const open = useMemo(() => unresolvedRows(plans[date]), [plans, date]);
@@ -98,8 +128,8 @@ export default function DayReview() {
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const alsoHeld = useMemo(
-    () => dayAlsoHeld(behaviourEvents, behaviourIntentions, date),
-    [behaviourEvents, behaviourIntentions, date],
+    () => dayAlsoHeld(behaviourEvents, behaviourIntentions, date, isToday),
+    [behaviourEvents, behaviourIntentions, date, isToday],
   );
   const result = useMemo(() => dayResult(plans, date), [plans, date]);
   const next = useMemo(() => tomorrowFirst(plans, date), [plans, date]);
@@ -119,11 +149,38 @@ export default function DayReview() {
     <Screen>
       <View style={styles.headRow}>
         <AppText variant="label" color="textTertiary">
-          End of day
+          {isToday ? 'End of day' : 'That day'}
         </AppText>
-        <AppText variant="label" color="textTertiary">
-          {formatDateLong(date).split(',')[0]}
-        </AppText>
+        <View style={styles.stepper}>
+          <Pressable
+            onPress={canGoBack ? () => step(-1) : undefined}
+            disabled={!canGoBack}
+            accessibilityRole="button"
+            accessibilityLabel="The day before"
+            // Disabled rather than hidden: an arrow that vanishes at the
+            // end of the record leaves somebody tapping empty space and
+            // wondering whether they missed it.
+            style={styles.arrow}
+          >
+            <AppText variant="body" color={canGoBack ? 'accent' : 'textTertiary'}>
+              ‹
+            </AppText>
+          </Pressable>
+          <AppText variant="label" color="textTertiary" style={styles.stepperDate}>
+            {isToday ? formatDateLong(date).split(',')[0] : formatDateLong(date)}
+          </AppText>
+          <Pressable
+            onPress={isToday ? undefined : () => step(1)}
+            disabled={isToday}
+            accessibilityRole="button"
+            accessibilityLabel="The day after"
+            style={styles.arrow}
+          >
+            <AppText variant="body" color={isToday ? 'textTertiary' : 'accent'}>
+              ›
+            </AppText>
+          </Pressable>
+        </View>
       </View>
 
       {/* Closure first. A count is not how anybody puts a day down — and
@@ -215,8 +272,11 @@ export default function DayReview() {
         </View>
       ) : null}
 
-      {/* Tomorrow is the reason to open this, so it gets the weight. */}
-      {next ? (
+      {/* Tomorrow is the reason to open this, so it gets the weight — on
+          TODAY. Looking back at a Tuesday, "tomorrow starts with" would
+          name the Wednesday that has already happened, which is a sentence
+          about the past in the future tense. */}
+      {isToday && next ? (
         <View style={[styles.ruled, { borderTopColor: theme.border }]}>
           <AppText variant="label" color="textTertiary">
             Tomorrow starts with
@@ -243,7 +303,13 @@ export default function DayReview() {
         </View>
       ) : null}
 
-      <Button title="Close the day" style={styles.close} onPress={() => router.back()} />
+      {/* "Close the day" is what you do to today. On a Tuesday you went
+          back to look at, the button is a way out, not a ritual. */}
+      <Button
+        title={isToday ? 'Close the day' : 'Done looking'}
+        style={styles.close}
+        onPress={() => router.back()}
+      />
 
       {/* The week, and anything unplanned — both real, neither the point of
           a nightly close. No percentage and no streak: a missed Tuesday is
@@ -265,8 +331,13 @@ export default function DayReview() {
             ) : null}
           </View>
         </Disclosure>
+        {/* Same slip as "Also logged today", found in the same browser run
+            one line below it: this read "something else today" under a
+            heading saying TUESDAY, OCTOBER 6. `LogDidIt` already takes the
+            date, so the capture was filing correctly against the day being
+            viewed — only the label was wrong. */}
         {!instead ? (
-          <Disclosure title="I did something else today">
+          <Disclosure title={isToday ? 'I did something else today' : 'I did something else'}>
             <QuickLog />
             <LogDidIt date={date} />
           </Disclosure>
@@ -277,6 +348,15 @@ export default function DayReview() {
 }
 
 const styles = StyleSheet.create({
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
+  stepperDate: { minWidth: 96, textAlign: 'right' },
+  /** Apple's minimum, on a control somebody taps repeatedly. */
+  arrow: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   told: { marginTop: Spacing.lg },
   note: { marginTop: Spacing.xs },

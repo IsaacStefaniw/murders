@@ -486,9 +486,30 @@ export default function Today() {
           </AppText>
         </Card>
       ) : null}
-      <AppText variant="label" color="textTertiary">
-        Today
-      </AppText>
+      <View style={styles.dateRow}>
+        <AppText variant="label" color="textTertiary">
+          Today
+        </AppText>
+        {/* The way back into the week.
+            Isaac: "I can't remember what was or wasn't included but I need
+            to check." Today was today-only, and the backdating already
+            shipped is a different thing — it files something under an
+            earlier date FROM here; it never let him go and look at
+            Tuesday. The day review already does that job and now takes a
+            date, so this is a door rather than a second screen, and the
+            arrows to walk further back are on the other side of it. */}
+        <Pressable
+          onPress={() => router.push(`/review/day?date=${addDays(date, -1)}` as never)}
+          accessibilityRole="button"
+          accessibilityLabel="Look at yesterday"
+          accessibilityHint="Opens the day before, with arrows to step further back."
+          style={styles.backADay}
+        >
+          <AppText variant="caption" color="accent">
+            ‹ Yesterday
+          </AppText>
+        </Pressable>
+      </View>
       <AppText variant="title">{formatDateLong(date)}</AppText>
       {plan.summary ? (
         <AppText variant="secondary" style={styles.summary}>
@@ -964,6 +985,9 @@ export default function Today() {
 }
 
 const styles = StyleSheet.create({
+  dateRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  /** Apple's minimum on a control in a header row. */
+  backADay: { minHeight: 44, justifyContent: 'center', paddingLeft: Spacing.md },
   didIt: { marginTop: Spacing.md },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   coach: { marginTop: Spacing.xl, gap: Spacing.xs },
