@@ -211,6 +211,10 @@ export const SECTION_OF: Record<string, SetupSection> = {
   sexAtBirth: 'health',
   weight: 'health',
   selfRatedHealth: 'health',
+  // Beside self-rated health rather than with the relationship questions:
+  // it is asked because it is a health marker on a par with the others
+  // here, and the relationship coach is where it leads, not what it is.
+  loneliness: 'health',
   pressure: 'health',
   foodAim: 'health',
   foodTrouble: 'health',

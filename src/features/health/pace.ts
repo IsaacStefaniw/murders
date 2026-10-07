@@ -106,8 +106,11 @@ import {
   SELF_RATED_HEALTH_PROVENANCE,
   SELF_REPORT_SE_MULTIPLIER,
   WALKING_PACE_PROVENANCE,
+  LONELINESS_PROVENANCE,
+  lonelinessLogHazard,
   selfRatedHealthLogHazard,
   walkingPaceLogHazard,
+  type Loneliness,
   type SelfRatedHealth,
   type WalkingPace,
 } from '@/features/health/selfReport';
@@ -354,6 +357,15 @@ export interface PaceInputs {
   selfRatedHealth?: SelfRatedHealth;
   walkingPace?: WalkingPace;
   /**
+   * Whether they often feel lonely.
+   *
+   * The one component here that the people already in somebody's life can
+   * move, and the one this app has a whole ladder for — see
+   * `paths/ladders.research.FRIENDSHIP_LADDER` and the reach-out
+   * follow-through in `coaches/interrupt.ts`.
+   */
+  loneliness?: Loneliness;
+  /**
    * The two nobody wants to ask. They are also the two most moveable
    * things here — see `negativeHabits.ts` for why asking is the kind
    * thing rather than the unkind one.
@@ -519,6 +531,39 @@ export function readPace(input: PaceInputs): PaceReading {
       logHazard: input.selfRatedHealth ? selfRatedHealthLogHazard(input.selfRatedHealth) : null,
       detail: input.selfRatedHealth ? capitalise(input.selfRatedHealth) : 'Not asked yet',
       blocked: input.selfRatedHealth ? undefined : 'One question, and it never needs measuring.',
+    },
+    {
+      /**
+       * The one the instrument was missing, and the one this product has
+       * the most machinery for.
+       *
+       * Nine components and not one of them was about other people — in an
+       * app whose target persona is defined partly by being social, whose
+       * library carries 24 connection practices, and which grew a whole
+       * follow-through this morning for turning a message into a Saturday.
+       * The evidence for connection is on a par with the things already
+       * here: 70 studies and 3.4 million people.
+       *
+       * It is also the only component on this list that somebody else can
+       * move for you, which is worth saying out loud on a screen otherwise
+       * full of things you do alone.
+       */
+      id: 'connection',
+      label: 'Feeling connected',
+      source: input.loneliness ? 'self-reported' : null,
+      measures:
+        'Whether you often feel lonely. Not how many people you know — the subjective one, which carries about the same risk as being objectively isolated and is the half you can do something about.',
+      provenance: LONELINESS_PROVENANCE,
+      logHazard: input.loneliness ? lonelinessLogHazard(input.loneliness) : null,
+      detail:
+        input.loneliness === 'often'
+          ? 'Often'
+          : input.loneliness === 'rarely'
+            ? 'Rarely or never'
+            : 'Not asked yet',
+      blocked: input.loneliness
+        ? undefined
+        : 'One question, and nothing needs measuring. It is the only thing here the people in your life can change.',
     },
     {
       id: 'fitness',

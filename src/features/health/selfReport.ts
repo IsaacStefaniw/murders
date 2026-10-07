@@ -131,11 +131,70 @@ export const WALKING_PACE_PROVENANCE: Provenance = {
     'The middle category is interpolated rather than reported, and the effect varies about twofold across body-mass groups. "Brisk" also means different things to different people, which is noise the study itself carried.',
 };
 
+/* ── Self-reported loneliness ─────────────────────────────────────────── */
+
+export type Loneliness = 'rarely' | 'often';
+
+/**
+ * Against rarely or never.
+ *
+ * ── Two levels, and that is the whole evidence ──────────────────────────
+ *
+ * Holt-Lunstad and colleagues' 2015 meta-analysis reports loneliness as a
+ * BINARY contrast — lonely against not — at OR 1.26 across 70 studies and
+ * more than 3.4 million people. So this record has two entries and no
+ * middle.
+ *
+ * That is deliberate, and it is the same call `SELF_RATED_HEALTH_RR`
+ * records above: "four real levels beats five with a guess in the middle".
+ * A "sometimes" band would need a number the paper does not contain, and
+ * for this construct an interpolated middle would assert a dose-response
+ * that nobody established — the constituent studies mostly dichotomised.
+ * Inventing one would also cost the grade, as it does for walking pace.
+ *
+ * ── Why B and not A ────────────────────────────────────────────────────
+ *
+ * The sample would carry A on its own. It is graded down one for reverse
+ * causation, which is a live and specific problem here rather than a
+ * generic observational caveat: illness isolates people, so some of this
+ * association runs the other way. The same paper's neighbouring figures —
+ * social isolation 1.29, living alone 1.32 — are close enough to this one
+ * that the objective and subjective versions are hard to separate, which
+ * is reassuring about the construct and says nothing about direction.
+ */
+export const LONELINESS_RR: Record<Loneliness, number> = {
+  rarely: 1.0,
+  often: 1.26,
+};
+
+export function lonelinessLogHazard(level: Loneliness): number {
+  return Math.log(LONELINESS_RR[level]);
+}
+
+export const LONELINESS_PROVENANCE: Provenance = {
+  study: 'Holt-Lunstad and colleagues, 2015',
+  journal: 'Perspectives on Psychological Science',
+  // "Over 3,400,000" rather than a precise count: multiple sources report
+  // the pooled sample as 3.4 million and I could not verify an exact N, so
+  // this is stated as the lower bound it is. 1980-2014 is the reported
+  // publication window.
+  sample: '70 prospective studies published 1980-2014, over 3,400,000 participants',
+  // The union has no 'meta-analysis' member; 'pooled cohort' is what
+  // DeSalvo's pooled 22 cohorts uses above and is the same shape of thing.
+  design: 'pooled cohort',
+  effect:
+    'Loneliness carried 26% higher all-cause mortality; social isolation 29% and living alone 32%, reported separately on the same data',
+  grade: 'B',
+  caveat:
+    'Reverse causation is the live problem rather than a formality: illness isolates people, so part of this runs the other way. It is also a single binary question about something that moves week to week, and the app scores the subjective measure rather than combining it with living alone — the two overlap heavily and adding them would count the same people twice.',
+};
+
 /* ── Reading the questionnaire ────────────────────────────────────────── */
 
 export interface SelfReported {
   selfRatedHealth?: SelfRatedHealth;
   walkingPace?: WalkingPace;
+  loneliness?: Loneliness;
 }
 
 /**
@@ -149,12 +208,14 @@ export function selfReportedFrom(answers: InterviewAnswers | undefined): SelfRep
   if (!answers) return {};
   const health = answers.selfRatedHealth;
   const pace = answers.walkingPace;
+  const lonely = answers.loneliness;
   return {
     selfRatedHealth:
       health === 'excellent' || health === 'good' || health === 'fair' || health === 'poor'
         ? health
         : undefined,
     walkingPace: pace === 'slow' || pace === 'steady' || pace === 'brisk' ? pace : undefined,
+    loneliness: lonely === 'rarely' || lonely === 'often' ? lonely : undefined,
   };
 }
 
@@ -166,7 +227,9 @@ export function selfReportedFrom(answers: InterviewAnswers | undefined): SelfRep
  * interview, and saying so is both true and the thing that makes people
  * answer them carefully.
  */
-export const WHY_ASKED: Record<'selfRatedHealth' | 'walkingPace', string> = {
+export const WHY_ASKED: Record<'selfRatedHealth' | 'walkingPace' | 'loneliness', string> = {
+  loneliness:
+    'Across 70 studies and more than three million people, feeling lonely carried about a quarter more risk of dying early — close to the figures for living alone and for being objectively isolated. It is also the one on this list that the people already in your life can change.',
   selfRatedHealth:
     'This one question predicts health outcomes better than most blood tests do, across 22 studies and decades of follow-up. People know something about themselves that a lab result does not contain.',
   walkingPace:

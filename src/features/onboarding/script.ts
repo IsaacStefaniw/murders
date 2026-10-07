@@ -740,6 +740,33 @@ export const INTERVIEW_STEPS: InterviewStep[] = [
      * plan, and nobody should be blocked at signup by a question about
      * mortality research.
      */
+    /**
+     * The connection marker's one input.
+     *
+     * Deferred to the relationship coach, which is the coach that owns the
+     * friendship ladder (`nextRung.laddersFor('relationship')`) and so the
+     * one with somewhere to go after the answer. Optional, like the other
+     * two self-report questions, and answerable any time from "About you".
+     *
+     * Two options and no middle, because the evidence is a binary
+     * contrast — see `LONELINESS_RR`. A "sometimes" band would need a
+     * number the meta-analysis does not contain.
+     */
+    id: 'loneliness',
+    deferTo: 'relationship',
+    optional: true,
+    kind: 'single',
+    prompt: () => 'Do you often feel lonely?',
+    reveal: (a) =>
+      a.loneliness
+        ? 'That one carries about as much risk as being objectively isolated does — and it is the only marker in this app that the people already in your life can move.'
+        : null,
+    options: [
+      { value: 'rarely', label: 'Rarely or never' },
+      { value: 'often', label: 'Often' },
+    ],
+  },
+  {
     id: 'selfRatedHealth',
     deferTo: 'recovery',
     optional: true,
