@@ -347,6 +347,40 @@ Showing up exactly as often, doing about as much, spending a third less
 time. Unflattering, and the right answer for the one person who will
 respect it (§3.5).
 
+### 8. Navigation cost — measured, and mostly a symptom of the others
+
+The finding was that five to seven of about thirty actions per session
+went on getting somewhere rather than learning anything. It is the
+vaguest of the fifteen and the one most likely to produce a redesign
+nobody asked for, so it got a number instead:
+`npm run usertest:depth` opens each tab on the lived seed and counts the
+thumb-flicks before the sentence answering that tab's own question is on
+screen.
+
+```
+/today   What do I do next?                 0 scrolls
+/plan    Is today a gym day, and when?      1 scroll
+/life    What are my coaches doing?         0 scrolls
+/data    Am I better than six weeks ago?    0 scrolls
+```
+
+Two of those four were not merely deep before this round — they were
+**unanswerable**. `/life` had no line anywhere saying what a running
+coach was doing, and `/data` had no comparison between any two periods at
+all. Fixing §6 and §7 is what moved them, not a navigation pass.
+
+So this is marked addressed on the evidence, and deliberately WITHOUT a
+redesign: there is no screen left whose own answer is more than one flick
+away, and inventing work the measurement does not support is the same
+error as skipping work it does.
+
+The tool measures scrolling only. Taps were attempted and thrown away —
+matching a tab by its label hits a heading before the tab bar, so the run
+stayed put and reported a journey it never took. A measurement that fails
+by looking like a success is worse than none, which is the lesson
+`drive.js verify` already taught. Counting taps needs testIDs on the tab
+bar.
+
 ### What was NOT a finding, and why that matters
 
 The reviewer reported the app pre-resolving the day — tonight's walk

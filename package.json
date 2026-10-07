@@ -60,7 +60,8 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "usertest:seed": "jest --testMatch='**/tools/usertest/seed.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/"
+    "usertest:seed": "jest --testMatch='**/tools/usertest/seed.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/",
+    "usertest:depth": "node tools/usertest/depth.mjs"
   },
   "private": true
 }

@@ -169,6 +169,31 @@ with no actions now fails the pass loudly and by name.
 
 Before spawning three, run one, and check it spent most of its budget.
 
+## Navigation cost, as a number
+
+One finding was that five to seven of about thirty actions went on
+getting somewhere rather than learning anything. That is the kind of
+finding that produces a redesign nobody asked for, because "cut
+navigation" has no target in it.
+
+`npm run usertest:depth` gives it one. Each tab exists to answer one
+question; the tool opens it on a lived seed and counts the thumb-flicks
+before the sentence that answers it is on screen.
+
+```
+/today   What do I do next?                 0 scrolls
+/plan    Is today a gym day, and when?      1 scroll
+/life    What are my coaches doing?         0 scrolls
+/data    Am I better than six weeks ago?    0 scrolls
+```
+
+It measures scrolling only. The companion measurement — taps from app
+open to each answer — was written and thrown away: matching a tab by its
+label hits "this week" or a heading before it reaches the tab bar, so the
+run silently stays put and reports a journey it never took. Same failure
+mode as the one `drive.js verify` exists for. Counting taps needs testIDs
+on the tab bar.
+
 ## What this still cannot do
 
 Say it plainly so nobody oversells it:
