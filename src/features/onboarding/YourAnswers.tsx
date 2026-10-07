@@ -5,7 +5,12 @@ import { Card } from '@/components/card';
 import { Chip } from '@/components/chip';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
-import { INTERVIEW_STEPS } from '@/features/onboarding/script';
+import { AnswerControl } from '@/features/onboarding/AnswerControl';
+import {
+  heldAnswer,
+  questionsForPerson,
+  unansweredCount,
+} from '@/features/onboarding/yourAnswers';
 import { useAppStore } from '@/state/store';
 
 /**
@@ -40,6 +45,33 @@ import { useAppStore } from '@/state/store';
  * behind a tidy list of the ones already done. An app quietly assuming
  * the most cautious answer and never mentioning it is the failure this
  * screen exists to end — so the gaps are the headline.
+ *
+ * ── AND WHY IT USED TO SHOW LESS THAN HALF OF THEM ──────────────────────
+ *
+ * This filtered to `kind === 'single'`, with a note that "free text and
+ * multi-select belong to their own screens, and a chip row cannot honestly
+ * stand in for either". Right about the chip row, wrong about the
+ * conclusion: sixteen of the thirty-eight questions were simply absent —
+ * seven text and nine multi.
+ *
+ * Among them `priorities`, which decides the free coach and the shape of
+ * the whole plan; `existingHabits`, which PERSONA.md §3.5 singles out
+ * because an app that misses it "would have spent its first week telling
+ * someone who has meditated daily for a decade to try meditating"; and
+ * `weight` and `birthYear`, which feed BMI and the age term. All of it on
+ * the screen whose own copy promises "change anything that has stopped
+ * being true", and most of it answerable nowhere else in the app once
+ * signup is over.
+ *
+ * `AnswerControl` renders the right control per kind, and both this screen
+ * and `DeferredQuestions` use it.
+ *
+ * ── AND IT LISTED QUESTIONS THAT DO NOT APPLY ───────────────────────────
+ *
+ * `skipIf` was never consulted here, where `deferredSteps` has always
+ * honoured it. So a step the interview would have skipped for this person
+ * was listed anyway, and counted in "n questions have not been put to you
+ * yet" — the app reporting a gap it had deliberately decided not to have.
  */
 
 export function YourAnswers() {
@@ -47,19 +79,12 @@ export function YourAnswers() {
   const answerDeferredQuestion = useAppStore((s) => s.answerDeferredQuestion);
   const [open, setOpen] = useState<string | null>(null);
 
-  /** Single-choice steps only: free text and multi-select belong to their
-   *  own screens, and a chip row cannot honestly stand in for either. */
-  const steps = useMemo(
-    () => INTERVIEW_STEPS.filter((s) => s.kind === 'single'),
-    [],
-  );
-
-  const ordered = useMemo(() => {
-    const has = (id: string) => answers[id] !== undefined && answers[id] !== '';
-    return [...steps].sort((a, b) => Number(has(a.id)) - Number(has(b.id)));
-  }, [steps, answers]);
-  const answered = (id: string) => answers[id] !== undefined && answers[id] !== '';
-  const missing = ordered.filter((s) => !answered(s.id)).length;
+  // Which questions apply, what is held against each, and how many are
+  // genuinely gaps — all in features/onboarding/yourAnswers.ts, because
+  // every one of those is a rule rather than a layout and two of them were
+  // quietly wrong while they lived here.
+  const ordered = useMemo(() => questionsForPerson(answers), [answers]);
+  const missing = unansweredCount(answers);
 
   return (
     <View style={styles.list}>
@@ -70,41 +95,35 @@ export function YourAnswers() {
       </AppText>
 
       {ordered.map((step) => {
-        const current = answers[step.id];
-        const options = typeof step.options === 'function' ? step.options(answers) : step.options;
-        if (!options || options.length === 0) return null;
         const isOpen = open === step.id;
-        const chosen = options.find((o) => o.value === current);
+        const current = heldAnswer(step, answers);
 
         return (
           <Card key={step.id}>
             <AppText variant="body">{step.prompt(answers)}</AppText>
             <AppText
               variant="caption"
-              color={chosen ? 'textSecondary' : 'accent'}
+              color={current ? 'textSecondary' : 'accent'}
               style={styles.gap}
             >
-              {chosen ? chosen.label : 'Not answered — the app is guessing'}
+              {current ?? 'Not answered — the app is guessing'}
             </AppText>
 
             {isOpen ? (
-              <View style={styles.chips}>
-                {options.map((o) => (
-                  <Chip
-                    key={o.value}
-                    label={o.label}
-                    selected={o.value === current}
-                    onPress={() => {
-                      answerDeferredQuestion(step.id, o.value);
-                      setOpen(null);
-                    }}
-                  />
-                ))}
-              </View>
+              <AnswerControl
+                step={step}
+                answers={answers}
+                initialMulti={Array.isArray(answers[step.id]) ? (answers[step.id] as string[]) : []}
+                initialText={step.kind === 'text' && current ? current : ''}
+                onAnswer={(value) => {
+                  answerDeferredQuestion(step.id, value);
+                  setOpen(null);
+                }}
+              />
             ) : (
               <View style={styles.chips}>
                 <Chip
-                  label={chosen ? 'Change' : 'Answer it'}
+                  label={current ? 'Change' : 'Answer it'}
                   hint={step.prompt(answers)}
                   onPress={() => setOpen(step.id)}
                 />

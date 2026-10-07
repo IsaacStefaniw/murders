@@ -1,18 +1,11 @@
-import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet } from 'react-native';
 
-import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { Chip } from '@/components/chip';
-import { Field } from '@/components/field';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
-import {
-  deferredSteps,
-  optionsFor,
-  placeholderFor,
-  type DeferTarget,
-} from '@/features/onboarding/script';
+import { AnswerControl } from '@/features/onboarding/AnswerControl';
+import { deferredSteps, type DeferTarget } from '@/features/onboarding/script';
 import { useAppStore } from '@/state/store';
 
 interface DeferredQuestionsProps {
@@ -37,17 +30,12 @@ export function DeferredQuestions({ target, promise }: DeferredQuestionsProps) {
   const answers = useAppStore((s) => s.interviewAnswers);
   const answerDeferredQuestion = useAppStore((s) => s.answerDeferredQuestion);
 
-  const [multi, setMulti] = useState<string[]>([]);
-  const [text, setText] = useState('');
-
   const outstanding = useMemo(() => deferredSteps(answers, target), [answers, target]);
   const step = outstanding[0];
   if (!step) return null;
 
   const submit = (value: string | string[] | undefined) => {
     answerDeferredQuestion(step.id, value);
-    setMulti([]);
-    setText('');
   };
 
   const remaining = outstanding.length - 1;
@@ -63,56 +51,12 @@ export function DeferredQuestions({ target, promise }: DeferredQuestionsProps) {
         {step.prompt(answers)}
       </AppText>
 
-      {step.kind === 'text' ? (
-        <View style={styles.stack}>
-          <Field
-            label={step.prompt(answers)}
-            showLabel={false}
-            value={text}
-            onChangeText={setText}
-            placeholder={placeholderFor(step, answers)}
-            returnKeyType="done"
-            onSubmitEditing={() => submit(text.trim() || undefined)}
-          />
-          <Button
-            title={text.trim() ? 'Save' : 'Skip'}
-            variant={text.trim() ? 'primary' : 'ghost'}
-            onPress={() => submit(text.trim() || undefined)}
-          />
-        </View>
-      ) : (
-        <View style={styles.stack}>
-          <View style={styles.chips}>
-            {optionsFor(step, answers).map((option) => (
-              <Chip
-                key={option.value}
-                label={option.label}
-                selected={step.kind === 'multi' && multi.includes(option.value)}
-                onPress={() => {
-                  if (step.kind === 'single') {
-                    submit(option.value);
-                    return;
-                  }
-                  setMulti((prev) =>
-                    prev.includes(option.value)
-                      ? prev.filter((v) => v !== option.value)
-                      : step.maxSelections && prev.length >= step.maxSelections
-                        ? prev
-                        : [...prev, option.value],
-                  );
-                }}
-              />
-            ))}
-          </View>
-          {step.kind === 'multi' ? (
-            <Button
-              title={multi.length > 0 ? 'Save' : 'Skip'}
-              variant={multi.length > 0 ? 'primary' : 'ghost'}
-              onPress={() => submit(multi.length > 0 ? multi : undefined)}
-            />
-          ) : null}
-        </View>
-      )}
+      {/* One implementation of the three controls, shared with
+          `YourAnswers` — which rendered only `single` and so left sixteen
+          of the thirty-eight questions off the screen entirely. See
+          AnswerControl. The `key` resets its internal state when the next
+          outstanding question takes this card's place. */}
+      <AnswerControl key={step.id} step={step} answers={answers} onAnswer={submit} />
 
       {remaining > 0 ? (
         <AppText variant="caption" color="textTertiary" style={styles.remaining}>
