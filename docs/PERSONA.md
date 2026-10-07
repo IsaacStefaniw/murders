@@ -234,6 +234,12 @@ says *"STRENGTH — ~36 minutes. It's all decided."* and the footer says
 *"Form over load; leave one rep in the tank"* — the beginner line, to an
 intermediate lifter, on the one screen where loads belong.
 
+**Fixed.** The screen now claims only what it knows. Where no main lift
+has a load — from the programme, from `suggestNext`, or from the last
+performance — the header reads *"~35 minutes. The loads are yours to
+set."*, there is a card that goes and gets them, and the footer is read
+off `trainingLevelState().level` rather than assuming a beginner.
+
 ### 2. The app gives two opposite answers to "is today a lifting day"
 
 `/plan/routines` says *"Strength workout — M W F S"*. Tuesday is not in
@@ -263,12 +269,37 @@ weeks running and you finish at half six; train before work or move it to
 the weekend* — is derivable from two screens the app already renders, and
 it is never said.
 
+**Fixed**, and it turned out to be a whole missing class of detector
+rather than a missing sentence. Every detector in `adaptation.ts` is
+BEHAVIOURAL: it waits for repeated failure and then reacts.
+`src/features/planner/atWork.ts` is the other kind — structural, true on
+day one, before any evidence exists, and so three weeks cheaper for the
+person. Routines now say it on `/plan/routines`:
+
+> 5 things want a time you are at work — you finish at 18:30. Either they
+> move, or they all land in the same evening.
+>
+> 8 things want the 4.5 hours between finishing and sleeping.
+
+and per row: *"You are at work until 6:30pm — this cannot start when it
+says."* It moves nothing by itself. People leave early, work from home,
+have a gym in the building.
+
 ### 5. A 0–100 score, on a number that is wrong, in a product that forbids scoreboards
 
 *"Physical activity — 100"* on a full bar, captioned "235 minutes of
 training the app watched this week", on a morning the Week tab reads
 *"Training 1/12"*. Both the forbidden thing and a false version of it.
 This is work item §1, now with a second reason.
+
+**Half fixed, and half of it was not true.** The number is not false:
+`activityMinutes` filters `status !== 'completed'`, verified before
+anything was changed. The defect was two honest measures — minutes over a
+rolling seven days, items over the planning week — both labelled "this
+week". The caption now names its own window: *"115 minutes of training
+completed in the last 7 days"*. Worth recording that the finding
+overstated itself, for the same reason the harness correction below is
+recorded. The 0–100 score itself stands and is still work item §1.
 
 ### 6. The Coaches tab, six weeks in, is an unanswered setup question
 
