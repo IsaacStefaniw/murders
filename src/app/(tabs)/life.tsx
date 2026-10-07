@@ -21,7 +21,9 @@ import { behaviourPattern, weekNote } from '@/features/behaviours/patterns';
 import { goalTrajectory } from '@/features/model/trajectory';
 import { GoalProgress } from '@/features/goals/GoalProgress';
 import { coachLine, voiceFor } from '@/features/coaches/voices';
-import { PATH_AREA, PATH_ORDER, PATHS } from '@/features/paths/definitions';
+import { PATH_AREA, PATHS, type PathId } from '@/features/paths/definitions';
+import { coachStates, hubHeadline, hubUnmetLine } from '@/features/paths/hub';
+import { nextRungForPath } from '@/features/paths/nextRung';
 import { freeCoachArea } from '@/features/plus/entitlement';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
@@ -61,6 +63,11 @@ export default function Life() {
   const plus = useAppStore((s) => s.entitlement.plus);
   const goals = useAppStore((s) => s.goals);
   const paths = useAppStore((s) => s.paths);
+  // For the next rung on a running coach's card — what it is working on, so
+  // the tab answers that without a tap. Same call the hub's NextRungCard
+  // makes; it reads what actually happened, not what was scheduled.
+  const routines = useAppStore((s) => s.routines);
+  const plans = useAppStore((s) => s.plans);
   const behaviourIntentions = useAppStore((s) => s.behaviourIntentions);
   const behaviourEvents = useAppStore((s) => s.behaviourEvents);
   const metrics = useAppStore((s) => s.metrics);
@@ -85,89 +92,160 @@ export default function Life() {
   const activeGoals = goals.filter((g) => g.status === 'active');
   const activeIntentions = behaviourIntentions.filter((b) => b.active);
 
+  /**
+   * Which coaches are running, and the two sentences about it.
+   *
+   * This tab used to print the same brochure to everybody: two sentences
+   * explaining what seven coaches are, then the three-year question, then
+   * all seven in definition order with the one that is actually running
+   * given no more room than the six that are not. Right on day one, and by
+   * week six it buried the only thing on the screen the person wanted.
+   * See features/paths/hub.ts.
+   */
+  const states = coachStates(paths, profile.priorities);
+  const unmetLine = hubUnmetLine(states);
+
+  /** One coach's card. Rendered twice — running first, then not started. */
+  const coachCard = (pathId: PathId) => {
+    const def = PATHS[pathId];
+    const entry = paths[pathId];
+    const pathGoal = entry ? goals.find((g) => g.id === entry.goalId) : undefined;
+    const done = pathGoal?.milestones?.filter((m) => m.done).length ?? 0;
+    const total = pathGoal?.milestones?.length ?? 0;
+    // What a running coach is working on. Money has no researched ladder
+    // and says so by being absent rather than by inventing an order.
+    const next = entry ? nextRungForPath(pathId, entry.answers, profile, routines, plans) : null;
+    /**
+     * One statement of where this coach is, not two that disagree.
+     *
+     * The first cut of this card showed the milestone fraction in the
+     * badge AND the next rung underneath, and the browser immediately
+     * produced "5/5 steps" directly above "Next: One behaviour, one cue".
+     * Both were true — goal milestones and ladder rungs are different
+     * ladders — and together they read as the card contradicting itself,
+     * which is the same defect as the three figures for "the week".
+     *
+     * So the rung wins where there is one, because "what is it doing" is
+     * the question this tab exists to answer, and the fraction is only
+     * shown for a coach with no ladder to speak from.
+     */
+    const runningLine = !entry
+      ? null
+      : next
+        ? next.rung
+          ? `Next: ${next.rung.title}`
+          : next.line
+        : total > 0
+          ? `${done} of ${total} steps done`
+          : null;
+    return (
+      <Card
+        key={pathId}
+        onPress={() => router.push(`/path/${pathId}` as never)}
+        accessibilityLabel={`${def.title} path`}
+      >
+        <View style={styles.pathRow}>
+          <AppText variant="heading" style={styles.pathTitle}>
+            {def.title}
+          </AppText>
+          {/* Only the not-started ones need a badge. Inside the "Running"
+              section a card reading "Running" is the header again, and a
+              word that says nothing still costs a glance. */}
+          {!entry ? (
+            <AppText variant="caption" color="accent">
+              {`${def.questions.length} questions`}
+            </AppText>
+          ) : null}
+        </View>
+        {/* A running coach says what it is doing. "Active · 2/5 steps" was
+            a progress fraction where the question is "and so what are you
+            doing about it this week" — the same card, one tap shallower. */}
+        {runningLine ? (
+          <AppText variant="secondary" style={styles.pathNext}>
+            {runningLine}
+          </AppText>
+        ) : null}
+        <AppText variant="caption" color="textTertiary">
+          {coachLine(pathId)}
+        </AppText>
+        {/* The refusal rather than the promise. A list of seven
+            promises is a feature matrix; nobody picks a person from
+            one. See features/coaches/voices.ts. */}
+        {!entry ? (
+          <AppText variant="secondary" style={styles.pathVoice}>
+            {voiceFor(pathId).refusal}
+          </AppText>
+        ) : null}
+        {/* The card says what Today does. The free coach is chosen
+            by the area the person ranked first, and until this read
+            the same rule the tab advertised a lock that was not
+            there. */}
+        {!plus && pathId === 'recovery' ? (
+          <AppText variant="caption" color="success">
+            Always free — we never charge for someone’s hardest moment
+          </AppText>
+        ) : !plus && PATH_AREA[pathId] === freeArea ? (
+          <AppText variant="caption" color="success">
+            Yours free — you said this matters most
+          </AppText>
+        ) : !plus ? (
+          <AppText variant="caption" color="accent">
+            Built and waiting · Plus puts its sessions into your days
+          </AppText>
+        ) : null}
+      </Card>
+    );
+  };
+
   return (
     <Screen tabbed>
       <AppText variant="label" color="textTertiary">
         Coaches
       </AppText>
       <AppText variant="title">What you&apos;re building</AppText>
-      <AppText variant="caption" color="textTertiary">
-        Seven specialists, each one building and running a plan for one part of your life from the
-        same answers. They tell you what they need and what they will never do.
-      </AppText>
+      {states.running.length === 0 ? (
+        // Nothing running: the person genuinely does not know what these
+        // are yet, and the explanation is the right thing to lead with.
+        <AppText variant="caption" color="textTertiary">
+          Seven specialists, each one building and running a plan for one part of your life from
+          the same answers. They tell you what they need and what they will never do.
+        </AppText>
+      ) : (
+        <>
+          <AppText variant="secondary" style={styles.hubState}>
+            {hubHeadline(states)}
+          </AppText>
+          {unmetLine ? (
+            <AppText variant="caption" color="accent">
+              {unmetLine}
+            </AppText>
+          ) : null}
+        </>
+      )}
       {profile.lifeVision ? (
         <AppText variant="secondary" style={styles.vision}>
           “{profile.lifeVision}”
         </AppText>
       ) : null}
 
-      {/* Questions that belong to no single coach. Disappears once
-          answered rather than sitting there as a permanent chore. */}
-      <DeferredQuestions
-        target="coaches"
-        promise="One more thing IntentNorth can use across every coach."
-      />
+      {states.running.length > 0 ? (
+        <>
+          <SectionHeader title="Running" />
+          <View style={styles.stack}>{states.running.map(coachCard)}</View>
+        </>
+      ) : null}
 
-      <SectionHeader title="Your coaches" />
-      <AppText variant="caption" color="textTertiary">
-        A few questions each — every answer changes what gets built.
-      </AppText>
-      <View style={styles.stack}>
-        {PATH_ORDER.map((pathId) => {
-          const def = PATHS[pathId];
-          const entry = paths[pathId];
-          const pathGoal = entry ? goals.find((g) => g.id === entry.goalId) : undefined;
-          const done = pathGoal?.milestones?.filter((m) => m.done).length ?? 0;
-          const total = pathGoal?.milestones?.length ?? 0;
-          return (
-            <Card
-              key={pathId}
-              onPress={() => router.push(`/path/${pathId}` as never)}
-              accessibilityLabel={`${def.title} path`}
-            >
-              <View style={styles.pathRow}>
-                <AppText variant="heading" style={styles.pathTitle}>
-                  {def.title}
-                </AppText>
-                <AppText variant="caption" color={entry ? 'success' : 'accent'}>
-                  {entry
-                    ? total > 0
-                      ? `Active · ${done}/${total} steps`
-                      : 'Active'
-                    : `${def.questions.length} questions`}
-                </AppText>
-              </View>
-              <AppText variant="caption" color="textTertiary">
-                {coachLine(pathId)}
-              </AppText>
-              {/* The refusal rather than the promise. A list of seven
-                  promises is a feature matrix; nobody picks a person from
-                  one. See features/coaches/voices.ts. */}
-              {!entry ? (
-                <AppText variant="secondary" style={styles.pathVoice}>
-                  {voiceFor(pathId).refusal}
-                </AppText>
-              ) : null}
-              {/* The card says what Today does. The free coach is chosen
-                  by the area the person ranked first, and until this read
-                  the same rule the tab advertised a lock that was not
-                  there. */}
-              {!plus && pathId === 'recovery' ? (
-                <AppText variant="caption" color="success">
-                  Always free — we never charge for someone’s hardest moment
-                </AppText>
-              ) : !plus && PATH_AREA[pathId] === freeArea ? (
-                <AppText variant="caption" color="success">
-                  Yours free — you said this matters most
-                </AppText>
-              ) : !plus ? (
-                <AppText variant="caption" color="accent">
-                  Built and waiting · Plus puts its sessions into your days
-                </AppText>
-              ) : null}
-            </Card>
-          );
-        })}
+      {states.idle.length > 0 ? (
+        <>
+          <SectionHeader title={states.running.length > 0 ? 'Not started' : 'Your coaches'} />
+          <AppText variant="caption" color="textTertiary">
+            A few questions each — every answer changes what gets built.
+          </AppText>
+          <View style={styles.stack}>{states.idle.map(coachCard)}</View>
+        </>
+      ) : null}
+
+      <View style={styles.libraryBlock}>
         <Card
           onPress={() => router.push('/library' as never)}
           accessibilityLabel="Open the evidence-based practice library"
@@ -179,6 +257,16 @@ export default function Life() {
           </AppText>
         </Card>
       </View>
+
+      {/* Questions that belong to no single coach, BELOW the coaches rather
+          than in front of them. Still offered, still disappears once
+          answered — but a text box asking what life looks like in three
+          years is not what somebody opens this tab at 06:40 to find, and
+          while it sat at the top it was the whole screen. */}
+      <DeferredQuestions
+        target="coaches"
+        promise="One more thing IntentNorth can use across every coach."
+      />
 
       <SectionHeader title="Goals" />
       {activeGoals.length === 0 ? (
@@ -372,7 +460,10 @@ export default function Life() {
 const styles = StyleSheet.create({
   stack: { gap: Spacing.sm },
   vision: { marginTop: Spacing.sm, fontStyle: 'italic' },
+  hubState: { marginTop: Spacing.xs, fontWeight: '600' },
   pathVoice: { marginTop: Spacing.sm },
+  pathNext: { marginTop: Spacing.xs, fontWeight: '600' },
+  libraryBlock: { marginTop: Spacing.md },
   pathRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: Spacing.sm },
   pathTitle: { flexShrink: 1 },
   intentionRow: {
