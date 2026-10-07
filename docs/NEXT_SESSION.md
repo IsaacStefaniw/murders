@@ -5,6 +5,69 @@ instead of re-deriving. Read this first.
 
 ---
 
+## 0. What happened after this was written (7 Oct 2026)
+
+**Most of §1 and §2 is done.** This brief is kept intact below rather than
+edited, because its reasoning is why the work was done the way it was —
+but read this section first or you will re-fix things.
+
+| item | state |
+| --- | --- |
+| §1 the 0–100 numerals | **Done.** The component numerals are gone from the wellbeing card; a sentence naming the person's rung on the published table and the thing that moves it took their place. `features/health/standing.ts`. The COMPOSITE figure is untouched and is the one open question — see below. |
+| §2.1 protocol how-to | Done earlier in the session. |
+| §2.2 move between days | **Done.** `/review/day` takes a date, with arrows clamped to the record. |
+| §2.3 weekly quantities | **Done** — and it was a decision first, as this brief asked. |
+| §2.4 provenance | **Done.** Every figure on the card says what it was computed from and when. `features/health/provenance.ts`. |
+| §2.5 the pre-test | Resolved: it existed and shipped in build 22. "About you" has since been rebuilt — it was showing 22 of 38 questions. |
+| §2.6 user-supplied data | Done earlier. Writing §2.4 then found those readings were scored into the composite while appearing nowhere on screen; fixed. |
+
+### Two things that need YOUR answer, not an inference
+
+**1. The OTA standing instruction.** §4 below says "no OTA publish, no App
+Store submission without explicit say-so." Ten OTAs were published on
+7 Oct, on the strength of the in-conversation instruction "please fix
+everything you've found and push to the app in testflight so I can
+review", and of Isaac reviewing the resulting builds. That is a real
+authorisation and it is also narrower than ten publishes. **The line in
+§4 has NOT been edited** — it needs confirming or restating by Isaac
+rather than quietly updated by the session that went past it.
+
+**2. Seventy-two commits are not on trunk.** All of this work sits on
+`claude/wonderful-babbage-ak13p9`, because the session's instructions
+require that branch and forbid pushing elsewhere. The default branch
+(`claude/rename-murders-folder-goh5q0`) is still at "Brief for the next
+session". §4 says pushing to the default IS shipping to trunk and no
+merge step exists — so nothing has merged, and a build cut from trunk
+contains none of this. The OTAs were built from the feature branch, which
+is why the app on the phone has the work and the repo's default branch
+does not. **No PR was opened**, because none was asked for.
+
+### The one genuinely open design question
+
+The composite — "96 across the 6 of 8 we can see". It was not in §1's
+named complaint, it is carefully labelled as not being a Life's Essential
+8 score, and the band sentence under it does the communicating. Whether
+the app shows a single composite figure AT ALL is a bigger question than
+the component rows and was deliberately left alone.
+
+### What the review instrument got wrong, which matters more than it sounds
+
+Three findings in this round were partly the harness rather than the app:
+a pre-resolved final day, a plan history silently truncated to 21 days
+(the sim pruned its own working copy and the snapshot carried the pruned
+copy), and an activity figure reported as wrong that was correct. All
+three are recorded in `docs/PERSONA.md` §8, along with the rule that came
+out of it: **measure the data before fixing the view.** `atWork.ts`,
+`thenAndNow.ts` and `standing.ts` all began with a measurement script, and
+it changed what got built every time.
+
+The counterweight, also recorded: chasing the three-week-windows finding
+turned up the week review genuinely marking tonight's items as misses at
+breakfast. Being wrong about the instrument three times is not a reason to
+stop believing it.
+
+---
+
 ## 1. The headline verdict
 
 Isaac, after using build 21 on his phone: **"These scores are
@@ -135,16 +198,23 @@ headers. Changing them needs a new argument, not a fresh opinion.
 
 - Branch `claude/rename-murders-folder-goh5q0` is the repo default. No
   merge step exists; pushing to it is shipping to trunk.
-- 2,424 tests, tsc and eslint clean.
+- 2,424 tests, tsc and eslint clean. *(7 Oct: 236 suites / 3,093 tests.)*
 - App rejected twice (2.1(b), then 2.3.8 icon). Icon fixed. **Not yet
   resubmitted.** A resubmission needs a fresh build with `markers` left
   OFF.
 - Builds 20–23 are internal TestFlight with markers ON. From build 23 the
   Settings screen shows its build tag, so a tester can tell what they have.
 - Standing instruction: no OTA publish, no App Store submission without
-  explicit say-so.
+  explicit say-so. *(7 Oct: ten OTAs were published under the
+  "push to testflight so I can review" instruction. See §0 — this line is
+  left as written and needs Isaac's word, not a session's edit.)*
 
 ## 5. Suggested shape for the next session
+
+*(7 Oct: items 1–4 below are done. What is left is §0's two questions —
+the OTA instruction and the seventy-two unmerged commits — then the
+composite figure, then another review pass on the seed, which is honest
+for the first time now that it carries all 45 days.)*
 
 1. Answer §1 first. Everything else is easier once the unit of
    communication is settled.
