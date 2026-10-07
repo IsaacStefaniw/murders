@@ -97,6 +97,26 @@ export function weekdayOf(dateKey: string): Weekday {
   return dateKeyToDate(dateKey).getDay() as Weekday;
 }
 
+/**
+ * Day names, indexed by `Weekday` — Sunday is 0, as `getDay` returns.
+ *
+ * Eight modules had already written this array out for themselves
+ * (`session/meals`, `goals/composer`, `anticipation/lookAhead`,
+ * `household/week`, `family/householdWeek`, `behaviours/patterns`,
+ * `behaviours/whenPicker`, `review/weekReview`). This is the ninth
+ * caller's refusal to be the ninth copy, and it lives here because
+ * `weekdayOf` does. Collapsing the other eight onto it is its own job.
+ */
+export const WEEKDAY_NAMES: readonly string[] = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
 export function addDays(dateKey: string, days: number): string {
   const d = dateKeyToDate(dateKey);
   d.setDate(d.getDate() + days);

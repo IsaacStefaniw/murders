@@ -6,6 +6,7 @@ import { Chip } from '@/components/chip';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { weekStartOf } from '@/features/behaviours/weekly';
+import { clashesWithWork, eveningFit, pushNote } from '@/features/planner/atWork';
 import {
   CAPACITY_BLURB,
   CAPACITY_LABEL,
@@ -34,6 +35,7 @@ import { useAppStore } from '@/state/store';
 export function WeekSizeCard() {
   const profile = useAppStore((s) => s.profile);
   const plans = useAppStore((s) => s.plans);
+  const routines = useAppStore((s) => s.routines);
   const overrides = useAppStore((s) => s.weekCapacities);
   const setWeekCapacity = useAppStore((s) => s.setWeekCapacity);
 
@@ -56,6 +58,26 @@ export function WeekSizeCard() {
     [plans, thisWeek],
   );
 
+  /**
+   * What the top gear is actually asking for.
+   *
+   * "More in it, for a week with room" is the blurb, and on the seeded
+   * six-week account it sat opposite a routines screen saying five things
+   * want a time the person is at work and eight want the hours after it.
+   * Two screens, opposite answers to "does this week have room".
+   *
+   * It does not change the chips. `effectiveCapacity` has it written down
+   * that an explicit choice always wins, and that is right — the person
+   * knows about the Friday that cleared. They just get the number now.
+   */
+  const note = useMemo(
+    () =>
+      gear.capacity === 'push'
+        ? pushNote(eveningFit(routines, profile), clashesWithWork(routines, profile))
+        : null,
+    [gear.capacity, routines, profile],
+  );
+
   if (!profile) return null;
 
   return (
@@ -76,6 +98,12 @@ export function WeekSizeCard() {
       <AppText variant="secondary" style={styles.gap}>
         {CAPACITY_BLURB[gear.capacity]}
       </AppText>
+
+      {note ? (
+        <AppText variant="caption" color="accent" style={styles.gap}>
+          {note}
+        </AppText>
+      ) : null}
 
       {gear.line ? (
         <AppText variant="caption" color="textSecondary" style={styles.gap}>
