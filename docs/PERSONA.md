@@ -189,11 +189,19 @@ seeded through `tools/usertest`:
 coaches started          1 of 7   — recovery (habits). No training coach.
                                     No nutrition coach.
 routines                 10, of which SIX fall in 17:30–20:30
-completion               46 of 135 (34%), 43 explicitly skipped
+completion               97 of 286, 95 explicitly skipped
 the ambition on screen   "Get into the best shape of …"
 sleep anchor             "Wind down, screens away" — turned OFF by the
                          adaptation engine after repeated misses
 ```
+
+**Corrected 7 Oct.** This block first read "46 of 135, 43 skipped", which
+was a third of the truth: the sim pruned its own plan history to 21 days
+and the snapshot carried only what survived, so the seed held three weeks
+of a forty-five-day life. The completion RATE is unchanged at about a
+third — which is why the error was invisible — but any finding about
+long-horizon history on that seed was being made against data that was not
+there. Fixed in `features/sim/engine.ts`; see §8.
 
 Read that against §3.
 
@@ -308,6 +316,37 @@ working three years from now — what does it look like?"*, asked at 06:40
 on a Tuesday and again at 21:52 on a bad night. The tab named after the
 thing he is paying for.
 
+### 7. "Am I better than six weeks ago?" — answered with empty states
+
+The Sunday-morning session asked the one question the product exists to
+answer and Progress replied with blank panels, on an account with six
+weeks of life in it.
+
+**Mostly my harness, and the surviving half is fixed.** `sim/engine.ts`
+pruned its working copy of `plans` to 21 days — with a comment claiming
+that matched the store, where the store keeps 120 days item-by-item — so
+a 45-day seed handed the app three weeks and every panel reading further
+back was empty for any build. The engine now archives every day it lives.
+`metrics` are a harder limit: the engine does not model them at all, so
+the practice counts, the trajectories and the focus-hours chart are empty
+on ANY seed. Those panels cannot be reviewed this way and the brief now
+says so.
+
+What survived, with the full history in place: nothing on the screen
+compared any two periods. The only historical panels were a 28-day
+sparkline — one figure, nothing to compare it to — and the metric charts.
+**Fixed**: Progress now opens with three weeks against the three before,
+and Alex's honest answer is
+
+> Time on them is down: 17.6 hours, against 24.6 hours in the three weeks
+> before.
+>
+> Days something happened 18 (was 18) · Things done 43 (was 45)
+
+Showing up exactly as often, doing about as much, spending a third less
+time. Unflattering, and the right answer for the one person who will
+respect it (§3.5).
+
 ### What was NOT a finding, and why that matters
 
 The reviewer reported the app pre-resolving the day — tonight's walk
@@ -318,3 +357,24 @@ evening already resolved. Fixed in `seed.test.ts`: today resets to
 
 Worth stating plainly, because a review instrument that cannot be caught
 lying is not an instrument.
+
+And then it happened twice more, which is the real lesson:
+
+- **The truncated history above.** Two findings on the Progress tab rested
+  on data the seed could not hold.
+- **"A 0–100 score on a number that is wrong"** (§5). The number was
+  right; `activityMinutes` filters to completed. The defect was two
+  honest measures both labelled "this week".
+
+Three of this round's findings were partly the instrument and one was an
+overstatement. The pattern is specific and worth naming: **a reviewer
+reports blankness or a wrong figure, and the cause is upstream of the
+screen.** So the rule now is to measure the data before fixing the view —
+`atWork.ts` and `thenAndNow.ts` both began with a measurement script
+against the seed, and in both cases it changed what got built.
+
+**But note which way the error ran on the week grid.** Chasing the
+three-windows finding turned up the app genuinely marking tonight's items
+as misses at breakfast — the same sentence as the harness bug, this time
+real. Being wrong about the instrument three times is not a reason to
+stop believing the instrument.

@@ -179,6 +179,19 @@ Say it plainly so nobody oversells it:
 - It cannot tell you about week eight. Every seed ends today, so nobody
   has lapsed, come back, or watched the app get something wrong three
   Thursdays running.
+- **It cannot review anything that reads `metrics`.** The engine does not
+  model the store's `Metric` records at all, so the practice counts, the
+  trajectories and the focus-hours chart on the Progress tab are empty on
+  EVERY seed, however long the run. A reviewer will report that blankness
+  and be describing the harness. Those panels need a hand-entered state or
+  a different method.
+- **It only knows what the snapshot carries.** This has now bitten twice —
+  a pre-resolved final day, and a plan history silently truncated to 21
+  days because the engine pruned its own working copy. Both produced
+  findings about the app that were findings about the seed. Before trusting
+  a finding that an app screen is EMPTY or a figure is WRONG, measure the
+  seed: `python3 -I -c` over `tools/usertest/seeds/*.json` takes a minute
+  and has changed what got built every time it was run.
 - It cannot tell you whether anybody would pay.
 - **The persona was written by the same people who wrote the app, so it
   wants what the app offers.** A real person's goal arrives from outside

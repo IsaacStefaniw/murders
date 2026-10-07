@@ -29,6 +29,7 @@ import { BodyNumbers } from '@/features/health/BodyNumbers';
 import { WellbeingCard } from '@/features/health/WellbeingCard';
 import { FunctionTestList } from '@/features/health/FunctionTests';
 import { MARKERS_ENABLED } from '@/features/health/flag';
+import { spellMinutes, thenAndNow } from '@/features/health/thenAndNow';
 import { PaceCard } from '@/features/health/PaceCard';
 import { WeeklyReviewPanel } from '@/features/review/WeeklyReviewPanel';
 import { WorkNumbers } from '@/features/work/WorkNumbers';
@@ -130,6 +131,25 @@ export default function Data() {
     });
   }, [plans, today]);
 
+  /**
+   * "Am I better than six weeks ago?"
+   *
+   * The question a review session asked this tab on a Sunday morning, and
+   * the one the product exists to answer. Everything else on the screen
+   * was a snapshot of now: the only historical panels were a 28-day
+   * sparkline, which is one figure with nothing to compare it to, and a
+   * chart fed by metrics. Nothing anywhere put two periods side by side.
+   *
+   * From `plans`, because that is the source that is genuinely populated
+   * — the store keeps 120 days of them item-by-item. See
+   * features/health/thenAndNow.ts, including the part where most of the
+   * original finding turned out to be my own seeder.
+   */
+  const before = useMemo(
+    () => thenAndNow({ plans, behaviourEvents, behaviourIntentions, today }),
+    [plans, behaviourEvents, behaviourIntentions, today],
+  );
+
   const volume = useMemo(() => weeklyVolume(workoutLogs, 8), [workoutLogs]);
   const sessions = useMemo(() => recentLogs(workoutLogs), [workoutLogs]);
   const activeIntentions = behaviourIntentions.filter((b) => b.active);
@@ -158,6 +178,50 @@ export default function Data() {
           <FunctionTestList />
         </>
       ) : null}
+
+      {/* Before anything about now. Six weeks in, "has any of this
+          worked" beats every current reading on the screen, and it was
+          the one question nothing here answered. */}
+      <SectionHeader title="Compared with before" />
+      <Card>
+        {before.shortfall ? (
+          <AppText variant="secondary">{before.shortfall}</AppText>
+        ) : (
+          <>
+            {before.headline ? (
+              <AppText variant="body" style={styles.thenHeadline}>
+                {before.headline}
+              </AppText>
+            ) : null}
+            {/* Deliberately not MetricRow: that renders a value against a
+                sparkline of its readings, and this has exactly two points.
+                Drawing a line between them would imply a trend that two
+                numbers cannot support. */}
+            <View style={styles.thenRows}>
+              {before.rows.map((row) => {
+                const show = (n: number) =>
+                  row.unit === 'minutes' ? spellMinutes(n) : String(n);
+                return (
+                  <View key={row.key} style={styles.thenRow}>
+                    <AppText variant="body" style={styles.thenLabel}>
+                      {row.label}
+                    </AppText>
+                    <View style={styles.thenPair}>
+                      <AppText variant="body">{show(row.now)}</AppText>
+                      <AppText variant="caption" color="textTertiary">
+                        was {show(row.then)}
+                      </AppText>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+            <AppText variant="caption" color="textTertiary" style={styles.thenFoot}>
+              Two counts, side by side. Not a score, and nothing here resets to zero.
+            </AppText>
+          </>
+        )}
+      </Card>
 
       <SectionHeader title="Your week, against a published measure" />
       <WellbeingCard />
@@ -450,6 +514,17 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  thenHeadline: { fontWeight: '600' },
+  thenRows: { marginTop: Spacing.md, gap: Spacing.sm },
+  thenRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    gap: Spacing.md,
+  },
+  thenLabel: { flexShrink: 1 },
+  thenPair: { alignItems: 'flex-end' },
+  thenFoot: { marginTop: Spacing.md },
   statLine: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.md },
   stack: { gap: Spacing.sm },
   row: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: Spacing.md },

@@ -128,8 +128,27 @@ export interface UserResult {
 export interface SimSnapshot {
   profile: LifeProfile;
   routines: Routine[];
+  /**
+   * EVERY day the run lived through, not the detector window.
+   *
+   * The engine prunes its working copy to 21 days, so this used to carry
+   * three weeks however long the run was. A 45-day seed therefore produced
+   * an app with three weeks of history in it, and the Progress tab was
+   * reported as answering "am I better than six weeks ago" with empty
+   * states — which it would have done for any build, because the data was
+   * not there to read. The real store keeps 120 days item-by-item.
+   */
   plans: Record<string, DailyPlan>;
   goals: Goal[];
+  /**
+   * `metrics` is NOT here either, for the same reason as the urges: this
+   * engine does not model the store's `Metric` records at all, so a
+   * snapshot carrying them would be inventing them. Everything on the
+   * Progress tab that reads metrics — the practice counts, the
+   * trajectories, the focus-hours chart — is therefore empty on a seed,
+   * and that is the harness rather than the app. Judge those panels
+   * against a hand-entered state or not at all.
+   */
   /**
    * Urge logging is NOT here, because this engine does not simulate it.
    * `GroundTruth.behaviourEventRate` exists and the loop never reads it,
@@ -268,6 +287,10 @@ export function runUser(
   };
 
   const plans: Record<string, DailyPlan> = {};
+
+  /** Every day the run lived, unpruned — the snapshot's history. */
+
+  const archive: Record<string, DailyPlan> = {};
   const moves: ManualMove[] = [];
   const seenSuggestionKeys = new Set<string>();
   const weeks: WeekMetrics[] = [];
@@ -392,7 +415,28 @@ export function runUser(
     });
 
     plans[date] = plan;
-    // Keep detector input windowed like the store does.
+    // Every day, kept. `plans` below is the DETECTOR window and is
+    // deliberately short; this is the run's whole life, and it is what the
+    // snapshot hands to the app.
+    archive[date] = plan;
+    /**
+     * Keep detector input windowed.
+     *
+     * The comment here used to say "like the store does", and that was
+     * simply wrong: `state/hygiene.ts` keeps FULL_PLAN_DAYS = 120 days
+     * item-by-item and KEEP_PLAN_DAYS = 730 compacted. Twenty-one is a
+     * sixth of the smaller figure.
+     *
+     * The window itself stays at 21 on purpose — it is what every
+     * detector in this engine has been measured against, and
+     * `scenarios.test.ts` seeds personas by array index, so widening it
+     * would move the cohort baseline for reasons that have nothing to do
+     * with the change being made. What was wrong was throwing the rest
+     * away: a reviewer handed a 45-day snapshot got three weeks of plans,
+     * so every screen that reads further back rendered empty however good
+     * the app was, and the Progress tab's "am I better than six weeks
+     * ago" was answered with a blankness the real app would not have had.
+     */
     delete plans[addDays(date, -HISTORY_DAYS - 1)];
 
     // IntentNorth reacts — same evidence hierarchy as the store.
@@ -570,7 +614,10 @@ export function runUser(
     snapshot: {
       profile,
       routines,
-      plans,
+      // The archive, with the live window last so anything still inside it
+      // wins. Both hold the same object per date today, and relying on
+      // that would be a trap for the first code that replaces one.
+      plans: { ...archive, ...plans },
       goals,
       paths: startedPaths,
       lastDate: addDays(startDate, days - 1),
