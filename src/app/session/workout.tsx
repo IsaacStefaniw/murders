@@ -382,6 +382,38 @@ export default function WorkoutSession() {
    * of logging have just moved — and this is the one moment where doing
    * that is obviously right rather than a surprise.
    */
+  /**
+   * Does the app actually know what to put on the bar?
+   *
+   * True when every main movement carries a number — from the programme,
+   * from a progression step, or from what was lifted last time. False is
+   * the honest state for somebody with no logged history, and the screen
+   * now says so rather than claiming the session is decided.
+   */
+  const loadsKnown = useMemo(() => {
+    const mains = (session?.exercises ?? []).filter((e) => !('accessory' in e && e.accessory));
+    if (mains.length === 0) return false;
+    return mains.every((e) => {
+      if ('loadKg' in e && e.loadKg) return true;
+      const topReps = topRepsFrom(e.reps);
+      const next = topReps !== undefined ? suggestNext(workoutLogs, e.name, topReps, e.sets) : null;
+      return Boolean(next?.weightKg ?? lastPerformance(workoutLogs, e.name)?.set.weightKg);
+    });
+  }, [session, workoutLogs]);
+
+  /**
+   * The rung the copy speaks from.
+   *
+   * `trainingLevelState` reads the log, the lifts and what they said at
+   * intake, which is the same answer the programme builds from.
+   */
+  const trainingLevelState = useAppStore((s) => s.trainingLevelState);
+  const foundation = useMemo(
+    () => trainingLevelState().level === 'foundation',
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [trainingLevelState, workoutLogs.length],
+  );
+
   if (programme && blockComplete(programme)) {
     return (
       <Screen>
@@ -516,11 +548,56 @@ export default function WorkoutSession() {
       <AppText variant="label" color="accent">
         {session.title}
       </AppText>
-      <AppText variant="title">~{session.estimatedMin} minutes. It&apos;s all decided.</AppText>
+      {/*
+        "It's all decided" was false on the screen where it is most
+        expensive to be false.
+
+        A review as the target persona — an intermediate lifter, six weeks
+        of account history — tapped the squat row and got an empty box
+        labelled kg. No prescription, no "last time 92.5", nothing. Above
+        it, the app claimed the session was decided. He lost confidence in
+        the product at that point, which is the correct response: a lifter
+        who catches the app asserting authority it does not have has no
+        reason to trust the next number it shows him.
+
+        So the claim is now conditional on the thing it claims. When the
+        loads are known it says so; when they are not it says what is
+        missing, which is also the thing that fixes it.
+      */}
+      <AppText variant="title">
+        {loadsKnown
+          ? `~${session.estimatedMin} minutes. It's all decided.`
+          : `~${session.estimatedMin} minutes. The loads are yours to set.`}
+      </AppText>
       {session.note ? (
         <AppText variant="caption" color="textTertiary" style={styles.note}>
           {session.note}
         </AppText>
+      ) : null}
+
+      {/*
+        The empty box was a dead end.
+
+        Tapping a lift gave a blank kg field and nothing else — no
+        prescription, no history, and no way to supply either. For an
+        intermediate who already knows their numbers, the one thing the app
+        needed was a place to be told them, and it had none on the screen
+        where it mattered. Logging today's sets fixes it from tomorrow, and
+        this says so rather than leaving somebody to guess that it will.
+      */}
+      {!loadsKnown ? (
+        <Card style={styles.note}>
+          <AppText variant="body">Tell it what you lift and it takes over.</AppText>
+          <AppText variant="caption" color="textSecondary">
+            Log today&apos;s weights below and the next session comes with numbers on it. If you
+            already know your maxes, adding them is faster.
+          </AppText>
+          <Button
+            title="Add my lifts"
+            variant="ghost"
+            onPress={() => router.push('/path/training' as never)}
+          />
+        </Card>
       ) : null}
 
       {programme ? (
@@ -752,8 +829,13 @@ export default function WorkoutSession() {
       ) : null}
 
       <AppText variant="caption" color="textTertiary" style={styles.note}>
-        Log what you actually lifted — tap any set to correct it, today or next week. Form over
-        load; leave one rep in the tank.
+        {/* "Form over load" is a foundation cue. Printed to somebody who
+            has been lifting for a decade it is both condescending and the
+            wrong advice — they are not failing on technique, they are
+            failing to add weight. The line follows the rung. */}
+        {foundation
+          ? 'Log what you actually lifted — tap any set to correct it, today or next week. Form over load; leave one rep in the tank.'
+          : 'Log what you actually lifted — tap any set to correct it, today or next week. Once the top of the range goes up, so does the weight.'}
       </AppText>
 
       <View style={styles.footer}>

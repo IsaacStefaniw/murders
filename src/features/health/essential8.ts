@@ -606,10 +606,27 @@ export function weekHealth(input: WeekInputs): WeekHealth {
       key: 'activity',
       label: 'Physical activity',
       score: minutes === null ? null : activityScore(minutes),
+      /**
+       * Precise about the window and the unit, because vagueness here
+       * reads as the app contradicting itself.
+       *
+       * This said "training the app watched this week" and the Week tab,
+       * the same morning, said "Training 1/12". A review as the target
+       * persona reported that as the app getting a number wrong. It is
+       * not: these are two honest measures — MINUTES completed over a
+       * rolling seven days here, ITEMS over the planning week's own dates
+       * there — and both were labelled "this week".
+       *
+       * That is the same defect as the three disagreeing numbers on the
+       * Week card, one tab further out: not arithmetic, but two
+       * measurements wearing the same word. He is the one user who will
+       * check, and once he catches it the honest screens lose their
+       * standing along with the vague ones.
+       */
       detail:
         minutes === null
           ? 'No week to read yet'
-          : `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} of training the app watched this week`,
+          : `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} of training completed in the last 7 days`,
       why: 'The component with the most room to move for most people. The published table pays full marks at 150 minutes a week and pays something for anything above zero — the step from nothing to a little is worth more than the step from a lot to more. Hard cardio counts double, as the table says it should. Only sessions the app saw are counted, and mobility, sauna and warm-ups are not counted as activity, so a real week is usually better than this number.',
       blocked:
         minutes === null

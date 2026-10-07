@@ -13,7 +13,7 @@
  */
 
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/button';
@@ -25,6 +25,7 @@ import { SectionHeader } from '@/components/section-header';
 import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { protocolById } from '@/features/knowledge/protocols';
+import { atWorkLine, clashesWithWork, eveningLoad } from '@/features/planner/atWork';
 import { formatTime, toHHMM, toMinutes } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 import type { Weekday } from '@/types/domain';
@@ -37,6 +38,26 @@ export default function EditRoutines() {
   const routines = useAppStore((s) => s.routines);
   const updateRoutine = useAppStore((s) => s.updateRoutine);
   const [openId, setOpenId] = useState<string | null>(null);
+
+  /**
+   * The times on this screen that are impossible.
+   *
+   * This screen prints a preferred time per routine — "Strength workout ·
+   * 5:30pm" — and for somebody who finishes at 6:30 that is a time that
+   * has never once happened and never can. Six of the target persona's
+   * nine routines were in that state for six weeks, and nothing anywhere
+   * said so: every detector in the app waits for a thing to fail
+   * repeatedly, and none compares the plan against the work hours the
+   * person gave at setup.
+   *
+   * Named here because this is the screen somebody is already on when
+   * they have decided to change something.
+   */
+  const profile = useAppStore((s) => s.profile);
+  const clashes = useMemo(() => clashesWithWork(routines, profile), [routines, profile]);
+  const clashIds = useMemo(() => new Set(clashes.map((c) => c.routine.id)), [clashes]);
+  const headline = atWorkLine(clashes, profile);
+  const evening = useMemo(() => eveningLoad(routines, profile), [routines, profile]);
 
   const active = routines.filter((r) => r.active);
   const paused = routines.filter((r) => !r.active);
@@ -82,6 +103,15 @@ export default function EditRoutines() {
               {formatTime(routine.preferredStart)} · {routine.durationMin} min
               {routine.duringWork ? ' · inside work hours' : ''}
             </AppText>
+            {/* Named on the row, not just counted at the top. A person
+                scanning nine routines for the broken one should not have
+                to do the arithmetic the app has already done. */}
+            {clashIds.has(routine.id) ? (
+              <AppText variant="caption" color="must">
+                You are at work until {formatTime(profile?.workEnd ?? '')} — this cannot start when
+                it says.
+              </AppText>
+            ) : null}
           </View>
           <Chip
             label={open ? 'Close' : 'Adjust'}
@@ -196,6 +226,17 @@ export default function EditRoutines() {
         whole visible week, not just today.
       </AppText>
 
+      {headline ? (
+        <Card style={styles.clash}>
+          <AppText variant="body">{headline}</AppText>
+          {evening && evening.count > 2 ? (
+            <AppText variant="caption" color="textSecondary">
+              {evening.count} things want the {evening.hours} hours between finishing and sleeping.
+            </AppText>
+          ) : null}
+        </Card>
+      ) : null}
+
       <SectionHeader title="Running" />
       <View style={styles.stack}>{active.map((r) => renderRoutine(r.id))}</View>
 
@@ -235,6 +276,7 @@ export default function EditRoutines() {
 const styles = StyleSheet.create({
   sub: { marginTop: Spacing.sm },
   stack: { gap: Spacing.sm },
+  clash: { gap: Spacing.xs, marginBottom: Spacing.sm },
   head: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: Spacing.md },
   grow: { flexShrink: 1, flexGrow: 1 },
   editor: { marginTop: Spacing.md, gap: Spacing.xs },
