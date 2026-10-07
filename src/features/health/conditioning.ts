@@ -101,5 +101,16 @@ export const VO2MAX_CONTEXT =
  * tells a strong person they are overweight, and that is both wrong and
  * the kind of wrong that costs the app every other claim it makes.
  */
+/**
+ * Below this the published table is still awarding full marks and should
+ * not be believed. WHO and the AHA both put the underweight line here.
+ *
+ * It lived in `essential8.ts` until `standing.ts` needed it too, which
+ * would have made those two modules import each other. This file is a
+ * leaf and already holds the other thing the app says about BMI, so the
+ * threshold belongs here and the cycle does not have to exist.
+ */
+export const BMI_UNDERWEIGHT = 18.5;
+
 export const BMI_CONTEXT =
   'BMI is weight against height and nothing else — it cannot tell muscle from fat, and it reports a lot of strong people as overweight. Waist against height is the better simple one: under half your height is the usual mark.';

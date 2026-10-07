@@ -1,8 +1,8 @@
 import { asPercent } from '@/features/health/summarise';
+import { BMI_UNDERWEIGHT } from '@/features/health/conditioning';
 import {
   LEAN_CEILING,
   WAIST_HEIGHT_HEALTHY,
-  BMI_UNDERWEIGHT,
   bmiMisread,
   bmiScore,
   weekHealth,

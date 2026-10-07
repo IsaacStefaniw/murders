@@ -65,12 +65,28 @@ const NICOTINE_CHOICES: { value: NicotineStatus; label: string }[] = [
 ];
 
 /** The published 0–100, drawn. No colour coding: a bar, not a traffic light. */
-function ScoreBar({ score }: { score: number }) {
+function ScoreBar({
+  score,
+  accessibilityLabel,
+}: {
+  score: number;
+  /**
+   * The figure, for a screen reader.
+   *
+   * The bar used to be hidden from accessibility because the numeral
+   * beside it carried the value. The numeral has gone, so the bar is now
+   * the only place the quantity exists — hiding it would leave somebody
+   * using VoiceOver with the sentence and no number at all, which is a
+   * worse screen than the one this change set out to fix.
+   */
+  accessibilityLabel?: string;
+}) {
   const theme = useTheme();
   return (
     <View
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
+      accessibilityRole="progressbar"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(score) }}
       style={[styles.track, { backgroundColor: theme.border }]}
     >
       <View style={[styles.fill, { width: `${score}%`, backgroundColor: theme.accent }]} />
@@ -87,24 +103,51 @@ function ComponentRow({ component }: { component: Component }) {
         <AppText variant="body" style={styles.grow}>
           {component.label}
         </AppText>
-        <AppText
-          variant="body"
-          color={scored && !component.misread ? 'text' : 'textTertiary'}
-          accessibilityLabel={
-            component.misread
-              ? `${component.label}, not counted — this measure does not describe you`
-              : scored
-                ? `${component.label}, ${component.score} out of 100`
+        {/* The numeral is gone from here.
+            Isaac, on build 21: "These scores are meaningless." He was
+            reading "Nicotine 50", and NEXT_SESSION.md §1 — the headline
+            verdict above every other defect in that document — agrees:
+            the number is an input to a construct, not a message to a
+            human. It is still computed, still drives the composite, the
+            band and `biggestGap`, and the bar below still draws it,
+            because a bar is a shape rather than a number. What came off
+            is the numeral as the thing the row leads with.
+            The screen reader keeps the figure: somebody who cannot see
+            the bar should not lose the only quantity on the row. */}
+        {component.misread || !scored ? (
+          <AppText
+            variant="body"
+            color="textTertiary"
+            accessibilityLabel={
+              component.misread
+                ? `${component.label}, not counted — this measure does not describe you`
                 : `${component.label}, not scored`
-          }
-        >
-          {component.misread ? 'Not counted' : scored ? `${component.score}` : '—'}
-        </AppText>
+            }
+          >
+            {component.misread ? 'Not counted' : '—'}
+          </AppText>
+        ) : null}
       </View>
-      {scored && !component.misread ? <ScoreBar score={component.score!} /> : null}
+      {scored && !component.misread ? (
+        <ScoreBar
+          score={component.score!}
+          accessibilityLabel={`${component.label}, ${component.score} out of 100 on the published scale`}
+        />
+      ) : null}
       <AppText variant="caption" color="textSecondary" style={styles.detail}>
         {component.detail}
       </AppText>
+      {/* And this is what replaced it: where the reading sits on the
+          component's own published table, and the thing that would move
+          it. "Nicotine 50" is meaningless; "halfway back — five years
+          clear is the next step up" is a message. Not a footnote under the
+          number, which §1 rules out explicitly, because the number is no
+          longer there. See features/health/standing.ts. */}
+      {component.standing ? (
+        <AppText variant="secondary" style={styles.standing}>
+          {component.standing}
+        </AppText>
+      ) : null}
       {/* Where the figure came from, in the open rather than behind a tap.
           "Where did it get my BMI from?" was asked of a screen that had
           the answer and did not show it, and this is the one user who
@@ -338,6 +381,7 @@ export function WellbeingCard() {
 }
 
 const styles = StyleSheet.create({
+  standing: { marginTop: Spacing.xs, fontWeight: '600' },
   gap: { marginTop: Spacing.xs },
   detail: { marginTop: Spacing.xs },
   row: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: Spacing.sm, marginTop: Spacing.sm, gap: Spacing.xs },

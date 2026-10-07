@@ -67,6 +67,8 @@ import { protocolById } from '@/features/knowledge/protocols';
 import { isVigorous, type CardioLog } from '@/features/training/cardio';
 import type { MetricObservation } from '@/features/model/metrics';
 import { fromIngredients, fromReadings } from '@/features/health/provenance';
+import { BMI_UNDERWEIGHT } from '@/features/health/conditioning';
+import { standingFor } from '@/features/health/standing';
 import type { BehaviourEvent, BehaviourIntention, DailyPlan, Routine } from '@/types/domain';
 import { addDays } from '@/lib/dates';
 
@@ -110,6 +112,17 @@ export interface Component {
    * contains none. See features/health/provenance.ts.
    */
   from?: string;
+  /**
+   * Where this sits on its own published table, and what moves it.
+   *
+   * Isaac, on build 21: "These scores are meaningless." He was reading
+   * "Nicotine 50", and he was right — the number is an input to a
+   * construct, not a message to a human. NEXT_SESSION.md §1 is the
+   * headline verdict of that whole document and it asks for the sentence
+   * that replaces the numeral, explicitly NOT for another footnote under
+   * it. See features/health/standing.ts.
+   */
+  standing?: string;
 }
 
 export const CATEGORY_CUTOFFS = { intermediate: 50, high: 75 } as const;
@@ -252,12 +265,6 @@ export interface MisreadInput {
   waistToHeight?: number | null;
   sex?: 'male' | 'female' | null;
 }
-
-/**
- * Below this the published table is still awarding full marks and should
- * not be believed. WHO and the AHA both put the underweight line here.
- */
-export const BMI_UNDERWEIGHT = 18.5;
 
 /** The sentence to show, or null where BMI is reading this person fairly. */
 export function bmiMisread(input: MisreadInput): string | null {
@@ -674,6 +681,7 @@ export function weekHealth(input: WeekInputs): WeekHealth {
         minutes === null
           ? undefined
           : 'From sessions you marked done, and any cardio you logged.',
+      standing: standingFor({ key: 'activity', minutes }) ?? undefined,
     },
     {
       key: 'nicotine',
@@ -700,6 +708,7 @@ export function weekHealth(input: WeekInputs): WeekHealth {
         : nicotine
           ? 'Read from your own logs, not stated.'
           : undefined,
+      standing: standingFor({ key: 'nicotine', nicotine }) ?? undefined,
     },
     {
       key: 'sleep',
@@ -709,6 +718,7 @@ export function weekHealth(input: WeekInputs): WeekHealth {
       why: 'The component added in 2022, and the one most people are surprised to see scored at all. Seven to nine hours takes full marks; both ends of that window cost points, which is why "more is better" is the wrong instinct here.',
       blocked: sleepHours === null ? 'Connect Apple Health, or log a night, and this scores.' : undefined,
       from: fromReadings(sleepReadings, 'night', today) ?? undefined,
+      standing: standingFor({ key: 'sleep', sleepHours }) ?? undefined,
     },
     {
       key: 'bmi',
@@ -735,6 +745,7 @@ export function weekHealth(input: WeekInputs): WeekHealth {
           ],
           today,
         ) ?? undefined,
+      standing: standingFor({ key: 'bmi', bmi }) ?? undefined,
     },
     {
       key: 'diet',
@@ -765,6 +776,12 @@ export function weekHealth(input: WeekInputs): WeekHealth {
           ],
           today,
         ) ?? undefined,
+      standing:
+        standingFor({
+          key: 'lipids',
+          nonHdlMmol: nonHdl,
+          lipidMedication: input.lipidMedication,
+        }) ?? undefined,
     },
     {
       key: 'glucose',
@@ -793,6 +810,12 @@ export function weekHealth(input: WeekInputs): WeekHealth {
           ],
           today,
         ) ?? undefined,
+      standing:
+        standingFor({
+          key: 'glucose',
+          hba1cPct: hba1c?.value ?? null,
+          diabetes: input.diabetes,
+        }) ?? undefined,
     },
     {
       key: 'bloodPressure',
@@ -818,6 +841,13 @@ export function weekHealth(input: WeekInputs): WeekHealth {
             today,
           ) ?? undefined)
         : undefined,
+      standing:
+        standingFor({
+          key: 'bloodPressure',
+          systolic: bp?.systolic ?? null,
+          diastolic: bp?.diastolic ?? null,
+          bpMedication: input.bpMedication,
+        }) ?? undefined,
     },
   ];
 
