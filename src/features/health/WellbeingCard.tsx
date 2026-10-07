@@ -10,6 +10,7 @@ import {
   alcoholWeek,
   weekHealth,
   type Component,
+  type ComponentKey,
   type NicotineStatus,
 } from '@/features/health/essential8';
 import { useTheme } from '@/hooks/use-theme';
@@ -104,6 +105,16 @@ function ComponentRow({ component }: { component: Component }) {
       <AppText variant="caption" color="textSecondary" style={styles.detail}>
         {component.detail}
       </AppText>
+      {/* Where the figure came from, in the open rather than behind a tap.
+          "Where did it get my BMI from?" was asked of a screen that had
+          the answer and did not show it, and this is the one user who
+          will check — PERSONA.md §3.5. Tertiary, because it is there to
+          be found rather than read every time. */}
+      {component.from ? (
+        <AppText variant="caption" color="textTertiary" style={styles.detail}>
+          {component.from}
+        </AppText>
+      ) : null}
       {component.misread ? (
         <AppText variant="caption" color="must" style={styles.detail}>
           {component.misread}
@@ -176,8 +187,35 @@ export function WellbeingCard() {
     [intentions, events, today],
   );
 
-  const observable = week.components.slice(0, 4);
-  const needsMore = week.components.slice(4);
+  /**
+   * Which components get a row, and which go under "can't see".
+   *
+   * ── Partitioned on the data, not on array position ────────────────────
+   *
+   * This was `slice(0, 4)` and `slice(4)`, which was right when the app
+   * could only read the first four. Work item §2.6 then let people type in
+   * their own blood panel and cuff readings — and nothing here changed. So
+   * somebody who entered theirs had lipids, glucose and blood pressure
+   * scored INTO the composite ("96 across the 6 of 8 we can see") while
+   * those three figures appeared nowhere on the card: they were still
+   * filed under a disclosure titled "The 4 this app can't see", rendering
+   * their `blocked` prompt in place of the value they had just supplied.
+   *
+   * Found while adding the provenance lines, because the ones written for
+   * lipids, glucose and blood pressure were unreachable.
+   *
+   * A component earns a row once there is a reading for it. The four the
+   * app can reach without a lab keep their row either way, so the prompt
+   * that invites the reading has somewhere to live.
+   */
+  const PHONE_READABLE: ComponentKey[] = ['activity', 'nicotine', 'sleep', 'bmi'];
+  const hasReading = (c: Component) => c.score !== null || c.misread !== undefined;
+  const observable = week.components.filter(
+    (c) => hasReading(c) || PHONE_READABLE.includes(c.key),
+  );
+  const needsMore = week.components.filter(
+    (c) => !hasReading(c) && !PHONE_READABLE.includes(c.key),
+  );
   const askNicotine = !stated && week.components[1].score === null;
 
   return (
@@ -219,12 +257,16 @@ export function WellbeingCard() {
           risk of dying, of any cause and of heart disease specifically, and does so steadily rather
           than only at the extremes. Moving it appears to move something real.
         </AppText>
+        {/* "Four need a blood test" was true until §2.6 let people type
+            theirs in, and then it kept saying four to somebody who had
+            supplied three of them. Counted, like everything else here. */}
         <AppText variant="caption" color="textSecondary" style={styles.gap}>
-          This app can read {week.counted.length} of the eight. Four need a blood test, a blood
-          pressure cuff or a full diet questionnaire, and three of those four are where a large share
-          of the risk actually sits — so this is not a Life&apos;s Essential 8 score and is never
-          shown as one. It is the average of what is visible, labelled every time with how much of
-          the picture that is.
+          This app can read {week.counted.length} of the eight.{' '}
+          {needsMore.length > 0
+            ? `${needsMore.length} of them still need a blood test, a blood pressure cuff or a full diet questionnaire, and that is where a large share of the risk actually sits — so this`
+            : 'Even with all of them in, this'}{' '}
+          is not a Life&apos;s Essential 8 score and is never shown as one. It is the average of
+          what is visible, labelled every time with how much of the picture that is.
         </AppText>
         <AppText variant="caption" color="textTertiary" style={styles.gap}>
           This is education, not medical advice, and it is not a diagnosis. If anything here worries
@@ -276,6 +318,7 @@ export function WellbeingCard() {
         </View>
       ) : null}
 
+      {needsMore.length > 0 ? (
       <Disclosure title={`The ${needsMore.length} this app can’t see`}>
         {needsMore.map((c) => (
           <View key={c.key} style={styles.missing}>
@@ -289,6 +332,7 @@ export function WellbeingCard() {
           </View>
         ))}
       </Disclosure>
+      ) : null}
     </Card>
   );
 }

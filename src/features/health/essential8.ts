@@ -66,6 +66,7 @@ import {
 import { protocolById } from '@/features/knowledge/protocols';
 import { isVigorous, type CardioLog } from '@/features/training/cardio';
 import type { MetricObservation } from '@/features/model/metrics';
+import { fromIngredients, fromReadings } from '@/features/health/provenance';
 import type { BehaviourEvent, BehaviourIntention, DailyPlan, Routine } from '@/types/domain';
 import { addDays } from '@/lib/dates';
 
@@ -95,6 +96,20 @@ export interface Component {
    * wrong thing for THIS person. See `bmiMisread`.
    */
   misread?: string;
+  /**
+   * What this was computed from, and when.
+   *
+   * Isaac, using his own app: "Where did it get my BMI from?" The figure
+   * was real — height and weight from Apple Health's five-year window or
+   * from manual entry — and the app never said so. A health figure whose
+   * origin a person cannot trace is one they are right to distrust, and
+   * this is the one user who will check (PERSONA.md §3.5).
+   *
+   * Undefined where there is nothing honest to say. Never a sentence like
+   * "calculated from your data", which sounds like provenance and
+   * contains none. See features/health/provenance.ts.
+   */
+  from?: string;
 }
 
 export const CATEGORY_CUTOFFS = { intermediate: 50, high: 75 } as const;
@@ -449,6 +464,18 @@ function latest(metrics: MetricObservation[], key: string): number | null {
   return latestObs(metrics, key)?.value ?? null;
 }
 
+/** Every reading of a metric across the seven days to `today`. */
+function readingsThisWeek(
+  metrics: MetricObservation[],
+  key: string,
+  today: string,
+): MetricObservation[] {
+  const from = addDays(today, -6);
+  return metrics.filter(
+    (m) => m.key === key && m.at.slice(0, 10) >= from && m.at.slice(0, 10) <= today,
+  );
+}
+
 /** Mean of a metric across the seven days to `today`. */
 function meanThisWeek(
   metrics: MetricObservation[],
@@ -547,9 +574,17 @@ export function weekHealth(input: WeekInputs): WeekHealth {
   const { plans, routines, metrics, intentions, events, today } = input;
 
   const minutes = activityMinutes(plans, routines, today, input.cardioLogs ?? []);
+  // The readings, not only the mean: "7.4 hours a night" from one night
+  // and from seven are different claims, and the caption made them look
+  // the same. See fromReadings.
+  const sleepReadings = readingsThisWeek(metrics, 'sleep.hours', today);
   const sleepHours = meanThisWeek(metrics, 'sleep.hours', today);
-  const weightKg = latest(metrics, 'body.weight');
-  const heightCm = latest(metrics, 'body.height');
+  // Held as observations so the screen can answer "where did it get my
+  // BMI from" — the question that produced all of this.
+  const weightObs = latestObs(metrics, 'body.weight');
+  const heightObs = latestObs(metrics, 'body.height');
+  const weightKg = weightObs?.value ?? null;
+  const heightCm = heightObs?.value ?? null;
   const bmi = weightKg && heightCm ? weightKg / (heightCm / 100) ** 2 : null;
   const nicotine = input.nicotine ?? nicotineFromLogs(intentions, events, today);
 
@@ -632,6 +667,13 @@ export function weekHealth(input: WeekInputs): WeekHealth {
         minutes === null
           ? 'Nothing was planned this week, so there is no week to read. This scores from the first session you plan or log.'
           : undefined,
+      // Not from a metric, so there is no device and no date to name —
+      // but WHICH records it counted is the useful half, and it answers
+      // the obvious "why is this lower than my week felt".
+      from:
+        minutes === null
+          ? undefined
+          : 'From sessions you marked done, and any cardio you logged.',
     },
     {
       key: 'nicotine',
@@ -650,6 +692,14 @@ export function weekHealth(input: WeekInputs): WeekHealth {
       blocked: nicotine
         ? undefined
         : 'The logs cannot tell somebody who never smoked from somebody who quit last year, and the table puts a hundred points between them. Tell the app which, and this scores.',
+      // Worth distinguishing: a stated answer is the person's own word,
+      // where a read-from-logs one is the app's inference and can be
+      // wrong in the way `nicotineFromLogs` documents.
+      from: input.nicotine
+        ? 'From your own answer.'
+        : nicotine
+          ? 'Read from your own logs, not stated.'
+          : undefined,
     },
     {
       key: 'sleep',
@@ -658,6 +708,7 @@ export function weekHealth(input: WeekInputs): WeekHealth {
       detail: sleepHours === null ? 'No sleep recorded this week' : `${sleepHours.toFixed(1)} hours a night on average`,
       why: 'The component added in 2022, and the one most people are surprised to see scored at all. Seven to nine hours takes full marks; both ends of that window cost points, which is why "more is better" is the wrong instinct here.',
       blocked: sleepHours === null ? 'Connect Apple Health, or log a night, and this scores.' : undefined,
+      from: fromReadings(sleepReadings, 'night', today) ?? undefined,
     },
     {
       key: 'bmi',
@@ -672,6 +723,18 @@ export function weekHealth(input: WeekInputs): WeekHealth {
             ? 'BMI cannot tell muscle from fat. Add a body fat percentage or a waist measurement in Body numbers and the app can tell whether this number describes you.'
             : undefined,
       misread: misread ?? undefined,
+      /**
+       * The question that produced this whole field, answered in the one
+       * place it was asked about.
+       */
+      from:
+        fromIngredients(
+          [
+            { value: `${weightKg?.toFixed(1)} kg`, obs: weightObs },
+            { value: `${heightCm?.toFixed(0)} cm`, obs: heightObs },
+          ],
+          today,
+        ) ?? undefined,
     },
     {
       key: 'diet',
@@ -694,6 +757,14 @@ export function weekHealth(input: WeekInputs): WeekHealth {
         nonHdl === null
           ? 'Needs a blood test. Add total cholesterol and HDL from your report and this scores.'
           : (lipidAge?.line ?? undefined),
+      from:
+        fromIngredients(
+          [
+            { value: `total ${totalChol?.value.toFixed(1)}`, obs: totalChol },
+            { value: `HDL ${hdl?.value.toFixed(1)}`, obs: hdl },
+          ],
+          today,
+        ) ?? undefined,
     },
     {
       key: 'glucose',
@@ -710,6 +781,18 @@ export function weekHealth(input: WeekInputs): WeekHealth {
         glucoseObs === null
           ? 'Needs a blood test. Add HbA1c or a fasting glucose from your report.'
           : (glucoseAge?.line ?? undefined),
+      from:
+        fromIngredients(
+          [
+            {
+              value: hba1c
+                ? `HbA1c ${hba1c.value.toFixed(1)}%`
+                : `${fastingGlucose?.value.toFixed(1)} mmol/L`,
+              obs: glucoseObs,
+            },
+          ],
+          today,
+        ) ?? undefined,
     },
     {
       key: 'bloodPressure',
@@ -722,6 +805,19 @@ export function weekHealth(input: WeekInputs): WeekHealth {
       blocked: bp
         ? (bpAge?.line ?? undefined)
         : 'Needs a cuff. Pharmacies measure it free, and most homes have one in a drawer.',
+      // One ingredient: a cuff reading is a single event, and splitting it
+      // into two would print the same source and date twice.
+      from: bp
+        ? (fromIngredients(
+            [
+              {
+                value: `${Math.round(bp.systolic)}/${Math.round(bp.diastolic)}`,
+                obs: bpSys,
+              },
+            ],
+            today,
+          ) ?? undefined)
+        : undefined,
     },
   ];
 
