@@ -110,7 +110,16 @@ export const COACH_VOICES: Record<PathId, CoachVoice> = {
   },
   relationship: {
     name: 'Juno',
-    discipline: 'the person you live with',
+    /**
+     * "The person you live with" excluded half of this coach's own ladder.
+     *
+     * `nextRung.laddersFor('relationship')` returns `[COUPLE_LADDER,
+     * FRIENDSHIP_LADDER]` — or the friendship one ALONE for somebody who
+     * answered that they live solo, in which case the old line described
+     * a person who does not exist. The browser made it plain: "JUNO · THE
+     * PERSON YOU LIVE WITH" over a question about seeing a friend.
+     */
+    discipline: 'your partner and your friends',
     opener: 'I’m Juno. Five minutes at the door beats a weekend away you never book.',
     promise:
       'Small attention, on the calendar, so it stops depending on how your day went.',

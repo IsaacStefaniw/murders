@@ -602,10 +602,182 @@ describe('which coach owns a practice', () => {
     for (const p of sleep) expect(coachForProtocol(p)).toBe('recovery');
   });
 
+  /**
+   * The third coach that could not speak, found by reading the screen
+   * rather than the library: "REN · STRENGTH AND CONDITIONING" above a
+   * question about seeing a friend.
+   */
+  it('stops the strength coach speaking for somebody’s friends', () => {
+    expect(coachForArea('enjoyment')).toBe('relationship');
+    const friends = offerable.filter((p) => p.area === 'enjoyment');
+    expect(friends.length).toBeGreaterThan(0);
+    for (const p of friends) expect(coachForProtocol(p)).not.toBe('training');
+  });
+
+  it('leaves the partner and family practices where they were', () => {
+    // `connection` is NOT in PILLAR_COACH, on purpose: mapping it starved
+    // the family coach, whose practices are pillar connection with area
+    // family. For connection the area is the right discriminator.
+    for (const p of offerable.filter((x) => x.pillar === 'connection')) {
+      if (p.area === 'family') expect(coachForProtocol(p)).toBe('family');
+      if (p.area === 'relationship') expect(coachForProtocol(p)).toBe('relationship');
+    }
+  });
+
   it('still uses the life area for everything a pillar does not settle', () => {
     const connection = offerable.filter((p) => p.pillar === 'connection');
     for (const p of connection) {
       expect(coachForProtocol(p)).toBe(coachForArea(p.area));
     }
+  });
+});
+
+/* ── Following through on a message that was sent ─────────────────────── */
+
+describe('the message that never became a plan', () => {
+  /**
+   * Measured on the seeded six-week account: Alex asked for more of
+   * "Seeing friends" and got "Message a friend, make a plan" seven times
+   * in forty-five days, and not one scheduled meeting. The protocol's own
+   * summary promises "one message a week that turns into a concrete plan";
+   * the product delivered the message and never the plan.
+   */
+  const reachOut = routine({
+    id: 'r-reach',
+    title: 'Message a friend, make a plan',
+    area: 'enjoyment',
+    protocolId: 'friend-reach-out',
+    days: [3],
+    preferredStart: '12:45',
+    preferredEnd: '13:00',
+    durationMin: 15,
+  });
+
+  const sentOn = (date: string) =>
+    plans({
+      [date]: [
+        item({
+          id: 'pi-reach',
+          routineId: 'r-reach',
+          title: 'Message a friend, make a plan',
+          area: 'enjoyment',
+          start: '12:45',
+          end: '13:00',
+          status: 'completed',
+        }),
+      ],
+    });
+
+  const ask = (over = {}) =>
+    coachInterrupts(input({ routines: [reachOut], plans: sentOn(TODAY), ...over })).find((i) =>
+      i.id.startsWith('reach-out:'),
+    );
+
+  it('offers to hold the weekend once the message has gone', () => {
+    const got = ask()!;
+    expect(got.says).toBe('You sent the message. Nothing went in the diary.');
+    // TODAY is Tuesday 15 Sep 2026; the next Saturday is the 19th.
+    expect(got.asks).toBe('Hold Saturday evening for it?');
+    expect(got.answers[0].effect).toEqual({
+      kind: 'addItem',
+      date: '2026-09-19',
+      title: 'Seeing a friend',
+      area: 'enjoyment',
+      start: '19:00',
+      durationMin: 120,
+    });
+  });
+
+  it('never offers today — somebody else needs more notice than that', () => {
+    // A Saturday sender must be offered the FOLLOWING Saturday, not the
+    // evening they are standing in.
+    const saturday = '2026-09-19';
+    const got = coachInterrupts(
+      input({ routines: [reachOut], plans: sentOn(saturday), today: saturday }),
+    ).find((i) => i.id.startsWith('reach-out:'))!;
+    expect(got.answers[0].effect).toMatchObject({ date: '2026-09-26' });
+  });
+
+  it('says nothing when the message was never sent', () => {
+    const notSent = plans({
+      [TODAY]: [
+        item({ id: 'pi-reach', routineId: 'r-reach', area: 'enjoyment', status: 'skipped' }),
+      ],
+    });
+    expect(
+      coachInterrupts(input({ routines: [reachOut], plans: notSent })).some((i) =>
+        i.id.startsWith('reach-out:'),
+      ),
+    ).toBe(false);
+  });
+
+  /**
+   * The practice carries `neverNag: true` and says in its own safety note
+   * that "a week without one is not a lapse". This trigger must therefore
+   * be impossible to reach by MISSING the practice — it only ever follows
+   * a completion, which is the opposite of a chase.
+   */
+  it('cannot be reached by missing the practice', () => {
+    for (const status of ['planned', 'skipped'] as const) {
+      const p = plans({
+        [TODAY]: [item({ id: 'pi-reach', routineId: 'r-reach', area: 'enjoyment', status })],
+      });
+      expect(
+        coachInterrupts(input({ routines: [reachOut], plans: p })).some((i) =>
+          i.id.startsWith('reach-out:'),
+        ),
+      ).toBe(false);
+    }
+  });
+
+  it('goes quiet once the week already has somebody in it', () => {
+    const withPlan = {
+      ...sentOn(TODAY),
+      ...plans({
+        '2026-09-18': [
+          item({ id: 'pi-dinner', title: 'Dinner with Sam', area: 'enjoyment', start: '19:30' }),
+        ],
+      }),
+    };
+    expect(
+      coachInterrupts(input({ routines: [reachOut], plans: withPlan })).some((i) =>
+        i.id.startsWith('reach-out:'),
+      ),
+    ).toBe(false);
+  });
+
+  it('does not mistake the reminder itself for the plan', () => {
+    // Next Wednesday's reach-out is another message, not somebody seen.
+    const withNextReminder = {
+      ...sentOn(TODAY),
+      ...plans({
+        '2026-09-16': [
+          item({ id: 'pi-reach-2', routineId: 'r-reach', area: 'enjoyment', start: '12:45' }),
+        ],
+      }),
+    };
+    expect(ask({ plans: withNextReminder })).toBeTruthy();
+  });
+
+  it('forgets a message sent too long ago to follow up on', () => {
+    expect(ask({ plans: sentOn(addDays(TODAY, -5)) })).toBeUndefined();
+    expect(ask({ plans: sentOn(addDays(TODAY, -3)) })).toBeTruthy();
+  });
+
+  it('says nothing to somebody who does not have the practice running', () => {
+    expect(ask({ routines: [] })).toBeUndefined();
+  });
+
+  it('counts as one more thing, so a strained week never sees it', () => {
+    expect(ask()!.adds).toBe(true);
+    expect(
+      nextInterrupt(input({ routines: [reachOut], plans: sentOn(TODAY), budget: SHUT })),
+    ).toBeNull();
+  });
+
+  it('says why, in the practice’s own terms', () => {
+    const got = ask()!;
+    expect(got.because).toContain('logistics');
+    expect(got.detail).toContain('one message a week that turns into a concrete plan');
   });
 });

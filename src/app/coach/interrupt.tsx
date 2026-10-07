@@ -46,6 +46,7 @@ export default function CoachInterruptScreen() {
   const moveItem = useAppStore((s) => s.moveItem);
   const moveItemToDate = useAppStore((s) => s.moveItemToDate);
   const toggleProtocol = useAppStore((s) => s.toggleProtocol);
+  const addPlanItem = useAppStore((s) => s.addPlanItem);
 
   const interrupt = useMemo(() => {
     const budget = commitmentBudget({
@@ -109,6 +110,16 @@ export default function CoachInterruptScreen() {
         break;
       case 'protocol':
         toggleProtocol(effect.protocolId);
+        break;
+      case 'addItem':
+        // Goes through the same path as any added block, so the day is
+        // re-laid around it rather than stacked on top of something.
+        addPlanItem(effect.date, {
+          title: effect.title,
+          area: effect.area,
+          start: effect.start,
+          durationMin: effect.durationMin,
+        });
         break;
       case 'none':
         break;

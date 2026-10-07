@@ -46,6 +46,7 @@ import {
   isBalance,
   justification,
   listedProtocols,
+  protocolById,
   type EvidenceLevel,
   type Pillar,
   type Protocol,
@@ -64,6 +65,8 @@ import {
   toHHMM,
   toMinutes,
   weekStartOf,
+  weekdayOf,
+  WEEKDAY_NAMES,
 } from '@/lib/dates';
 import type { DailyPlan, LifeArea, LifeProfile, PlanItem, Routine } from '@/types/domain';
 
@@ -74,7 +77,19 @@ export type InterruptEffect =
   | { kind: 'intensity'; pathId: PathId; push: boolean }
   | { kind: 'moveItem'; date: string; itemId: string; start: string }
   | { kind: 'moveItemToDate'; date: string; itemId: string; targetDate: string }
-  | { kind: 'protocol'; protocolId: string };
+  | { kind: 'protocol'; protocolId: string }
+  /**
+   * One thing, on one day. The only effect that puts something NEW in the
+   * week rather than moving or starting what is already there.
+   */
+  | {
+      kind: 'addItem';
+      date: string;
+      title: string;
+      area: LifeArea;
+      start: string;
+      durationMin: number;
+    };
 
 export interface InterruptAnswer {
   id: string;
@@ -128,11 +143,32 @@ export interface CoachInterrupt {
  * because every trigger that fires on a health routine is about when and
  * how hard, which is Ren's subject.
  */
+/**
+ * Areas no pathway covers, and who speaks for them anyway.
+ *
+ * `PATH_AREA` maps five of the seven life areas. `growth` and `enjoyment`
+ * have no pathway at all, so `coachForArea` fell through to its `training`
+ * default for both — and the browser said so out loud: "REN · STRENGTH
+ * AND CONDITIONING" above a question about seeing a friend.
+ *
+ * `enjoyment` is the friendship practices, and the app had already decided
+ * who owns those elsewhere: `nextRung.laddersFor('relationship')` hands
+ * back `[COUPLE_LADDER, FRIENDSHIP_LADDER]`, or the friendship one alone
+ * for somebody solo. This makes the two agree.
+ *
+ * `growth` is left alone on purpose. There is no coach with a claim on it
+ * that I can point at in the code the way I can for friendship, and
+ * guessing would be the same mistake in a new place.
+ */
+const AREA_COACH: Partial<Record<LifeArea, PathId>> = {
+  enjoyment: 'relationship',
+};
+
 export function coachForArea(area: LifeArea): PathId {
   const exact = (Object.keys(PATH_AREA) as PathId[]).find(
     (id) => PATH_AREA[id] === area && id !== 'recovery' && id !== 'nutrition',
   );
-  return exact ?? 'training';
+  return exact ?? AREA_COACH[area] ?? 'training';
 }
 
 /**
@@ -169,6 +205,19 @@ const PILLAR_COACH: Partial<Record<Pillar, PathId>> = {
   longevity: 'training',
   wealth: 'money',
   leadership: 'work',
+  /**
+   * `connection` is deliberately NOT here.
+   *
+   * It was, for one test run, mapped to `relationship` — and the suite
+   * caught it starving the family coach, because the family practices are
+   * pillar `connection` with area `family` and a pillar mapping overrides
+   * the area. The pillar settles who speaks only where the area cannot,
+   * and for connection the area is exactly the right discriminator: the
+   * partner practices are `relationship`, the family ones are `family`.
+   *
+   * The hole was the third value, `enjoyment`, which no pathway covers.
+   * See `AREA_COACH` below.
+   */
 };
 
 export function coachForProtocol(p: Protocol): PathId {
@@ -538,6 +587,137 @@ function daysSince(iso: string, today: string): number | null {
   return Math.floor((now - then) / 86400000);
 }
 
+/* ── Following through on a message that was sent ─────────────────────── */
+
+/** Where the follow-through lands, and how long it is given. */
+const SOCIAL_START = '19:00';
+const SOCIAL_MIN = 120;
+/** How long after the message the offer still makes sense. */
+const REACH_OUT_WINDOW_DAYS = 4;
+
+/**
+ * The practice that asks for a message, and promises the plan.
+ *
+ * Named rather than matched on title, because the title is copy and this
+ * is a behaviour.
+ */
+const REACH_OUT_PROTOCOL = 'friend-reach-out';
+
+/** Items that are somebody else being seen, rather than contacted. */
+const isSocialPlan = (item: PlanItem): boolean =>
+  item.area === 'enjoyment' || item.area === 'relationship';
+
+/**
+ * "You sent the message. Nothing went in the diary."
+ *
+ * ── The half of the practice the product never delivered ────────────────
+ *
+ * `friend-reach-out` grades at C and its own summary is "one message a
+ * week that TURNS INTO A CONCRETE PLAN with someone you like". Its
+ * rationale is blunter: strong relationships "run on logistics, not
+ * sentiment".
+ *
+ * Measured on the seeded six-week account: Alex asked for more of "Seeing
+ * friends" and got "Message a friend, make a plan" seven times in
+ * forty-five days, and not one scheduled meeting. The most social thing in
+ * the week of the persona whose defining trait is being social was a
+ * reminder to text somebody. The protocol was right and the product
+ * stopped half-way: it scheduled the intention to plan and then never
+ * scheduled the plan.
+ *
+ * PERSONA.md §1 is why this matters more than it looks: "Plans with other
+ * people in them survive a bad week. Plans with only themselves in them do
+ * not." A Saturday with somebody expecting you is the most robust thing
+ * this app can put in a week, and it was putting none in.
+ *
+ * ── Why this is not nagging, which the practice forbids ─────────────────
+ *
+ * The protocol carries `neverNag: true` and says "a week without one is
+ * not a lapse". So this fires on a reach-out that was COMPLETED, never on
+ * one that was missed. It is the opposite of a chase: the person did the
+ * hard half and the app is offering to hold the easy half. It also stays
+ * silent when the week already has something social in it, because then
+ * there is nothing to follow through on.
+ */
+function reachOutInterrupt(input: InterruptInput): CoachInterrupt | null {
+  const { plans, routines, today } = input;
+
+  const reachOutIds = new Set(
+    routines.filter((r) => r.protocolId === REACH_OUT_PROTOCOL).map((r) => r.id),
+  );
+  if (reachOutIds.size === 0) return null;
+
+  // The most recent message actually sent, inside the window.
+  let sent: { date: string; item: PlanItem } | null = null;
+  for (let back = 0; back < REACH_OUT_WINDOW_DAYS; back += 1) {
+    const date = addDays(today, -back);
+    const item = (plans[date]?.items ?? []).find(
+      (i) =>
+        i.status === 'completed' &&
+        (i.routineId ? reachOutIds.has(i.routineId) : false),
+    );
+    if (item) {
+      sent = { date, item };
+      break;
+    }
+  }
+  if (!sent) return null;
+
+  // Already something social in the week ahead, so the plan exists and
+  // this has nothing to add.
+  const ahead = Array.from({ length: 8 }, (_, i) => addDays(today, i));
+  const already = ahead.some((date) =>
+    (plans[date]?.items ?? []).some(
+      (i) => isSocialPlan(i) && i.status !== 'skipped' && !reachOutIds.has(i.routineId ?? ''),
+    ),
+  );
+  if (already) return null;
+
+  // The next Saturday, which is the evening most likely to be free and
+  // the one this persona's own week leaves open — Friday is already date
+  // night. Never today: a plan for somebody else needs more notice than
+  // the hours left in an evening.
+  const target = ahead.slice(1).find((date) => weekdayOf(date) === 6);
+  if (!target) return null;
+
+  // On the PRACTICE, not the area: `coachForArea('enjoyment')` has no
+  // pathway to find and falls through to training, which is how Ren came
+  // to be asking about somebody's friends.
+  const reachOut = protocolById(REACH_OUT_PROTOCOL);
+  const pathId = reachOut ? coachForProtocol(reachOut) : 'relationship';
+  const v = voiceFor(pathId);
+  const when = WEEKDAY_NAMES[weekdayOf(target)];
+
+  return {
+    id: `reach-out:${sent.item.id}`,
+    pathId,
+    says: 'You sent the message. Nothing went in the diary.',
+    detail:
+      'The practice is one message a week that turns into a concrete plan. The message is the half most people find hard, and you did it.',
+    asks: `Hold ${when} evening for it?`,
+    because: `${v.name} schedules the people, not the reminder. Friendships run on logistics.`,
+    adds: true,
+    // Lower than a suggestion, higher than nothing: it is this week's
+    // business rather than today's, and it expires with the weekend.
+    urgency: 3,
+    answers: [
+      {
+        id: 'hold-it',
+        label: `${when}, ${formatTime(SOCIAL_START)}`,
+        effect: {
+          kind: 'addItem',
+          date: target,
+          title: 'Seeing a friend',
+          area: 'enjoyment',
+          start: SOCIAL_START,
+          durationMin: SOCIAL_MIN,
+        },
+      },
+      { id: 'not-yet', label: 'Not yet', effect: { kind: 'none' } },
+    ],
+  };
+}
+
 /* ── Arbitration ──────────────────────────────────────────────────────── */
 
 const TRIGGERS = [
@@ -545,6 +725,7 @@ const TRIGGERS = [
   sleepInterrupt,
   slotInterrupt,
   loadInterrupt,
+  reachOutInterrupt,
   suggestionInterrupt,
 ];
 
