@@ -47,6 +47,12 @@
  */
 
 import { PATH_AREA, PATH_ORDER, PATHS, type PathId } from '@/features/paths/definitions';
+// Area names as they read mid-sentence, which is a different thing from
+// the title-case `AREA_LABELS` that report.tsx and plan-review.tsx each
+// keep their own (already divergent) copy of. I wrote this map out here
+// before finding that weekShape had it, which is the mistake those two
+// copies are made of.
+import { AREA_WORD } from '@/features/review/weekShape';
 import type { LifeArea } from '@/types/domain';
 
 export interface CoachStates {
@@ -66,25 +72,6 @@ export interface CoachStates {
   /** Where that area sat in the person's own ordering, 1-based. */
   unmetRank: number | null;
 }
-
-/**
- * Area names as they read mid-sentence.
- *
- * Deliberately not the `AREA_LABELS` that `report.tsx` and
- * `plan-review.tsx` each keep their own copy of: those are title-case
- * headings standing alone, these go inside a clause. (That those two
- * copies have already drifted from each other — "Growth" against
- * "Personal growth" — is real and is its own job.)
- */
-const AREA_IN_SENTENCE: Record<LifeArea, string> = {
-  family: 'family',
-  relationship: 'your relationship',
-  health: 'health',
-  work: 'work',
-  growth: 'personal growth',
-  enjoyment: 'enjoyment',
-  admin: 'money',
-};
 
 /** Up to three, because beyond that nobody is reading a list. */
 const RANK_WORD: Record<number, string> = { 1: 'first', 2: 'second', 3: 'third' };
@@ -165,7 +152,7 @@ export function hubUnmetLine(states: CoachStates): string | null {
   const { unmet, unmetRank } = states;
   if (unmet.length === 0 || unmetRank === null) return null;
 
-  const area = AREA_IN_SENTENCE[PATH_AREA[unmet[0]]];
+  const area = AREA_WORD[PATH_AREA[unmet[0]]];
   const verb = unmet.length === 1 ? 'works' : 'work';
   const rank = RANK_WORD[unmetRank];
 

@@ -25,7 +25,7 @@ import {
   type WeekCell,
   type WeekProposal,
 } from '@/features/review/weekReview';
-import { addDays, todayKey, weekStartOf } from '@/lib/dates';
+import { addDays, nowMinutes, todayKey, weekStartOf } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 
 /**
@@ -85,6 +85,10 @@ export default function WeekReview() {
   const router = useRouter();
   const theme = useTheme();
   const today = todayKey();
+  // The hour, not just the day. Reviewing the CURRENT week, the grid used
+  // to judge every item still left on today — so at breakfast it put a ✗
+  // on tonight's walk. Reviewing a finished week, this changes nothing.
+  const nowMin = nowMinutes();
 
   const plans = useAppStore((s) => s.plans);
   const routines = useAppStore((s) => s.routines);
@@ -108,7 +112,10 @@ export default function WeekReview() {
     [profile?.capacity, weekCapacities, plans, targetWeek],
   );
 
-  const grid = useMemo(() => weekGrid(plans, period.from, today), [plans, period.from, today]);
+  const grid = useMemo(
+    () => weekGrid(plans, period.from, today, nowMin),
+    [plans, period.from, today, nowMin],
+  );
   const proposals = useMemo(
     () => weekProposals({ grid, plans, routines, capacity, today, forward: period.lookingForward }),
     [grid, plans, routines, capacity, today, period.lookingForward],

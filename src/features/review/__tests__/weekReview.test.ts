@@ -74,6 +74,88 @@ function plans(entries: Record<string, PlanItem[]>): Record<string, DailyPlan> {
 /* ── The grid ─────────────────────────────────────────────────────────── */
 
 describe('the grid', () => {
+  /**
+   * Mid-week, the hour matters as much as the day.
+   *
+   * The grid already refused to judge a day that had not arrived. It
+   * judged every hour of TODAY, though, and the "This week, in evidence"
+   * link opens exactly that — so at 06:40 the grid put a ✗ on tonight's
+   * walk, which is the one sentence the review named as the worst thing
+   * this product can say.
+   */
+  describe('today, part-way through', () => {
+    const DAY_2 = DAY(2);
+    const midWeek = () =>
+      plans({
+        [DAY(0)]: [item({ start: '18:00', status: 'completed' })],
+        [DAY(1)]: [item({ start: '18:00', status: 'skipped' })],
+        // Today: one done this morning, one still to come tonight.
+        [DAY_2]: [
+          item({ start: '07:00', status: 'completed' }),
+          item({ start: '18:00', status: 'planned' }),
+        ],
+      });
+
+    it('leaves tonight out of the denominator at breakfast, and says so', () => {
+      // 08:00. Monday's miss and this morning's two count; tonight does not
+      // — and because something was held out, the figure says it is partial.
+      const grid = weekGrid(midWeek(), WEEK, DAY_2, 8 * 60);
+      expect(grid.line).toBe('2 of 3 things happened so far.');
+    });
+
+    it('counts tonight once tonight has passed', () => {
+      const grid = weekGrid(midWeek(), WEEK, DAY_2, 22 * 60);
+      expect(grid.line).toBe('2 of 4 things happened.');
+    });
+
+    it('marks an hour that has not arrived as ahead, not as a miss', () => {
+      const grid = weekGrid(midWeek(), WEEK, DAY_2, 8 * 60);
+      const evening = grid.rows.find((r) => r.label === '6pm')!;
+      // Sunday did it, Monday did not, today has not got there yet.
+      expect(evening.cells[0].mark).toBe('did');
+      expect(evening.cells[1].mark).toBe('didnt');
+      expect(evening.cells[2].mark).toBe('ahead');
+    });
+
+    it('still reads done for a cell whose due things all happened', () => {
+      const grid = weekGrid(midWeek(), WEEK, DAY_2, 8 * 60);
+      expect(grid.rows.find((r) => r.label === '7am')!.cells[2].mark).toBe('did');
+    });
+
+    it('calls tonight a miss once its hour is past', () => {
+      const grid = weekGrid(midWeek(), WEEK, DAY_2, 22 * 60);
+      expect(grid.rows.find((r) => r.label === '6pm')!.cells[2].mark).toBe('didnt');
+    });
+
+    it('drops the qualifier once nothing is being held back', () => {
+      // Sunday night, everything resolved. The one screen whose job is to
+      // close the week should not hedge the week's own count.
+      const closed = plans({
+        [DAY(0)]: [item({ start: '18:00', status: 'completed' })],
+        [DAY(6)]: [item({ start: '18:00', status: 'skipped' })],
+      });
+      expect(weekGrid(closed, WEEK, DAY(6), 22 * 60).line).toBe('1 of 2 things happened.');
+    });
+
+    it('changes nothing about a week that has finished', () => {
+      // Every day before today: the clock is irrelevant and the answer must
+      // not move with it.
+      const finished = plans({
+        [DAY(0)]: [item({ start: '18:00', status: 'completed' })],
+        [DAY(1)]: [item({ start: '18:00', status: 'skipped' })],
+      });
+      for (const nowMin of [0, 8 * 60, 22 * 60, 24 * 60]) {
+        expect(weekGrid(finished, WEEK, DAY(6), nowMin).line).toBe('1 of 2 things happened.');
+      }
+    });
+
+    it('defaults to the end of the day, so a fixture never moves with the clock', () => {
+      expect(weekGrid(midWeek(), WEEK, DAY_2).line).toBe(
+        weekGrid(midWeek(), WEEK, DAY_2, 24 * 60).line,
+      );
+    });
+  });
+
   it('buckets the week by the hour things start in, Monday first', () => {
     const grid = weekGrid(
       plans({
@@ -208,7 +290,10 @@ describe('the grid', () => {
       WEEK,
       DAY(3),
     );
-    expect(grid.line).toBe('1 of 2 things happened.');
+    // Reviewed on the Thursday: Friday to Sunday are still out of the
+    // count, and the sentence now says the count is partial rather than
+    // letting "1 of 2" pass for the whole week.
+    expect(grid.line).toBe('1 of 2 things happened so far.');
   });
 
   it('says so plainly when the week held nothing', () => {

@@ -14,6 +14,7 @@ import { buildWeekShape } from '@/features/review/weekShape';
 import { WeekSizeCard } from '@/features/planner/WeekSizeCard';
 import { weekMomentum } from '@/features/today/coach';
 import { QuickAdd } from '@/features/today/QuickAdd';
+import { weekRangeLabel } from '@/features/review/weekReview';
 import { addDays, formatDateLong, todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 import { DragToMove } from '@/features/today/DragToMove';
@@ -59,6 +60,15 @@ export default function Plan() {
         Week
       </AppText>
       <AppText variant="title">The week ahead</AppText>
+      {/* Which seven days. This tab's week is today plus six — the week
+          the person is standing in, not a calendar one, which is
+          deliberate (features/review/weekShape.ts) and was nowhere on
+          screen. The report's window is the seven days BACK and the end-of
+          -week review's is Monday to Sunday, so three screens printed a
+          figure for "this week" and only one said which week it meant. */}
+      <AppText variant="caption" color="textTertiary">
+        {weekRangeLabel(today)} — today and the six days after it.
+      </AppText>
 
       {/* How big this week is, before what is in it. A plan you cannot
           resize is one you abandon in a bad fortnight — see

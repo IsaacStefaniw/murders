@@ -146,14 +146,40 @@ export function hourLabel(hour: number): string {
   return `${twelve}${suffix}`;
 }
 
-function markOf(items: PlanItem[], date: string, today: string): CellMark {
+function markOf(
+  items: PlanItem[],
+  date: string,
+  today: string,
+  nowMin: number,
+): CellMark {
   if (items.length === 0) return 'empty';
   const done = items.filter((i) => i.status === 'completed').length;
   if (done === items.length) return 'did';
   // A day that has not arrived has not failed. Anything unfinished on it
   // is still ahead, however the rest of the cell resolved.
   if (date > today) return 'ahead';
-  if (done > 0) return 'mixed';
+  /**
+   * And neither has an hour that has not arrived.
+   *
+   * The rule above stopped one day short. Reviewed mid-week — which is
+   * exactly what the "This week, in evidence" link does — every item left
+   * on TODAY was judged too, so at breakfast the grid put a ✗ on tonight's
+   * walk. That is the same sentence the review flagged as the worst thing
+   * this product can say, and on this screen the app really was saying it.
+   *
+   * So today is judged only by the items whose time has passed. A cell
+   * whose due items all happened reads as done even with something still
+   * ahead in it, because that is the honest answer to "how has today gone
+   * so far" and a ½ would imply a miss that has not occurred.
+   */
+  const judgeable =
+    date === today
+      ? items.filter((i) => i.status === 'completed' || toMinutes(i.start) <= nowMin)
+      : items;
+  if (judgeable.length === 0) return 'ahead';
+  const judgedDone = judgeable.filter((i) => i.status === 'completed').length;
+  if (judgedDone === judgeable.length) return 'did';
+  if (judgedDone > 0) return 'mixed';
   return 'didnt';
 }
 
@@ -169,11 +195,24 @@ export function weekGrid(
   plans: Record<string, DailyPlan>,
   weekStart: string,
   today: string,
+  /**
+   * Minutes past midnight, for judging TODAY.
+   *
+   * Defaults to the end of the day, which is the behaviour this function
+   * had before the parameter existed: it keeps every fixture
+   * deterministic, since a default of `nowMinutes()` would make the whole
+   * suite give different answers depending on the hour CI ran at. The one
+   * production caller — `app/review/week.tsx` — passes the real clock,
+   * which is what makes tonight stop counting as a miss.
+   */
+  nowMin = 24 * 60,
 ): WeekGrid {
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const byHour = new Map<number, PlanItem[][]>();
   let done = 0;
   let total = 0;
+  /** Things still to come, and so kept out of `total`. */
+  let ahead = 0;
 
   days.forEach((date, col) => {
     for (const item of (plans[date]?.items ?? []).filter(isReviewable)) {
@@ -188,11 +227,21 @@ export function weekGrid(
       // A Saturday that has not arrived is not a thing that failed to
       // happen, so it stays out of the denominator. Reviewed on a
       // Thursday, "7 of 9" read as two misses where there was one.
+      //
+      // Nor is tonight. The same argument applies within today, and until
+      // this read the clock it did not: opened at 06:40, this count put
+      // every one of the day's items in the denominator as something that
+      // had not happened.
       if (item.status === 'completed') {
         done += 1;
         total += 1;
-      } else if (date <= today) {
+      } else if (date < today || (date === today && toMinutes(item.start) <= nowMin)) {
         total += 1;
+      } else {
+        // Held out because it has not come round yet. Counting these is
+        // what makes the sentence below able to say that the figure is
+        // partial, which is the only honest way to print it mid-week.
+        ahead += 1;
       }
     }
   });
@@ -206,12 +255,33 @@ export function weekGrid(
       date: days[col],
       hour,
       items,
-      mark: markOf(items, days[col], today),
+      mark: markOf(items, days[col], today, nowMin),
     })),
   }));
 
+  /**
+   * The count, and what it covers.
+   *
+   * "5 of 15 things happened" under a header reading "5–11 OCT" invites
+   * exactly one reading: fifteen things this week, five of them done. On a
+   * Wednesday the fifteen is Monday to now — correct, and not what the
+   * header says. Three screens print a figure for "the week" over three
+   * different windows (this one, the Plan tab's today-plus-six, the
+   * report's rolling seven back) and only the report named its own. Each
+   * window is right for its screen's job, so the fix is that each says
+   * which one it is rather than all three pretending to agree.
+   *
+   * "So far" appears exactly when something was held out of the
+   * denominator, which is the precise condition for the figure being
+   * partial. Not "when today is inside the week": reviewed on Sunday
+   * evening with everything resolved, the count is the week's count and
+   * qualifying it would be pedantry on the one screen whose whole job is
+   * to close the week.
+   */
   const line =
-    total === 0 ? 'Nothing was on this week.' : `${done} of ${total} things happened.`;
+    total === 0
+      ? 'Nothing was on this week.'
+      : `${done} of ${total} things happened${ahead > 0 ? ' so far' : ''}.`;
 
   return { weekStart, days, rows, done, total, line };
 }
