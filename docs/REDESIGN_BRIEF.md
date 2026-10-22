@@ -133,12 +133,45 @@ Two consequences nobody should lose:
    the brief has just decided to build. Before anything else is
    designed: a person who skips the food question must not thereby
    lose the coach.
-3. **Switching it on is not the increment.** Ninety-six items and no
-   artefact is sixty-odd reminders a week for the one persona the app
-   is already losing. Two seats said this independently and they are
-   right: the branch ships WITH the artefact or it makes things worse,
-   and it would make them worse in the most expensive way available —
-   by re-proving the law on a real person.
+3. **Switching it on is not the increment. It is measured, and it
+   breaks the floor.** `npm run usertest:nutritionfloor` runs
+   `scenarios.test.ts`'s own assertion — last four weeks of 182,
+   completed over planned — with the food question answered for
+   everybody:
+
+   | persona | as shipped | food answered | |
+   | --- | --- | --- | --- |
+   | busy_parent_exec | 0.72 | 0.65 | |
+   | young_professional | 0.64 | 0.58 | |
+   | health_rebuilder | 0.25 | 0.26 | no margin |
+   | new_parent | 0.44 | **0.33** | |
+   | entrepreneur | 0.56 | 0.64 | improves |
+   | **shift_nurse** | 0.35 | **0.19** | **THROUGH THE FLOOR** |
+   | retired_active | 0.63 | 0.67 | improves |
+   | student | 0.40 | **0.29** | |
+   | recovery_first | 0.34 | **0.26** | no margin |
+   | endurance_athlete | 0.73 | 0.73 | already had it |
+   | career_optimiser | 0.53 | 0.51 | |
+
+   **Seven of eleven get worse. `shift_nurse` goes through the 0.25
+   floor to 0.19.** Two more end with no margin. Only two improve.
+
+   This is the direct conflict in the round decided by measurement
+   rather than by seniority: the developer seat proposed "start the
+   nutrition coach, one day, first" as the cheapest increment, and the
+   product seat said shipping the branch alone makes things worse. The
+   product seat is right, and non-negotiable 6 makes it not a
+   judgement call — **the one-day increment is illegal as specified.**
+
+   Note what this is NOT evidence of. Completions RISE in absolute
+   terms almost everywhere (`new_parent` 35 → 49 done). The rate falls
+   because the denominator grows faster. That is the precise shape of
+   the thing this product exists not to do: more done, and a larger
+   fraction of the week failed. A plan somebody finishes a fifth of is
+   not a plan, it is a weekly reminder that they are failing.
+
+   And the floor is doing its job here for the second time this month,
+   on a change that looked obviously good and cost one day.
 
 ### Adherence over six months
 `npm run usertest:decay`
