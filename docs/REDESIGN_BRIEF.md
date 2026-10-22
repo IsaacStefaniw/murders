@@ -30,46 +30,144 @@ Every number below comes from a script in `tools/usertest`. None of it is
 borrowed from a vendor blog.
 
 ### What each coach gave the target persona in six weeks
-`npm run usertest:coachvalue`
+`npm run usertest:coachvalue`, and `npm run usertest:foodquestion`
+
+**Corrected 22 Oct 2026. The first draft of this table was wrong about
+nutrition, and it was the most important cell in it.**
+
+The drafted table read Nutrition **0 items, 0 done** and the law below
+was built on that zero. The zero is a harness artefact. `buildPlan`
+starts the nutrition path only when `foodAim` is answered and is not
+`'none'` — and of **eleven simulated personas, exactly one**
+(`endurance_athlete`) **answers the food question.** Ten never switch
+the coach on, `career_optimiser` among them. Six months of cohort
+validation across eleven people never ran the nutrition coach once.
+
+Answer the question and run the same persona again
+(`npm run usertest:foodquestion`):
+
+| | foodAim unanswered | foodAim answered |
+| --- | --- | --- |
+| paths started | training, recovery | **nutrition**, training, recovery |
+| nutrition items planned | 0 | **60** |
+| nutrition items done | 0 | **32** |
+| nutrition routines | 0 | **3** |
+
+Nutrition is the second-largest coach in his week the moment it is
+asked about. It is not thin. The thin thing is what it KEEPS — and the
+precise defect is sharper than "seven strings".
+
+`mealPlan` has **one writer in the whole codebase**: `saveMealPlan`,
+called from `src/app/session/meals.tsx:228`, where **the person types
+the dinners in themselves.** Nothing composes it, nothing progresses
+it, nothing re-reads it to decide next week. Compare training:
+`programme.ts` prescribes the sessions, the sets, the reps and the
+rest, and auto-regulates them against logged lifts without being
+asked.
+
+> **Training hands the person a decision. Nutrition hands them a
+> form.** Sixty items a week of a coach that has never decided
+> anything.
+
+(What this table cannot tell you: whether a real phone ends up with a
+`mealPlan` in it. `SimSnapshot` has no `mealPlan` field, so the
+simulator does not model it and must not be quoted about it. The claim
+above is from reading `store.ts`, which is the right instrument for a
+question about persisted state.)
+
+Current, with the food question answered:
 
 | coach | items | done | owns |
 | --- | --- | --- | --- |
-| **Training** | **148** | **79** | `trainingProgramme` — 4 weeks, sessions, sets, reps, rest, auto-regulation |
-| Habits & urges | 32 | 12 | nothing |
-| Relationship | 10 | 4 | nothing |
-| Nutrition | 0 | 0 | `mealPlan` — `{ weekStart, dinners: Record<number,string> }`, i.e. seven strings |
-| Money | 0 | 0 | nothing |
-| Work & leadership | 0 | 0 | `workBlock` (thin) |
-| Family & adventure | 0 | 0 | nothing |
+| **Training** | **192** | **105** | `trainingProgramme` — 4 weeks, sessions, sets, reps, rest, auto-regulation |
+| **Nutrition** | **60** | **32** | `mealPlan`, which **the coach does not write** — see below |
+| Family & adventure | 45 | 17 | nothing |
+| Recovery | 43 | 23 | nothing |
+| Relationship | 7 | 4 | nothing |
+| Habits & urges, Money, Work | — | — | nothing |
 
-**The law this produced**, and the single most important line in this
-brief:
+**The law this produced survives the correction, and is better
+evidenced by it**:
 
-> **A coach is worth coming back for when it owns a progressing artefact.
-> Otherwise it is a reminder.**
+> **A coach is worth coming back for when it owns a progressing
+> artefact. Otherwise it is a reminder.**
+
+A zero was weak evidence for that law: a coach that delivers nothing
+might simply be absent. Sixty items is strong evidence. Nutrition put
+sixty things in his week, he did thirty-two of them, it never once
+wrote down what it had decided — and his verdict was *"the gym trainer
+was ok but nothing else incentivised it either."* Thirty-two completed
+nutrition items left no trace a person could return to. **That is the
+law demonstrated rather than assumed.**
+
+Two consequences nobody should lose:
+
+1. **§6 does not change.** Nutrition still needs a progressing
+   artefact, for exactly the reason it always did, and now with a
+   measured sixty items a week to hang on it rather than a blank.
+2. **The food question is a product bug of its own, independent of the
+   redesign.** It is `optional` in an interview whose own
+   `sections.ts` says setup asks everything, and ten of eleven
+   simulated people decline it. If simulated people skip it, real
+   people skip it, and skipping it silently removes half the product
+   the brief has just decided to build. Before anything else is
+   designed: a person who skips the food question must not thereby
+   lose the coach.
 
 ### Adherence over six months
 `npm run usertest:decay`
 
-Week 1 is **42%** — the worst week of twenty-six. It climbs to 55% by
-week four and holds to week twenty-six. The climb is not the person
-improving: `truth.adherence` is a fixed draw and no term in the sim's
-completion model varies with time. **It is the app learning them, and
-week one is the week before it has anything to learn from.**
+**Corrected 22 Oct 2026, same day this brief was written.** The first
+draft of this section carried three numbers that do not reproduce, and
+five role positions were written against them before anyone re-ran the
+script. The figures below are what it prints today. The correction is
+recorded rather than quietly overwritten, because the whole point of
+§2 is that a number in this brief can be checked, and a brief that
+edits its own history is no better than a vendor blog.
 
-Three personas decline over the six months — student −11, young
-professional −7, `career_optimiser` −3. All three are young, time-poor,
-and have no caring responsibility anchoring the week. **The target market
-is among the decliners.** Everything that improves has external
-structure: a roster, a child, a training block, a retirement.
+| | drafted | measured today |
+| --- | --- | --- |
+| pooled week 1 | 42% | **43%** |
+| by week four | "climbs to 55% and holds" | **47%**; first four weeks 47%, last four 52% |
+| decliners | student −11, young professional −7, career_optimiser −3 | **career_optimiser −8, and nothing else** |
+
+Week 1 is **43%** — and it is still the worst week of twenty-six, which
+is the claim that mattered and the one that survived. The climb to 52%
+is slower and smaller than drafted: five points over six months, not
+thirteen in a fortnight. The climb is not the person improving —
+`truth.adherence` is a fixed draw and no term in the sim's completion
+model varies with time. **It is the app learning them, and week one is
+the week before it has anything to learn from.**
+
+**One persona declines: `career_optimiser`, 61% → 53%, −8 points over
+1003 planned items** — the largest plan in the cohort. `student` reads
+**+7** and `young_professional` **+12**, so the drafted sentence that
+"the target market is among the decliners" was built on two personas
+that are in fact improving.
+
+The sentence survives anyway, and more sharply than it deserved to.
+`career_optimiser` is the persona closest to Alex: the only one in the
+cohort who would pay AU$89.99, and the only one the app is losing. The
+others improve because something outside the app holds the week — a
+roster, a child, a retirement, a race. **He is held by nothing, so the
+product has to be the thing that holds it.** One decliner who is the
+customer is a worse finding than three decliners who are not.
 
 ### Where the plan is wrong
 - `npm run usertest:statedtime` — **36 of 63 active routines drift 15+
   minutes between the time the app shows and the time it runs; 28 drift
   an hour or more.** Worst: a night nurse whose wind-down shows 06:00 and
   runs 23:40.
-- `npm run usertest:atwork` — 8.6% of items are scheduled inside working
-  hours, and those complete 5 to 34 points worse than items in free time.
+- `npm run usertest:atwork` — **10.5% of items (718 of 6841) are
+  scheduled inside working hours** (drafted as 8.6%; re-measured 22 Oct).
+  The pooled figure hides the finding. Per persona it runs from 1% to
+  **34%**, and it is worst for `student` (34%), `health_rebuilder` (26%)
+  and `new_parent` (23%) — **not for the target.** `career_optimiser` is
+  2%, 18 items of 1003. So the at-work clash is a real defect and it is
+  **not** why Alex left; a redesign that fixes it and expects him back has
+  mistaken somebody else's problem for his.
+  `shift_nurse` reads **0%** at work, which is not a clean week — it is
+  the wrap-blind comparison failing to see a 19:00–07:00 shift at all.
 - **Every work-hours comparison in the codebase is wrap-blind**
   (`start <= m < end`), so no night shift is protected anywhere.
 

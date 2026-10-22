@@ -65,7 +65,8 @@
     "usertest:decay": "jest --testMatch='**/tools/usertest/decay.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/",
     "usertest:atwork": "jest --testMatch='**/tools/usertest/atwork.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/",
     "usertest:statedtime": "jest --testMatch='**/tools/usertest/statedtime.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/",
-    "usertest:coachvalue": "jest --testMatch='**/tools/usertest/coachvalue.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/"
+    "usertest:coachvalue": "jest --testMatch='**/tools/usertest/coachvalue.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/",
+    "usertest:foodquestion": "jest --testMatch='**/tools/usertest/foodquestion.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/"
   },
   "private": true
 }
