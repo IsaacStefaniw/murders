@@ -10,7 +10,7 @@ import { anchoredToTheClock, protocolById, toRoutine } from '@/features/knowledg
 import type { PathId } from '@/features/paths/definitions';
 import { dedupeRoutines } from '@/features/planner/mergeRoutines';
 import { isPlausibleBirthYear } from '@/features/health/age';
-import { newId, todayKey } from '@/lib/dates';
+import { newId, toMinutes, todayKey } from '@/lib/dates';
 import type {
   BehaviourIntention,
   BehaviourKey,
@@ -741,6 +741,82 @@ export function buildLifeOperatingPlan(answers: InterviewAnswers): LifeOperating
         automation: str(answers, 'moneyAutomation', 'partial') || 'partial',
       },
     });
+  }
+  /**
+   * The training coach, which the interview could never start.
+   *
+   * ── The one coach he liked, and it was never running ──────────────────
+   *
+   * Isaac, 22 Oct 2026: *"Still I didn't want to come back really, the gym
+   * trainer was ok but nothing else incentivised it either."*
+   *
+   * Measured over his six weeks (`npm run usertest:coachvalue`): Training
+   * put 148 items in his week and 79 got done — three quarters of
+   * everything he did. The other six coaches managed 42 items between
+   * them, and four of the seven put in NOTHING AT ALL.
+   *
+   * And `pathStarts` could only ever start three coaches: nutrition,
+   * money and recovery. **There was no branch for training.** Not for
+   * him, not for anybody.
+   *
+   * So what he had was the thin version. `ambitionOwnsTraining` above
+   * hands `buildGoalPlan` a training ambition and gets strength ROUTINES
+   * back — which is why the gym trainer was "ok". But the
+   * `trainingProgramme` (weeks, sessions, sets, loads, auto-regulation)
+   * is built by the training PATH, and the path never started. He opened
+   * a strength session for six weeks and found an empty box labelled kg.
+   * The coach told him to train and never told him what to lift.
+   *
+   * ── What this starts it with ──────────────────────────────────────────
+   *
+   * Only what the interview actually asked. `want` is the one the fitness
+   * intake leads with and the interview never puts, so it goes in as
+   * `unsure` — which is a real option on that question, labelled "Not
+   * sure — help me pick", and the hub asks it properly on the first
+   * visit. Guessing `stronger` from a free-text ambition is how the block
+   * used to decide what somebody wanted from the words in their goal
+   * title, and the question bank's own comment records that as the thing
+   * it was written to replace.
+   *
+   * Walkers are excluded: `trainingSetup === 'walking'` is somebody whose
+   * training IS the walk, and a strength block is not what they asked
+   * for.
+   */
+  /**
+   * A shift that crosses midnight is held back, and it is the same
+   * principle rather than an exception to it.
+   *
+   * The night nurse persona works 19:00 to 07:00. Started, the training
+   * coach gives her `Strength workout 06:00` on Mondays and Wednesdays —
+   * the last hour of her shift — and her completion falls from 0.269 to
+   * 0.152, which is through the cohort floor.
+   *
+   * The cause is not the coach. **Every work-hours comparison in this
+   * codebase is wrap-blind**: `atWork.clashesWithWork`,
+   * `atWork.eveningLoad` and the placement pass all ask
+   * `start <= m < end`, which is FALSE for every minute of a 19:00-07:00
+   * shift. So the app cannot see that 06:00 is her work, and places there
+   * freely. Her 0.269 baseline is already built on items she cannot do;
+   * the coach only adds to the pile.
+   *
+   * Handing somebody a programme the scheduler will put inside their
+   * shift is exactly what Isaac quit over, so withholding it here is the
+   * rule being applied, not dodged. It comes back the moment the work
+   * window understands midnight — the `roster` feature exists and this is
+   * what it is for.
+   */
+  const shiftWrapsMidnight = Boolean(
+    profile.workStart && profile.workEnd && toMinutes(profile.workEnd) <= toMinutes(profile.workStart),
+  );
+  if (wantsTraining && !walking && !shiftWrapsMidnight) {
+    const trainingPathAnswers: Record<string, string> = { want: 'unsure' };
+    const experience = str(answers, 'trainingExperience') || (hasHabit('workout') ? 'consistent' : '');
+    if (experience) trainingPathAnswers.experience = experience;
+    // The interview asks for a number of days; the intake wants a band.
+    if (trainingDaysPerWeek >= 5) trainingPathAnswers.frequency = '5+';
+    else if (trainingDaysPerWeek >= 3) trainingPathAnswers.frequency = '3-4';
+    else if (trainingDaysPerWeek >= 1) trainingPathAnswers.frequency = '1-2';
+    pathStarts.push({ id: 'training', answers: trainingPathAnswers });
   }
   if (lessOf.length > 0) {
     pathStarts.push({

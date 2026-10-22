@@ -174,3 +174,129 @@ npm run usertest:atwork      # items scheduled inside working hours
 npm run usertest:decay       # adherence by week over 26 weeks
 npm run usertest:depth       # how far down a screen its own answer sits
 ```
+
+
+---
+
+# Part two: "nothing else incentivised it"
+
+Isaac, pressed further: *"Still I didn't want to come back really, the gym
+trainer was ok but nothing else incentivised it either."*
+
+So the wrong times were necessary to fix and were never going to be
+sufficient. One coach of seven delivered. This is what the other six gave
+him, counted.
+
+## What each coach actually put in his week
+
+`npm run usertest:coachvalue`, 45 days, target persona:
+
+| coach | routines | items | done | persisted artefact |
+| --- | --- | --- | --- | --- |
+| **Training** | 6 | **148** | **79** | `trainingProgramme` — weeks, sessions, sets, loads, auto-regulation |
+| Habits & urges | 1 | 32 | 12 | none |
+| Relationship | 2 | 10 | 4 | none |
+| Nutrition | 0 | **0** | **0** | `mealPlan` — seven dinner names |
+| Money | 0 | **0** | **0** | none |
+| Work & leadership | 0 | **0** | **0** | `workBlock` |
+| Family & adventure | 0 | **0** | **0** | none |
+
+**Four of seven put nothing in his week at all over six weeks.** Training
+supplied three quarters of everything he did, which is his sentence
+measured. And note the started column: **Training was never started.** The
+one that was is Habits.
+
+## The law this suggests
+
+Training is the only coach that owns something which **does the thinking
+and then progresses**: a four-week block with named sessions, prescribed
+exercises, sets, rep ranges, rest and auto-regulation against logged
+lifts. `workBlock` is thinner. `mealPlan` is
+`{ weekStart, dinners: Record<number, string> }` — seven strings. Four
+coaches own nothing.
+
+> **A coach is worth coming back for when it owns a progressing artefact.
+> Otherwise it is a reminder.**
+
+That reads on both his answers at once. The gym trainer earns a return
+because the programme moves; nothing else does, so there was nothing to
+return to. It also says why levels, a doorbell and a paper planner would
+not have helped: all three are answers to "there is no reason to come
+back", and they would have been built on six empty rooms.
+
+## Two composition bugs in the one coach that worked
+
+**1. The interview could never start it.** `buildLifeOperatingPlan` built
+`pathStarts` for nutrition, money and recovery. There was no branch for
+training — not for him, not for anybody. He got strength ROUTINES because
+`ambitionOwnsTraining` hands a training ambition to `buildGoalPlan`, which
+is why the gym trainer was "ok". The coach itself was never running.
+
+**2. `startPath` never built the block.** Changing intensity rebuilds it.
+Stepping back a level rebuilds it. Answering a training-routed interview
+question rebuilds it. Two buttons rebuild it. The one action that CREATES
+the coach did not — so `trainingProgramme` stayed null and he opened a
+strength session for six weeks to find an empty box labelled kg. The coach
+told him to train and never told him what to lift.
+
+Both fixed. The session now reads:
+
+```
+WEEK 1 · CHEST, SHOULDERS & BACK B
+Accumulate quality volume
+
+Bench press        6–10 · solid effort, about 3 reps left in you · rest 120s
+Overhead press     6–10 · ...                                     rest 90s
+Barbell row        6–10 · ...                                     rest 90s
+Romanian deadlift  8–10 · ...                                     rest 90s
+Lat pulldown      10–12 · ...
+```
+
+with a swap list per exercise. RPE rather than kilos because he has never
+logged a lift, which is the honest fallback until there is a number.
+
+## Held back, and why it is the rule rather than an exception
+
+The training coach is **not** started for a shift that crosses midnight.
+Started, the night nurse gets `Strength workout 06:00` on Mondays and
+Wednesdays — the last hour of her 19:00–07:00 shift — and her completion
+goes from 0.269 to 0.152, through the cohort floor of 0.25.
+
+The cause is not the coach. **Every work-hours comparison in this codebase
+is wrap-blind.** `atWork.clashesWithWork`, `atWork.eveningLoad` and the
+placement pass all ask `start <= m < end`, which is false for every minute
+of a wrapped shift, so the app cannot see that 06:00 is her work. Her
+0.269 baseline is already built on items she cannot do; the coach only
+adds to the pile.
+
+Handing somebody a programme the scheduler will put inside their shift is
+the exact failure this whole document is about, so withholding it there is
+the rule being applied. It comes back the moment the work window
+understands midnight — the `roster` feature exists and that is what it is
+for.
+
+## What is still open, and it is a positioning question
+
+Four coaches still deliver nothing, and two more deliver prompts. Nothing
+here changed that. The honest options:
+
+1. **Be the gym trainer.** One coach, deep, excellent; the rest become
+   supporting cast rather than a menu of seven doors, six of which lead
+   nowhere. `PERSONA.md` §4 already says most of the 323 protocols are
+   "breadth bought for a population" and not for Alex.
+2. **Give a second coach a progressing artefact.** Nutrition is the
+   obvious one for this persona — he said "nutrition and hacks" — and its
+   artefact today is seven dinner names. Then there are two reasons to
+   come back instead of one.
+
+What not to do is build levels, a doorbell or a planner on top of six
+empty rooms.
+
+## Reproducing
+
+```
+npm run usertest:coachvalue   # what each coach put in the week
+npm run usertest:statedtime   # stated time vs actual placement
+npm run usertest:atwork       # items scheduled inside working hours
+npm run usertest:decay        # adherence by week over 26 weeks
+```

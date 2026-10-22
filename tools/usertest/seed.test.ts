@@ -28,6 +28,8 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { runUser } from '@/features/sim/engine';
+import { baselinesFrom, buildProgramme } from '@/features/training/programme';
+import { deriveTrainingInputs } from '@/state/store';
 import { PERSONAS, makeUserOf } from '@/features/sim/personas';
 import { behaviourInfo } from '@/features/behaviours/catalog';
 import { addDays, newId, todayKey } from '@/lib/dates';
@@ -153,8 +155,35 @@ it('writes a lived week per persona', () => {
       };
     }
 
+    /**
+     * The training block, which the engine does not build.
+     *
+     * `runUser` replicates `startPath` by hand — goal, routines, the
+     * record — and `buildTrainingBlock` is a store action it cannot
+     * reach. So a seeded account had the training coach started and
+     * `trainingProgramme: null`, which is the exact screen Isaac
+     * described: a strength session with an empty box labelled kg.
+     *
+     * Built here from the same two functions the store calls, so the seed
+     * shows what the app now gives somebody on day one. Another instance
+     * of the rule in BRIEF.md: the seed only knows what the snapshot
+     * carries, and a gap in it reads as a product bug.
+     */
+    const trainingProgramme = snap.paths.training
+      ? buildProgramme(
+          deriveTrainingInputs(
+            snap.profile,
+            snap.paths.training.answers,
+            snap.goals,
+            'established',
+          ),
+          baselinesFrom([]),
+        )
+      : null;
+
     const state = {
       onboarded: true,
+      trainingProgramme,
       // Plus on, because a reviewer blocked by a paywall is reviewing the
       // paywall. Whether the free tier is honest is its own run.
       entitlement: {

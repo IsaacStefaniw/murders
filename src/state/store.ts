@@ -2130,6 +2130,29 @@ export const useAppStore = create<AppState>()(
           if (Object.keys(mirrored).length > 0) {
             set({ interviewAnswers: { ...get().interviewAnswers, ...mirrored } });
           }
+          /**
+           * Starting the training coach builds its block.
+           *
+           * ── The gym trainer with no programme in it ──────────────────
+           *
+           * Isaac, 22 Oct 2026: "the gym trainer was ok but nothing else
+           * incentivised it either." Measured, Training put three quarters
+           * of everything he did into his week. And he opened a strength
+           * session for six weeks to find an empty box labelled kg,
+           * because `trainingProgramme` was null — no weeks, no sets, no
+           * loads, no auto-regulation.
+           *
+           * Every other route to the block rebuilds it: changing
+           * intensity, stepping back a level, answering a
+           * training-routed interview question, and two buttons. The one
+           * action that CREATES the coach was the only one that did not,
+           * so the programme existed only for somebody who happened to
+           * tap "build my block" inside a hub two taps deep.
+           *
+           * A coach that tells you to train and never says what to lift
+           * is the difference between "ok" and a reason to come back.
+           */
+          if (id === 'training') get().buildTrainingBlock();
           // The new program should be visible across the whole week now.
           if (get().profile) {
             const today = todayKey();
