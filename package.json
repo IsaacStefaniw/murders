@@ -62,7 +62,9 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "usertest:seed": "jest --testMatch='**/tools/usertest/seed.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/",
     "usertest:depth": "node tools/usertest/depth.mjs",
-    "usertest:decay": "jest --testMatch='**/tools/usertest/decay.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/"
+    "usertest:decay": "jest --testMatch='**/tools/usertest/decay.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/",
+    "usertest:atwork": "jest --testMatch='**/tools/usertest/atwork.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/",
+    "usertest:statedtime": "jest --testMatch='**/tools/usertest/statedtime.test.ts' --silent=false --testPathIgnorePatterns=/node_modules/"
   },
   "private": true
 }

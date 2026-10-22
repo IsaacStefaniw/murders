@@ -26,7 +26,12 @@ import { AppText } from '@/components/text';
 import { Spacing } from '@/constants/theme';
 import { protocolById } from '@/features/knowledge/protocols';
 import { atWorkLine, clashesWithWork, eveningLoad } from '@/features/planner/atWork';
-import { formatTime, toHHMM, toMinutes } from '@/lib/dates';
+import {
+  observedStarts,
+  startExplanation,
+  startToShow,
+} from '@/features/planner/learnedStart';
+import { formatTime, toHHMM, todayKey, toMinutes } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
 import type { Weekday } from '@/types/domain';
 
@@ -54,7 +59,41 @@ export default function EditRoutines() {
    * they have decided to change something.
    */
   const profile = useAppStore((s) => s.profile);
-  const clashes = useMemo(() => clashesWithWork(routines, profile), [routines, profile]);
+  const plans = useAppStore((s) => s.plans);
+
+  /**
+   * Where each routine ACTUALLY runs.
+   *
+   * ── The screen the founder opened and found wrong ─────────────────────
+   *
+   * Isaac stopped using his own app, and said why: "I opened it and it was
+   * wrong — the plan didn't match my actual day."
+   *
+   * This row printed `routine.preferredStart`, which is a seed written
+   * once when the routine is created — `wakeTime + offset`, or the
+   * practice's literal time, or noon. It is never updated and it takes no
+   * account of the other routines wanting the same minute, or of the
+   * person's working hours. Measured across the cohort
+   * (`npm run usertest:statedtime`): 36 of 63 active routines drift
+   * fifteen minutes or more from where the plan runs them, 28 by an hour
+   * or more, and one night nurse's wind-down shows 06:00 and runs 23:40.
+   *
+   * His read "Strength 17:30 · Message a friend 17:30 · walk 17:45 ·
+   * cardio 17:45" — four impossible times for a man at work until 18:30,
+   * two of them duplicated to the minute — while Today placed them at
+   * 6:45pm, 8:50pm and 9:40pm. The plan coped. This screen did not know.
+   *
+   * So the row now shows the observed time, with the stated one kept as
+   * what it is: a request. See features/planner/learnedStart.ts.
+   */
+  const observed = useMemo(
+    () => observedStarts(plans, routines, todayKey()),
+    [plans, routines],
+  );
+  const clashes = useMemo(
+    () => clashesWithWork(routines, profile, observed),
+    [routines, profile, observed],
+  );
   const clashIds = useMemo(() => new Set(clashes.map((c) => c.routine.id)), [clashes]);
   const headline = atWorkLine(clashes, profile);
   const evening = useMemo(() => eveningLoad(routines, profile), [routines, profile]);
@@ -100,16 +139,31 @@ export default function EditRoutines() {
                 ? 'Every day'
                 : routine.days.map((d) => DAY_LETTERS[d]).join(' ')}
               {' · '}
-              {formatTime(routine.preferredStart)} · {routine.durationMin} min
+              {formatTime(startToShow(routine, observed.get(routine.id)))} ·{' '}
+              {routine.durationMin} min
               {routine.duringWork ? ' · inside work hours' : ''}
             </AppText>
+            {/* Why the time above is not the time they asked for.
+                Explains rather than corrects: the gap is nearly always the
+                scheduler doing something right for a reason the person
+                cannot see — work, or four things wanting the same minute.
+                "Runs at 6:45pm" is a correction; "you asked for 5:30pm and
+                you are at work until 6:30pm" is the reason. */}
+            {startExplanation(routine, observed.get(routine.id), profile) ? (
+              <AppText variant="caption" color="textTertiary">
+                {startExplanation(routine, observed.get(routine.id), profile)}
+              </AppText>
+            ) : null}
             {/* Named on the row, not just counted at the top. A person
                 scanning nine routines for the broken one should not have
-                to do the arithmetic the app has already done. */}
+                to do the arithmetic the app has already done.
+                This now fires only where the REAL placement is inside work
+                — a routine the plan already moves clear of it was being
+                reported as broken while it was being handled. */}
             {clashIds.has(routine.id) ? (
               <AppText variant="caption" color="must">
-                You are at work until {formatTime(profile?.workEnd ?? '')} — this cannot start when
-                it says.
+                You are at work until {formatTime(profile?.workEnd ?? '')} — and this still lands
+                there. Move it, or let the plan have it.
               </AppText>
             ) : null}
           </View>

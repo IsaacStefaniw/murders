@@ -44,6 +44,7 @@
  */
 
 import { toMinutes, WEEKDAY_NAMES } from '@/lib/dates';
+import type { ObservedStart } from '@/features/planner/learnedStart';
 import type { LifeProfile, Routine, Weekday } from '@/types/domain';
 
 export interface AtWorkClash {
@@ -65,6 +66,27 @@ export interface AtWorkClash {
 export function clashesWithWork(
   routines: Routine[],
   profile: Pick<LifeProfile, 'workDays' | 'workEnd'> | null | undefined,
+  /**
+   * Where each routine ACTUALLY runs, from `learnedStart.observedStarts`.
+   *
+   * ── A correction to this function as first shipped ────────────────────
+   *
+   * Without this it read `preferredStart`, which is a SEED written once at
+   * routine creation and never updated — and which drifts fifteen minutes
+   * or more from the real placement on 36 of 63 active routines across the
+   * cohort. So it announced "5 things want a time you are at work" about
+   * times the scheduler had already fixed, to a person whose plan was
+   * actually running at 6:45pm.
+   *
+   * That is a false alarm, and it is a worse failure than the silence it
+   * replaced: it told somebody their week was broken when the week was
+   * being handled. A routine whose observed placement clears work is not a
+   * clash, whatever its stated time says, and it is dropped here.
+   *
+   * Omitted or empty means fall back to the stated time, which is all the
+   * app knows in the first few days and is honest then.
+   */
+  observed?: Map<string, ObservedStart>,
 ): AtWorkClash[] {
   if (!profile?.workEnd || !profile.workDays?.length) return [];
   const ends = toMinutes(profile.workEnd);
@@ -74,7 +96,11 @@ export function clashesWithWork(
   for (const routine of routines) {
     if (!routine.active) continue;
     if (routine.duringWork || routine.anchorToWorkEnd) continue;
-    if (toMinutes(routine.preferredStart) >= ends) continue;
+    // The real time where there is one, so a routine the plan already
+    // moves clear of work stops being reported as a problem.
+    const seen = observed?.get(routine.id);
+    const effective = seen ? toMinutes(seen.usual) : toMinutes(routine.preferredStart);
+    if (effective >= ends) continue;
     const days = routine.days.filter((d) => workDays.has(d));
     if (days.length === 0) continue;
     out.push({ routine, days, earliestReal: profile.workEnd });

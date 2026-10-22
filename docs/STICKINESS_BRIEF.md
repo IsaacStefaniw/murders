@@ -1,5 +1,17 @@
 # Stickiness: what the data says to do, and what it says not to
 
+> **SUPERSEDED IN PART, 22 Oct 2026.** After reading this brief Isaac said:
+> *"The problem is that people stop using the app I've stopped using it."*
+> Asked which was closest, he chose **"I opened it and it was wrong — the
+> plan didn't match my actual day"**, and on notifications **"On, and I
+> ignored or killed them."**
+>
+> That is the churn datum §0 below says the simulator cannot produce, and
+> it points somewhere this brief does not. **Read `docs/WHY_HE_STOPPED.md`
+> first.** §0's recommendation — week one and visibility over a redesign —
+> still holds, but it is no longer the first thing to do.
+
+
 Isaac, 22 Oct 2026: *"The app is not stick enough we need to do a complete
 redesign — let's brief ways based on successful apps to created stickiness.
 Thinking reward based levels showing progress? Was also thinking of parting
