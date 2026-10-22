@@ -17,7 +17,7 @@
  * the two columns is the size of the harness error.
  */
 import { runUser } from '@/features/sim/engine';
-import { PERSONAS, mulberry32, type SimUser } from '@/features/sim/personas';
+import { PERSONAS, HABIT_KEYS, mulberry32, type SimUser } from '@/features/sim/personas';
 import { buildLifeOperatingPlan } from '@/features/onboarding/buildPlan';
 import { protocolById } from '@/features/knowledge/protocols';
 import { coachForProtocol, coachForArea } from '@/features/coaches/interrupt';
@@ -30,12 +30,19 @@ const KEY = 'career_optimiser';
 function userWith(id: number, patch: Partial<InterviewAnswers>): SimUser {
   const spec = PERSONAS.find((p) => p.key === KEY)!;
   const rng = mulberry32(1_000_003 * (id + 1));
-  const habitKeys = Object.keys(spec.habitOdds ?? {});
-  const trueHabits = habitKeys.filter((h) => rng() < (spec.habitOdds?.[h as never] ?? 0));
+  // HABIT_KEYS, in its own order, and BEFORE `spec.answers` — exactly as
+  // `makeUserOf` does it. A first version of this file filtered
+  // `Object.keys(spec.habitOdds)` instead, which draws from `rng` a
+  // different number of times and so builds a different person under the
+  // same seed: it printed Training 167/95 against coachvalue's 161/83
+  // for the one named persona both claim to be running. The baseline
+  // column of a comparison has to be the same baseline everyone else
+  // measures, or the comparison measures the harness.
+  const trueHabits = HABIT_KEYS.filter((h) => rng() < (spec.habitOdds?.[h] ?? 0));
   const answers = { ...spec.answers(rng), ...patch } as InterviewAnswers;
-  if (trueHabits.length > 0) answers.existingHabits = trueHabits as never;
+  if (trueHabits.length > 0) answers.existingHabits = trueHabits;
   const truth = spec.truth(rng);
-  truth.trueHabits = trueHabits as never;
+  truth.trueHabits = trueHabits;
   truth.establishedBoost = 1.15 + rng() * 0.1;
   return { id, persona: spec.key, plan: buildLifeOperatingPlan(answers), truth, rng };
 }

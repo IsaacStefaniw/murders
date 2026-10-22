@@ -49,12 +49,14 @@ Answer the question and run the same persona again
 | | foodAim unanswered | foodAim answered |
 | --- | --- | --- |
 | paths started | training, recovery | **nutrition**, training, recovery |
-| nutrition items planned | 0 | **60** |
-| nutrition items done | 0 | **32** |
+| nutrition items planned | 0 | **96** |
+| nutrition items done | 0 | **42** |
 | nutrition routines | 0 | **3** |
+| training items | 161 / 83 done | 161 / **78** done |
 
 Nutrition is the second-largest coach in his week the moment it is
-asked about. It is not thin. The thin thing is what it KEEPS — and the
+asked about — ninety-six items to training's hundred and sixty-one. It
+is not thin. The thin thing is what it KEEPS — and the
 precise defect is sharper than "seven strings".
 
 `mealPlan` has **one writer in the whole codebase**: `saveMealPlan`,
@@ -79,12 +81,30 @@ Current, with the food question answered:
 
 | coach | items | done | owns |
 | --- | --- | --- | --- |
-| **Training** | **192** | **105** | `trainingProgramme` — 4 weeks, sessions, sets, reps, rest, auto-regulation |
-| **Nutrition** | **60** | **32** | `mealPlan`, which **the coach does not write** — see below |
-| Family & adventure | 45 | 17 | nothing |
-| Recovery | 43 | 23 | nothing |
-| Relationship | 7 | 4 | nothing |
-| Habits & urges, Money, Work | — | — | nothing |
+| **Training** | **161** | **78** | `trainingProgramme` — 4 weeks, sessions, sets, reps, rest, auto-regulation |
+| **Nutrition** | **96** | **42** | `mealPlan`, which **the coach does not write** — see below |
+| Recovery | 33 | 17 | nothing |
+| Relationship | 8 | 6 | nothing |
+| Habits & urges, Money, Work, Family | — | — | nothing |
+
+Note the cost, which nobody expected and which is the first real
+argument against simply switching nutrition on: training completions
+fall **83 → 78** when nutrition starts. Ninety-six new items bought
+forty-two completions and cost five. That is not free, and a redesign
+that adds a coach without taking anything out is spending somebody's
+Tuesday.
+
+**A correction to this table's own method, 22 Oct.** The first version
+of `foodquestion` reported Training 161/**95** where
+`usertest:coachvalue` reports 161/**83** — two different numbers for
+one named, deterministic persona. The harness filtered
+`Object.keys(habitOdds)` where `makeUserOf` filters `HABIT_KEYS`, which
+draws from the same seeded PRNG a different number of times and so
+built a **different person**. Its nutrition column read 60/32; the
+honest figures, once the baseline matched the baseline everybody else
+measures, are **96/42**. `HABIT_KEYS` is now exported with a comment
+saying why its order is load-bearing. Three wrong measurements of this
+harness in one day, all of which looked like results.
 
 **The law this produced survives the correction, and is better
 evidenced by it**:
@@ -93,8 +113,8 @@ evidenced by it**:
 > artefact. Otherwise it is a reminder.**
 
 A zero was weak evidence for that law: a coach that delivers nothing
-might simply be absent. Sixty items is strong evidence. Nutrition put
-sixty things in his week, he did thirty-two of them, it never once
+might simply be absent. Ninety-six items is strong evidence. Nutrition
+put ninety-six things in his week, he did forty-two of them, it never once
 wrote down what it had decided — and his verdict was *"the gym trainer
 was ok but nothing else incentivised it either."* Thirty-two completed
 nutrition items left no trace a person could return to. **That is the
@@ -113,6 +133,12 @@ Two consequences nobody should lose:
    the brief has just decided to build. Before anything else is
    designed: a person who skips the food question must not thereby
    lose the coach.
+3. **Switching it on is not the increment.** Ninety-six items and no
+   artefact is sixty-odd reminders a week for the one persona the app
+   is already losing. Two seats said this independently and they are
+   right: the branch ships WITH the artefact or it makes things worse,
+   and it would make them worse in the most expensive way available —
+   by re-proving the law on a real person.
 
 ### Adherence over six months
 `npm run usertest:decay`
@@ -154,10 +180,11 @@ product has to be the thing that holds it.** One decliner who is the
 customer is a worse finding than three decliners who are not.
 
 ### Where the plan is wrong
-- `npm run usertest:statedtime` — **36 of 63 active routines drift 15+
-  minutes between the time the app shows and the time it runs; 28 drift
-  an hour or more.** Worst: a night nurse whose wind-down shows 06:00 and
-  runs 23:40.
+- `npm run usertest:statedtime` — **46 of 72 active routines drift 15+
+  minutes between the time the app shows and the time it runs; 35 drift
+  an hour or more** (drafted as 36 of 63 and 28; re-measured 22 Oct, and
+  it has got worse, not better). Worst: a night nurse whose wind-down
+  shows 06:00 and runs 23:40.
 - `npm run usertest:atwork` — **10.5% of items (718 of 6841) are
   scheduled inside working hours** (drafted as 8.6%; re-measured 22 Oct).
   The pooled figure hides the finding. Per persona it runs from 1% to
@@ -241,18 +268,112 @@ accept:
 > you have climbed is a record.** Show the rungs behind as well as the
 > one ahead.
 
-Supporting evidence, from the one primary source in the retention
-literature worth citing — Duolingo's own published tests: a rule that let
-a single exercise keep a streak alive **moved nothing and attracted the
-least active users**, and their conclusion was that the standard needed
-to be *clearer*, not lower. Read that next to the 0.25 floor.
+### The citation this section was first built on, withdrawn
 
-What must be decided, not assumed:
-- Can anything be *lost*? (The proposal says no.)
-- Is there a unit of progress above the rung — the thing that makes four
-  rungs across two coaches feel like a journey rather than a setting?
-- Does "gamify" survive rule 7, or does it become a scold the first time
-  somebody has a bad fortnight?
+**Corrected 22 Oct 2026.** The first draft of §5 read:
+
+> *"Supporting evidence, from the one primary source in the retention
+> literature worth citing — Duolingo's own published tests: a rule that
+> let a single exercise keep a streak alive moved nothing and attracted
+> the least active users."*
+
+**Neither half of that traces, and it is withdrawn in full.** Sent to
+check it, the research seat found:
+
+- The ">40% more 7-day streaks" figure circulating as Duolingo's is
+  **not Duolingo's**; it traces to a third-party design blog. Duolingo's
+  own published numbers for streak decoupling are **+3.3% D14
+  retention, +1% DAU, +10.5% more daily learners on a streak at 20 days
+  (+19% for new learners)** — roughly a quarter of the effect the draft
+  implied, in the direction the draft wanted.
+- **"Attracted the least active users" appears in no source that could
+  be found.** It was asserted here and in the research role definition,
+  and traced by neither.
+- Worse, the citation argues against its own conclusion. Duolingo's
+  **largest** reported lift is Streak Wager at **+14% D7** — and a
+  wager is **loss-framed**. §5 cited Duolingo for "nothing can be lost"
+  over Duolingo's best published result from loss.
+- The pages could not be read directly: `blog.duolingo.com` and
+  `making.duolingo.com` are both DNS-unreachable from this container,
+  so even the corrected figures are **a search engine's rendering, not
+  a primary read.** Graded accordingly.
+
+Rule 5 of §4 says every health claim carries a citation, sample, design
+and caveat and the grade is never overclaimed. This brief broke its own
+rule 5 in the section asking everyone else to be rigorous, and did it
+in the direction of the answer it had already chosen. It is recorded
+here rather than deleted, because the failure is the instructive part.
+
+### The one primary source that does exist
+
+Rewley J, Guszcza J, Dierst-Davies R, Steier D, Szwartz G, Patel M.
+**Loss Aversion Explains Physical Activity Changes in a Behavioral
+Gamification Trial.** *Games for Health Journal* 2021;10(6):430–436.
+doi:10.1089/g4h.2021.0130. Trial NCT03311230.
+
+- **Design:** randomised, 602 participants, three level-based
+  gamification arms; 70 points allocated weekly, 10 lost per missed day.
+- **Finding:** participants exhibit loss aversion **"so long as the loss
+  relates to something that was earned rather than endowed."**
+- **Caveat, and it is load-bearing:** the effect **did not survive the
+  12-week follow-up** in any arm but competition.
+
+Read honestly, that source does not support §5 — it names earned loss as
+the active ingredient, and §5 removes exactly that. It also does not
+support streaks, because the effect did not last. It is cited here
+because it is the best primary evidence that exists and it is
+inconvenient, which is the only reason worth citing anything.
+
+### What there is no evidence for, either way
+
+**No primary trial compares an accumulated non-losable level against a
+losable streak for the same behaviour.** Rewley/STEP UP has no
+non-losable arm. NCT07220044 (streak versus tally, 30 days) is
+registered with no results posted.
+
+So **§5 is a hypothesis, not a resolution**, and this brief should stop
+calling it one. It may still be the right thing to build — on rule 1,
+which is a decision about what this product refuses to be, not a claim
+about what works.
+
+### The objection that survived the round
+
+Three of four seats attacked §5 on latency rather than loss, and the
+research seat found the sharper version in the code:
+
+> Because the ladder is **monotonic**, "show the rungs behind as well as
+> the one ahead" produces a screen that **cannot change when the
+> person's life does.** Somebody four weeks into doing nothing sees the
+> identical screen they saw the day they stopped.
+
+§5 solves "do not punish the bad week" by making the bad week
+**invisible** — and the churn datum was never *"it punished me"*, it was
+**"I opened it and it was wrong."** A screen that cannot be wrong
+because it cannot change is the same failure wearing a kinder face.
+
+What the rungs are missing is not loss. It is the app saying what it
+observed about the last fortnight, beside the rung, without grading it —
+which `planner/learnedStart.ts` already does for times and nothing does
+for anything else.
+
+### What must be decided, not assumed
+- Can anything be *lost*? (The proposal says no; the one primary source
+  says earned loss is the active ingredient; rule 1 says no anyway.)
+- **How often does this thing fire?** `LEVEL_GATES` makes the first rung
+  unreachable before about week four and the top before week 32. The
+  real user left at week six. A reward that fires three times in eight
+  months cannot be the reason to open the app on a Tuesday.
+- Is the unit **above** the rung or **below** it? Three seats
+  independently answered below, and named the same thing: **the numbered
+  four-week block, which ends because four weeks passed rather than
+  because somebody performed.** A thing that ends is the only honest
+  urgency available to a product that refuses to keep score, and it
+  cannot become a scold under rule 7.
+- Does the display corollary survive at all? Two seats say no on the
+  same ground: filled-and-unfilled segments are read as a progress bar
+  whatever they are called, and `paths/LevelCard.tsx` already renders
+  two `Meter` bars at `sessions / gate.sessions` and `weeks /
+  gate.weeks` — percentages drawn as rectangles, which §4.1 forbids.
 
 ## 6. What "deep on nutrition" has to mean
 

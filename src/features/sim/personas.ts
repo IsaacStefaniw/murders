@@ -641,7 +641,19 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-const HABIT_KEYS: ExistingHabitKey[] = [
+/**
+ * Exported ONLY so a harness can reproduce `makeUserOf`'s draw exactly.
+ *
+ * The order is load-bearing and is not alphabetical by accident: every
+ * persona's `trueHabits` comes from filtering this list against the same
+ * `rng`, so a harness that iterates `Object.keys(habitOdds)` instead
+ * consumes the stream in a different order and silently builds a
+ * DIFFERENT PERSON under the same seed. `tools/usertest/foodquestion`
+ * did exactly that and reported Training 167/95 where
+ * `usertest:coachvalue` reports 161/83 — two numbers for one named,
+ * supposedly deterministic persona. Never reorder this list.
+ */
+export const HABIT_KEYS: ExistingHabitKey[] = [
   'fasting',
   'workout',
   'walking',
