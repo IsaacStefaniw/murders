@@ -61,7 +61,7 @@ to decide on a Tuesday.
 | --- | --- | --- | --- |
 | **Breakfast** | 06:45 | 250 g Greek yoghurt + berries + 30 g seeds or nuts, **and** either 2 eggs or a scoop of whey | **~48 g** |
 | **Lunch** | 12:30 | last night's dinner, or 2 tins tuna with beans, rocket, lemon, olive oil | **~55 g** |
-| **Snack** | 15:00 | 2 Mayver's bars, or yoghurt, or an apple with nuts | **~21 g** |
+| **Snack** | 15:00 | 250 g Greek yoghurt + berries, or a tin of tuna — bars when neither is possible (see below) | **~21 g** |
 | **Dinner** | 18:00 | the dish for that night, below | **~50 g** |
 
 **= about 174 g.** Breakfast is the meal people under-build; at 48 g
@@ -94,6 +94,111 @@ bolognese freezes; the roast becomes Monday lunch. That is how four
 cooking evenings cover seven days.
 
 ---
+
+## Snacks — and are the bars good?
+
+### Short answer: yes, they are a good bar. No, they should not be the plan.
+
+From your own label: **95 cal, 10.5 g protein, 1.7 g carb**, which
+leaves about **5 g fat**. That is **11.1 g of protein per 100
+calories** — and protein per calorie is the only number that matters
+in a snack when you are eating in a deficit.
+
+| snack | cal | protein | **g protein / 100 cal** |
+| --- | --- | --- | --- |
+| Tinned tuna, 1 tin drained | 90 | 20 | **22.2** |
+| Chicken breast, 150 g | 165 | 35 | **21.2** |
+| Whey, 1 scoop in water | 120 | 24 | **20.0** |
+| Greek yoghurt 0%, 250 g | 135 | 26 | **19.3** |
+| Cottage cheese, 200 g | 160 | 24 | 15.0 |
+| Beef jerky, 40 g | 130 | 18 | 13.8 |
+| **2 × Mayver's** | 190 | 21 | **11.1** |
+| A typical protein bar | 220 | 20 | 9.1 |
+| Edamame, 150 g | 180 | 16 | 8.9 |
+| Two boiled eggs | 140 | 12 | 8.6 |
+| Almonds, 30 g | 175 | 6 | 3.4 |
+| Apple + peanut butter | 215 | 5 | 2.3 |
+
+**Mid-table, and better than most of its own category.** It beats a
+standard protein bar, boiled eggs and every nut. It loses to yoghurt,
+tuna, whey, chicken and cottage cheese — all of which give you roughly
+**twice** the protein for the same calories.
+
+### What the library says, and it is graded B
+
+`protein-powder-is-food` — **evidence level B**, citing the
+International Society of Sports Nutrition position stand (Jäger et
+al., 2017):
+
+> *"Use a scoop of protein powder as a convenient part of a meal when
+> whole food is short — never as the plan... the position stand puts
+> exercising adults at roughly 1.4 to 2 grams per kilogram a day and
+> finds **no advantage for powder over meat, eggs, dairy or beans once
+> the total is met.** What a scoop buys is convenience."*
+
+A bar is the same thing in a wrapper. **Once you hit 165–180 g, the
+source stops mattering.** So the bar is not better or worse for you in
+any meaningful sense — it is a convenience, and it should be judged on
+whether the convenience is actually needed in that slot.
+
+### The two honest cautions
+
+**One: they do not fill you up, and that is your actual problem.** You
+told me evenings are where food falls apart. 190 calories of chocolate
+bar is gone in ninety seconds. 250 g of Greek yoghurt is **135
+calories**, takes five minutes with a spoon, and gives you **more**
+protein. For an appetite problem, the yoghurt is doing more work for
+fewer calories. That is the whole case against the bar and it has
+nothing to do with the bar being unhealthy.
+
+**Two: check the label for polyols.** A sweet chocolate bar with 1.7 g
+of carbohydrate is sweetened with something other than sugar. If that
+is maltitol, sorbitol or similar, two bars can cause real gut trouble
+— which matters on a Monday when you are sprinting at 6:15. I am not
+claiming they contain them; I am telling you it is worth two seconds
+on the ingredients list, because you eat them in pairs.
+
+### So: keep them, in the right slot
+
+**Keep them for the car, the desk drawer and the day that goes
+sideways.** A 95-calorie, 10 g-protein thing that survives a week in a
+bag is a genuinely good tool, and it is far better than the vending
+machine it replaces. That is a real win and worth saying plainly.
+
+**Stop using them where whole food is available** — at home, at a
+desk with a fridge, and above all after dinner.
+
+### Your three snack slots
+
+| slot | job | best options |
+| --- | --- | --- |
+| **~15:00, office** | bridge to dinner, kill the 4pm slump | 250 g Greek yoghurt + berries · a tin of tuna on rye · 200 g cottage cheese · **2 bars when none of that is possible** |
+| **Mon 16:45, pre-futsal** | fuel, not protein | white rice, a bagel, bread with honey, plus whey. **Not a low-carb bar** — 1.7 g of carbs is the opposite of what this slot needs |
+| **Post-lift, Tue/Wed/Fri** | only if dinner is more than an hour off | whey in water, or just wait for dinner |
+
+### And the fourth slot, which is deliberately empty
+
+**There is no snack after 19:30.** The kitchen closes. That window
+needs **occupation, not food** — the §1 chain says the 20:30–22:00
+problem is a blank ninety minutes, and no snack has ever fixed a blank
+ninety minutes.
+
+**One collision worth naming, because the library contains both
+sides.** `protein-before-bed-on-lifting-days` is graded **C** and
+suggests protein in the last hour before bed on lifting days. That
+pulls directly against the 19:30 kitchen close.
+
+**My call: get the protein in by 19:30 and leave the kitchen shut.**
+The pre-bed card describes itself as *"a small addition to a training
+effect rather than a substitute for one"*, and it is graded C. The
+kitchen close is the mechanism protecting the goal you named first.
+**A C-graded marginal gain does not get to open the door that your
+primary goal depends on staying shut.** If you are short on protein at
+nine o'clock, the error was at breakfast.
+
+Monday is the exception, as always — you eat at 19:30 after futsal
+anyway, so the 20:45 yoghurt is already inside the exception rather
+than a crack in the rule.
 
 ## Saturday — the wedding
 
