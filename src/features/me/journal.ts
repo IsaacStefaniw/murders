@@ -34,9 +34,16 @@
  *
  * ── What the first real entry already changed ─────────────────────────
  *
- * Entry one, 8 Nov 2026: two small vaping sessions, during 17:30-20:30,
- * trigger "the kids — a hard bedtime", in the bathroom, hiding it, with an
- * intention but no if-then. Alcohol zero.
+ * Entry one, **Monday 9 Nov 2026, after futsal**: two small vaping
+ * sessions between about 19:15 and 20:30, trigger "the kids — a hard
+ * bedtime", in the bathroom, hiding it, with an intention but no if-then.
+ * Alcohol zero.
+ *
+ * The first version of that entry was dated Saturday 8 Nov, which was
+ * wrong twice — 8 Nov 2026 is a Sunday, and the night was the Monday.
+ * `weekdayShape` reads the weekday and nothing else, so a wrong one
+ * points the whole day-of-week read at the wrong day. Asked rather than
+ * inferred the second time.
  *
  * `profile.ts` modelled one chain: hard stretch -> stress -> vape, then
  * boys asleep -> quiet house -> drink. **The first real data point splits
@@ -50,6 +57,18 @@
  * nothing here pretends otherwise — but a model that survives first
  * contact in shape and fails in timing is worth saying out loud rather
  * than quietly leaving wrong.
+ *
+ * ── The one prediction this project made in advance and then tested ────
+ *
+ * `docs/ISAAC_WEEK.md`, written before any entry existed: *"Monday
+ * 7:15pm is the highest-risk hour of your week for both the drink and
+ * the vape, and it recurs 52 times a year."* Entry one is a Monday,
+ * after futsal, in the bathroom.
+ *
+ * It held. That does not make Mondays a pattern — `weekdayShape` wants
+ * four occurrences before it will name a day — but it is one confirmed
+ * instance of a reasoned guess, which is more than anything else in this
+ * repo can claim.
  */
 
 import type { BehaviourKey } from '@/types/domain';
