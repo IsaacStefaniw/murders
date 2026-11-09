@@ -28,6 +28,7 @@ does not get made.
 | alcohol | midweek at home **and** heavy weekends. Stop, except 2–3 named events a month |
 | vaping | **only when drinking or stressed** |
 | stress | work pressure and deadlines · **the kids at the hard end of the day** · money and the business |
+| **futsal** | **every Monday, 6:15pm** |
 | parenting | present at bedtime every night; one real thing at the weekend |
 | work goal | one protected deep-work block a day; visible output, finishing and shipping |
 
@@ -101,6 +102,56 @@ worth having. A slot you plan for four times a week and use once is
 the thing that taught you to ignore the app.
 
 ---
+
+### Monday night futsal changes the week, mostly for the better
+
+You play **every Monday at 6:15pm**, and you had not mentioned it, so
+the first version of this plan put squats at Monday lunch and expected
+you at bedtime on Monday evening. Both were wrong.
+
+**Futsal is the most valuable thing in your week and I nearly
+programmed over it.** Your own profile says it twice: *"plans with
+other people in them survive a bad week; plans with only themselves in
+them do not."* A fixed weekly commitment with other people in it is
+the single most durable item you have — more durable than anything in
+this document. It also does the conditioning the block deliberately
+left out, which is why there are no interval finishers anywhere.
+
+So the week reorganises around it:
+
+- **Monday is a leg day already.** Repeated sprinting, decelerating and
+  changing direction is a large lower-body load. Squats at Monday lunch
+  then futsal at 6:15 is stacking two hard leg sessions into nine
+  hours. **Monday lunch becomes upper body**, which does not compete.
+- **Lower body moves to Wednesday and Friday** — 48 hours after futsal
+  and 72 hours before the next one. That cycles properly.
+- **Tuesday stays upper**, because sore legs do not matter for an
+  overhead press.
+- **Thursday lifts nothing.** Walk only.
+
+**And one goal takes a hit, which you should decide about rather than
+discover.** *Present at bedtime every night* is structurally impossible
+on Mondays — the game ends about 7:15pm. That is a real trade and I
+think it is the right one, because a weekly game with other people in
+it will outlast any evening habit in here. But it is **six nights, not
+seven**, and it should be six on purpose.
+
+### The Monday-night risk nobody flags
+
+Post-game, 7:15pm, hungry, tired, with the lads. Monday is also one of
+your *"midweek at home"* drinking nights.
+
+> **Monday 7:15pm is the highest-risk hour of your week for both the
+> drink and the vape, and it recurs 52 times a year.**
+
+It is also the most *predictable* one, which is the whole advantage.
+`urge-tonight-plan` (graded **B**) is decided before the trigger, not
+during — so Monday's version gets decided **before you leave for the
+game**, not in the car park afterwards. The vape stays home on Mondays
+for the same reason it stays home at a wedding.
+
+If the team drinks after, that is not a reason to stop playing. It is a
+reason to have an answer ready once, rather than fifty-two times.
 
 ## 3. The four-week block
 
@@ -218,15 +269,7 @@ No percentages, no estimating, no four-week-old number deciding today's
 load. It cannot drift light, because the rep range polices it, and it
 cannot drift heavy, because the reserve does.
 
-### Monday — lunch · Lower A (squat-led)
-
-| lift | sets × reps | reserve | rest |
-| --- | --- | --- | --- |
-| **Squat** | per week table | **1–2 left** | 120s |
-| A1 Romanian deadlift | 3 × 8–10 | 2–3 left | — |
-| A2 Leg extension | 3 × 10–12 | 2–3 left | 75s |
-
-### Tuesday — 17:00 at home · Upper A (bench-led)
+### Monday — lunch · Upper A (bench-led)   *(futsal tonight)*
 
 | lift | sets × reps | reserve | rest |
 | --- | --- | --- | --- |
@@ -234,15 +277,7 @@ cannot drift heavy, because the reserve does.
 | A1 Barbell row | 3 × 6–10 | 2–3 left | — |
 | A2 Lat pulldown | 3 × 10–12 | 2–3 left | 75s |
 
-### Thursday — lunch · Lower B (hinge-led)
-
-| lift | sets × reps | reserve | rest |
-| --- | --- | --- | --- |
-| **Deadlift** | per week table | **1–2 left** | 120s |
-| A1 Smith or split squat | 3 × 8–10 | 2–3 left | — |
-| A2 Leg extension | 3 × 12–15 | 2–3 left | 60s |
-
-### Friday — 17:00 at home · Upper B (overhead-led)
+### Tuesday — 17:00 at home · Upper B (overhead-led)
 
 | lift | sets × reps | reserve | rest |
 | --- | --- | --- | --- |
@@ -250,10 +285,26 @@ cannot drift heavy, because the reserve does.
 | A1 Incline press | 3 × 8–10 | 2–3 left | — |
 | A2 Pulley row | 3 × 10–12 | 2–3 left | 75s |
 
+### Wednesday — lunch · Lower A (squat-led)
+
+| lift | sets × reps | reserve | rest |
+| --- | --- | --- | --- |
+| **Squat** | per week table | **1–2 left** | 120s |
+| A1 Romanian deadlift | 3 × 8–10 | 2–3 left | — |
+| A2 Leg extension | 3 × 10–12 | 2–3 left | 75s |
+
+### Friday — 17:00 at home · Lower B (hinge-led)
+
+| lift | sets × reps | reserve | rest |
+| --- | --- | --- | --- |
+| **Deadlift** | per week table | **1–2 left** | 120s |
+| A1 Smith or split squat | 3 × 8–10 | 2–3 left | — |
+| A2 Leg extension | 3 × 12–15 | 2–3 left | 60s |
+
 **A1/A2 are supersets** — alternate them. That is how three exercises
 fit in 25 minutes without cutting rest on the lift that matters. Each
-session: 5 minutes warming up, 25 working. Deadlift day runs closest to
-the wire; if lunch is tight, drop A2, never the main lift or its rest.
+session: 5 minutes warming up, 25 working. Squat day runs closest to the
+wire; if lunch is tight, drop A2, never the main lift or its rest.
 
 **The accessories sit at 2–3 in reserve, not 1–2**, and one honest
 caveat, said once: four sessions a week at 1–2 reserve, in a deficit,
@@ -354,6 +405,30 @@ once, because each is a single decision rather than a daily effort:
 
 No diet, no logging, no calorie counting. Four decisions and a protein
 floor.
+
+### Monday, because a game needs fuelling and a deficit does not change that
+
+Nothing in this library covers pre-training nutrition. All 323
+protocols searched: **no peri-workout protocol exists.** So this is
+standard sports nutrition and carries no grade from the repo.
+
+Futsal is repeated high-intensity sprinting, which runs on glycogen.
+Under-eating before it does not accelerate fat loss, it just makes you
+worse at futsal.
+
+| when | what | why |
+| --- | --- | --- |
+| **16:45** | 60–80 g carbs, ~20 g protein, **low fat, low fibre** — white rice, a bagel, bread with honey, plus a shake or some lean chicken | 90 minutes is enough to empty the stomach and still have the fuel |
+| **17:45** | 500 ml water, pinch of salt | indoor court, you sweat more than you notice |
+| **19:30** | the biggest protein hit of the day, **50–60 g** | it is also the only way a Monday reaches 165 g |
+
+**Avoid in that 90-minute window:** chilli, fish sauce, a big raw
+salad, anything fatty. All fine at lunch. Not fine 90 minutes before
+sprinting.
+
+**Monday's kitchen does not close at 19:30.** It cannot. Eat the
+post-game meal, then close it. The rule is five nights, not seven, and
+pretending otherwise is how a rule gets abandoned.
 
 ---
 
@@ -483,15 +558,26 @@ an evening trainer, and the week should stop fighting that.
 | 06:45 | **protein breakfast** | " | " | " | " | " | " |
 | **08:00** | **deep work** | **deep work** | **deep work** | **deep work** | **deep work** | — | — |
 | 09:30 | messages, meetings | " | " | " | " | — | — |
-| **12:15** | **Lower A** *(lunch)* | — | — | **Lower B** *(lunch)* | — | — | — |
+| **12:15** | **Upper A** *(lunch)* | — | **Lower A** *(lunch)* | — | — | — | — |
+| 15:00 | — | — | — | — | — | — | — |
 | 16:30 | **pickup** | *partner* | **pickup** | **pickup** | *partner* | — | — |
-| **17:00** | — | **Upper A** *(home)* | — | — | **Upper B** *(home)* | — | — |
-| 18:00 | dinner | dinner | dinner | dinner | dinner | — | — |
-| 18:30 | **walk, boys come** | " | " | " | " | " | " |
-| **19:00** | **bedtime — present, phone in another room** | " | " | " | " | " | " |
-| **19:30** | **kitchen closed · tonight in your own words** | " | " | " | " | " | " |
+| **16:45** | *pre-game carbs* | — | — | — | — | — | — |
+| **17:00** | — | **Upper B** *(home)* | — | — | **Lower B** *(home)* | — | — |
+| 18:00 | — | dinner | dinner | dinner | dinner | — | — |
+| **18:15** | **FUTSAL** | — | — | — | — | — | — |
+| 18:30 | — | **walk, boys come** | " | " | " | " | " |
+| **19:00** | *(not home)* | **bedtime — present, phone in another room** | " | " | " | " | " |
+| **19:30** | **post-game dinner** | **kitchen closed** | " | " | " | " | " |
 | 21:45 | one-line urge log | " | " | " | " | " | " |
 | 22:00 | bed | bed | bed | bed | bed | bed | bed |
+
+**Four lifts and a game.** If that turns out to be too much — and §3's
+caveat about fatigue applies double now — **drop Tuesday**, not a lower
+day. Three lifts plus futsal is a complete week.
+
+**Monday is the exception day and it is written in as one.** No walk,
+no bedtime, kitchen open late. Trying to hold all three on a Monday is
+how the other six days get abandoned when Monday fails.
 
 Plus:
 - **Saturday** — the one real thing with the boys. Not supervision, an
@@ -501,7 +587,9 @@ Plus:
   weeknight dinners. Cook one protein source in bulk. Name next
   month's events if the month has turned. This is the half hour that
   stops the other six days needing decisions.
-- **Wednesday** — no lift. The walk. Not a bonus session.
+- **Thursday** — no lift. The walk. Not a bonus session, and not a
+  slot to move a missed session into — that is what Friday lunch is
+  for.
 
 ### The best ten minutes in your week
 
@@ -588,6 +676,10 @@ drinking, work, the kids and money. Find out which it really is.
 - **Three of my four criticisms of the programme generator were
   wrong**, and §3 lists them. I read a field that does not exist and
   then put "two outright bugs" in a commit message.
+- **Futsal was missing from the first three versions of this plan**,
+  and it is the most durable thing in the week. A plan built from an
+  interview only knows what the interview asked, and nothing in those
+  thirty-nine questions asks about a weekly team sport.
 - **The one real generator defect, you found, not me**: 0.70 of a
   one-rep max against a 6–10 rep range. I had reproduced its
   percentages faithfully, checked they matched its output, and never
