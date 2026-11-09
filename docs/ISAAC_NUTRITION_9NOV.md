@@ -161,7 +161,12 @@ on the ingredients list, because you eat them in pairs.
 ### So: keep them, in the right slot
 
 **Keep them for the car, the desk drawer and the day that goes
-sideways.** A 95-calorie, 10 g-protein thing that survives a week in a
+sideways.** And four things worth ten seconds on the label, since I
+cannot read it from here and will not guess: the **protein source**
+(a whole-food or nut-butter base beats an isolate listed fifth), any
+**polyols** (maltitol, sorbitol), the **fibre** number — 3 g or more
+and it will actually hold you — and how long the ingredient list is.
+ A 95-calorie, 10 g-protein thing that survives a week in a
 bag is a genuinely good tool, and it is far better than the vending
 machine it replaces. That is a real win and worth saying plainly.
 
@@ -175,6 +180,57 @@ desk with a fridge, and above all after dinner.
 | **~15:00, office** | bridge to dinner, kill the 4pm slump | 250 g Greek yoghurt + berries · a tin of tuna on rye · 200 g cottage cheese · **2 bars when none of that is possible** |
 | **Mon 16:45, pre-futsal** | fuel, not protein | white rice, a bagel, bread with honey, plus whey. **Not a low-carb bar** — 1.7 g of carbs is the opposite of what this slot needs |
 | **Post-lift, Tue/Wed/Fri** | only if dinner is more than an hour off | whey in water, or just wait for dinner |
+
+### The snack shopping list
+
+Separate from the dinner list, because `buildShoppingList` only knows
+dinners. Everything here is for the **15:00 slot**, the **Monday
+pre-game**, and breakfast.
+
+**Dairy & chilled** — the aisle that does most of the work
+- **Greek yoghurt 0%, the biggest tub** — 250 g is 26 g protein for
+  135 cal. Your best snack, full stop.
+- **Cottage cheese, 2 tubs** — 200 g is 24 g. Better than it sounds
+  with pepper and tomato.
+- **Milk** — for whey, and 500 ml is 17 g protein on its own.
+- **Pre-cooked chicken breast or deli chicken, 2 packs** — the
+  highest-protein grab there is.
+- Halloumi or feta if you want dinner to be easier.
+
+**Tins & dry goods**
+- **Tinned tuna, 6 tins** — a drained tin is 20 g protein for 90 cal,
+  the best ratio on the whole list.
+- **Tinned chickpeas or butter beans, 3 tins** — this is your fibre.
+- **Whey protein** — one tub. Covers the Monday pre-game and any day
+  that goes sideways.
+- **Rolled oats** — breakfast backup, and fibre.
+- **Mixed seeds** (pumpkin, sunflower) **or chia** — 30 g on the
+  yoghurt, and a real fibre contributor.
+- **Almonds, small bags not a big one.** 30 g is 175 cal and only 6 g
+  protein — portion-controlled packs, because the big bag is a decision
+  you make forty times.
+- **Honey** — for the Monday pre-game carbs.
+
+**Bakery & carbs** — mostly for Monday 16:45
+- **Bagels or white bread** — the pre-game carb. White on purpose: low
+  fibre, empties fast.
+- **Rye bread or wholegrain crackers** — for the tuna at 3pm.
+- Rice is already on the dinner list; get extra.
+
+**Fruit & veg**
+- **Apples, a bag** — and **bananas**, which are the easiest pre-futsal
+  carb there is.
+- **Frozen berries, big bag** — cheaper than fresh and identical on
+  yoghurt.
+- **Carrots and cucumber** + **hummus** — the thing to chew at 3pm that
+  is not a bar.
+- **Frozen edamame** — 150 g is 16 g protein and a lot of fibre.
+
+**Also worth having** — **beef jerky or biltong**, for the desk drawer,
+alongside the bars. 40 g is 18 g protein and it keeps forever.
+
+**What not to buy:** anything you would only eat after 19:30. The
+kitchen closes; do not stock the window.
 
 ### And the fourth slot, which is deliberately empty
 
