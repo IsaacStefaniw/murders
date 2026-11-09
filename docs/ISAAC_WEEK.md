@@ -30,6 +30,7 @@ does not get made.
 | stress | work pressure and deadlines · **the kids at the hard end of the day** · money and the business |
 | **futsal** | **every Monday, 6:15pm** |
 | parenting | present at bedtime every night; one real thing at the weekend |
+| **boys' bedtime** | **asleep 20:00–20:30**, so bath and books from ~19:00 |
 | work goal | one protected deep-work block a day; visible output, finishing and shipping |
 
 ---
@@ -39,26 +40,33 @@ does not get made.
 You do not have seven problems. You have **one chain**, and five of
 your goals are hanging off it.
 
-You told me the vaping trigger is *"drinking or stressed"*, and then
-you told me one of the three stresses is **the kids at the hard end of
-the day.** That is 17:30 to 19:30, every weekday, entirely
-predictable.
+You told me the vaping trigger is *"drinking or stressed"*, and that
+one of the three stresses is **the kids at the hard end of the day.**
+The boys are asleep at **20:00–20:30**, so that hard end runs
+**17:30 to 20:30 — three hours, every weekday, entirely
+predictable.**
 
-> **Hard handover (17:30–19:30) → stress → vape. Boys down (19:30) →
-> the house goes quiet → the drink. Then the kitchen, then the phone,
-> then a late bed, then a worse tomorrow — which makes the next
-> handover harder.**
+> **Three hard hours (17:30–20:30) → stress → vape. Boys asleep at
+> 20:30 → the house goes quiet → the drink. Then the kitchen, then the
+> phone, then a late bed, then a worse tomorrow — which makes the next
+> three hours harder.**
 
-Two consequences, and they reorganise the whole plan:
+Three consequences, and they reorganise the plan:
 
-1. **19:30–22:00 is where the damage lands, not where it starts.** A
-   plan that only defends the quiet evening is intervening one step
-   too late, every day. The leverage is at **19:00–19:30 — the
-   handover itself.**
-2. **It is a loop, so any single cut weakens the whole thing.** Sleep
+1. **The quiet window is 20:30–22:00. Ninety minutes, not two and a
+   half hours.** That is better news than it sounds: it is a small,
+   fixed, nameable block, and five of them is the whole weekly problem
+   — about seven and a half hours a week to put a job to.
+2. **But the hard stretch is three hours, longer than I first
+   modelled.** So the intervention cannot sit at the end of it. A
+   decision made at 20:30, by a man who has just done bath, books and
+   two refusals to go to sleep, is a decision made by the tired
+   version of you.
+   **Decide at 17:30, before the hard part starts, not after it.**
+3. **It is a loop, so any single cut weakens the whole thing.** Sleep
    is the cheapest place to cut it: short sleep raises impulsivity and
    reward-seeking, which makes both the vape and the drink harder to
-   refuse the following evening. This is why the answer to §2 is what
+   refuse the following evening. That is why the answer to §2 is what
    it is.
 
 ---
@@ -129,12 +137,15 @@ So the week reorganises around it:
   overhead press.
 - **Thursday lifts nothing.** Walk only.
 
-**And one goal takes a hit, which you should decide about rather than
-discover.** *Present at bedtime every night* is structurally impossible
-on Mondays — the game ends about 7:15pm. That is a real trade and I
-think it is the right one, because a weekly game with other people in
-it will outlast any evening habit in here. But it is **six nights, not
-seven**, and it should be six on purpose.
+**And Monday bedtime is half-saved, not lost.** The game ends about
+7:15pm and the boys are not asleep until 20:00–20:30, so you are home
+for the back half — books and lights-out, if not bath. That is a
+better Monday than the first draft of this plan assumed, when I had
+them down at 19:00 and wrote Monday off entirely.
+
+What you miss on a Monday is dinner with them and the walk. Worth
+knowing, not worth fixing: a weekly game with other people in it will
+outlast any evening habit in this document.
 
 ### The Monday-night risk nobody flags
 
@@ -562,12 +573,15 @@ an evening trainer, and the week should stop fighting that.
 | 15:00 | — | — | — | — | — | — | — |
 | 16:30 | **pickup** | *partner* | **pickup** | **pickup** | *partner* | — | — |
 | **16:45** | *pre-game carbs* | — | — | — | — | — | — |
+| **17:30** | **decide tonight** | " | " | " | " | " | " |
 | **17:00** | — | **Upper B** *(home)* | — | — | **Lower B** *(home)* | — | — |
 | 18:00 | — | dinner | dinner | dinner | dinner | — | — |
 | **18:15** | **FUTSAL** | — | — | — | — | — | — |
 | 18:30 | — | **walk, boys come** | " | " | " | " | " |
-| **19:00** | *(not home)* | **bedtime — present, phone in another room** | " | " | " | " | " |
+| **19:00** | *(futsal)* | **bath & books — phone in another room** | " | " | " | " | " |
 | **19:30** | **post-game dinner** | **kitchen closed** | " | " | " | " | " |
+| **20:00–20:30** | **home for lights-out** | **boys asleep** | " | " | " | " | " |
+| **20:30** | **the window — 90 min** | " | " | " | " | " | " |
 | 21:45 | one-line urge log | " | " | " | " | " | " |
 | 22:00 | bed | bed | bed | bed | bed | bed | bed |
 
@@ -576,8 +590,9 @@ caveat about fatigue applies double now — **drop Tuesday**, not a lower
 day. Three lifts plus futsal is a complete week.
 
 **Monday is the exception day and it is written in as one.** No walk,
-no bedtime, kitchen open late. Trying to hold all three on a Monday is
-how the other six days get abandoned when Monday fails.
+no family dinner, kitchen open late — but you ARE home for lights-out,
+because the boys are not asleep until 20:00–20:30. Trying to hold the
+full Monday is how the other six days get abandoned when Monday fails.
 
 Plus:
 - **Saturday** — the one real thing with the boys. Not supervision, an
@@ -598,24 +613,31 @@ nutrition (`post-meal-walk`, graded B), the 19:30 kitchen close
 (you are not in the kitchen), parenting (the boys come), and §1 — it
 puts motion into the handover window instead of a sofa.
 
-### 19:00 is the hinge, not 20:00
+### 17:30 is the hinge, and 20:30 is the window
 
-This is the §1 correction and the most important line in the plan.
-Everything you want to stop happens *after* the handover, so the
-intervention goes *at* it:
+This is the §1 correction and the most important structural line in the
+plan. The decision and the danger are at **opposite ends** of the
+evening, and almost everybody puts the intervention at the wrong one.
 
-- **19:00 — phone into another room.** Not face-down. Another room.
-  Serves parenting and the scrolling in one move.
-- **19:00 — *tonight, in your own words.*** Thirty seconds as they go
-  down: what tonight is. The B-graded protocol, used at the moment the
-  chain fires.
-- **19:30 — kitchen closed.**
+**At 17:30, before the hard part — decide.**
+- ***Tonight, in your own words.*** Thirty seconds, in the car or on
+  the doorstep: what tonight is. `urge-tonight-plan`, graded **B**, and
+  the whole point of it is that it happens before the trigger. At 17:30
+  you are the version of yourself who can make it.
+- **Phone goes in another room.** Not face-down. Another room. One
+  move, and it serves the parenting goal and the scrolling at once.
 
-### What 19:30–22:00 is *for*
+**At 19:30 — kitchen closed.** Three hours before your bed. You are
+mid-bath-and-books anyway, which is the best enforcement there is.
 
-Most plans leave this blank, and a blank window is how you got here.
-*"Don't drink"* is not a job. Pick **two** and make them the default,
-so the question is never "what now":
+**At 20:30 — the window opens, and it needs a job.**
+
+### What 20:30–22:00 is *for*
+
+Ninety minutes, five nights a week. Most plans leave it blank, and a
+blank window is how you got here — *"don't drink"* is not a job. It is
+also short enough that **two defaults cover it entirely**, so the
+question is never "what now":
 
 - **Something with your hands that isn't a vape** — tomorrow's lunch,
   an instrument, something on paper.
