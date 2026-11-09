@@ -19,17 +19,25 @@ fewer.
 
 ---
 
-## Entry 1 — Saturday 8 November 2026
+## Entry 1 — Monday 9 November 2026, after futsal
 
-Reported 9 Nov: *"I vaped last night 2 small sessions in the bathroom,
-which is much better than usual and I had 0 Alcohol."*
+Reported the same night: *"I vaped last night 2 small sessions in the
+bathroom, which is much better than usual and I had 0 Alcohol."*
+
+**Corrected.** The first version of this entry read "Saturday 8
+November", which was wrong twice: 8 November 2026 is a **Sunday**, and
+the night was **Monday the 9th, after futsal**. The weekday is the one
+field `weekdayShape` reads, so a wrong one corrupts the exact function
+that answers "which days carry this" — and it would have pointed at
+the wrong day for as long as it stood. Asked rather than inferred, and
+the answer changed the diagnosis below.
 
 ### vaping — slip
 
 | field | value |
 | --- | --- |
-| `occurredAt` | **17:30–20:30** (the hard stretch) |
-| `trigger` | **the kids — a hard bedtime** |
+| `occurredAt` | **Monday ~19:15–20:30**, home from futsal into the back half of bedtime |
+| `trigger` | **the kids — a hard bedtime**, stacked on top of a game |
 | `context` | **bathroom, hiding it** |
 | `detail` | two small sessions. An intention not to, but no if-then |
 | `size` | **`small`** — his words: *"much better than usual"* |
@@ -49,6 +57,22 @@ a good fortnight would be a blank screen.
 ---
 
 ## What entry 1 changed
+
+### The plan named this hour before anything was logged
+
+`docs/ISAAC_WEEK.md`, written on 9 Nov before any entry existed:
+
+> **Monday 7:15pm is the highest-risk hour of your week for both the
+> drink and the vape, and it recurs 52 times a year.**
+
+Entry 1 is a Monday, after futsal, in the bathroom. **It happened on
+the first Monday after that sentence was written.** The reasoning that
+produced it was: post-game, hungry, tired, possibly with the team, on
+one of his own midweek-at-home drinking nights.
+
+That is one of the few predictions in this project that was made in
+advance, written down, and then tested. It held — and the hour it
+named is now the target of if-then number one in `docs/IF_THENS.md`.
 
 ### The chain was right in shape and wrong in timing
 
@@ -74,6 +98,14 @@ not a decision before it.
 One entry is one entry, and four is the bar. But a model that survives
 first contact in shape and fails in timing is worth saying out loud
 rather than leaving quietly wrong.
+
+**And the Monday detail sharpens it further.** This was not an ordinary
+bedtime — it was a bedtime with a football match in front of it. So
+the state was hungry, physically tired, and walking into three hard
+hours compressed into one. The 17:30 "decide tonight" slot sits before
+he leaves for the game; the risk is at 19:15 when he walks back in.
+A decision made two hours and one match earlier is not the same
+decision.
 
 ### The coupling held, and that is the good news
 
@@ -110,8 +142,10 @@ Which is the single most common answer, and the exact gap
 if-then are not the same thing and the difference between them is most
 of the effect.
 
-Nothing is written down yet. That is now the first thing to build in
-the quit arm, and it is five minutes of writing rather than a feature.
+**Now written** — `docs/IF_THENS.md`, three of them, with the Monday
+one cued on walking through the door rather than on a decision made
+two hours and one football match earlier. Each has a back-up branch,
+because the protocol says a plan that breaks needs somewhere to go.
 
 ---
 
@@ -120,6 +154,11 @@ the quit arm, and it is five minutes of writing rather than a feature.
 - **One entry.** Every function in `patterns.ts` returns null below
   four, and so does everything here. The window above is an
   *assumption* that one entry has contradicted, not a measured one.
+- **One entry on a Monday says nothing about Mondays.** `weekdayShape`
+  needs four occurrences before it reports a day at all, and reports
+  one only when a small set of days holds most of them. That Monday
+  was predicted does not make it a pattern — it makes it one
+  confirmed instance of a reasoned guess.
 - **No baseline.** *"Much better than usual"* has no number behind it,
   because nothing was counted before last night. From here it is
   comparable; backwards it is not.
