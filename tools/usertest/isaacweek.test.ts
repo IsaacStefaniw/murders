@@ -40,14 +40,43 @@ it('prints Isaac a block and his numbers', () => {
     focusArea: 'whole',
     age: 34,
   };
-  const p = buildProgramme(inputs, {});
+  // Isaac, 9 Nov 2026: "squat 110, bench 130, deadlift 140, overhead 80".
+  // `baselines` is an e1RM snapshot (LIFT_METRIC -> strength.*.e1rm), so
+  // the same four numbers mean two different blocks depending on whether
+  // he gave maxes or working sets. Both are printed; neither is guessed.
+  const asMax = { squat: 110, bench: 130, deadlift: 140, ohp: 80 };
+  // Epley at 8 reps: e1RM = w * (1 + 8/30) = w * 1.267.
+  const asWorking = Object.fromEntries(
+    Object.entries(asMax).map(([k, v]) => [k, Math.round(v * 1.267)]),
+  ) as typeof asMax;
+
+  for (const [label, base] of [
+    ['AS e1RM (the four numbers ARE maxes)', asMax],
+    ['AS WORKING SETS at ~8 reps (e1RM derived)', asWorking],
+  ] as const) {
+    const b = buildProgramme(inputs, base);
+    console.log(`\n╔══ ${label}`);
+    console.log(`║  baselines: ${Object.entries(base).map(([k, v]) => `${k} ${v}`).join(' · ')}`);
+    for (const [wi, week] of b.weeks.entries()) {
+      console.log(`║  week ${wi + 1} ${week.phase ?? ''}`);
+      for (const ses of week.sessions) {
+        console.log(`║    ${ses.title} — est ${ses.estimatedMin} min`);
+        for (const e of ses.exercises ?? []) {
+          if (!e.loadKg) continue;
+          console.log(`║     ${e.name.padEnd(22)} ${e.sets}×${String(e.reps).padEnd(7)} ${String(e.loadKg).padStart(6)}kg`);
+        }
+      }
+    }
+  }
+
+  const p = buildProgramme(inputs, asMax);
 
   console.log('\n══════ FOUR-WEEK BLOCK ══════');
   console.log(`goal=${inputs.goal} level=${inputs.level} days=${inputs.daysAvailable} session=${inputs.sessionMin}min`);
   for (const [wi, week] of p.weeks.entries()) {
-    console.log(`\n── week ${wi + 1}${week.phase ? ` · ${week.phase}` : ''} ──`);
+    console.log(`\n── week ${wi + 1} · ${week.phase} · focus: ${week.focus} ──`);
     for (const s of week.sessions) {
-      console.log(`  ${s.name}${s.focus ? ` (${s.focus})` : ''}`);
+      console.log(`  ${s.title}${s.kind ? ` [${s.kind}]` : ''} — est ${s.estimatedMin} min${s.note ? ` · ${s.note}` : ''}`);
       for (const e of s.exercises ?? []) {
         const load = e.loadKg ? `${e.loadKg}kg` : e.rpe ? `RPE ${e.rpe}` : '';
         console.log(`     ${e.name.padEnd(30)} ${e.sets}×${String(e.reps).padEnd(7)} ${load.padEnd(9)} rest ${e.restSec}s`);
