@@ -465,6 +465,94 @@ once, at the start, rather than in two weeks when the line goes up.
 
 ---
 
+## Wednesday 11 November 2026
+
+### Sleep
+
+| field | value |
+| --- | --- |
+| to bed | **22:00** |
+| up | **06:00** |
+| time in bed | **8.0 h** |
+| night before | 22:00–06:30, 8.5 h |
+
+**Two nights, and both bedtimes are 22:00 exactly.** That is the half
+that matters most. `sleepTiming.ts`: Windred et al., *Sleep* 2024,
+60,977 UK Biobank participants — **regularity predicted all-cause
+mortality more strongly than duration.** Two nights is not a series and
+nothing can be read from it yet, but the thing being held steady is the
+right thing.
+
+8.0 h is still inside the 7–9 that Life's Essential 8 scores full marks
+for. The half hour is not the story.
+
+### Mood
+
+| | |
+| --- | --- |
+| today | **7 / 10** |
+| yesterday | 7.5 / 10 |
+
+Reading two. `mood.moodStanding(2)` is the honest line: *"A fortnight is
+where a run of days starts to have a shape; nothing before that is worth
+drawing a line through."* A half-point between two readings is noise
+until there is something to be noise against.
+
+### Feeling a little unwell — and this is the entry that matters
+
+**This is the morning after the exact combination flagged in writing
+yesterday**, so it gets raised before anything else rather than
+explained away.
+
+Tuesday was: fourteen working sets, a 90 °C sauna for 20–25 minutes,
+three Wim Hof breath holds **inside** it, around eight litres of plain
+water, two protein shakes, and no salt mentioned anywhere.
+
+`sauna-rehydrate`'s safety note, written into this file yesterday:
+
+> *"Headache, nausea, confusion or unusual heaviness after a big
+> sweat-and-water day is the hyponatraemia picture. It is a doctor on
+> the day, not something to push through or drink more at."*
+
+**So the question that decides everything today is what kind of
+unwell**, and the branches do not overlap:
+
+| if it is | then |
+| --- | --- |
+| **headache, nausea, confusion, heaviness** | **the sodium picture. A doctor today, and do NOT drink more water at it.** |
+| sore throat, blocked nose, aching | a virus, and two children under five are in daycare |
+| flat, foggy, low energy | the likeliest ordinary reading — see below |
+
+### The three ordinary explanations, none of which needs a diagnosis
+
+1. **Day three without alcohol after four consecutive nights.** Malaise,
+   poor energy and a flat mood are the common shape of the first dry
+   week, and this is squarely in it.
+2. **Tuesday's load.** Fourteen sets plus twenty-five minutes at 90 °C
+   plus three breath holds is a lot of total stress in one afternoon,
+   and the sauna is not recovery when it is stacked on top of the
+   session rather than separated from it.
+3. **The breath holds in the heat**, which is the one thing in that list
+   that should not have happened at all.
+
+### What changes today
+
+- **Salt with food today**, and if the sauna happens, salt around it.
+  `electrolytes-who-needs-them` is grade D for ordinary use and names
+  repeated sauna sessions as its exception.
+- **Do not run eight litres today**, and especially not plain. Drink to
+  thirst until he knows what this is.
+- **Today's session is Lower A, squat-led, at lunch.** `autoRegulate`
+  already takes a readiness of `back-off` and cuts accessory volume
+  while leaving the main work — its own comment says *"the session
+  someone actually skips is the one that got cancelled for them."* That
+  is the right shape: keep the squat, drop the accessories, and stop if
+  it feels wrong rather than finishing it on principle.
+- **The breath holds move out of the sauna**, which was already decided
+  and is now overdue.
+
+---
+
 ## When to record the weight
 
 **06:50. Twenty minutes after you wake, after the toilet, before you eat
