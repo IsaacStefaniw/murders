@@ -70,33 +70,55 @@ drink made slowly, away from the desk."*
 
 ---
 
-## Two — the quiet house, any night at 20:30
+## Two — the kitchen at 18:00, pouring one with dinner
 
-The drink's window, not the vape's. Entry 1 did not test this one; the
-alcohol was zero, which means this if-then has held once without being
-written down.
+**Rewritten.** The first version cued this on coming downstairs at
+20:30, into the quiet house. Entries 2–5 put the drink at **~18:00,
+with or before dinner** — so that version was aimed at an empty room,
+ninety minutes after the thing it was meant to catch.
 
-> **When the second one is down and I come back downstairs, I put the
-> kettle on and take the first ten minutes outside — phone staying in
-> the other room where it already is.**
+Four nights, Thursday to Sunday, all around dinner. The quiet window
+this plan was built around has **no logged event in it at all.**
 
-Why:
+> **When I'm in the kitchen getting dinner ready and I'd normally pour
+> one, I pour a soda water with lime into a proper glass and put it by
+> my plate before I sit down.**
 
-- **The cue is a physical event**, not a feeling. Coming down the
-  stairs. You cannot be unsure whether it happened.
-- **Two performed actions, not one.** The kettle occupies the hands in
-  the kitchen, which is the room where the decision gets made; outside
-  changes the room entirely.
-- **It is `detachment-window` starting.** Graded B, called *"the off
-  switch"*, sixty minutes — and 20:30–22:00 is the ninety blank
-  minutes the plan calls its hardest unsolved problem. This is the
-  first ten of them having a shape.
+Why this shape:
 
-**Back-up branch:** *When I have come down and the house is quiet and I
-want one, I message someone — anyone — and say what I'm doing tonight.*
-That is `message`: *"message someone who knows."* It is also the thing
-your own profile says works: plans with other people in them survive a
-bad week.
+- **The cue is a place and a task**, both of which recur nightly and
+  neither of which is a feeling. You are in the kitchen. Dinner is
+  happening. There is no ambiguity about whether the moment arrived.
+- **The glass matters more than it sounds.** A drink in the right glass,
+  on the table, is performed and visible. An empty hand at a family
+  dinner is a decision you keep making; a full glass is one you made
+  once.
+- **It is before the pour, not after.** This is the whole lesson of
+  entries 2–5: the kitchen close at 19:30 was already too late, and so
+  was the old version of this if-then.
+- **The boys are there, and that is an advantage.** Unlike the vape,
+  this is not hidden. Your partner knows about it, which means it is
+  already a plan with another person in it — the category your own data
+  says survives a bad week.
+
+**Back-up branch:** *When dinner is done and I still want one, I take
+the ten-minute walk then, with the boys, instead of after.* The walk is
+already in the plan at 18:30 — this just makes it the thing that gets
+reached for rather than a box to tick.
+
+### What moves with it
+
+- **The 19:30 kitchen close stays**, but it is now about food and late
+  grazing, which is what `kitchen-closed` was always for. It is not an
+  alcohol intervention and should stop being counted as one.
+- **`detachment-window` at 20:30 stays.** Ninety blank minutes still
+  need a job, and nothing logged has happened there — which may be
+  because it is genuinely quiet, or because nobody has looked. Four
+  entries in that window would change this again.
+- **17:30 "decide tonight" is the piece that survived.** It sits fifteen
+  to thirty minutes before the drink actually starts. It was placed on
+  a reasoned guess and it is the only part of the plan aimed at the
+  window the data names.
 
 ---
 
@@ -154,6 +176,18 @@ fifteen minutes pointed at the work week.
   pharmacotherapy plus behavioural support, which roughly doubles to
   triples quit rates against willpower alone. That is a GP
   conversation and these three sentences are not a substitute for it.
-- **Number one is the only one with evidence behind it**, and that
-  evidence is a single entry. Two and three are reasoned from the plan,
-  not observed.
+- **One and two now rest on five entries**, which is just over the
+  threshold `patterns.ts` uses (`MIN_EVENTS_FOR_PATTERN` is 4) — but
+  five entries from **one** run of consecutive nights is not five
+  independent observations. Treat the 18:00 figure as the best number
+  available, not a measured habit.
+- **Those five nights were "worse than usual — a bad week."** So
+  nothing here should be read as a description of a normal week. What
+  a normal week looks like is still unknown, and a fortnight of
+  entries is the only thing that will say.
+- **`weekdayShape` has nothing to report.** Five consecutive days,
+  nearly evenly, is not a concentration — so there is no Thursday
+  pattern, no weekend pattern, and the Monday prediction holding once
+  does not make Mondays a pattern either.
+- **Three is still reasoned, not observed.** No event has been logged
+  at a wedding.
