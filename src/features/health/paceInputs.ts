@@ -56,6 +56,14 @@ export function paceInputsFrom(s: PaceSources): PaceInputs {
     }
     return best?.value;
   };
+  /** How many readings of a key landed in the last seven days, or null. */
+  const countThisWeek = (key: string): number | null => {
+    const from = addDays(s.today, -6);
+    const n = s.metrics.filter(
+      (m) => m.key === key && m.at.slice(0, 10) >= from && m.at.slice(0, 10) <= s.today,
+    ).length;
+    return n > 0 ? n : null;
+  };
   const meanThisWeek = (key: string) => {
     const from = addDays(s.today, -6);
     const vs = s.metrics
@@ -112,5 +120,22 @@ export function paceInputsFrom(s: PaceSources): PaceInputs {
       return measured ? { drinking: bandFromDrinks(measured.count) } : {};
     })(),
     sleepRegularity: sleepRegularityIndex(s.sleepNights, s.today),
+    /**
+     * Sauna sessions this week, counted before remembered.
+     *
+     * `recovery.saunaMinutes` is written once per COMPLETED session, so
+     * the number of readings in the last seven days is the number of
+     * sessions — a measured week, on the same principle the alcohol
+     * block above states. `statedSaunaPerWeek` is the fallback for
+     * somebody who has told us and not yet logged one, which is where
+     * this starts for everybody.
+     *
+     * Deliberately NOT the maximum of the two. A week with two logged
+     * sessions against a stated four is a week with two in it, and
+     * letting the remembered figure win would make the component
+     * unfalsifiable by its own data.
+     */
+    saunaPerWeek:
+      countThisWeek('recovery.saunaMinutes') ?? s.profile?.statedSaunaPerWeek,
   };
 }

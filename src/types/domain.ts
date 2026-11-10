@@ -178,6 +178,16 @@ export interface LifeProfile {
    * block is never argued with by a constant.
    */
   statedTrainingLevel?: 'foundation' | 'developing' | 'established' | 'advanced';
+  /**
+   * Sauna sessions in a usual week, stated rather than counted.
+   *
+   * A fallback only. `paceInputs` prefers sessions actually logged in the
+   * last seven days, for the reason it already gives about alcohol: *"a
+   * measured week beats a remembered one."* A remembered weekly count is
+   * the weakest kind of exposure data and the sauna component is graded C
+   * partly because the cohort's own exposure was self-reported too.
+   */
+  statedSaunaPerWeek?: number;
   createdAt: string;
   updatedAt: string;
 }

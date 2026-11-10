@@ -341,6 +341,7 @@ export const ISAAC_PROFILE: LifeProfile = {
   // constant nobody reads is the exact failure this project keeps repeating
   // — `features/me/week.ts` is still sitting unread as I write this.
   statedTrainingLevel: ME.trainingLevel,
+  statedSaunaPerWeek: ME.saunaPerWeek,
   // The day the facts were stated, not the day the object was constructed —
   // a constant that reported `new Date()` would claim to be newly true on
   // every app launch, which is the opposite of what STATED_ON is for.
