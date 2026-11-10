@@ -19,30 +19,68 @@ fewer.
 
 ---
 
-## Entry 6 — Tuesday 10 November 2026, ~16:20. An urge, no slip.
+## Entry 6 — Tuesday 10 November 2026, **15:21 AEST**. An urge, no slip.
 
 Reported live: *"I am already craving a drink / vape need defence
 mechanisms."*
 
 | field | value |
 | --- | --- |
-| `occurredAt` | **Tuesday ~16:20** |
-| `trigger` | end of the workday, two days after a four-night run, five hours after a 14-set session |
-| `context` | **not at home. Still out — his partner does Tuesday pickup** |
+| `occurredAt` | **Tuesday 15:21** |
+| `trigger` | mid-afternoon, **an hour and nine minutes before work ends**; two days after a four-night run; ~2h after a 14-set lunch session |
+| `context` | **at work.** Not home — and not even finished for the day |
 | `detail` | **urge only. Nothing consumed.** Asked for defences rather than reporting a slip |
 | `size` | — |
 
-### This is the first entry that contradicts the cue, not the timing
+**Corrected within the hour.** I first wrote this as "~16:20, end of the
+workday" from nothing but my own assumption that a craving in this plan
+must be near the door. He gave the time: *"I'm AEST it's 3:21."* An hour
+out, and in the direction that matters — I had it later than it was,
+which is the same error this file has now recorded four times.
+
+The practical cost of my guess was immediate and worse than the record:
+I told him *"your sauna is in ten minutes, go now."* It was sixty-nine
+minutes away and he was at a desk, so the one thing I handed him was the
+one thing he could not do.
+
+### The fourth correction, in the direction this file predicted
+
+`docs/IF_THENS.md`, written before this entry existed:
+
+> *"I have had this window wrong three times, always in the same
+> direction. 20:30, then 18:00, now ~16:40. Each correction came from
+> you rather than from anything the app or I measured, and each moved it
+> earlier. **If there is a fourth correction it will probably move
+> earlier again**, so the thing to watch is whether 16:40 is really the
+> first one or just the first one that gets noticed."*
+
+| | window | came from |
+| --- | --- | --- |
+| first | 20:30–22:00, the quiet house | reasoning |
+| second | ~18:00, with dinner | him |
+| third | ~16:40, at the door | him |
+| **fourth** | **15:21, at work** | **him** |
+
+**That is the only prediction in this project written as a falsifiable
+claim about my own errors, and it held.** It is a thin kind of success —
+being reliably wrong in a known direction is not insight — but it
+answers the open question it posed. **16:40 was the first one noticed,
+not the first one.** The urge precedes the act by over an hour, and
+every number in this plan was fitted to the act.
+
+### And it contradicts the cue, not just the timing
 
 Every correction so far moved the *hour* earlier: 20:30, then 18:00,
 then ~16:40. The model that came out of it was `SAME_CUE_TWO_ARRIVALS`
 — *"Both of these start when you walk in the door... The cue is arriving
 home with nothing left, not the hour."*
 
-**He is not home.** Tuesday is one of the two days his partner collects
-the boys (`pickupDays: [1, 3, 4]` is Monday, Wednesday, Thursday), so
-there is no doorway in this entry at all. The craving arrived at the end
-of the workday, in the depleted state, **without the threshold**.
+**He is not home, and he has not even finished work.** Tuesday is one of
+the two days his partner collects the boys (`pickupDays: [1, 3, 4]` is
+Monday, Wednesday, Thursday), so there is no doorway in this entry at
+all — and at 15:21 there is no end-of-day either. The craving arrived
+mid-afternoon, at a desk, **without the threshold and before the
+transition.**
 
 So the doorway was never the cue. It was the reliable *co-occurrence* of
 the cue — because on three days out of five the state and the doorway
@@ -50,16 +88,28 @@ arrive within ten minutes of each other, and nothing in four entries
 could tell them apart. Today is the day they came separately, and the
 state came first.
 
-**What that changes.** If-then two is cued on *"When I pull up after
-pickup"*, which means on a Tuesday or a Friday **it does not fire at
-all** — and Tuesday is the day this urge actually landed. The if-then
-needs a second branch cued on finishing work rather than on arriving
-home. `trigger-if-then` (**grade A**) is explicit that the cue must be a
-real moment; 16:30 at a desk is a real moment and it was not in the plan.
+**What that changes, and it is two things.**
 
-### The defence that was already on the calendar
+1. If-then two is cued on *"When I pull up after pickup"*, so on a
+   Tuesday or a Friday **it does not fire at all** — and Tuesday is the
+   day this urge landed.
+2. **The 16:25 desk decision is also too late**, and that was already
+   the corrected version. `IF_THENS.md` moved "decide tonight" from
+   17:30 to *"16:25, at your desk before you leave"* and called the car
+   *"a manoeuvre, not a decompression."* Right about the place, an hour
+   out on the time.
 
-The sauna planned for **16:30**, ten minutes after this. `NO_TRANSITION`
+So every intervention in this plan sits downstream of where the process
+starts. `trigger-if-then` (**grade A**) is explicit that the cue has to
+be a real moment you would recognise from outside: **mid-afternoon at
+the desk, with over an hour of work left**, is that moment, and nothing
+in the plan is pointed at it.
+
+### The defence that was already on the calendar — but 69 minutes away
+
+The sauna planned for **16:30**, an hour and nine minutes after this.
+It is the right intervention and it is **not** an answer to the next
+hour, which is the part I got wrong. `NO_TRANSITION`
 had already named the hole; `sauna-recovery-low-heat`'s own `days: [2, 5]`
 had already put a session in it on exactly Tuesday and Friday — the two
 days the doorway if-then cannot fire. That alignment was luck, and it is
