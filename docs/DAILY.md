@@ -107,22 +107,81 @@ external, the rest being bodyweight on the push-ups at roughly 65% of
 
 ### Food
 
-| when | what | cal | protein | fibre |
-| --- | --- | --- | --- | --- |
-| morning | 2 rye toast, Vegemite, 10 blueberries | ~200 | **7 g** | 5 g |
-| lunch | chicken vermicelli, extra meat | ~795 | **58 g** | 5 g |
-| post-lift | whey in water, 1 scoop | ~120 | **24 g** | — |
-| | **so far** | **~1,115** | **89 g** | **10 g** |
-| planned | garlic prawns, rice & peas | ~760 | **56 g** | 8 g |
-| | **day, as planned** | **~1,875** | **145 g** | **18 g** |
+| when | what | protein | fibre |
+| --- | --- | --- | --- |
+| morning | 2 rye toast, Vegemite, 10 blueberries | **7 g** | 5 g |
+| lunch | chicken vermicelli, extra meat | **58 g** | 5 g |
+| post-lift | whey in water, 1 scoop | **24 g** | — |
+| afternoon | 2 protein bars | **21 g** | not counted |
+| afternoon | 2 multigrain sourdough + avocado | **11 g** | 10 g |
+| planned | whey in water, 1 scoop | **24 g** | — |
+| planned | lasagne with vegetables | **33 g** | 8 g |
+| | **the day** | **178 g** | **28 g** |
 
-Target is **165–180 g protein and 30 g fibre**. As planned he finishes
-**20–35 g short on protein and 12 g short on fibre** — and the fibre gap
-is the larger one in proportion. The fix is in the shopping list
-already: Greek yoghurt, and the tin of cannellini beans.
+Target is **165–180 g protein and 30 g fibre**.
+
+**He hits the protein target. First day in this project that has
+happened**, and it is worth recording as a figure rather than a feeling:
+178 g against a 165–180 band. Fibre lands 2 g short, which is a quarter
+of an avocado.
+
+Calories are not tracked here on purpose — `ISAAC_NUTRITION_9NOV.md`:
+*"No logging, no calorie counting — the only number this plan keeps is
+protein, because it is the one that protects muscle in a deficit."*
+
+**The earlier reckoning in this file said 145 g and 18 g**, on the
+prawns dinner and nothing in the afternoon. That was a projection from a
+half-finished day and it read as a verdict. The fix is not a better
+estimate, it is not writing a day's total before the day is over.
+
+### Two things I am estimating, and the answer survives both
+
+| | range | day total |
+| --- | --- | --- |
+| lasagne portion | 25–35 g protein | **170–180 g** |
+| avocado | half → whole | 178 → **179 g**, fibre 28 → **33 g** |
+
+**On target across the whole range**, so neither guess needs resolving.
+Worth saying because this project has twice presented an estimate as a
+measurement — here the conclusion does not depend on the estimate, and
+that is the only reason to state it with any confidence.
+
+Protein-bar fibre is **excluded**, not zero. A bar with 1.7 g of
+declared carbohydrate is likely using a soluble fibre, which would put
+the day at 32–34 g and on target for both. Left out because guessing
+upward on a target he is trying to reach is the wrong direction to be
+wrong in.
+
+### The shake is doing real work tonight
+
+**Without it the day is 154 g — 11 g short.** With it, 178 g. So it is
+not a top-up out of habit; it is the difference between hitting the band
+and missing it.
+
+And the bars need no defence today. `ISAAC_NUTRITION_9NOV.md` already
+settled this: *"Once you hit 165–180 g, the source stops mattering"*,
+citing `protein-powder-is-food` (**grade B**, ISSN position stand, Jäger
+et al. 2017 — no advantage for powder over meat, eggs, dairy or beans
+once the total is met). The case against the bar was always about
+fullness in an evening that falls apart, never about the bar.
 
 Supplements: **creatine 4 g**, which is inside the 3–5 g/day the ISSN
 position stand describes (`creatine-monohydrate`, **grade A**).
+
+### What the dinner swap costs the week
+
+Lasagne is not in the repo's `DISHES` library and it is not Tuesday's
+dish. Two knock-ons, one of which is perishable:
+
+- **The 300 g of prawns were tonight.** Fresh prawns keep about two days
+  in the fridge. **Freeze them tonight**, not Thursday.
+- **If the lasagne uses the turkey mince, Thursday loses its dinner.**
+  The 500 g of turkey mince is Thursday's bolognese, which is one of the
+  two dishes that feeds another day. A shop-bought lasagne leaves
+  Thursday intact; a homemade one does not.
+
+The clean version: prawns into the freezer now, out for Thursday, and
+the bolognese moves to whichever evening the mince survives to.
 
 ### The one interaction worth flagging
 
