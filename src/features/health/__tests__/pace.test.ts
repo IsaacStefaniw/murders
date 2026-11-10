@@ -178,7 +178,11 @@ describe('one reading', () => {
 
   it('counts coverage, so a two-component reading cannot pass as a whole one', () => {
     const out = readPace(inputs({ balanceSeconds: 12, gaitMs: 1.0 }));
-    expect(out.coverage).toEqual({ observed: 2, total: 10 });
+    // Eleven since 10 Nov 2026, when a sauna component was added from
+    // Laukkanen 2015. The number is asserted rather than derived on
+    // purpose: adding a component silently is how coverage stops meaning
+    // anything, and this line is what makes it a decision.
+    expect(out.coverage).toEqual({ observed: 2, total: 11 });
   });
 
   it('will not read grip without the sex the thresholds are specific to', () => {
@@ -320,7 +324,7 @@ describe('the headline figure', () => {
     // in this category is a confident numeral with the width stripped off.
     const h = paceHeadline(strong, 45)!;
     expect(h.plusMinus).toBeGreaterThan(0);
-    expect(h.coverage.total).toBe(10);
+    expect(h.coverage.total).toBe(11);
     expect(h.qualifier).toMatch(/give or take/i);
     expect(h.qualifier).toMatch(/not a biological age/i);
   });

@@ -356,6 +356,70 @@ export function fitnessLogHazard(vo2max: number, age: number): number {
  * here to the observed-component mean, referenced to 50 — the boundary
  * between the construct's low and intermediate categories.
  */
+/**
+ * Sauna, at four or more sessions a week.
+ *
+ * ── Why this component exists, and why it did not until now ────────────
+ *
+ * Isaac, 10 Nov 2026: *"How do we ensure they're incorporated — do
+ * research and change, don't rely on our past app."* He was objecting to
+ * a reading that could not see a habit he has kept for twenty years, and
+ * the objection was right.
+ *
+ * `sauna` in the protocol library is graded C and converts to nothing.
+ * That is correct for a PROTOCOL — a recommendation to take the practice
+ * up. It is not an argument against scoring somebody who already does it,
+ * which is a different question and has a published hazard ratio behind
+ * it.
+ *
+ * ── The effect, and the band it belongs to ─────────────────────────────
+ *
+ * Laukkanen and colleagues, 2015, JAMA Internal Medicine — the Kuopio
+ * Ischaemic Heart Disease cohort. 2,315 middle-aged Finnish men, 20.7
+ * years of follow-up, 929 deaths. **Four to seven sessions a week against
+ * one: all-cause HR 0.60 (0.46–0.80).** Cardiovascular mortality 0.50,
+ * sudden cardiac death 0.37.
+ *
+ * **It fires at four, not at three.** The published band is 4–7 and the
+ * paper's reference is one session a week; the 2–3 group's figure is not
+ * one I have, and interpolating it would be inventing the number this
+ * file exists not to invent. So three sessions a week scores zero — not
+ * because three is worthless, but because the evidence in hand is about
+ * four.
+ *
+ * ── Why it is graded C, and what that costs it ─────────────────────────
+ *
+ * One cohort, one country, men only, self-reported exposure, observational.
+ * The healthy-user problem is severe and unresolved: a Finnish man who
+ * saunas five times a week is likely to be more leisured, more social and
+ * in better health already, and no adjustment set fixes that. `GRADE_RELATIVE_SE`
+ * gives a C the wide interval it deserves, and `ATTENUATION` shrinks it
+ * again alongside everything else.
+ *
+ * It may go negative, because its paper reports a protective association
+ * rather than a decrement — the same rule `PaceComponent.logHazard`
+ * applies to fitness and Essential 8, and denies to grip and gait.
+ */
+export const SAUNA_FREQUENT_HR = 0.6;
+export const SAUNA_MIN_SESSIONS = 4;
+
+export function saunaLogHazard(sessionsPerWeek: number): number {
+  return sessionsPerWeek >= SAUNA_MIN_SESSIONS ? Math.log(SAUNA_FREQUENT_HR) : 0;
+}
+
+export const SAUNA_PROVENANCE: Provenance = {
+  study: 'Laukkanen and colleagues, 2015',
+  journal: 'JAMA Internal Medicine',
+  sample:
+    '2,315 middle-aged Finnish men, 20.7 years of follow-up, 929 all-cause deaths (Kuopio Ischaemic Heart Disease cohort)',
+  design: 'prospective cohort',
+  effect:
+    'Four to seven sessions a week versus one: all-cause mortality HR 0.60 (0.46–0.80); cardiovascular 0.50; sudden cardiac death 0.37',
+  grade: 'C',
+  caveat:
+    'One cohort, one country, men only, exposure self-reported, and observational. The healthy-user problem is severe and unresolved — a man who saunas five times a week is likely more leisured, more social and healthier already, and no adjustment fixes that. Nothing here is a randomised result.',
+};
+
 export const LE8_LN_HR_PER_10 = Math.log(1 / 0.8);
 
 export function le8LogHazard(compositeOutOf100: number): number {
@@ -416,6 +480,8 @@ export interface PaceInputs {
    * the whole case for asking two clock times each morning.
    */
   sleepRegularity?: SleepRegularityIndex | null;
+  /** Sauna sessions in a usual week. See `saunaLogHazard`. */
+  saunaPerWeek?: number;
 }
 
 export interface PaceReading {
@@ -717,6 +783,27 @@ export function readPace(input: PaceInputs): PaceReading {
       blocked: input.sleepRegularity
         ? undefined
         : 'Needs a week of bed and wake times. It is the one thing here that cannot be worked out later from an average.',
+    },
+    {
+      id: 'sauna',
+      source: input.saunaPerWeek != null ? 'self-reported' : null,
+      label: 'Sauna',
+      measures:
+        'How often you use a sauna in a usual week. The only component here whose evidence is a single cohort, which is why its interval is the widest on the page.',
+      provenance: SAUNA_PROVENANCE,
+      logHazard: input.saunaPerWeek != null ? saunaLogHazard(input.saunaPerWeek) : null,
+      detail:
+        input.saunaPerWeek == null
+          ? 'Not asked yet'
+          : input.saunaPerWeek >= SAUNA_MIN_SESSIONS
+            ? `${input.saunaPerWeek} a week — inside the band the cohort measured`
+            : `${input.saunaPerWeek} a week. The published band is ${SAUNA_MIN_SESSIONS}–7 against one, and the figure for two or three is not one we have — so this scores nothing rather than a number we made up.`,
+      blocked:
+        input.saunaPerWeek == null ? 'One question: sessions in a usual week.' : undefined,
+      opportunity:
+        input.saunaPerWeek != null && input.saunaPerWeek < SAUNA_MIN_SESSIONS
+          ? `A fourth session a week is where the cohort's figure starts. Worth knowing it is one observational study of Finnish men, not a result anybody has randomised.`
+          : undefined,
     },
     {
       id: 'le8',
