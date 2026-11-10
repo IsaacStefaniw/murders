@@ -70,55 +70,97 @@ drink made slowly, away from the desk."*
 
 ---
 
-## Two — the kitchen at 18:00, pouring one with dinner
+## Two — walking in the door at 16:40, with the boys
 
-**Rewritten.** The first version cued this on coming downstairs at
-20:30, into the quiet house. Entries 2–5 put the drink at **~18:00,
-with or before dinner** — so that version was aimed at an empty room,
-ninety minutes after the thing it was meant to catch.
+**Rewritten twice.** First version: coming downstairs at 20:30, into
+the quiet house. Second: the kitchen at 18:00, getting dinner ready.
+Both wrong, and wrong the same way.
 
-Four nights, Thursday to Sunday, all around dinner. The quiet window
-this plan was built around has **no logged event in it at all.**
+> *"I drink probably closer to straight after work which should be the
+> real trigger point."*
 
-> **When I'm in the kitchen getting dinner ready and I'd normally pour
-> one, I pour a soda water with lime into a proper glass and put it by
-> my plate before I sit down.**
+Work ends 16:30. The office is two minutes from home, the daycare is a
+two-minute drive, and the drink comes **after, once everybody is
+home** — so you finish work and are in the house with both boys
+**about ten minutes later.**
 
-Why this shape:
+### The real problem, which is not the drink
 
-- **The cue is a place and a task**, both of which recur nightly and
-  neither of which is a feeling. You are in the kitchen. Dinner is
-  happening. There is no ambiguity about whether the moment arrived.
-- **The glass matters more than it sounds.** A drink in the right glass,
-  on the table, is performed and visible. An empty hand at a family
-  dinner is a decision you keep making; a full glass is one you made
-  once.
-- **It is before the pour, not after.** This is the whole lesson of
-  entries 2–5: the kitchen close at 19:30 was already too late, and so
-  was the old version of this if-then.
-- **The boys are there, and that is an advantage.** Unlike the vape,
-  this is not hidden. Your partner knows about it, which means it is
-  already a plan with another person in it — the category your own data
-  says survives a bad week.
+**You have no transition.** Most people have a commute doing this job
+badly. You have six hundred seconds.
 
-**Back-up branch:** *When dinner is done and I still want one, I take
-the ten-minute walk then, with the boys, instead of after.* The walk is
-already in the plan at 18:30 — this just makes it the thing that gets
-reached for rather than a box to tick.
+So the drink is not competing with a quiet evening, or with dinner, or
+with willpower. **It is the only decompression in your day, arriving at
+the only moment that has none.** That changes what the if-then has to
+be: not a different thing to hold, but the transition that does not
+exist.
 
-### What moves with it
+### The finding this produced, which is better than anything I reasoned to
 
-- **The 19:30 kitchen close stays**, but it is now about food and late
-  grazing, which is what `kitchen-closed` was always for. It is not an
-  alcohol intervention and should stop being counted as one.
-- **`detachment-window` at 20:30 stays.** Ninety blank minutes still
-  need a job, and nothing logged has happened there — which may be
-  because it is genuinely quiet, or because nobody has looked. Four
-  entries in that window would change this again.
-- **17:30 "decide tonight" is the piece that survived.** It sits fifteen
-  to thirty minutes before the drink actually starts. It was placed on
-  a reasoned guess and it is the only part of the plan aimed at the
-  window the data names.
+**Both behaviours are cued on the same thing: crossing the threshold
+into the house in a depleted state.**
+
+| arrival | time | behaviour |
+| --- | --- | --- |
+| home from work, with the boys | **~16:40** | **the drink** |
+| home from futsal | **~19:15** | **the vape** |
+
+It is one cue at two times. That is why if-then one works on the same
+shape as this one, and it is the only structural thing in this whole
+plan that came from the data rather than from me guessing.
+
+> **When I pull up after pickup, I don't go in — I take the boys
+> straight round the block or into the garden for fifteen minutes
+> before anyone opens the front door.**
+
+Fifteen minutes is the entire ask, and it is the only gap in the day
+between finishing work and being on duty at home.
+
+Why this and not a substitute drink:
+
+- **It removes the moment rather than resisting it.** The threshold is
+  the cue. Don't cross it yet. There is nothing to refuse because you
+  are not in the room where the thing is.
+- **It is performed, and it is with other people.** Two of your goals
+  at once, and it is the category of plan your own profile says
+  survives a bad week.
+- **It is `the-weekday-shape`'s "one thing outside"** (graded B)
+  happening at the moment it is most useful rather than as a box.
+- **It costs fifteen minutes and dinner moves to 18:15.** That is the
+  whole price.
+
+**Back-up branch:** *When we come in and I still want one, I pour a
+soda water with lime into a proper glass and put it by my plate before
+I sit down.* That was the previous version of this if-then, and it is
+better as a second line than a first.
+
+### What this breaks, and it is the piece I said had survived
+
+**The 17:30 "decide tonight" slot is nearly an hour too late.** I
+wrote yesterday that it was "the only part of the plan aimed at the
+window the data names." It is not. A 16:40 drink is poured fifty
+minutes before the decision gets made.
+
+And the car is not the place for it either: two minutes to daycare and
+two minutes home is not a decompression, it is a manoeuvre. **The
+decision has to happen at your desk before you stand up.**
+
+Everything in the evening now moves earlier:
+
+| | was | now |
+| --- | --- | --- |
+| decide tonight | 17:30 | **16:25, at your desk before you leave** |
+| the drink's cue | — | **~16:40, at the door** |
+| the new walk | — | **16:40, before going in** |
+| the post-meal walk | 18:30 | 18:30, unchanged |
+| kitchen closed | 19:30 | 19:30, and it is about food only |
+
+The 18:30 walk stays where it is. `post-meal-walk` is graded B
+*specifically* for the glucose spike after the biggest meal, and moving
+it would keep the habit and throw away the reason. So there are two
+walks now, which is honestly a lot — **if one has to go, keep the
+16:40 one.** It is aimed at a behaviour; the other is aimed at a
+metabolite.
 
 ---
 
@@ -179,8 +221,14 @@ fifteen minutes pointed at the work week.
 - **One and two now rest on five entries**, which is just over the
   threshold `patterns.ts` uses (`MIN_EVENTS_FOR_PATTERN` is 4) — but
   five entries from **one** run of consecutive nights is not five
-  independent observations. Treat the 18:00 figure as the best number
-  available, not a measured habit.
+  independent observations. Treat ~16:40 as the best number available,
+  not a measured habit.
+- **I have had this window wrong three times, always in the same
+  direction.** 20:30, then 18:00, now ~16:40. Each correction came from
+  you rather than from anything the app or I measured, and each moved
+  it earlier. If there is a fourth correction it will probably move
+  earlier again, so the thing to watch is whether 16:40 is really the
+  first one or just the first one that gets noticed.
 - **Those five nights were "worse than usual — a bad week."** So
   nothing here should be read as a description of a normal week. What
   a normal week looks like is still unknown, and a fortnight of
