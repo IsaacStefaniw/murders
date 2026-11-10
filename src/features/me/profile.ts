@@ -115,6 +115,39 @@ export interface Me {
    * lifting sessions plus a futsal game clears that several times over.
    */
   sessionsPerWeek: number;
+  /**
+   * Sauna sessions a week, and for how many years. Stated 10 Nov 2026:
+   * *"sauna about 3-4x per week for same time"* — the same twenty years.
+   *
+   * It sits here and **not** in the metrics stream on purpose.
+   * `recovery.saunaMinutes` is written by the store when a sauna session
+   * is actually completed (`store.ts`, where a finished item adds its
+   * minutes), so that stream is a record of sessions that happened.
+   * Seeding a stated weekly average into it would put a self-report at
+   * the head of a series of observations — the same mistake as seeding
+   * 90 kg as a weight reading, which `adopt.meMetrics` refuses for the
+   * same reason.
+   *
+   * Worth knowing what it is worth: `sauna` is **grade C**, and its own
+   * card says the headline heart finding rests on *"one Finnish
+   * population followed for decades, with the headline result resting on
+   * 201 men in the frequent-use group."* Three to four a week is the top
+   * of the band the protocol recommends, and he has been there for two
+   * decades without being asked.
+   */
+  saunaPerWeek: number;
+  saunaYears: number;
+  /**
+   * Longest voluntary breath hold, in seconds, performed OUT of the heat.
+   *
+   * Stated as "3.2" on 10 Nov 2026 and read as 3 minutes 20 seconds, to
+   * match the 2:00 / 2:15 / 2:20 he had given in the same conversation.
+   * Recorded because it establishes the thing that matters more than the
+   * number: **he already has a safe venue for this practice.** The
+   * objection in `docs/DAILY.md` is to doing it in a sauna, not to doing
+   * it.
+   */
+  breathHoldBestSec: number;
   constraints: PhysicalConstraint[];
   /**
    * The training rung, stated rather than inferred.
@@ -164,6 +197,9 @@ export const ME: Me = {
   heightCm: 187,
   bodyFatPct: 13,
   sessionsPerWeek: 4,
+  saunaPerWeek: 3.5,
+  saunaYears: 20,
+  breathHoldBestSec: 200,
   // Rack has adjustable safeties, confirmed 10 Nov, so barbell work needs
   // no spotter substitution. Asked because he benches 91% triples alone.
   constraints: [],

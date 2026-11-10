@@ -336,6 +336,15 @@ that he should stop it. Breath holds on a floor, lying down, away from
 heat and water, carry none of the above. The objection is entirely about
 the room.
 
+**And he already has the safe venue.** Told immediately after: *"Longest
+breath hold out of sauna is 3.2"* — read as **3 minutes 20**, to match
+the 2:00 / 2:15 / 2:20 given in the same conversation. So the practice
+is established, the best work already happens out of the heat, and the
+only change this asks for is that the sauna rounds join them there.
+Which also makes the first framing slightly wrong: this was never a
+question of whether he should take it up safely, it was three rounds in
+the wrong room by somebody who has the right one.
+
 Nothing about the sauna changes: it is still the right thing at 16:30
 and still the transition the plan was missing. **The breathing moves out
 of it.**

@@ -171,6 +171,34 @@ Every night not recorded is a night permanently missing from it.
 
 ---
 
+## What the instrument cannot see, and two of them are twenty years old
+
+Stated 10 Nov: **sauna 3–4 times a week for twenty years**, alongside
+four training sessions a week for the same twenty.
+
+**The sauna contributes exactly zero to the reading above.** It is not a
+`PaceInputs` field and there is no sauna component in `pace.ts`. So the
+longest-running health habit in his life is invisible to the number
+meant to summarise his health.
+
+That is the instrument being disciplined rather than broken. `sauna` is
+**grade C** and its own card is candid about why: *"The heart findings
+come from one Finnish population followed for decades, with the headline
+result resting on 201 men in the frequent-use group — a real and
+carefully collected observation, and a single cohort measured once
+rather than a settled result."* A component built on that does not
+belong beside grip strength from PURE or alcohol from a 599,912-person
+pooled analysis. **The honest cost of a graded instrument is that it
+stays quiet about things it cannot grade**, and this is what that costs
+him.
+
+The same applies to the **3 minute 20 second breath hold**. There is no
+component for it, and inventing one would be making up a coefficient.
+
+So the reading is not a summary of his health. It is a summary of the
+ten things this instrument can carry evidence for, two of which it can
+currently see.
+
 ## What this reading is not
 
 - **`PROVISIONAL = true`** in `pace.ts`, and its own comment: false only
