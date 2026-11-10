@@ -349,6 +349,82 @@ Nothing about the sauna changes: it is still the right thing at 16:30
 and still the transition the plan was missing. **The breathing moves out
 of it.**
 
+#### Eight litres of water a day
+
+Stated 10 Nov. Worth putting next to the reference figures rather than
+reacting to the size of it:
+
+| | |
+| --- | --- |
+| EFSA adequate intake, men, **total water** including food | ~2.5 L |
+| US NASEM, men, total water | ~3.7 L, of which ~3.0 L from drinks |
+| **His stated intake, drinks alone** | **8 L** |
+
+So roughly **two and a half to three times** the usual beverage figure.
+
+**And his context genuinely supports more than average.** Brisbane in
+November, 90 kg, four training sessions a week, futsal, and a sauna at
+90°C for 20–25 minutes three or four times a week. That is a lot of
+sweat, and a man doing all of it needs well above a sedentary baseline.
+The volume on its own is not the thing to look at.
+
+**Nor is it near the excretory limit.** Healthy kidneys clear roughly
+0.8–1.0 litres an hour. Eight litres across sixteen waking hours is
+about 0.5 L/h — comfortably inside it, provided it is spread. The danger
+in every documented case of water intoxication is **volume taken fast**,
+not volume taken.
+
+### The actual gap: eight litres of PLAIN water against a 90°C sauna
+
+`electrolytes-who-needs-them` is graded **D** and is sceptical of the
+whole category — and it names his case anyway, unprompted, in its own
+list of exceptions:
+
+> *"The genuine cases are the long ones: heat, endurance beyond an hour
+> or two, **repeated sauna sessions**, and anyone who sweats heavily and
+> salts visibly."*
+
+Sweat carries sodium. Replacing a heavy, repeated sodium loss with
+large volumes of plain water is the mechanism behind hyponatraemia, and
+it is the one way the eight litres could matter. Not the litres. The
+litres **with nothing in them**, on sauna days.
+
+`sauna-rehydrate` (**C**) sets the replacement at about half a litre per
+twenty minutes in the heat — so ~0.5–0.6 L for his session. That figure
+is a replacement for what the sauna took, on top of the day, not part of
+the eight.
+
+### Two costs that are not safety and are easy to miss
+
+**Sleep.** Eight litres is a great deal of urine, and anything drunk
+late becomes a night interrupted. He hit 22:00–06:30 exactly on 9 Nov,
+and sleep is one of only two Essential 8 parts the app can currently
+read. Front-loading the day and tapering after about 19:00 protects it
+at no cost to the total.
+
+**The morning weigh-in, which starts this week.** Eight litres a day is
+a large daily fluid turnover, and the 06:50 reading sits on top of
+whatever last night's balance was. Third reason in two days that the
+daily number measures something other than fat — after creatine putting
+a kilo of water on and the sauna taking several hundred grams off.
+**Read the weekly average.**
+
+### What would actually be worth changing
+
+1. **Salt around the sauna**, not a sachet every day. The card is grade
+   D for ordinary use and names repeated sauna sessions as the
+   exception; this is the exception.
+2. **Spread it.** Never a large volume quickly — that is the only
+   pattern that has ever hurt anybody.
+3. **Taper after 19:00**, for the sleep rather than the safety.
+4. **One symptom set worth knowing, said once:** headache, nausea,
+   confusion or unusual heaviness after a big sweat-and-water day is the
+   hyponatraemia picture. It is a doctor on the day, not something to
+   push through or drink more at.
+
+**One open question:** whether the eight litres is water alone or all
+fluid. With the shakes and anything else it would be higher again.
+
 ### And a third wrinkle on the daily weigh-in
 
 Creatine puts about a kilo of water **on**. A sauna takes several
