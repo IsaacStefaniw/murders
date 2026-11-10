@@ -46,17 +46,19 @@
  * inferred the second time.
  *
  * `profile.ts` modelled one chain: hard stretch -> stress -> vape, then
- * boys asleep -> quiet house -> drink. **The first real data point splits
- * it in two.** The vape landed DURING the stretch, not after it — so the
- * vape lives in 17:30-20:30 and the drink lives in 20:30-22:00. Both are
- * downstream of the same stress at different hours, which means they need
- * two interventions rather than one, and the 17:30 decision cannot cover
- * a thing that happens at 19:20.
+ * boys asleep -> quiet house -> drink. **Nothing logged has happened in
+ * that quiet house.** The vape landed DURING the stretch at ~19:15, and
+ * four later entries put the drink at ~16:40, at the door after pickup.
+ * So the plan had two windows and the data has one, and it is earlier
+ * than either guess — see `ONE_WINDOW_NOT_TWO` and
+ * `SAME_CUE_TWO_ARRIVALS` below.
  *
- * One data point is one data point. `MIN_EVENTS_FOR_PATTERN` is 4 and
- * nothing here pretends otherwise — but a model that survives first
- * contact in shape and fails in timing is worth saying out loud rather
- * than quietly leaving wrong.
+ * One data point is one data point, and five from a single run of
+ * consecutive nights are not five observations.
+ * `MIN_EVENTS_FOR_PATTERN` is 4 and meeting it on paper is not the same
+ * as knowing a pattern — but a model that survives first contact in
+ * shape and fails in timing is worth saying out loud rather than quietly
+ * leaving wrong.
  *
  * ── The one prediction this project made in advance and then tested ────
  *
@@ -218,8 +220,46 @@ export const ASSUMED_WINDOW: Record<string, { from: string; to: string; note: st
     note: 'The hard stretch. Assumed downstream of the drink; the first real entry says it is downstream of bedtime instead, and happens two hours earlier than the plan expected.',
   },
   alcohol: {
-    from: '20:30',
-    to: '22:00',
-    note: 'The quiet window, once the boys are asleep. Not yet contradicted by anything logged.',
+    from: '16:40',
+    to: '20:00',
+    note: 'At the door, after pickup. Corrected THREE TIMES and always earlier: 20:30-22:00 (the quiet window, which has not one logged event in it), then ~18:00 with dinner, then "closer to straight after work". Work ends 16:30, daycare is a two-minute drive and so is home, so everybody is in the house by about 16:40. Every correction came from him rather than from a measurement.',
   },
 };
+
+export const ONE_WINDOW_NOT_TWO =
+  'Everything logged so far happened between about 16:40 and 20:30. Nothing has been logged in the quiet house after 20:30, which is where most of this plan was pointed.';
+
+/**
+ * The one structural finding that came from the data rather than a guess.
+ *
+ * The drink is at ~16:40, walking in with the boys after pickup. The vape
+ * was at ~19:15, walking in from futsal. **Both are cued on crossing the
+ * threshold into the house in a depleted state** — one cue at two times,
+ * which is why both if-thens can share a shape: do not cross it yet.
+ *
+ * Worth recording honestly: the alcohol window has been corrected three
+ * times, always earlier, and every correction came from him rather than
+ * from anything measured here. 20:30, 18:00, 16:40. A fourth would
+ * probably move earlier again, so the open question is whether 16:40 is
+ * the first drink or the first one noticed.
+ */
+export const SAME_CUE_TWO_ARRIVALS =
+  'Both of these start when you walk in the door — from work before a quarter to five, from futsal at quarter past seven. The cue is arriving home with nothing left, not the hour.';
+
+/**
+ * He has no transition, and that is the actual problem.
+ *
+ * Work ends 16:30. The office is two minutes from home and the daycare is
+ * a two-minute drive, so he finishes work and is in the house with two
+ * children under five **about ten minutes later**. Most people have a
+ * commute doing this job badly; he has six hundred seconds.
+ *
+ * So the drink is not really competing with a quiet evening or with
+ * dinner. It is the only decompression in the day, arriving at the only
+ * moment there is none. That reframes the second if-then from "substitute
+ * the drink" to "build the transition that does not exist" — which is why
+ * the chosen action is fifteen minutes outside before anyone opens the
+ * front door, rather than a different thing to hold.
+ */
+export const NO_TRANSITION =
+  'Work ends at half four and you are home with both boys about ten minutes later. There is no decompression in your day for the drink to be competing with — it IS the decompression, arriving at the only moment that has none.';
