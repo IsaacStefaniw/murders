@@ -121,13 +121,27 @@ describe('a misread component stops being treated as a finding', () => {
   });
 
   it('counts it as unread in the markers instrument, widening the interval', () => {
-    const withBmi = readPace({ age: 40, bmi: 25.2, sleepHours: 7.5 });
-    const misread = readPace({ age: 40, bmi: 25.2, bmiMisread: true, sleepHours: 7.5 });
+    // `activityMinutes` added 10 Nov 2026. `readPace` now needs all three
+    // of the parts it can score (LE8_MIN_PARTS) before it reads the
+    // component at all, so a two-part case was null either way and could
+    // not show the difference this test is about. With three parts the
+    // misread genuinely moves it from readable to unread, which is a
+    // stronger version of the same claim.
+    const withBmi = readPace({ age: 40, bmi: 25.2, sleepHours: 7.5, activityMinutes: 150 });
+    const misread = readPace({ age: 40, bmi: 25.2, bmiMisread: true, sleepHours: 7.5, activityMinutes: 150 });
     const le8 = (r: typeof withBmi) => r.components.find((c) => c.id === 'le8')!;
 
-    expect(le8(withBmi).detail).toContain('2 of 8');
-    expect(le8(misread).detail).toContain('1 of 8');
-    expect(le8(misread).detail).toMatch(/body mass left out/i);
+    // Readable with body mass in, and unread without it. Under the
+    // LE8_MIN_PARTS floor the misread does not merely widen the interval,
+    // it takes the component off the reading entirely — which is the same
+    // claim, made harder.
+    expect(le8(withBmi).detail).toContain('3 of 8');
+    expect(le8(withBmi).logHazard).not.toBeNull();
+    expect(le8(misread).logHazard).toBeNull();
+    expect(le8(misread).blocked).toMatch(/2 of the 3 parts needed/);
+    // And it is still attributable to body mass rather than looking like
+    // data that never arrived.
+    expect(le8(misread).blocked).toMatch(/body mass/i);
   });
 
   it('asks for what would settle it when it cannot tell either way', () => {

@@ -73,6 +73,22 @@ export interface Me {
   /** Weekly fixture, and the most durable thing in the week. See week.ts. */
   futsalDay: Weekday;
   futsalStart: string;
+  /**
+   * The year he was born, stated 10 Nov 2026.
+   *
+   * A year rather than an age, and `health/age.ts` says why: `age` on the
+   * profile is a DECADE MIDPOINT from a chip list, and the Gompertz hazard
+   * doubles risk about every eight years — so five years of error is a
+   * hazard out by roughly half again before anything is measured. A year
+   * takes the dominant term in the error budget from ±5 years to ±1.
+   *
+   * Nothing in the markers instrument computes without it. `PaceInputs.age`
+   * is commented *"Chronological age. Nothing computes without it"*, and
+   * `ageOf` returned undefined for this profile until this field existed —
+   * so the question *"how much younger am I"* had no answer for a reason
+   * that was not about his health at all.
+   */
+  birthYear: number;
   constraints: PhysicalConstraint[];
   /**
    * The training rung, stated rather than inferred.
@@ -118,6 +134,7 @@ export const ME: Me = {
   pickupDays: [1, 3, 4],
   futsalDay: 1,
   futsalStart: '18:15',
+  birthYear: 1988,
   // Rack has adjustable safeties, confirmed 10 Nov, so barbell work needs
   // no spotter substitution. Asked because he benches 91% triples alone.
   constraints: [],
@@ -237,6 +254,14 @@ export const ISAAC_PROFILE: LifeProfile = {
   sleepTime: ME.sleepTime,
   energyProfile: 'morning',
   capacity: 'steady',
+  birthYear: ME.birthYear,
+  weightKg: ME.weightKg,
+  // Stated, and it is read rather than displayed: the grip hazard in
+  // pace.ts is sex-specific and the Essential 8 tables branch on it.
+  // health/domain's own note — "never a label shown back to them, and
+  // never used to decide what they are capable of."
+  sexAtBirth: 'male',
+  kidsCount: 2,
   trainingDaysPerWeek: 4,
   trainingDurationMin: LUNCH_SESSION_MIN,
   trainingPreference: 'gym',

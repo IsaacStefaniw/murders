@@ -146,6 +146,43 @@ export const MRDT_YEARS = 8;
  */
 export const ATTENUATION = 0.6;
 
+/**
+ * How many Essential 8 parts this instrument needs before it reads one.
+ *
+ * Three, which is **all of them** — `readPace` can score activity, sleep
+ * and BMI and nothing else, because nicotine is kept out to avoid
+ * double-counting and diet, lipids, glucose and blood pressure are not
+ * among its inputs. So this is "all of what we can see" rather than a
+ * majority of the construct, and `readPace` explains what it cost to
+ * learn that.
+ *
+ * It is NOT `essential8.BAND_MIN_COMPONENTS`, which is 4 of 8 and governs
+ * whether that card may name a band. Four here would disable the
+ * component permanently.
+ *
+ * ── The part this does NOT fix, said plainly ────────────────────────────
+ *
+ * A floor stops a composite of ONE paying out. It does not bound the
+ * pay-out itself: three parts all at 100 still means a mean of 100, which
+ * is still −12.9 raw years and −7.7 after attenuation — the full credit
+ * the eight-component construct allows, earned by showing three.
+ *
+ * `essential8.ts` states the principle this breaks: *"It is not a Life's
+ * Essential 8 score and must never be presented as one — half the
+ * components missing is half the construct missing, and the three blood
+ * measures are where a lot of the risk actually sits."* A subset claiming
+ * the full validated range is that error in the one place it converts to
+ * years.
+ *
+ * Left open deliberately. Closing it means choosing a calibration —
+ * scaling the contribution by coverage is the obvious candidate and is
+ * also a method I would be inventing, on the surface of this app where a
+ * wrong number is most expensive. It belongs in a change of its own, with
+ * `PROVISIONAL` and `ATTENUATION`, not in a patch written while answering
+ * a question.
+ */
+export const LE8_MIN_PARTS = 3;
+
 export type EvidenceGrade = 'A' | 'B' | 'C' | 'D';
 
 export interface Provenance {
@@ -417,8 +454,51 @@ export function readPace(input: PaceInputs): PaceReading {
   // headline's interval widens, which is the honest consequence: we know
   // less about them than we would have pretended to.
   if (input.bmi != null && !input.bmiMisread) le8Parts.push(bmiScore(input.bmi));
+  /**
+   * ── The floor, which was missing and cost seven and a half years ─────
+   *
+   * This read `le8Parts.length > 0`, so **one** observed part was enough to
+   * stand in for a composite of eight. Found on 10 Nov 2026 when Isaac
+   * asked how much younger he was and this instrument answered **−6.5
+   * years** off a single night's sleep.
+   *
+   * The arithmetic: one night at 8.5 hours scores 100, the mean of one
+   * part is 100, and `le8LogHazard(100)` is −1.1157 — which the Gompertz
+   * conversion turns into −12.9 raw years and −7.7 after attenuation.
+   * **Nothing else in his reading came close to it**, so a composite of
+   * one part was the entire answer, and it pointed the flattering way.
+   *
+   * Why it matters more here than on the Essential 8 card: this component
+   * is one of only two in the instrument allowed to go NEGATIVE without
+   * limit (see `PaceComponent.logHazard`), because Life's Essential 8 is
+   * validated as linear across its full range. A component that can pay
+   * out unboundedly must not be computed from one eighth of itself.
+   *
+   * `progress.ts` named this exact failure before it happened: *"a lie
+   * with a particular shape: flattering, arriving early, and caused
+   * entirely by the user doing something the app asked them to do."* He
+   * logged one night because the app asked him to, and got six and a half
+   * years for it.
+   *
+   * ── The first fix was worse, and the test that passed it was empty ───
+   *
+   * I reached for `essential8.BAND_MIN_COMPONENTS`, which is 4, because
+   * reusing the existing named constant looked like the disciplined move.
+   * **There are only three parts to have.** Nicotine is excluded above to
+   * avoid double-counting, and diet, lipids, glucose and blood pressure
+   * are not in `PaceInputs` at all — so a floor of four does not guard the
+   * component, it deletes it, silently and forever.
+   *
+   * Two of my own tests passed anyway. One asserted the constant equalled
+   * 4 instead of exercising a four-part reading, and the other wrapped its
+   * only real assertion in `if (strong.logHazard !== null)` — which was
+   * never true, so the test asserted nothing while reporting green. **A
+   * vacuous test is worse than no test**, because it is counted.
+   */
   const le8 =
-    le8Parts.length > 0 ? le8Parts.reduce((a, b) => a + b, 0) / le8Parts.length : null;
+    le8Parts.length >= LE8_MIN_PARTS
+      ? le8Parts.reduce((a, b) => a + b, 0) / le8Parts.length
+      : null;
 
   // Asked beats inferred. Somebody who told us gets their answer used; the
   // behaviour log is only the fallback for somebody who did not.
@@ -665,7 +745,12 @@ export function readPace(input: PaceInputs): PaceReading {
           ? `${Math.round(le8)} across ${le8Parts.length} of 8` +
             (input.bmiMisread ? ' — body mass left out, see the wellbeing card' : '')
           : 'Not measured',
-      blocked: le8 == null ? 'Starts reading from your first logged session or night.' : undefined,
+      blocked:
+        le8 == null
+          ? le8Parts.length === 0
+            ? 'Starts reading from your first logged session or night.'
+            : `${le8Parts.length} of the ${LE8_MIN_PARTS} parts needed — activity, sleep and body mass. A composite of one is not a composite, and this is the component that can pay out without limit.`
+          : undefined,
     },
   ];
 
