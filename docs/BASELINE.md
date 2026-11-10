@@ -171,6 +171,96 @@ Every night not recorded is a night permanently missing from it.
 
 ---
 
+## Recalculated with everything — and it did not move
+
+Asked on 10 Nov to recalculate with all of it: sauna at 90°C for 20–25
+minutes, body fat 10–13%, four sessions a week for twenty years.
+
+**The reading is still +1.6 years.** Not approximately — identically.
+Run with body fat at 10 and at 13 it returns the same figure, because
+both are a misread and BMI drops out either way, which puts the
+Essential 8 composite below the parts it needs. The sauna is not a
+`PaceInputs` field. Neither is a breath hold, a lift, or twenty years of
+anything.
+
+**That is the honest answer and it is worth sitting with.** More true
+information about him produced no movement, because the instrument has
+ten slots and almost none of what he is good at fits one. A number that
+only moves on the two things he is quitting is a narrow instrument, not
+a verdict — and saying so is more useful than finding a way to make it
+move.
+
+---
+
+## Performance against the population, as far as the evidence goes
+
+### The one representative figure, and it is not about his lifts
+
+**71% of Australian men aged 18–64 do not meet the recommended two days
+a week of muscle-strengthening activity** (AIHW 2022, `NOT_STRENGTH_TRAINING`
+in `standards.ts`). A national survey rather than a self-selected sample,
+and non-compliance rises with age.
+
+He does four days, and has for twenty years. **That is the population
+comparison this app will make**, and it is about the habit rather than
+the kilos.
+
+### Why there is no percentile, in the file's own words
+
+> *"Nobody has one-rep-max tested a representative sample of adults on
+> these lifts and nobody is going to, because you cannot max-test people
+> who have never trained. EVERY figure available comes from people who
+> lift and chose to record it. A percentile against the general
+> population would therefore be invented, however carefully, and the app
+> does not invent numbers."*
+
+So the lift numbers below are placed **among people who train and log
+their lifts** — `COMPARISON_CLASS` — and not against men his age.
+
+### The four lifts, described rather than graded
+
+| lift | × bodyweight | where it sits | next mark |
+| --- | --- | --- | --- |
+| **Bench** | **1.47×** | past the **second** of four | third at **135 kg** |
+| **Overhead** | **0.89×** | past the **second** of four | third at **81 kg** |
+| Deadlift | 1.56× | past the first | second at **157.5 kg** |
+| Squat | 1.22× | past the first | second at **135 kg** |
+
+`assessStrength` returns an overall band of "beginner" for this profile.
+**It should not be reported and the app does not show it** —
+`standards.ts` records that exact failure: *"the screen printed the
+MEDIAN band over an uneven profile, so a 130 kg bench came out
+'Beginner'."* A median across an uneven profile describes nobody. The
+per-lift lines are the reading.
+
+What the app says instead: *"Your bench and overhead press are ahead of
+your deadlift and squat, relative to bodyweight. That gap is the thing
+worth training, not a verdict on you — an uneven profile is the normal
+one."*
+
+### The ratio that stands out
+
+**His deadlift is 1.06× his bench.** The usual relationship runs the
+other way by a distance — a deadlift around 1.2–1.3× the bench is the
+ordinary shape, which would put his near 160–170 kg. The squat tells the
+same story at 0.83× the bench against a more typical 1.25–1.3×.
+
+Those multiples are **rule-of-thumb from lifting convention, not a cited
+dataset** — the same caveat `ISAAC_WEEK.md` carries on its ratio table.
+The gap is large enough to survive any version of them.
+
+Two readings, and the honest answer is that nothing here separates them:
+
+1. **The lower body is genuinely behind**, which is what
+   `ISAAC_WEEK.md` concluded in September from the same shape.
+2. **The squat and deadlift figures are stated and untested**, given at
+   110 and 140 and never performed in front of me. His bench was stated
+   at 130 and turned out right, which is reason to take them seriously
+   rather than to discount them.
+
+**A tested squat and deadlift would settle it**, and they are the two
+numbers the whole lower-body conclusion rests on.
+
 ## What the instrument cannot see, and two of them are twenty years old
 
 Stated 10 Nov: **sauna 3–4 times a week for twenty years**, alongside
@@ -194,6 +284,13 @@ him.
 
 The same applies to the **3 minute 20 second breath hold**. There is no
 component for it, and inventing one would be making up a coefficient.
+
+**Sauna dose, stated 10 Nov: 90°C, 20–25 minutes, 3–4 times a week.**
+That is at the top of the 2–4 the `sauna` card recommends and longer per
+session than the card's own “~15–20 minutes”. Twenty years of it. The
+card's grade is **C** and its honesty about why is the reason this
+cannot be converted into years: one cohort, measured once, with the
+headline resting on 201 men.
 
 So the reading is not a summary of his health. It is a summary of the
 ten things this instrument can carry evidence for, two of which it can
