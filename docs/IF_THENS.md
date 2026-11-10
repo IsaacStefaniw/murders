@@ -32,7 +32,90 @@ wanting it more is not a plan."*
 
 ---
 
-## Zero — the desk, mid-afternoon
+## His own three, written at the desk on 10 Nov
+
+**These are the operative version. Everything below them is the draft.**
+
+`urge-tonight-plan` (**grade B**) is explicit about why that order is the
+right way round: inside the Gollwitzer and Sheeran trials *"the plans
+that worked best were contingent — an if and a then — **were made by
+people who wanted the goal**, and had been rehearsed at least once.
+Writing tonight's line is that rehearsal."* So writing these was not
+reading the protocol. It was running it.
+
+> **1. When the urge lands at my desk I'll fill up my water bottle, then
+> go outside and do ten long breaths out, the exhale twice as long as
+> the breath in.**
+
+> **2. When the urge lands at my desk for after work, I'll plan to have
+> a sauna or another activity worthwhile — e.g. exercise.**
+
+> **3. If I get the urge at home later this afternoon, I will take the
+> boys for a walk.**
+
+### Two of these are better than mine, and it is worth saying which and why
+
+**One is better because it removed a branch.** I wrote the walk outside
+as the plan and the long exhales as the back-up *"for a meeting he
+cannot leave"*. He merged them: water, outside, breathing, one
+sequence. A plan with a fork in it asks for a decision in the moment,
+and removing the decision from the moment is the entire mechanism
+`trigger-if-then` runs on. Mine had a fork. His does not.
+
+The only thing lost is the fallback, and the protocol does say a plan
+that breaks needs somewhere to go. So the fallback should be the **same
+plan, shrunk** — *the ten breaths at the desk, without the walk* —
+rather than a different one.
+
+**Three is better because it re-cued the trigger.** Mine read *"when I
+pull up after pickup."* His reads *"if I get the urge at home."* Entry 6
+is the whole argument for his version: the craving arrived with no
+doorway and no end-of-day, so a plan hanging off the doorway misses it.
+**He moved the cue from the place to the state within an hour of the
+entry that showed the place was not necessary.** And it keeps the thing
+his own profile records twice — *"plans with other people in them
+survive a bad week"* — because the boys are in it.
+
+### Two is the one to sharpen, and the protocol says exactly why
+
+Not the idea — the idea is right, and it is a better idea than mine.
+Mine was sauna-specific on Tuesday and Friday; his generalises to
+"something worthwhile after work", which covers the three days the sauna
+is not on. That generalisation is the improvement.
+
+The wording breaks both of the protocol's rules at once:
+
+- **"I'll plan to have"** is an intention to plan. The *then* has to be
+  something done, and this is two steps back from doing.
+- **"a sauna or another activity"** — the "or" puts the decision back
+  into the moment, and *"the decision is already made before the moment
+  arrives"* is the mechanism. An if-then with a choice in it is a
+  preference.
+
+The smallest amendment that keeps his sentence his, changing the *then*
+and letting the day settle the activity:
+
+> **When the urge lands at my desk about tonight, I text my partner the
+> one thing I am doing after work — the sauna on a Tuesday or Friday,
+> the walk with the boys on a Wednesday or Thursday.**
+
+| day | the one thing | why it is already decided |
+| --- | --- | --- |
+| Mon | futsal, 18:15 | the most durable thing in his week |
+| **Tue** | **sauna, 16:30** | partner does pickup; `days: [2, 5]` |
+| Wed | the walk, after pickup | his pickup day |
+| Thu | the walk, after pickup | his pickup day |
+| Fri | sauna, 16:30 | partner does pickup |
+
+The text is the performed part, and it puts another person in the plan,
+which is the one category his own data says survives.
+
+**Say them out loud once.** The mechanism is recall in the situation, so
+a sentence that has only been typed has not been rehearsed.
+
+---
+
+## Zero — the desk, mid-afternoon *(my draft, superseded by his 1 above)*
 
 **Written 10 Nov at 15:21, while the urge was live.** This is the one
 that was missing, and entry 6 in `docs/LOG.md` is why: the craving
@@ -66,7 +149,7 @@ exhale"* — and the app route is `/session/breathe?urge=1`.
 
 ---
 
-## Zero-point-five — Tuesday and Friday, finishing work
+## Zero-point-five — Tuesday and Friday, finishing work *(folded into his 2)*
 
 The two days his partner collects the boys, which are the two days
 if-then two cannot fire — and the two days
@@ -291,10 +374,14 @@ fifteen minutes pointed at the work week.
   Being reliably wrong in a known direction is not insight, but writing
   the direction down in advance is the only reason the fourth one was
   legible when it arrived — and a fifth would move earlier again.
-- **Zero and zero-point-five are reasoned from ONE urge entry.** Nothing
-  has been logged at a desk before 10 Nov, and an urge is not a slip.
-  The grade A belongs to `trigger-if-then` as a method; these two
-  sentences have one observation behind them.
+- **Everything cued on the desk rests on ONE urge entry.** Nothing was
+  logged at a desk before 10 Nov, and an urge is not a slip. The grade A
+  belongs to `trigger-if-then` as a method; the sentences have one
+  observation behind them.
+- **His three are not better because he wrote them — they are better in
+  two specific ways and worse in one**, and the sections above say which.
+  Deferring to them wholesale because they are his would be as useless
+  as keeping mine because I wrote them first.
 - **Those five nights were "worse than usual — a bad week."** So
   nothing here should be read as a description of a normal week. What
   a normal week looks like is still unknown, and a fortnight of
