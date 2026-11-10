@@ -10,6 +10,7 @@
 
 import { knowledgeContext } from '@/features/knowledge/protocols';
 
+import { AI_JOURNAL_ENABLED } from './consent';
 import { getAiProvider } from './provider';
 import { runStructured } from './run';
 import {
@@ -75,7 +76,12 @@ export async function analyseReflection(reflection: Reflection): Promise<Reflect
 
   return (
     await runStructured({
-      provider: getAiProvider(),
+      // The ONLY agent that is handed raw journal text, and the only one
+      // gated on a build flag. Null here makes `runStructured` take the
+      // deterministic fallback below without composing a request, so the
+      // text is never passed to a provider that might exist. See
+      // ./consent.ts for why this is a build flag and not a toggle.
+      provider: AI_JOURNAL_ENABLED ? getAiProvider() : null,
       system: `${TONE} Extract structured signals from an evening reflection. Schema: {"sentiment": "positive"|"neutral"|"mixed"|"negative", "themes": string[], "tomorrowAdjustment": string|null, "behaviourMentions": [{"behaviour": string, "direction": "struggled"|"resisted"|"neutral"}], "confidence": number}`,
       input: `Mood (1-5): ${reflection.mood ?? 'not given'}\n${text || 'No text provided.'}`,
       schema: ReflectionSignalsSchema,
