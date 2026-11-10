@@ -125,6 +125,7 @@ import type {
   PlanActionEvent,
   PlanItem,
   PlanItemStatus,
+  LogNote,
   Reflection,
   LoggedSet,
   Routine,
@@ -186,6 +187,14 @@ export interface AppState {
   /** Upsert — one figure per behaviour per week, correctable. */
   setWeeklyCount: (behaviour: BehaviourKey, weekStart: string, count: number) => void;
   reflections: Reflection[];
+  /**
+   * Timestamped free text — see `LogNote`. Append-only in practice;
+   * editable because a remembered minute is often wrong the first time.
+   */
+  notes: LogNote[];
+  addNote: (text: string, at?: string) => void;
+  editNote: (id: string, patch: { text?: string; at?: string }) => void;
+  removeNote: (id: string) => void;
   suggestions: Suggestion[];
 
   completeOnboarding: (input: {
@@ -766,6 +775,7 @@ const initialData = {
   weekCapacities: [] as WeekCapacityOverride[],
   coachInterrupts: [] as { id: string; at: string; answerId?: string }[],
   reflections: [] as Reflection[],
+  notes: [] as LogNote[],
   suggestions: [] as Suggestion[],
   experiments: [] as Experiment[],
   mealPlan: null as { weekStart: string; dinners: Record<number, string> } | null,
@@ -2518,6 +2528,44 @@ export const useAppStore = create<AppState>()(
             ),
           });
         },
+
+        addNote: (text, at) => {
+          const trimmed = text.trim();
+          if (!trimmed) return;
+          const now = new Date().toISOString();
+          set({
+            notes: [
+              ...get().notes,
+              {
+                id: newId('note'),
+                at: at ?? now,
+                text: trimmed,
+                // Backdated when the stated minute is not this minute. The
+                // distinction is kept because `patterns.ts` reads the hour
+                // and a remembered hour is weaker evidence than a stamped
+                // one — the urge logged on 10 Nov was an hour out.
+                source: at && at.slice(0, 16) !== now.slice(0, 16) ? 'backdated' : 'typed',
+                createdAt: now,
+              },
+            ],
+          });
+        },
+
+        editNote: (id, patch) => {
+          set({
+            notes: get().notes.map((n) =>
+              n.id === id
+                ? {
+                    ...n,
+                    ...(patch.text !== undefined ? { text: patch.text.trim() } : {}),
+                    ...(patch.at !== undefined ? { at: patch.at, source: 'backdated' as const } : {}),
+                  }
+                : n,
+            ),
+          });
+        },
+
+        removeNote: (id) => set({ notes: get().notes.filter((n) => n.id !== id) }),
 
         saveReflection: (reflection) => {
           const others = get().reflections.filter(

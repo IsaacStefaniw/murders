@@ -455,6 +455,11 @@ export default function Today() {
         {trainingToday ? (
           <Chip label="Train" onPress={() => router.push('/session/workout' as never)} />
         ) : null}
+        {/* Unconditional, unlike Train, because the whole point is that it
+            catches the thing nothing else has a slot for — the sauna, the
+            urge, the session that happened on the wrong day. Isaac: "sauna
+            wasn't logged per time I mentioned. Neither was my workout." */}
+        <Chip label="Log it" onPress={() => router.push('/session/note' as never)} />
       </View>
     </View>
   );

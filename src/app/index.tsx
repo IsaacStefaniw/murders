@@ -2,7 +2,7 @@ import { Redirect } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
-import { meOnboarding, mePathStarts } from '@/features/me/adopt';
+import { meMetrics, meOnboarding, mePathStarts } from '@/features/me/adopt';
 import { ISAAC_PROFILE } from '@/features/me/profile';
 import { useTheme } from '@/hooks/use-theme';
 import { useAppStore } from '@/state/store';
@@ -77,6 +77,7 @@ export default function Index() {
   const storedCreatedAt = useAppStore((s) => s.profile?.createdAt);
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
   const startPath = useAppStore((s) => s.startPath);
+  const addMetric = useAppStore((s) => s.addMetric);
   const adopted = useRef(false);
 
   // True for a store built by the interview, and for one adopted at an
@@ -89,7 +90,11 @@ export default function Index() {
     completeOnboarding(meOnboarding());
     // After the profile, because `startPath` reads it to build the block.
     for (const { id, answers } of mePathStarts()) startPath(id, answers);
-  }, [hydrated, stale, completeOnboarding, startPath]);
+    // Stated body numbers into the metrics stream, where everything that
+    // computes BMI and the misread actually looks. Seeded only on a stale
+    // store, so a re-adopt does not stack duplicate readings every launch.
+    for (const m of meMetrics()) addMetric(m.key, m.value, m.note);
+  }, [hydrated, stale, completeOnboarding, startPath, addMetric]);
 
   if (!hydrated) {
     return (

@@ -40,7 +40,7 @@
  */
 
 import { buildLifeOperatingPlan, type LifeOperatingPlan } from '@/features/onboarding/buildPlan';
-import { ISAAC_ANSWERS, ISAAC_PROFILE, STATED_ON } from '@/features/me/profile';
+import { ISAAC_ANSWERS, ISAAC_PROFILE, ME, STATED_ON } from '@/features/me/profile';
 import type { InterviewAnswers } from '@/features/onboarding/script';
 
 /**
@@ -78,6 +78,31 @@ export function meOnboarding(): {
     behaviourIntentions: plan.behaviourIntentions,
     answers: ISAAC_ANSWERS as InterviewAnswers,
   };
+}
+
+/**
+ * The body numbers he has stated, as readings for the metrics stream.
+ *
+ * Isaac gave his height and body fat on 10 Nov and neither had anywhere
+ * to go: `LifeProfile` has no height field, because the app reads height
+ * from the `body.height` metric that Apple Health or `BodyNumbers` writes.
+ * A fact stated and then stored nowhere is this project's most repeated
+ * failure, so these are seeded as observations like any other.
+ *
+ * `source` is `'user'` rather than `'healthkit'` because he said them —
+ * and the distinction is load-bearing downstream, where
+ * `pace.ts` widens its interval for anything self-reported.
+ *
+ * **Weight is deliberately not here.** 90 kg is his own round number for
+ * himself, and seeding it would put a fictional reading at the head of
+ * the trend that `weekly-weight-trend` reads. The first real weight
+ * should be the first one he steps on for — 06:50, per `docs/DAILY.md`.
+ */
+export function meMetrics(): { key: string; value: number; note: string }[] {
+  return [
+    { key: 'body.height', value: ME.heightCm, note: `Stated ${STATED_ON}` },
+    { key: 'body.bodyFat', value: ME.bodyFatPct, note: `Stated ${STATED_ON}, not measured` },
+  ];
 }
 
 /** The paths his answers justify, for the caller to start after adopting. */

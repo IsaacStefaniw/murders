@@ -89,6 +89,32 @@ export interface Me {
    * that was not about his health at all.
    */
   birthYear: number;
+  /** Centimetres, stated 10 Nov 2026. Needed for BMI, and for the misread. */
+  heightCm: number;
+  /**
+   * Body fat percentage, stated rather than measured.
+   *
+   * It is here because of what it DISQUALIFIES. At 90 kg and 187 cm his
+   * BMI is 25.7, which the published Life's Essential 8 table scores 70
+   * and calls overweight. At 13% body fat that table is measuring the
+   * wrong thing, and `essential8.bmiMisread` exists for exactly this:
+   * *"BMI cannot tell muscle from fat, and on you it is reading the
+   * muscle as fat."*
+   *
+   * The consequence is that his leanness REMOVES a component rather than
+   * improving one — BMI drops out, the Essential 8 composite falls below
+   * the parts it needs, and the markers reading loses six years of
+   * flattery it had no right to. That is the honest direction and it is
+   * worth stating plainly next to the number.
+   */
+  bodyFatPct: number;
+  /**
+   * Sessions a week, averaged over the twenty years he has been training.
+   *
+   * Feeds `activityScore`, which tops out at 150 minutes a week — four
+   * lifting sessions plus a futsal game clears that several times over.
+   */
+  sessionsPerWeek: number;
   constraints: PhysicalConstraint[];
   /**
    * The training rung, stated rather than inferred.
@@ -135,6 +161,9 @@ export const ME: Me = {
   futsalDay: 1,
   futsalStart: '18:15',
   birthYear: 1988,
+  heightCm: 187,
+  bodyFatPct: 13,
+  sessionsPerWeek: 4,
   // Rack has adjustable safeties, confirmed 10 Nov, so barbell work needs
   // no spotter substitution. Asked because he benches 91% triples alone.
   constraints: [],

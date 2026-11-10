@@ -623,6 +623,46 @@ export interface BehaviourEvent {
   size?: 'small' | 'usual' | 'more';
 }
 
+/**
+ * A line typed when something happened, with the minute it happened on.
+ *
+ * ── The gap this closes ────────────────────────────────────────────────
+ *
+ * Isaac, 10 Nov 2026: *"Sauna wasn't logged per time I mentioned. Neither
+ * was my workout I don't believe?"*
+ *
+ * Correct both times. He told me about a sauna and a fourteen-set session
+ * and both went into a markdown file in the repo, which is not his phone.
+ * `features/me/adopt.ts` has called this `THE_LOG_GAP` since it was
+ * written: *"entries written on the phone and entries written in this
+ * repo are two separate records, and nothing reconciles them."*
+ *
+ * ── Why a new type rather than a Reflection ────────────────────────────
+ *
+ * `Reflection` is keyed by DATE and holds one evening's answers. This is
+ * keyed by the MINUTE and there can be a dozen a day. The difference is
+ * not cosmetic: `features/training/sessionTiming.ts` computes rest from
+ * timestamps, `features/behaviours/patterns.ts` finds the hours a
+ * behaviour clusters in, and `hotWindow` is *"entirely a function of the
+ * hour"*. A record with a date and no time cannot feed any of them — and
+ * the entry he most wanted kept, the urge at 15:21, is one I had to
+ * correct an hour because nothing stamped it.
+ */
+export interface LogNote {
+  id: string;
+  /** ISO timestamp of the MOMENT, not of the typing where they differ. */
+  at: string;
+  /** What he wrote, unparsed and unedited. */
+  text: string;
+  /**
+   * Where it came from. `typed` is the field; `backdated` means the time
+   * was set by hand to something other than now, which matters because a
+   * remembered time is weaker evidence than a stamped one.
+   */
+  source: 'typed' | 'backdated';
+  createdAt: string;
+}
+
 export type ReflectionMood = 1 | 2 | 3 | 4 | 5;
 
 export interface Reflection {
