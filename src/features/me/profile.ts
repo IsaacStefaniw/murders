@@ -197,7 +197,8 @@ export const ME: Me = {
   heightCm: 187,
   bodyFatPct: 13,
   sessionsPerWeek: 4,
-  saunaPerWeek: 3.5,
+  // Confirmed 4 on 10 Nov, not the 3-4 first stated.
+  saunaPerWeek: 4,
   saunaYears: 20,
   breathHoldBestSec: 200,
   // Rack has adjustable safeties, confirmed 10 Nov, so barbell work needs
