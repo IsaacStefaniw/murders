@@ -296,6 +296,70 @@ So the reading is not a summary of his health. It is a summary of the
 ten things this instrument can carry evidence for, two of which it can
 currently see.
 
+## "Sauna should be counted as it mimics moderate exercise"
+
+Put to me on 10 Nov, with "overwrite that". I ran it rather than argued
+it.
+
+### It is already a no-op
+
+| | activity score | pace reading |
+| --- | --- | --- |
+| training alone, ~360 min | **100** | **+1.56 years** |
+| training **+ 77 sauna minutes** | **100** | **+1.56 years** |
+
+`activityScore` reaches 100 at **150** minutes a week and he is at
+roughly 360 from lifting and futsal alone. The component has been at its
+ceiling the whole time, so adding three and a half sauna sessions moves
+it by nothing — and the Essential 8 composite is below its parts floor
+anyway, so it contributes nothing to the reading either way. Identical
+to two decimal places.
+
+**So the disagreement does not have to be settled to settle the
+question.** Overwriting it changes no number on any screen.
+
+### Where he is right
+
+Sauna does produce cardiovascular responses that overlap with moderate
+exercise. Heart rate climbs into the range moderate work produces, and
+the adaptations are real and measured — endothelial function, blood
+pressure, arterial compliance. Some trials find heat added to training
+beats training alone. None of that is in dispute.
+
+### Where the distinction holds
+
+Life's Essential 8 scores **minutes of moderate-to-vigorous physical
+activity**, and physical activity has a definition: bodily movement
+produced by skeletal muscle, with the energy expenditure that follows.
+The heart rate rise in a sauna is thermoregulatory — the skin's vessels
+dilate, blood pressure falls, and cardiac output rises to move blood to
+the surface. That is cardiovascular strain and it is not muscular work:
+the metabolic cost sits near 1.5–2 METs where moderate activity is
+defined as 3–6.
+
+So *"mimics moderate exercise"* is true of the heart rate, partly true
+of the adaptations, and not true of the thing the component counts.
+
+### And the reason I am not doing it anyway
+
+**It is the same move I spent this morning fixing.** The Essential 8
+component paid out 7.7 years from a composite computed from one eighth
+of itself, and I called that *"a lie with a particular shape:
+flattering, arriving early."* Pushing sauna minutes into a slot
+validated on something else is the same error pointed the same way.
+
+**The right complaint is the one already in this file**, two sections
+down: the instrument cannot see a twenty-year sauna habit, and that is a
+real limitation of a ten-slot instrument rather than a scoring bug. The
+honest fix is a graded sauna component, which needs evidence that does
+not exist — `sauna` is **C**, one cohort, 201 men in the top group.
+Inventing a coefficient is what `standards.ts` refuses to do for
+percentiles and what `LE8_MIN_PARTS` refuses to do for coverage.
+
+If he wants it counted anyway after reading this, it is his app and his
+call — but it would be a change that alters no output, so it would be
+a note in a file rather than a different number.
+
 ## What this reading is not
 
 - **`PROVISIONAL = true`** in `pace.ts`, and its own comment: false only
