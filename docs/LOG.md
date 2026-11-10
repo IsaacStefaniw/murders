@@ -19,6 +19,65 @@ fewer.
 
 ---
 
+## Entry 6 — Tuesday 10 November 2026, ~16:20. An urge, no slip.
+
+Reported live: *"I am already craving a drink / vape need defence
+mechanisms."*
+
+| field | value |
+| --- | --- |
+| `occurredAt` | **Tuesday ~16:20** |
+| `trigger` | end of the workday, two days after a four-night run, five hours after a 14-set session |
+| `context` | **not at home. Still out — his partner does Tuesday pickup** |
+| `detail` | **urge only. Nothing consumed.** Asked for defences rather than reporting a slip |
+| `size` | — |
+
+### This is the first entry that contradicts the cue, not the timing
+
+Every correction so far moved the *hour* earlier: 20:30, then 18:00,
+then ~16:40. The model that came out of it was `SAME_CUE_TWO_ARRIVALS`
+— *"Both of these start when you walk in the door... The cue is arriving
+home with nothing left, not the hour."*
+
+**He is not home.** Tuesday is one of the two days his partner collects
+the boys (`pickupDays: [1, 3, 4]` is Monday, Wednesday, Thursday), so
+there is no doorway in this entry at all. The craving arrived at the end
+of the workday, in the depleted state, **without the threshold**.
+
+So the doorway was never the cue. It was the reliable *co-occurrence* of
+the cue — because on three days out of five the state and the doorway
+arrive within ten minutes of each other, and nothing in four entries
+could tell them apart. Today is the day they came separately, and the
+state came first.
+
+**What that changes.** If-then two is cued on *"When I pull up after
+pickup"*, which means on a Tuesday or a Friday **it does not fire at
+all** — and Tuesday is the day this urge actually landed. The if-then
+needs a second branch cued on finishing work rather than on arriving
+home. `trigger-if-then` (**grade A**) is explicit that the cue must be a
+real moment; 16:30 at a desk is a real moment and it was not in the plan.
+
+### The defence that was already on the calendar
+
+The sauna planned for **16:30**, ten minutes after this. `NO_TRANSITION`
+had already named the hole; `sauna-recovery-low-heat`'s own `days: [2, 5]`
+had already put a session in it on exactly Tuesday and Friday — the two
+days the doorway if-then cannot fire. That alignment was luck, and it is
+the right intervention anyway.
+
+Both halves of the stand-in logic hold: it is **performed**, and it is a
+competing action that **cannot co-occur** with either behaviour, which
+is what `urge-stand-in` (C, habit reversal) actually asks for.
+
+### One entry, and what it cannot say
+
+An urge is not a slip and this one is a single observation. It does not
+show the doorway is irrelevant — four entries landed near it. It shows
+the doorway is **not necessary**, which is a smaller and more useful
+claim.
+
+---
+
 ## Entries 2–5 — Thursday 5 to Sunday 8 November 2026
 
 Reported 10 Nov: *"I also drank and vaped Thursday, Friday, Saturday
