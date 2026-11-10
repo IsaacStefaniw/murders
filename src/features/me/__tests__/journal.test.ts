@@ -84,6 +84,18 @@ describe('the tracked behaviours', () => {
     }
   });
 
+  it('records that BOTH windows were contradicted rather than hiding it', () => {
+    // Corrected three times and always earlier: 20:30, then 18:00, then
+    // ~16:40 once he said "closer to straight after work". The assertion
+    // is that it is now inside the first hour after work AND that the
+    // note still records having been wrong, rather than on the exact
+    // digits, which have moved three times and may move again.
+    const from = ASSUMED_WINDOW.alcohol.from;
+    expect(from >= '16:30' && from <= '17:30').toBe(true);
+    expect(ASSUMED_WINDOW.alcohol.note).toMatch(/not one logged event/i);
+    expect(ASSUMED_WINDOW.alcohol.note).toMatch(/THREE TIMES|corrected/i);
+  });
+
   it('records that the vaping window was contradicted rather than hiding it', () => {
     // Entry 1 put the vape inside 17:30-20:30, where profile.ts had
     // modelled it as downstream of the drink in the quiet window. The
