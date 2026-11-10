@@ -314,6 +314,24 @@ is up a step and prints the whole ramp, because the first version of
 that line said "up 5 on every set" and that was false for exactly this
 session.
 
+### The three daily numbers
+
+Asked for on 10 Nov: mood, weight and sleep, every day. They have their
+own file — `docs/DAILY.md` — because they change daily and this one does
+not.
+
+| | when | how |
+| --- | --- | --- |
+| **weight** | **06:50**, after the toilet, before food or drink | step on daily, **read only the weekly average** |
+| **sleep** | at the evening close | the two clock times, not the hours — regularity needs the times |
+| **mood** | at the evening close | out of ten, halves allowed |
+
+The weight timing is the anchor `weekly-weight-trend` (**grade B**)
+already carries: twenty minutes after waking, inside a ninety-minute
+window. The protocol itself says weekly and the library deliberately did
+not ship a daily weigh-in — `docs/DAILY.md` has the cited reason and the
+one distinction that resolves it.
+
 ### Monday — lunch · Upper A (bench-led)   *(futsal tonight)*
 
 | lift | sets × reps | reserve | rest |

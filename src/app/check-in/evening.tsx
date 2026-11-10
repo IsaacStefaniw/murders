@@ -9,18 +9,17 @@ import { Field } from '@/components/field';
 import { Screen } from '@/components/screen';
 import { SectionHeader } from '@/components/section-header';
 import { Spacing } from '@/constants/theme';
+import {
+  cleanMood,
+  MOOD_CHIPS,
+  MOOD_KEY,
+  MOOD_RANGE,
+  moodLabel,
+  toReflectionMood,
+} from '@/features/health/mood';
 import { analyseReflection } from '@/lib/ai/agents';
 import { todayKey } from '@/lib/dates';
 import { useAppStore } from '@/state/store';
-import type { ReflectionMood } from '@/types/domain';
-
-const MOODS: { value: ReflectionMood; label: string }[] = [
-  { value: 1, label: 'Rough' },
-  { value: 2, label: 'Off' },
-  { value: 3, label: 'Fine' },
-  { value: 4, label: 'Good' },
-  { value: 5, label: 'Great' },
-];
 
 /** One-minute evening reflection. Quick controls, optional text. */
 export default function EveningCheckIn() {
@@ -29,20 +28,32 @@ export default function EveningCheckIn() {
 
   const saveReflection = useAppStore((s) => s.saveReflection);
   const refreshSuggestions = useAppStore((s) => s.refreshSuggestions);
+  const addMetric = useAppStore((s) => s.addMetric);
 
-  const [mood, setMood] = useState<ReflectionMood | undefined>();
+  // The score out of ten, which is what gets stored as a metric. The 1–5
+  // bucket on the reflection is derived from it at save — see
+  // features/health/mood.ts for why there are two shapes and one write.
+  const [mood, setMood] = useState<number | undefined>();
   const [wentWell, setWentWell] = useState('');
   const [gotInTheWay, setGotInTheWay] = useState('');
+
+  const nudge = (by: number) =>
+    setMood((m) => (m === undefined ? undefined : cleanMood(m + by)));
 
   const save = () => {
     const reflection = {
       date,
       kind: 'evening' as const,
-      mood,
+      mood: mood === undefined ? undefined : toReflectionMood(mood),
       wentWell: wentWell.trim() || undefined,
       gotInTheWay: gotInTheWay.trim() || undefined,
     };
     saveReflection(reflection);
+    // The series the model reads. Without this the score lives only on the
+    // reflection, where readiness, Essential 8 and the pace inputs cannot
+    // reach it — which is how a number volunteered every night for a
+    // fortnight would have changed nothing.
+    if (mood !== undefined) addMetric(MOOD_KEY, mood, 'evening check-in');
     refreshSuggestions();
     // Structured signal extraction runs in the background; it never blocks
     // the user and falls back deterministically when AI is unavailable.
@@ -58,15 +69,41 @@ export default function EveningCheckIn() {
       <AppText variant="title">How was today?</AppText>
 
       <View style={styles.moods}>
-        {MOODS.map((m) => (
+        {MOOD_CHIPS.map((m) => (
           <Chip
-            key={m.value}
+            key={m.score}
             label={m.label}
-            selected={mood === m.value}
-            onPress={() => setMood(mood === m.value ? undefined : m.value)}
+            // Selected across the whole band, not just on the nose, or a
+            // nudge to 7.5 would clear the "Good" chip and leave the row
+            // looking as though nothing had been answered.
+            selected={mood !== undefined && toReflectionMood(mood) === toReflectionMood(m.score)}
+            onPress={() => setMood(mood === m.score ? undefined : m.score)}
           />
         ))}
       </View>
+
+      {/* The half step, shown only once a chip has been tapped. Offering it
+          first would turn a one-tap close into a number somebody has to
+          think about, which is how an evening check-in stops happening. */}
+      {mood !== undefined ? (
+        <View style={styles.nudge}>
+          <Chip
+            label="−½"
+            disabled={mood <= MOOD_RANGE.min}
+            hint="A little lower than the word"
+            onPress={() => nudge(-MOOD_RANGE.step)}
+          />
+          <AppText variant="body" color="text">
+            {mood} / 10 · {moodLabel(mood)}
+          </AppText>
+          <Chip
+            label="+½"
+            disabled={mood >= MOOD_RANGE.max}
+            hint="A little higher than the word"
+            onPress={() => nudge(MOOD_RANGE.step)}
+          />
+        </View>
+      ) : null}
 
       <SectionHeader title="What got in the way?" />
       <Field
@@ -98,6 +135,12 @@ export default function EveningCheckIn() {
 }
 
 const styles = StyleSheet.create({
+  nudge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginTop: Spacing.md,
+  },
   moods: {
     flexDirection: 'row',
     flexWrap: 'wrap',

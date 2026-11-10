@@ -106,6 +106,21 @@ export const METRICS: MetricDefinition[] = [
   { key: 'sleep.hours', label: 'Sleep', unit: 'h', domain: 'sleep', direction: 'higher' },
   { key: 'work.deepHours', label: 'Deep-work hours', unit: 'h/wk', domain: 'work', direction: 'higher' },
   { key: 'mind.minutes', label: 'Stillness minutes', unit: 'min/wk', domain: 'mind', direction: 'higher' },
+  /**
+   * Mood, nightly, out of ten.
+   *
+   * Asked for by name: *"I want to record my mood, weight and sleep every
+   * day as well."* Weight and sleep already had keys here; mood did not,
+   * and so it was recorded on a `Reflection` where nothing that reads this
+   * array could see it. See features/health/mood.ts for why the five chips
+   * stay and why the scale is ten wide.
+   *
+   * `direction: 'higher'` is true and nearly useless between people — one
+   * person's 6 is another's 8. Like `body.hrv` above, everything that reads
+   * this reads it against the person's own run of days, never a population
+   * figure, and it is a self-report rather than a measurement.
+   */
+  { key: 'mind.mood', label: 'Mood', unit: '/10', domain: 'mind', direction: 'higher', decimals: 1 },
   { key: 'finance.savingsRate', label: 'Savings rate', unit: '%', domain: 'finance', direction: 'higher' },
   { key: 'finance.weeklyIn', label: 'Put away this week', unit: '$', domain: 'finance', direction: 'higher' },
   /**
