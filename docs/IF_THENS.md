@@ -32,6 +32,63 @@ wanting it more is not a plan."*
 
 ---
 
+## Zero — the desk, mid-afternoon
+
+**Written 10 Nov at 15:21, while the urge was live.** This is the one
+that was missing, and entry 6 in `docs/LOG.md` is why: the craving
+landed at a desk, on a day with no pickup, **an hour and nine minutes
+before work ended.** Nothing in this document pointed at that moment.
+If-then two is cued on pulling up after pickup, so on a Tuesday or
+Friday it never fires; the 16:25 desk decision — already the corrected
+version of a 17:30 slot — is an hour downstream.
+
+> **When the urge lands at my desk, I stand up, fill a bottle of water,
+> and walk outside with it for five minutes.**
+
+Why this shape:
+
+- **It is performed, and it is available.** Standing, filling, walking.
+  Every other plan in this file needs a car, a kitchen or a bedtime; this
+  one needs a corridor.
+- **It is a change of place**, which is the whole of
+  `urge-ten-minutes-first` (**C**) — *"ten minutes and one change of
+  place... The wait is not the point; deciding after it is."*
+- **The water is not filler.** He trains at lunch and has a sauna
+  booked; `sauna-rehydrate` wants it anyway.
+- **It returns him to work.** Five minutes, not an afternoon. A plan
+  that costs the thing he is trying to be good at is a plan he drops.
+
+**Back-up branch**, for a meeting he cannot leave: *Ten long breaths
+out, the exhale twice as long as the breath in, before I answer
+anything.* That is `urge-stand-in` (**C**) matched to stress — *"a
+stress urge is arousal looking for an exit and falls to a long
+exhale"* — and the app route is `/session/breathe?urge=1`.
+
+---
+
+## Zero-point-five — Tuesday and Friday, finishing work
+
+The two days his partner collects the boys, which are the two days
+if-then two cannot fire — and the two days
+`sauna-recovery-low-heat` already schedules itself on (`days: [2, 5]`).
+
+> **When I finish work on a Tuesday or a Friday, I drive straight to the
+> sauna with the bag that is already in the car.**
+
+- **The destination is replaced, not resisted.** `NO_TRANSITION` says
+  the problem is that there is no decompression between work and home.
+  This is one, and it is twenty minutes rather than six hundred seconds.
+- **"Already in the car" is the whole trick.** `what-is-in-reach` (C).
+  A bag packed on Sunday is a decision made once instead of weekly.
+- **It cannot co-occur with either behaviour**, which is what
+  `urge-stand-in` actually asks of a stand-in.
+
+**The one strict rule, and it is safety rather than willpower:** never
+the sauna and then a drink. `sauna-rehydrate`'s own line is that about
+half of sauna deaths in the Finnish national series involved drink.
+
+---
+
 ## One — Monday, walking in from futsal
 
 **This is the one that is now evidenced rather than predicted.**
@@ -223,12 +280,21 @@ fifteen minutes pointed at the work week.
   five entries from **one** run of consecutive nights is not five
   independent observations. Treat ~16:40 as the best number available,
   not a measured habit.
-- **I have had this window wrong three times, always in the same
-  direction.** 20:30, then 18:00, now ~16:40. Each correction came from
-  you rather than from anything the app or I measured, and each moved
-  it earlier. If there is a fourth correction it will probably move
-  earlier again, so the thing to watch is whether 16:40 is really the
-  first one or just the first one that gets noticed.
+- **I had this window wrong three times in the same direction, said so,
+  and then it happened a fourth time.** 20:30, then 18:00, then ~16:40,
+  and on 10 Nov an urge at **15:21**. The prediction in this list was
+  *"if there is a fourth correction it will probably move earlier again,
+  so the thing to watch is whether 16:40 is really the first one or just
+  the first one that gets noticed."* It held, and it answers itself:
+  **16:40 was the first one noticed.** The urge runs over an hour ahead
+  of the act, and every number in this plan was fitted to the act.
+  Being reliably wrong in a known direction is not insight, but writing
+  the direction down in advance is the only reason the fourth one was
+  legible when it arrived — and a fifth would move earlier again.
+- **Zero and zero-point-five are reasoned from ONE urge entry.** Nothing
+  has been logged at a desk before 10 Nov, and an urge is not a slip.
+  The grade A belongs to `trigger-if-then` as a method; these two
+  sentences have one observation behind them.
 - **Those five nights were "worse than usual — a bad week."** So
   nothing here should be read as a description of a normal week. What
   a normal week looks like is still unknown, and a fortnight of
