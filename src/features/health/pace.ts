@@ -403,8 +403,44 @@ export function fitnessLogHazard(vo2max: number, age: number): number {
 export const SAUNA_FREQUENT_HR = 0.6;
 export const SAUNA_MIN_SESSIONS = 4;
 
-export function saunaLogHazard(sessionsPerWeek: number): number {
-  return sessionsPerWeek >= SAUNA_MIN_SESSIONS ? Math.log(SAUNA_FREQUENT_HR) : 0;
+/**
+ * ── Withdrawn the same day it was added, and this is why ──────────────
+ *
+ * Isaac, on seeing the component in his reading: *"Wait how is sauna a
+ * negative?"* He was asking about the sign. The answer to that is that
+ * negative is a credit — it is the one number on his page pointing the
+ * good way. But checking it properly turned up something worse than a
+ * confusing sign.
+ *
+ * **The number is not credible, and here is the comparison that settles
+ * it.** ln(0.60) converts to −5.90 raw years. Current smoking in this
+ * same instrument is RR 2.8, which is +11.9. So as built, four saunas a
+ * week was worth **half of lifetime smoking, in the opposite
+ * direction**, from one observational cohort of 2,315 self-reporting
+ * Finnish men.
+ *
+ * **And the decisive fault is the reference level.** The paper's 0.60 is
+ * four-to-seven sessions a week against **one** — not against none.
+ * Everybody in that comparison saunas. `PaceReading.relativeHazard` is
+ * defined against *"somebody at every component's reference level"*, and
+ * I set this component's reference at "fewer than four", which bundles a
+ * man who has never been in a sauna with one who goes three times a week
+ * and hands the full credit against that. **The paper does not establish
+ * that once a week is the same as never**, so the credit is being paid
+ * against a baseline nobody measured.
+ *
+ * That is the same error as the Essential 8 bug fixed this morning — a
+ * figure applied against the wrong reference, paying out in the
+ * flattering direction — and I made it again six hours later while
+ * citing that fix as the reason I would not.
+ *
+ * So the component stays visible, because the habit is real and the
+ * evidence is worth having on the page, and it scores **nothing**.
+ * Calibrating it would need the 2–3 band's hazard and a transfer to a
+ * never-sauna reference, and neither exists in what I could reach.
+ */
+export function saunaLogHazard(_sessionsPerWeek: number): number {
+  return 0;
 }
 
 export const SAUNA_PROVENANCE: Provenance = {
@@ -791,19 +827,19 @@ export function readPace(input: PaceInputs): PaceReading {
       measures:
         'How often you use a sauna in a usual week. The only component here whose evidence is a single cohort, which is why its interval is the widest on the page.',
       provenance: SAUNA_PROVENANCE,
-      logHazard: input.saunaPerWeek != null ? saunaLogHazard(input.saunaPerWeek) : null,
+      // Always null. See `saunaLogHazard` — the published hazard is
+      // measured against one session a week rather than none, so paying
+      // it against this instrument's reference person would be crediting
+      // a baseline nobody measured.
+      logHazard: null,
       detail:
         input.saunaPerWeek == null
           ? 'Not asked yet'
-          : input.saunaPerWeek >= SAUNA_MIN_SESSIONS
-            ? `${input.saunaPerWeek} a week — inside the band the cohort measured`
-            : `${input.saunaPerWeek} a week. The published band is ${SAUNA_MIN_SESSIONS}–7 against one, and the figure for two or three is not one we have — so this scores nothing rather than a number we made up.`,
+          : `${input.saunaPerWeek} a week, recorded and not scored`,
       blocked:
-        input.saunaPerWeek == null ? 'One question: sessions in a usual week.' : undefined,
-      opportunity:
-        input.saunaPerWeek != null && input.saunaPerWeek < SAUNA_MIN_SESSIONS
-          ? `A fourth session a week is where the cohort's figure starts. Worth knowing it is one observational study of Finnish men, not a result anybody has randomised.`
-          : undefined,
+        input.saunaPerWeek == null
+          ? 'One question: sessions in a usual week.'
+          : `The cohort compared ${SAUNA_MIN_SESSIONS}–7 sessions a week against ONE, not against none — so its figure cannot be credited against somebody who does not use a sauna at all. Kept here because the habit is real and the evidence is worth seeing; scored at nothing because the number would be against the wrong baseline.`,
     },
     {
       id: 'le8',

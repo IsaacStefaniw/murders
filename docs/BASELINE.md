@@ -360,6 +360,63 @@ If he wants it counted anyway after reading this, it is his app and his
 call — but it would be a change that alters no output, so it would be
 a note in a file rather than a different number.
 
+## The sauna component, added and withdrawn the same day
+
+*"Wait how is sauna a negative?"*
+
+**The sign first: negative is a credit.** Positive years mean the
+markers sit where an older person's usually do. Negative means younger.
+So −5.90 was the one number on his page pointing the good way.
+
+**But checking it properly killed it**, and he was right to ask.
+
+### The magnitude was not credible
+
+| | raw years |
+| --- | --- |
+| four saunas a week, as built | **−5.90** |
+| **current smoking**, same instrument | **+11.9** |
+
+Four saunas a week was worth **half of lifetime smoking, in the
+opposite direction** — from one observational cohort of 2,315
+self-reporting Finnish men, against a 200,000-person national linkage.
+
+### And the fault underneath it is the reference level
+
+The paper's 0.60 is four-to-seven sessions a week **against one**. Not
+against none. **Everybody in that comparison saunas.**
+
+`PaceReading.relativeHazard` is defined against *"somebody at every
+component's reference level"*, and I set this component's reference at
+"fewer than four" — which bundles a man who has never been in a sauna
+with one who goes three times a week, and pays the full credit against
+that. The paper does not establish that once a week is the same as
+never, so the credit was being paid against a baseline nobody measured.
+
+**That is the Essential 8 bug again**: a figure applied against the
+wrong reference, paying out in the flattering direction. I fixed that
+one at breakfast, cited it twice as the reason I would not invent a
+coefficient, and then made the same error with a different study six
+hours later.
+
+### Where it stands now
+
+**Recorded and not scored.** The component stays on the page with its
+full provenance, because the habit is real and the evidence is worth
+seeing. It contributes nothing, and it is not counted as observed — so
+it cannot inflate the "3 of 11 markers" the headline leans on either.
+
+Calibrating it honestly needs the 2–3 band's hazard and a transfer to a
+never-sauna reference. Neither exists in what I could reach, and
+`pubmed.ncbi.nlm.nih.gov` and `www.bmj.com` are outside this session's
+allowed network domains.
+
+**So his reading goes back to +1.6 years, and the research changed
+nothing about the number.** The twenty-year sauna habit is still
+invisible, which was his original complaint and is still the honest
+answer: a ten-slot instrument cannot see most of a person, and the
+remedy is not to force a number into it.
+
 ## What this reading is not
 
 - **`PROVISIONAL = true`** in `pace.ts`, and its own comment: false only

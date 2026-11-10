@@ -1,99 +1,93 @@
 /**
- * The sauna component — the one thing the research turned up that moves.
+ * The sauna component — added and withdrawn on the same day.
  *
- * Isaac, 10 Nov 2026: "How do we ensure they're incorporated — do
- * research and change, don't rely on our past app." He was objecting to
- * a reading that could not see a twenty-year habit, and he was right.
+ * Isaac asked for the things the instrument could not see to be
+ * incorporated. The research found a real hazard ratio: Laukkanen 2015,
+ * JAMA Internal Medicine, Kuopio Ischaemic Heart Disease cohort, 2,315
+ * Finnish men, 20.7 years, 929 deaths, four to seven sessions a week
+ * against ONE at all-cause HR 0.60 (0.46-0.80).
  *
- * Laukkanen 2015, JAMA Internal Medicine, Kuopio Ischaemic Heart Disease
- * cohort: 2,315 Finnish men, 20.7 years, 929 deaths. Four to seven
- * sessions a week against one, all-cause HR 0.60 (0.46-0.80).
+ * Then he asked why it showed as a negative, and checking it properly
+ * turned up two things.
  *
- * The hard part of this component is the threshold, not the hazard.
+ * The magnitude: ln(0.60) is -5.90 raw years, against current smoking at
+ * +11.9 in this same instrument. Four saunas a week was worth half of
+ * lifetime smoking in the opposite direction, from one observational
+ * cohort of self-reporting men.
+ *
+ * The fault: the reference is ONE session a week, not none. Everybody in
+ * that comparison saunas. relativeHazard is defined against somebody at
+ * every component's reference level, and crediting the full 0.60 against
+ * a person who has never used a sauna pays out against a baseline nobody
+ * measured — the same error as the Essential 8 bug fixed that morning.
+ *
+ * So it is recorded and not scored, and these hold that line.
  */
 
-import {
-  readPace,
-  SAUNA_FREQUENT_HR,
-  SAUNA_MIN_SESSIONS,
-  saunaLogHazard,
-} from '@/features/health/pace';
+import { readPace, SAUNA_MIN_SESSIONS, saunaLogHazard } from '@/features/health/pace';
+import { SMOKING_RR } from '@/features/health/negativeHabits';
 import type { PaceInputs } from '@/features/health/pace';
 
 const base: PaceInputs = { age: 38, sexAtBirth: 'male' };
 const saunaOf = (i: PaceInputs) => readPace(i).components.find((c) => c.id === 'sauna')!;
 
-describe('the threshold is four, because the band is four to seven', () => {
-  it('scores nothing at three a week rather than interpolating', () => {
-    // The paper's reference is one session and its band is 4-7. The 2-3
-    // figure is not one we have, and inventing it is the thing this file
-    // exists not to do.
-    expect(saunaLogHazard(3)).toBe(0);
-    expect(saunaLogHazard(3.5)).toBe(0);
-    expect(saunaLogHazard(0)).toBe(0);
+describe('it is recorded and not scored', () => {
+  it('scores zero at every frequency, including the published band', () => {
+    for (const n of [0, 1, 2, 3, 3.5, 4, 7, 14]) expect(saunaLogHazard(n)).toBe(0);
   });
 
-  it('pays the published hazard at four and above', () => {
-    expect(saunaLogHazard(4)).toBeCloseTo(Math.log(SAUNA_FREQUENT_HR), 10);
-    expect(saunaLogHazard(7)).toBe(saunaLogHazard(4));
-  });
-
-  it('does not keep paying out above the band', () => {
-    // Nobody measured ten a week. The cohort's top group is 4-7 and the
-    // component is flat across it rather than dose-responsive.
-    expect(saunaLogHazard(10)).toBe(saunaLogHazard(4));
-    expect(SAUNA_MIN_SESSIONS).toBe(4);
-  });
-
-  it('says WHY three scores nothing, rather than looking unmeasured', () => {
-    const three = saunaOf({ ...base, saunaPerWeek: 3 });
-    expect(three.logHazard).toBe(0);
-    expect(three.detail).toMatch(/published band is 4–7/);
-    expect(three.opportunity).toMatch(/fourth session/);
-  });
-});
-
-describe('what it does to a reading', () => {
-  it('is worth about four years at four a week, after attenuation', () => {
-    const without = readPace({ ...base, smoking: 'vapeOnly', drinking: 'moderate' });
-    const with4 = readPace({ ...base, smoking: 'vapeOnly', drinking: 'moderate', saunaPerWeek: 4 });
-    expect(without.yearsEquivalent).toBeGreaterThan(0);
-    // ln(0.6)/ln(2) * 8 * 0.6 = about -3.5 years.
-    const moved = with4.yearsEquivalent! - without.yearsEquivalent!;
-    expect(moved).toBeLessThan(-3);
-    expect(moved).toBeGreaterThan(-4);
-  });
-
-  it('changes nothing at three a week, which is the honest half', () => {
-    const three = readPace({ ...base, smoking: 'vapeOnly', drinking: 'moderate', saunaPerWeek: 3 });
+  it('never contributes to the reading', () => {
     const none = readPace({ ...base, smoking: 'vapeOnly', drinking: 'moderate' });
-    // Observed, because zero is a reading against the reference level —
-    // but it moves nothing.
-    expect(three.yearsEquivalent).toBeCloseTo(none.yearsEquivalent!, 6);
+    for (const n of [3, 4, 7]) {
+      const r = readPace({ ...base, smoking: 'vapeOnly', drinking: 'moderate', saunaPerWeek: n });
+      expect(r.yearsEquivalent).toBeCloseTo(none.yearsEquivalent!, 10);
+    }
   });
 
-  it('is observed once asked, so coverage reflects the question', () => {
-    expect(readPace(base).observed.map((c) => c.id)).not.toContain('sauna');
-    expect(readPace({ ...base, saunaPerWeek: 3 }).observed.map((c) => c.id)).toContain('sauna');
+  it('is never counted as observed, so coverage does not overstate', () => {
+    // A component that cannot move the figure must not inflate the
+    // "3 of 11 markers" the headline leans on.
+    expect(readPace({ ...base, saunaPerWeek: 4 }).observed.map((c) => c.id)).not.toContain('sauna');
+  });
+
+  it('still shows what he does, rather than reading as unasked', () => {
+    const c = saunaOf({ ...base, saunaPerWeek: 3.5 });
+    expect(c.detail).toBe('3.5 a week, recorded and not scored');
+    expect(c.source).toBe('self-reported');
+  });
+
+  it('says the reason, and the reason is the reference level', () => {
+    const c = saunaOf({ ...base, saunaPerWeek: 4 });
+    expect(c.blocked).toMatch(/against ONE, not against none/);
+    expect(c.blocked).toMatch(/wrong baseline/);
+  });
+
+  it('asks the question when it has no answer', () => {
+    expect(saunaOf(base).detail).toBe('Not asked yet');
+    expect(saunaOf(base).blocked).toMatch(/sessions in a usual week/);
   });
 });
 
-describe('what it is honest about', () => {
-  it('carries the healthy-user problem in its own provenance', () => {
+describe('why the magnitude could not stand', () => {
+  it('would have been half of lifetime smoking, in the other direction', () => {
+    const MRDT = 8;
+    const saunaYears = (Math.log(0.6) / Math.LN2) * MRDT;
+    const smokingYears = (Math.log(SMOKING_RR.current) / Math.LN2) * MRDT;
+    expect(saunaYears).toBeCloseTo(-5.9, 1);
+    expect(smokingYears).toBeCloseTo(11.9, 1);
+    // One observational cohort of 2,315 self-reporting men, against a
+    // 200,000-person linkage. The ratio is the argument.
+    expect(Math.abs(saunaYears) / smokingYears).toBeGreaterThan(0.45);
+  });
+});
+
+describe('the evidence is kept on the page', () => {
+  it('carries the full provenance even though it scores nothing', () => {
     const c = saunaOf({ ...base, saunaPerWeek: 4 });
+    expect(c.provenance.study).toMatch(/Laukkanen/);
     expect(c.provenance.grade).toBe('C');
+    expect(c.provenance.effect).toMatch(/versus one/i);
     expect(c.provenance.caveat).toMatch(/healthy-user/i);
-    expect(c.provenance.caveat).toMatch(/men only/i);
-    expect(c.provenance.sample).toMatch(/2,315/);
-  });
-
-  it('is self-reported, never measured', () => {
-    // It is a remembered weekly count. The interval should say so.
-    expect(saunaOf({ ...base, saunaPerWeek: 4 }).source).toBe('self-reported');
-  });
-
-  it('asks one question when it has nothing', () => {
-    expect(saunaOf(base).logHazard).toBeNull();
-    expect(saunaOf(base).blocked).toMatch(/sessions in a usual week/);
+    expect(SAUNA_MIN_SESSIONS).toBe(4);
   });
 });
