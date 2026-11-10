@@ -35,20 +35,22 @@
  * percentage suited the rep range. **Verifying arithmetic is not verifying
  * a prescription.**
  *
- * ── Double progression, which removes the percentage entirely ───────────
+ * ── The ramp to a heavy triple, which removes the percentage entirely ──
  *
- * Three rules:
+ * Three rules, and they are his rather than a textbook's:
  *
- *   1. Work inside the week's rep range.
- *   2. Hit the TOP of the range on EVERY set with 1–2 reps still in the
- *      tank, and add one step next session.
- *   3. The added weight drops you to the bottom of the range. Climb it
- *      again.
+ *   1. Ramp to one top set: 8, then 5, then 5, then 3.
+ *   2. When the triple goes up with a rep still in the tank, add one step
+ *      to EVERY set next session.
+ *   3. Every fourth week the top two sets come off. Nothing else changes.
  *
- * It cannot drift light, because the rep range polices it. It cannot drift
+ * It cannot drift light, because the triple polices it. It cannot drift
  * heavy, because the reserve does. And it needs no one-rep max, which is
  * the data this app has repeatedly been wrong about — a remembered max is
- * worse evidence than a set that actually happened.
+ * worse evidence than a set that actually happened. Three times in two
+ * days I put his bench e1RM at 138, then 124–128, then 132, from three
+ * sets he described; his own first answer of 130 was the closest of the
+ * four.
  *
  * ── What it refuses to do ─────────────────────────────────────────────
  *
@@ -84,49 +86,130 @@ export function reserveOf(set: LoggedSet): number | null {
   return Math.max(0, 10 - set.rpe);
 }
 
+
 export interface RepRange {
   min: number;
   max: number;
 }
 
+/**
+ * One rung of the ramp: reps to hit, and the load as a fraction of the top
+ * set.
+ *
+ * ── Why a fraction here, after refusing one above ─────────────────────
+ *
+ * The thing this file refuses is a percentage of an **estimated one-rep
+ * max** — a number nobody has lifted, derived by formula from a remembered
+ * set, and wrong by nine kilos three times in two days in this project
+ * alone. A fraction of the **top set** is a different animal: the top set
+ * is a weight that went on the bar last session and came off it again, and
+ * the lead-in sets are the ladder up to it. Nothing here is estimated.
+ *
+ * The shares are read off Isaac's own session, 10 Nov 2026:
+ * 100 / 110 / 115 / 120, which is 0.83 / 0.92 / 0.96 / 1.00 to within the
+ * rounding. They are his numbers, not a textbook's.
+ */
+export interface RampSet {
+  /** Reps to hit on this set. */
+  reps: number;
+  /** Load as a fraction of the top set, before rounding to a plate step. */
+  share: number;
+}
+
 /** The week's prescription. `reserve` is reps to leave, not an RPE. */
 export interface WeekTarget {
-  sets: number;
-  range: RepRange;
+  /**
+   * Lightest first. The LAST entry is the top set, and it is the only one
+   * the progression rule reads — see `prescribe`.
+   */
+  ramp: RampSet[];
+  /** Reps to leave in the tank on the top set. */
   reserve: RepRange;
 }
 
 /**
- * The four weeks, as reps and reserve rather than percentages.
+ * The pyramid, which is what he actually does.
  *
- * Week 4 is a deload and its reserve is deliberately large: it is meant to
- * feel too easy, which is its whole job. A deload that feels like a test
- * is a fifth hard week with a nice name on it.
+ * ── What this replaces, and why the old one was wrong ─────────────────
+ *
+ * The first version of this block was `3 × 6–10`, flat. That was my
+ * invention, not his, and he corrected it over three messages on 10 Nov:
+ * 100 kg × 8, then 110 × 5, then 115 × 5, then 120 × 3 — *"I've been
+ * training like this for years."*
+ *
+ * A flat triple of sets in a four-rep window and an ascending ramp to a
+ * heavy triple are not the same stimulus and they are not the same
+ * session. Prescribing the first to somebody who does the second is the
+ * mistake this whole file was written to stop, in a new costume: I had
+ * removed the bad percentage and kept my own guess about the shape.
+ *
+ * ── Why the three hard weeks are identical ────────────────────────────
+ *
+ * Because he said so. Asked how the weeks vary, the answer was that they
+ * do not — he runs the pyramid and adds weight when the triple has a rep
+ * left in it. That is already a progression, and a second one laid on top
+ * of it (a percentage wave by week) would fight it: the load here comes
+ * from last session's performance, so the week can only set reps and
+ * reserve without the two rules pulling in opposite directions.
+ *
+ * Week 4 drops the top two sets rather than dropping the load, which is
+ * also his: *"every fourth week, drop the top two sets."* It leaves the
+ * 8 and the 5 at the weights they were, which is a deload you can still
+ * recognise as your own session.
  */
-export const BLOCK: WeekTarget[] = [
-  { sets: 3, range: { min: 6, max: 10 }, reserve: { min: 1, max: 2 } },
-  { sets: 3, range: { min: 6, max: 10 }, reserve: { min: 1, max: 2 } },
-  { sets: 4, range: { min: 6, max: 8 }, reserve: { min: 1, max: 2 } },
-  { sets: 2, range: { min: 8, max: 8 }, reserve: { min: 4, max: 5 } },
+const PYRAMID: RampSet[] = [
+  { reps: 8, share: 0.83 },
+  { reps: 5, share: 0.92 },
+  { reps: 5, share: 0.96 },
+  { reps: 3, share: 1 },
 ];
 
+export const BLOCK: WeekTarget[] = [
+  { ramp: PYRAMID, reserve: { min: 1, max: 2 } },
+  { ramp: PYRAMID, reserve: { min: 1, max: 2 } },
+  { ramp: PYRAMID, reserve: { min: 1, max: 2 } },
+  // The deload, and its reserve is deliberately large: its whole job is to
+  // feel too easy. A deload that feels like a test is a fifth hard week
+  // with a nice name on it.
+  { ramp: PYRAMID.slice(0, 2), reserve: { min: 4, max: 5 } },
+];
+
+/** How many sets the week asks for. */
+export const setsIn = (target: WeekTarget): number => target.ramp.length;
+
+/** The top set of the week — the one the progression rule reads. */
+export const topSetOf = (target: WeekTarget): RampSet => target.ramp[target.ramp.length - 1];
+
 export type Verdict =
-  /** Top of range on every set with reserve left. Add a step. */
+  /** Top set hit its reps with reserve left. Add a step to the whole ramp. */
   | 'progress'
-  /** In range. Repeat the load and try for more reps. */
+  /** Top set made its reps with nothing to spare. Repeat the load. */
   | 'hold'
-  /** Under range, or no reserve anywhere. Stay, and say why. */
+  /** Top set came in under its reps. Stay, and say why. */
   | 'stay'
-  /** Under range twice running at this load. Take a step down. */
+  /** Under the target twice running at this load. Take a step down. */
   | 'back-off'
   /** Nothing logged at this lift. Calibrate instead. */
   | 'calibrate';
 
+/** One set as it goes on the bar today. */
+export interface PrescribedSet {
+  reps: number;
+  loadKg: number;
+  /** True for the set the progression rule reads. */
+  top: boolean;
+}
+
 export interface Prescription {
   lift: string;
   verdict: Verdict;
-  /** Null only for 'calibrate'. */
+  /**
+   * The TOP set's load — the number the ramp is built from and the one the
+   * progression moves. Null only for 'calibrate'.
+   */
   loadKg: number | null;
+  /** Every set, lightest first. Empty only for 'calibrate'. */
+  sets: PrescribedSet[];
   target: WeekTarget;
   /** The sentence the screen shows. Plain, specific, never a scold. */
   line: string;
@@ -152,21 +235,71 @@ export function historyFor(logs: WorkoutLog[], lift: string): { log: WorkoutLog;
     .sort((a, b) => b.log.date.localeCompare(a.log.date));
 }
 
-/** The load a session was run at — the modal weight, not the heaviest set. */
-function loadOf(sets: LoggedSet[]): number | null {
+/**
+ * The top set of a logged session: the heaviest weight that went up.
+ *
+ * **This reverses the earlier rule deliberately.** The first version took
+ * the heaviest among the most frequent weights — the modal load — so that
+ * a session run at 100 with one back-off set at 90 read as 100. Under a
+ * flat block that was right, because every working set carried the same
+ * weight and the odd one out was noise.
+ *
+ * Under a pyramid it is wrong, and wrong in the direction that matters. A
+ * session of 100/110/115/120 has four weights with a count of one each,
+ * and a session of 110/110/115/120 has a mode of 110 — so the modal rule
+ * would read his top set as ten kilos lighter than it was and then
+ * progress from there. The ramp's anchor is the heaviest set, full stop.
+ */
+function topLoadOf(sets: LoggedSet[]): number | null {
   const weights = sets.map((s) => s.weightKg).filter((w): w is number => w !== undefined);
-  if (weights.length === 0) return null;
-  const counts = new Map<number, number>();
-  for (const w of weights) counts.set(w, (counts.get(w) ?? 0) + 1);
-  // Heaviest among the most frequent, so a session run at 100 with one
-  // back-off set at 90 reads as 100 rather than as a coin toss.
-  return [...counts.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0][0];
+  return weights.length === 0 ? null : Math.max(...weights);
 }
 
-/** The smallest reserve across the working sets — the binding one. */
-function bindingReserve(sets: LoggedSet[]): number | null {
+/** The sets logged at the session's top weight, which is where the rule looks. */
+function topSets(sets: LoggedSet[], topKg: number): LoggedSet[] {
+  return sets.filter((s) => s.weightKg === topKg);
+}
+
+/**
+ * The reserve on the top set — the binding one when it was done twice.
+ *
+ * An absent RPE is silence, not a zero (see `reserveOf`), so a top set
+ * logged without one leaves the reserve condition unmet rather than met.
+ * The load does not move on a set nobody said anything about.
+ */
+function topReserve(sets: LoggedSet[]): number | null {
   const values = sets.map(reserveOf).filter((r): r is number => r !== null);
   return values.length === 0 ? null : Math.min(...values);
+}
+
+/**
+ * The ramp in kilos, from the top set's load.
+ *
+ * Every rung is rounded to the lift's own plate step, because a number you
+ * cannot load is not a prescription — and clamped at the top set, since
+ * rounding 0.96 upward could otherwise put the third set above the fourth.
+ *
+ * **One consequence, said plainly because a line of copy got it wrong
+ * first.** The rungs are proportional, so a 5 kg bump in a squat top set
+ * lifts the 0.83 rung by 0.85 kg — which rounds to nothing on a 5 kg grid.
+ * A top set going 100 → 105 takes the ramp from 85/90/95/100 to
+ * 85/95/100/105: the bottom rung lags a session and then catches up. So
+ * the prescription says *the top set* is up a step, never "every set",
+ * and the screen prints the whole ramp rather than a step and a promise.
+ */
+export function rampFor(lift: string, topKg: number, target: WeekTarget): PrescribedSet[] {
+  const step = LIFT_STEP[lift] ?? STEP_KG.upper;
+  const last = target.ramp.length - 1;
+  return target.ramp.map((rung, i) => ({
+    reps: rung.reps,
+    loadKg: Math.min(topKg, Math.round((topKg * rung.share) / step) * step),
+    top: i === last,
+  }));
+}
+
+/** "100 / 110 / 115 / 120 kg" — the ramp as a person reads it. */
+export function rampLine(sets: PrescribedSet[]): string {
+  return `${sets.map((s) => s.loadKg).join(' / ')} kg`;
 }
 
 /**
@@ -182,6 +315,7 @@ export function prescribe(
   week: number,
 ): Prescription {
   const target = BLOCK[Math.min(Math.max(week, 1), BLOCK.length) - 1];
+  const top = topSetOf(target);
   const step = LIFT_STEP[lift] ?? STEP_KG.upper;
   const history = historyFor(logs, lift);
 
@@ -190,78 +324,93 @@ export function prescribe(
       lift,
       verdict: 'calibrate',
       loadKg: null,
+      sets: [],
       target,
-      line: `First time on ${lift.toLowerCase()} in the app. Pick a weight you could do about twelve times, do a set of eight, and count what you had left — 1 or 2 is right.`,
+      line: `First time on ${lift.toLowerCase()} in the app. Work up to a set of ${top.reps} you are sure of, stop with a rep or two left, and note it — the ramp builds itself from that number next time.`,
     };
   }
 
   const [latest, previous] = history;
-  const load = loadOf(latest.sets);
+  const topKg = topLoadOf(latest.sets);
   const reps = latest.sets.map((s) => s.reps);
-  const reserve = bindingReserve(latest.sets);
-  const last = load === null ? undefined : { date: latest.log.date, loadKg: load, reps, reserve };
+  const last =
+    topKg === null
+      ? undefined
+      : { date: latest.log.date, loadKg: topKg, reps, reserve: topReserve(topSets(latest.sets, topKg)) };
 
-  if (load === null) {
+  if (topKg === null) {
     return {
       lift,
       verdict: 'calibrate',
       loadKg: null,
+      sets: [],
       target,
       line: `Last ${lift.toLowerCase()} was logged without a weight, so there is nothing to work from. Note the load this time and the next one prescribes itself.`,
       last,
     };
   }
 
-  const hitTop = reps.length >= target.sets && reps.every((r) => r >= target.range.max);
-  const underRange = reps.some((r) => r < target.range.min);
+  const heaviest = topSets(latest.sets, topKg);
+  const topReps = Math.max(...heaviest.map((s) => s.reps));
+  const reserve = topReserve(heaviest);
+  const made = topReps >= top.reps;
   const hasReserve = reserve !== null && reserve >= target.reserve.min;
 
-  // Rule 2. Both halves required: the reps AND something left. Reps alone
-  // at zero reserve is a set taken to failure, which is a different thing
-  // and is not evidence the load is ready to move.
-  if (hitTop && hasReserve) {
+  const atLoad = (kg: number) => ({ sets: rampFor(lift, kg, target), loadKg: kg });
+
+  // The rule, and both halves are required. Reps at zero reserve is a set
+  // taken to failure, which is a different thing and is not evidence the
+  // load is ready to move.
+  if (made && hasReserve) {
+    const next = atLoad(topKg + step);
     return {
       lift,
       verdict: 'progress',
-      loadKg: load + step,
+      ...next,
       target,
-      line: `${load + step} kg today, up ${step}. Last time you got ${reps.join('/')} at ${load} kg with ${reserve} left — that is the top of the range on every set, so it moves.`,
+      line: `${rampLine(next.sets)} — the top set is up ${step}. Last time it was ${topReps} at ${topKg} kg with ${reserve} left, so it moves.`,
       last,
     };
   }
 
-  // Two sessions under the range at the same load is not a bad day, it is
-  // the wrong load. Down a step rather than a third attempt at it.
-  const previousLoad = previous ? loadOf(previous.sets) : null;
-  const previousUnder = previous ? previous.sets.some((s) => s.reps < target.range.min) : false;
-  if (underRange && previousLoad === load && previousUnder) {
+  // Two sessions short of the target at the same top load is not a bad day,
+  // it is the wrong load. Down a step rather than a third attempt at it.
+  const previousTop = previous ? topLoadOf(previous.sets) : null;
+  const previousShort =
+    previous && previousTop !== null
+      ? Math.max(...topSets(previous.sets, previousTop).map((s) => s.reps)) < top.reps
+      : false;
+  if (!made && previousTop === topKg && previousShort) {
+    const down = atLoad(Math.max(step, topKg - step));
     return {
       lift,
       verdict: 'back-off',
-      loadKg: Math.max(step, load - step),
+      ...down,
       target,
-      line: `${Math.max(step, load - step)} kg today, down ${step}. ${load} kg has come in under ${target.range.min} reps twice, so it is the load rather than the day.`,
+      line: `${rampLine(down.sets)} — the top set is down ${step}. It has come in under ${top.reps} twice at ${topKg} kg, so it is the load rather than the day.`,
       last,
     };
   }
 
-  if (underRange) {
+  if (!made) {
+    const same = atLoad(topKg);
     return {
       lift,
       verdict: 'stay',
-      loadKg: load,
+      ...same,
       target,
-      line: `${load} kg again. Last time you got ${reps.join('/')}, which is under ${target.range.min} on at least one set — same weight until all ${target.sets} are in range.`,
+      line: `${rampLine(same.sets)} — the same again. Last time the top set was ${topReps}, and it wants ${top.reps} before the weight moves.`,
       last,
     };
   }
 
+  const same = atLoad(topKg);
   return {
     lift,
     verdict: 'hold',
-    loadKg: load,
+    ...same,
     target,
-    line: `${load} kg again, and go for ${target.range.max} on all ${target.sets} sets. Last time: ${reps.join('/')}${reserve === null ? '' : ` with ${reserve} left`}.`,
+    line: `${rampLine(same.sets)} — the same again, and ${top.reps} on the top set with a rep left. Last time: ${reps.join('/')}${reserve === null ? ' (no effort noted, so the load stays)' : ` with ${reserve} left`}.`,
     last,
   };
 }
@@ -274,6 +423,8 @@ export function prescribe(
  * that week needs.
  */
 export function reserveLine(target: WeekTarget): string {
-  if (target.reserve.min >= 4) return 'Deload. Leave four or five reps in the tank — it is meant to feel easy.';
-  return `Stop with ${target.reserve.min}–${target.reserve.max} reps left. The last one should be slow and certain, not a question.`;
+  if (target.reserve.min >= 4) {
+    return `Deload — the top two sets come off and that is the whole change. ${setsIn(target)} sets, and leave four or five reps in the tank.`;
+  }
+  return `Stop with ${target.reserve.min}–${target.reserve.max} reps left on the top set. The last one should be slow and certain, not a question.`;
 }

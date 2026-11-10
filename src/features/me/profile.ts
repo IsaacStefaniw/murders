@@ -74,6 +74,27 @@ export interface Me {
   futsalDay: Weekday;
   futsalStart: string;
   constraints: PhysicalConstraint[];
+  /**
+   * The training rung, stated rather than inferred.
+   *
+   * Isaac, 10 Nov 2026: *"been training for 20 years and doing heavy
+   * weight for 10"*.
+   *
+   * `trainingExperience: 'consistent'` is the most advanced answer the
+   * interview offers, and `LEVEL_FROM_EXPERIENCE` maps it to
+   * **established** — one rung below the top. The difference is not
+   * cosmetic. `LEVEL_TUNING.advanced` gives +1 set per lift, +2.5% load,
+   * an RPE cap of 9 instead of 8, +1 accessory, and a deliberate
+   * overreach in week 3.
+   *
+   * That is a precise description of how he actually trains, and the app
+   * could have given it to him at any point in the last six weeks. The
+   * interview had no way to say "twenty years", so the answer that fit
+   * best was the one that under-prescribed.
+   */
+  trainingLevel: 'foundation' | 'developing' | 'established' | 'advanced';
+  /** Years lifting, and years lifting heavy. Provenance for the rung. */
+  trainingYears: { total: number; heavy: number };
 }
 
 export const ME: Me = {
@@ -97,7 +118,11 @@ export const ME: Me = {
   pickupDays: [1, 3, 4],
   futsalDay: 1,
   futsalStart: '18:15',
+  // Rack has adjustable safeties, confirmed 10 Nov, so barbell work needs
+  // no spotter substitution. Asked because he benches 91% triples alone.
   constraints: [],
+  trainingLevel: 'advanced',
+  trainingYears: { total: 20, heavy: 10 },
 };
 
 /* ── Derived, so nothing recomputes it wrongly ────────────────────────── */
@@ -220,6 +245,12 @@ export const ISAAC_PROFILE: LifeProfile = {
   existingHabits: ['workout', 'walking'],
   constraints: ME.constraints,
   weekShape: 'employed',
+  // Carried onto the profile, because the profile is what the store reads.
+  // Stated on `ME` and left there, this field was inert: `trainingLevelState`
+  // builds the rung from the earned ladder and the interview's claim, and a
+  // constant nobody reads is the exact failure this project keeps repeating
+  // — `features/me/week.ts` is still sitting unread as I write this.
+  statedTrainingLevel: ME.trainingLevel,
   // The day the facts were stated, not the day the object was constructed —
   // a constant that reported `new Date()` would claim to be newly true on
   // every app launch, which is the opposite of what STATED_ON is for.

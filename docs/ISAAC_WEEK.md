@@ -204,10 +204,16 @@ You said: *"those bench press kilos are way too light, I could do 15
 reps of 90 consistently."* You are right, and there are two separate
 errors stacked on each other.
 
-**One — your stated 130 understates you.** Fifteen reps at 90 kg
-implies an e1RM of **135 (Epley) to 147 (Brzycki)**. Call it **138**. A
-remembered one-rep max is worse data than a set you actually did, so
-the 15 × 90 wins and the 130 goes.
+**One — your stated 130 looked like an understatement.** Fifteen reps
+at 90 kg implies an e1RM of **135 (Epley) to 147 (Brzycki)**, so I
+called it 138 on the principle that a set you actually did beats a
+remembered max.
+
+**That principle is right and I applied it badly.** Two more sets later
+the figure settled at ~132 and **your 130 was the best number anybody
+had.** The 138 below is left as written because the rest of this
+section is about a real bug and it is the number that bug was computed
+against — see *Your max* further down for where it landed.
 
 **Two — and this one is the generator's.** Its scheme for this goal:
 
@@ -235,111 +241,150 @@ a number never checked against the thing it describes. It is also
 precisely what `trainingProgramme`'s auto-regulation exists to catch
 and cannot, because nothing in the app ever asks how the set felt.
 
-### So: rep targets, not kilos
+### The session you actually do, which is now the programme
 
-You asked to self-calibrate. At your experience that is the better
-instrument — it needs no one-rep max and it corrects itself every
-session instead of inheriting an error for four weeks.
+**You showed me, rather than telling me.** 10 Nov, bench press:
 
-**Effort: stop with 1–2 reps left.** Not to failure. The last rep
-should be slow and certain, not a question.
-
-**Starting loads are a first guess to be tested, not a prescription.**
-Only the bench comes from something you measured; the other three are
-your stated numbers scaled by the same ~6% the bench was understated
-by, which is a guess and says so.
-
-| lift | you said | corrected | **start at** | add |
-| --- | --- | --- | --- | --- |
-| Squat | 110 | ~117 | **87.5 kg** | +5 kg |
-| Bench press | 130 | **138** *(measured)* | **102.5 kg** | +2.5 kg |
-| Deadlift | 140 | ~149 | **112.5 kg** | +5 kg |
-| Overhead press | 80 | ~85 | **62.5 kg** | +2.5 kg |
-
-**Session one is a calibration, not a workout.** Load the start weight,
-do a set of 8, count what you had left:
-
-| reps left after 8 | verdict | do this |
+| set | load | reps |
 | --- | --- | --- |
-| 0 | too heavy | drop one step, finish there |
-| **1–2** | **correct** | this is your working weight |
-| 3–4 | a bit light | add one step for set two |
-| 5+ | much too light | add two steps — the table above was wrong for you |
+| 1 | 100 kg | 8 |
+| 2 | 110 kg | 5 |
+| 3 | 115 kg | 5 |
+| 4 | **120 kg** | **3** |
 
-### Double progression — the whole progression rule
+Then incline cable at 80 kg and wide-grip pulldowns at **80 kg × 15,
+four sets**. Twenty years training, ten of them heavy. *"I've been
+training like this for years."*
 
-This replaces the percentages entirely, and it is three lines:
+That is an ascending ramp to one heavy triple. It is not three sets in
+a four-rep window, which is what both earlier versions of this
+document prescribed — first as a percentage of a 1RM, then as a flat
+double-progression block. **The percentage was a bug and the flat block
+was my guess**, and the second one survived precisely because fixing
+the first one felt like enough.
 
-1. Work in the week's rep range.
-2. When you hit the **top** of the range on **every set** with 1–2
-   still left, add one step next session.
-3. The added weight drops you to the bottom of the range. Climb it
-   again.
+### Your max, and the fact that your first answer was the right one
 
-No percentages, no estimating, no four-week-old number deciding today's
-load. It cannot drift light, because the rep range polices it, and it
-cannot drift heavy, because the reserve does.
+| when | my figure | from |
+| --- | --- | --- |
+| first | 138 | 15 × 90, Epley/Brzycki |
+| then | 124–128 | 110 × 5 |
+| **now** | **~132** | **120 × 3** |
+| **you said, at the start** | **130** | — |
+
+**Your stated 130 was closer than any of my three corrections.** Both
+of my "fixes" moved it in the wrong direction and I presented each as
+the measured answer. Worth writing down, because this document has
+spent a lot of words on the principle that a set that happened beats a
+remembered number — and here the remembered number won.
+
+### The four ramps
+
+The top set of each is **91% of the one-rep max**, which is what your
+own bench session works out to. Every rung is rounded to the plates
+that lift moves in, so these are numbers you can actually load.
+
+| lift | 8 | 5 | 5 | **3** |
+| --- | --- | --- | --- | --- |
+| **Bench press** | 100 | 110 | 115 | **120** |
+| **Squat** | 85 | 90 | 95 | **100** |
+| **Deadlift** | 105 | 115 | 120 | **127.5** |
+| **Overhead press** | 60 | 67.5 | 70 | **72.5** |
+
+**Only the bench is evidenced.** The other three are your stated 110,
+140 and 80 taken at the same 91%, and none of those three has been
+tested in front of me. The bench episode is the reason to take them
+seriously rather than scale them: your stated number was right.
+
+### The progression rule — three lines, and they are yours
+
+1. Ramp to one top set: **8, then 5, then 5, then 3.**
+2. When the **triple** goes up with a rep still in the tank, the top
+   set takes one step and the ramp rebuilds from it.
+3. **Every fourth week the top two sets come off.** Nothing else
+   changes.
+
+Bench 120 → 122.5 gives **102.5 / 112.5 / 117.5 / 122.5**.
+
+One honest wrinkle: the rungs are proportional, so 5 kg on a 100 kg
+squat lifts the 83% rung by under a kilo — nothing, on 5 kg plates. A
+squat top set going 100 → 105 reads **85 / 95 / 100 / 105**: the bottom
+rung lags one session and then catches up. The app says *the top set*
+is up a step and prints the whole ramp, because the first version of
+that line said "up 5 on every set" and that was false for exactly this
+session.
 
 ### Monday — lunch · Upper A (bench-led)   *(futsal tonight)*
 
 | lift | sets × reps | reserve | rest |
 | --- | --- | --- | --- |
-| **Bench press** | per week table | **1–2 left** | 120s |
-| A1 Barbell row | 3 × 6–10 | 2–3 left | — |
-| A2 Lat pulldown | 3 × 10–12 | 2–3 left | 75s |
+| **Bench press** | **8 / 5 / 5 / 3** — the ramp | **1–2 left on the triple** | 120s |
+| A1 Barbell row | 3 × 10–15 | 2–3 left | — |
+| A2 Lat pulldown | **4 × 10–15** | 2–3 left | 75s |
 
 ### Tuesday — 17:00 at home · Upper B (overhead-led)
 
 | lift | sets × reps | reserve | rest |
 | --- | --- | --- | --- |
-| **Overhead press** | per week table | **1–2 left** | 120s |
-| A1 Incline press | 3 × 8–10 | 2–3 left | — |
-| A2 Pulley row | 3 × 10–12 | 2–3 left | 75s |
+| **Overhead press** | **8 / 5 / 5 / 3** — the ramp | **1–2 left on the triple** | 120s |
+| A1 Incline press | 3 × 10–15 | 2–3 left | — |
+| A2 Pulley row | 3 × 10–15 | 2–3 left | 75s |
 
 ### Wednesday — lunch · Lower A (squat-led)
 
 | lift | sets × reps | reserve | rest |
 | --- | --- | --- | --- |
-| **Squat** | per week table | **1–2 left** | 120s |
-| A1 Romanian deadlift | 3 × 8–10 | 2–3 left | — |
-| A2 Leg extension | 3 × 10–12 | 2–3 left | 75s |
+| **Squat** | **8 / 5 / 5 / 3** — the ramp | **1–2 left on the triple** | 120s |
+| A1 Romanian deadlift | 3 × 10–15 | 2–3 left | — |
+| A2 Leg extension | 3 × 10–15 | 2–3 left | 75s |
 
 ### Friday — 17:00 at home · Lower B (hinge-led)
 
 | lift | sets × reps | reserve | rest |
 | --- | --- | --- | --- |
-| **Deadlift** | per week table | **1–2 left** | 120s |
-| A1 Smith or split squat | 3 × 8–10 | 2–3 left | — |
+| **Deadlift** | **8 / 5 / 5 / 3** — the ramp | **1–2 left on the triple** | 120s |
+| A1 Smith or split squat | 3 × 10–15 | 2–3 left | — |
 | A2 Leg extension | 3 × 12–15 | 2–3 left | 60s |
 
 **A1/A2 are supersets** — alternate them. That is how three exercises
 fit in 25 minutes without cutting rest on the lift that matters. Each
-session: 5 minutes warming up, 25 working. Squat day runs closest to the
-wire; if lunch is tight, drop A2, never the main lift or its rest.
+session: 5 minutes warming up, 25 working.
+
+**Four ramped sets is more main-lift work than three flat ones**, and
+the lunch slot is 32 minutes. If a session runs out of room, the order
+to cut is: A2 first, then A1, then the 8 off the front of the ramp.
+Never the triple and never its rest.
 
 **The accessories sit at 2–3 in reserve, not 1–2**, and one honest
-caveat, said once: four sessions a week at 1–2 reserve, in a deficit,
-on broken sleep, in the fortnight you stop drinking and vaping, is a
-lot of accumulated fatigue — and fatigue is what makes an evening hard
-to hold. Hard effort on the main lift, accessories one notch back, is
-how you get the stimulus without spending the thing §1 says the whole
-plan rests on. If week two feels flat, that is the dial to turn, not
-the drinking.
+caveat, said once: four sessions a week at 1–2 reserve on the main
+lift, in a deficit, on broken sleep, in the fortnight you stop
+drinking and vaping, is a lot of accumulated fatigue — and fatigue is
+what makes an evening hard to hold. Hard effort on the triple,
+accessories one notch back, is how you get the stimulus without
+spending the thing §1 says the whole plan rests on. If week two feels
+flat, that is the dial to turn, not the drinking.
 
 ### How the four weeks move
 
 | week | main lift | reserve | what moves |
 | --- | --- | --- | --- |
-| **1** | 3 × 6–10 | 1–2 left | calibrate, then hold |
-| **2** | 3 × 6–10 | 1–2 left | add a step wherever you hit 10 on every set |
-| **3** | **4 × 6–8** | 1–2 left | one more set, narrower range — the heavy week |
-| **4** | 2 × 8 | **4–5 left** | **deload.** Drop ~15%. It should feel easy |
+| **1** | 8 / 5 / 5 / 3 | 1–2 left on the triple | the load, whenever the triple has a rep left |
+| **2** | 8 / 5 / 5 / 3 | 1–2 left on the triple | same |
+| **3** | 8 / 5 / 5 / 3 | 1–2 left on the triple | same |
+| **4** | **8 / 5** | **4–5 left** | **deload.** The top two sets come off; the weights stay |
 
-*"Accumulate quality volume"* is the generator's own phrase for weeks
-1–2 and it is the right one.
+**The three hard weeks are identical on purpose, because you said they
+are.** Asked how your weeks vary, the answer was that they do not —
+you run the ramp and add weight when the triple allows it. That is
+already a progression. A four-week percentage wave laid on top of it
+would be a second one pulling the other way, since the load here comes
+from last session rather than from the calendar.
 
-**The deload is meant to feel too easy.** That is its job. It is not a
-week off and it is not a test — week 5 is heavier because of it.
+**The deload drops sets, not weight.** Your words: *"every fourth week,
+drop the top two sets."* The 8 and the 5 stay at the loads they were,
+which is a deload you can still recognise as your own session — and it
+is meant to feel too easy. That is its job. Week 5 is heavier because
+of it.
 
 ### What your numbers actually say
 
@@ -707,9 +752,22 @@ drinking, work, the kids and money. Find out which it really is.
   percentages faithfully, checked they matched its output, and never
   asked whether the percentage suited the rep range. Verifying the
   arithmetic is not verifying the prescription.
-- **Three of the four starting loads in §3 are estimates**, scaled from
-  numbers now known to be understated. Only the bench rests on
-  something you actually did. Session one replaces all four.
+- **Three of the four ramps are estimates.** Squat, deadlift and
+  overhead are your stated 110, 140 and 80 taken at the same 91% the
+  bench works out to. Only the bench rests on sets I watched you
+  describe. Your first session on each replaces the guess.
+- **I had your bench max wrong three times and your own first answer
+  was right.** 138, then 124–128, then ~132, against the 130 you said
+  at the start — and each of my figures was presented as the measured
+  one. The lesson this document kept drawing, that a logged set beats a
+  remembered number, is true; it does not make an estimate computed
+  from one logged set better than a lifter's own knowledge of himself.
+- **The flat 3 × 6–10 block was my guess, not a protocol.** When the
+  percentage bug was fixed I replaced it with a shape nobody had asked
+  for, and it took you three messages — 120 × 3, twenty years, eighty
+  kilo pulldowns for fifteen — to get the ramp you actually run into
+  the programme. Fixing a bug is not the same as checking the thing you
+  replaced it with.
 - **Nothing here is medical advice**, and two items on your list —
   daily-plus-weekend drinking, and nicotine dependence — have real
   medical help that works better than planning does. Use it.

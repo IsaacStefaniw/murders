@@ -18,6 +18,13 @@ import { buildWorkout, type WorkoutSession as StockSession } from '@/features/mo
 import { applyConstraints } from '@/features/training/constraints';
 import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/training/log';
 import { defaultRepsFrom, SetLogger, topRepsFrom } from '@/features/training/SetLogger';
+import {
+  LIFT_STEP,
+  prescribe,
+  reserveLine,
+  topSetOf,
+  type Prescription,
+} from '@/features/training/progression';
 import { readinessFrom } from '@/features/health/readiness';
 import { autoRegulate, blockComplete, complexLiftsAllowed, weekOf } from '@/features/training/programme';
 import {
@@ -414,6 +421,37 @@ export default function WorkoutSession() {
     [trainingLevelState, workoutLogs.length],
   );
 
+  // ── The ramp, for the four lifts that have one ──────────────────
+  //
+  // features/training/progression knows that a main lift is run as an
+  // ascending pyramid to a heavy triple rather than as three flat sets in a
+  // rep window, and it is the only thing in the app that does. Until this
+  // line it was also the only module nobody could reach: written, tested,
+  // and invisible — which is the complaint this redesign started from,
+  // committed by me, in the file whose own header calls itself "the reason
+  // the app should exist".
+  //
+  // Computed once here rather than inside the render, because the set count
+  // in the header and the rungs in the logger have to be the same number.
+  // The first version read the ramp in the render and left `totalSets` on
+  // the programme's own figure, so a five-set bench prescription counted 5
+  // while the logger offered 4.
+  //
+  // Only for a named main lift, never an accessory and never a swap: a ramp
+  // is built from that lift's own history, and a front squat swapped in
+  // today has none.
+  const ramps = useMemo(() => {
+    const out = new Map<string, Prescription>();
+    if (week == null || !session) return out;
+    const before = workoutLogs.filter((l) => l.id !== log?.id);
+    for (const e of session.exercises) {
+      const swapped = 'swappedFrom' in e ? e.swappedFrom : undefined;
+      if (swapped || LIFT_STEP[e.name] === undefined) continue;
+      out.set(e.name, prescribe(e.name, before, week));
+    }
+    return out;
+  }, [session, workoutLogs, log?.id, week]);
+
   if (programme && blockComplete(programme)) {
     return (
       <Screen>
@@ -449,7 +487,16 @@ export default function WorkoutSession() {
     );
   }
 
-  const totalSets = session.exercises.reduce((s, e) => s + e.sets, 0);
+
+  // A calibration prescribes no sets and asks for one, so it counts as one.
+  // This has to agree with `prescribedSets` in the render below or the
+  // header counts a session the logger cannot finish.
+  const setsOf = (e: { name: string; sets: number }) => {
+    const ramped = ramps.get(e.name);
+    if (!ramped) return e.sets;
+    return ramped.sets.length || 1;
+  };
+  const totalSets = session.exercises.reduce((s, e) => s + setsOf(e), 0);
 
   /**
    * The block's own movements for this session, before drops and additions.
@@ -687,16 +734,42 @@ export default function WorkoutSession() {
             topReps !== undefined
               ? suggestNext(workoutLogs, e.name, topReps, e.sets, log?.id)
               : null;
-          // What the person walks in wanting to know, in priority order: what
-          // the programme says today, else what they did last time.
           const swappedFrom = 'swappedFrom' in e ? e.swappedFrom : undefined;
+          const ramped = ramps.get(e.name) ?? null;
+          // Null on a calibration, which prescribes no sets by design.
+          const rampSets = ramped && ramped.sets.length > 0 ? ramped.sets : null;
+          // The rung the NEXT set goes on, so the prefill walks up the
+          // pyramid instead of offering the top set four times over. Clamped
+          // at the last rung, because a fifth set logged against a four-set
+          // ramp should carry the triple's weight rather than nothing.
+          const rung = rampSets?.[Math.min(setsFor(e.name).length, rampSets.length - 1)];
+          // ── One voice per lift ────────────────────────────────────────
+          //
+          // The first version of this stacked three. On screen it read:
+          // "6–10 · solid effort, about 3 reps left in you · rest 120s ·
+          // First time on squat in the app... Stop with 1–2 reps left on the
+          // top set." That is the programme's rep window, the programme's
+          // RPE in words, a calibration instruction and the ramp's reserve,
+          // and **two of them contradict each other** — three reps left and
+          // one to two reps left are different instructions for the same
+          // set.
+          //
+          // So where a lift has a ramp, the ramp owns its copy outright: its
+          // reps, its reserve, and nothing from the percentage block. A
+          // calibration says only the one thing it needs, because its own
+          // sentence already ends with "stop with a rep or two left".
+          const rest = e.restSec > 0 ? ` · rest ${e.restSec}s` : '';
           const reference = swappedFrom
             ? `swapped in for ${swappedFrom} — go by effort until it has its own numbers`
-            : next
-              ? next.reason
-              : last
-                ? `last time: ${last.set.weightKg ? `${last.set.weightKg} kg × ` : ''}${last.set.reps}`
-                : undefined;
+            : rampSets
+              ? `${ramped!.line} ${reserveLine(ramped!.target)}`
+              : ramped
+                ? ramped.line
+                : next
+                  ? next.reason
+                  : last
+                    ? `last time: ${last.set.weightKg ? `${last.set.weightKg} kg × ` : ''}${last.set.reps}`
+                    : undefined;
           // The movements that keep this one's pattern on this person's
           // equipment, under the same rules the block was built with.
           // Only while nothing is logged under the current name.
@@ -735,11 +808,19 @@ export default function WorkoutSession() {
               <SetLogger
                 key={e.name}
                 exercise={e.name}
-                prescribedSets={e.sets}
-                prescribedReps={`${e.reps}${e.restSec > 0 ? ` · rest ${e.restSec}s` : ''}`}
+                prescribedSets={rampSets ? rampSets.length : ramped ? 1 : e.sets}
+                prescribedReps={
+                  rampSets
+                    ? `${rampSets.map((r) => r.reps).join(' / ')}${rest}`
+                    : ramped
+                      ? `one set of ${topSetOf(ramped.target).reps}, to find the weight${rest}`
+                      : `${e.reps}${rest}`
+                }
                 sets={setsFor(e.name)}
-                suggestedWeightKg={('loadKg' in e ? e.loadKg : undefined) ?? next?.weightKg ?? last?.set.weightKg}
-                suggestedReps={targetReps}
+                suggestedWeightKg={
+                  rung?.loadKg ?? ('loadKg' in e ? e.loadKg : undefined) ?? next?.weightKg ?? last?.set.weightKg
+                }
+                suggestedReps={rung?.reps ?? targetReps}
                 reference={reference}
                 onAddSet={(reps, weightKg) => addSet(e.name, e.restSec, reps, weightKg)}
                 onEditSet={editSet}
@@ -835,7 +916,12 @@ export default function WorkoutSession() {
             failing to add weight. The line follows the rung. */}
         {foundation
           ? 'Log what you actually lifted — tap any set to correct it, today or next week. Form over load; leave one rep in the tank.'
-          : 'Log what you actually lifted — tap any set to correct it, today or next week. Once the top of the range goes up, so does the weight.'}
+          : ramps.size > 0
+            // A ramped lift does not progress on "the top of the range" — it
+            // progresses on the top SET, which is a different sentence and the
+            // one the prescription above actually uses.
+            ? 'Log what you actually lifted — tap any set to correct it, today or next week. The weight moves when the top set makes its reps with one still in the tank.'
+            : 'Log what you actually lifted — tap any set to correct it, today or next week. Once the top of the range goes up, so does the weight.'}
       </AppText>
 
       <View style={styles.footer}>

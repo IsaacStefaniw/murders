@@ -2063,7 +2063,36 @@ export const useAppStore = create<AppState>()(
               ? LEVEL_FROM_EXPERIENCE[claim]
               : null;
           const stepBack = pathLevelStepBack.training ?? null;
-          const level = levelFor('training', claimed, evidence, stepBack, measured);
+          const earned = levelFor('training', claimed, evidence, stepBack, measured);
+          // A rung stated on the profile, which the ladder cannot reach.
+          //
+          // `claimedFloor` caps a claim at `established` and `BAND_TO_LEVEL`
+          // caps a measurement there too — even an elite band maps to
+          // `established`. Both caps are right, and `statedTrainingLevel`
+          // does not weaken them, because no question and no screen sets
+          // it: it is only ever present on a profile written in code. See
+          // its comment in types/domain.
+          //
+          // Why it had to exist. Isaac has trained for twenty years, ten of
+          // them heavy, benched 120 kg for three on 10 Nov 2026 and
+          // confirmed the rack's safeties when asked. The ladder would have
+          // held him at `established` — a set light, 2.5% light, and RPE
+          // capped a point below where he actually trains — until its own
+          // log caught up with a decade of training it never saw.
+          //
+          // The first version of this put the constant straight into this
+          // function, which pinned the rung for every profile in the app and
+          // broke two seam tests immediately. They were right to break: this
+          // is the shared ladder, and a fact about one person does not belong
+          // inside it.
+          //
+          // A step-back still wins, because it always does: an easier block
+          // asked for out loud is never overruled by a constant.
+          const stated = profile?.statedTrainingLevel ?? null;
+          const level =
+            stated != null && stepBack == null && levelRank(stated) > levelRank(earned)
+              ? stated
+              : earned;
           return {
             level,
             evidence,

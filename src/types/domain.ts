@@ -156,6 +156,28 @@ export interface LifeProfile {
   diabetes?: boolean;
   /** The user's own three-year picture, in their words. */
   lifeVision?: string;
+  /**
+   * A training rung stated outright, which the ladder cannot otherwise
+   * reach.
+   *
+   * features/paths/level caps both a claim and a measurement at
+   * `established`: `advanced` carries top singles and an overreach week,
+   * and its own comment says why a form field must not unlock them —
+   * *"genuinely unsafe for someone who selected the word optimistically,
+   * and a form field is not evidence."* That rule is right and this field
+   * does not weaken it, because **nothing in the interview sets this.**
+   * There is no question behind it and no screen that offers it.
+   *
+   * It exists for a profile stated in code and reviewed in git — see
+   * features/me/profile.ts, where it sits next to the twenty years of
+   * training, the demonstrated 120 kg triple and the confirmed rack
+   * safeties that are the evidence for it. Absent, which is the case for
+   * every profile built by the interview, the ladder decides alone.
+   *
+   * A step-back still overrules it. Someone asking out loud for an easier
+   * block is never argued with by a constant.
+   */
+  statedTrainingLevel?: 'foundation' | 'developing' | 'established' | 'advanced';
   createdAt: string;
   updatedAt: string;
 }

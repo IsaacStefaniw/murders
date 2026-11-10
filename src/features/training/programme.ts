@@ -423,9 +423,22 @@ function prescribe(
 }
 
 const ACCESSORIES: Record<TrainingEquipment, PrescribedExercise[]> = {
+  // ── Why the loaded pulls sit at 10–15 and not 8–12 ──────────────────
+  //
+  // Isaac, 10 Nov 2026: *"Just did lat pull downs wide grip 80kg 15 reps
+  // will do 4 sets"*, and incline cable work at 80 kg. The table said
+  // 10–12 for the pulldown and 8–10 for the RDL, which is narrower and
+  // lighter-repped than he has been training for years.
+  //
+  // This is the third time he has shown me that the prescription sits
+  // below what he does, and the first two were bugs — 0.70 of a 1RM
+  // against a 6–10 range, and a flat block where he runs a pyramid.
+  // This one is not a bug: 10–12 is defensible. But a range he has to
+  // ignore is a range the app loses him over, and 10–15 on an accessory
+  // is ordinary practice rather than a concession.
   gym: [
-    { name: 'Romanian deadlift', sets: 3, reps: '8–10', rpe: 7, restSec: 90, accessory: true },
-    { name: 'Lat pulldown', sets: 3, reps: '10–12', rpe: 7, restSec: 75, accessory: true },
+    { name: 'Romanian deadlift', sets: 3, reps: '10–15', rpe: 7, restSec: 90, accessory: true },
+    { name: 'Lat pulldown', sets: 4, reps: '10–15', rpe: 7, restSec: 75, accessory: true },
     { name: 'Curls / band pulls', sets: 2, reps: '10–15', rpe: 7, restSec: 60, accessory: true },
     { name: 'Core: plank', sets: 2, reps: '45 sec', restSec: 45, accessory: true },
   ],
