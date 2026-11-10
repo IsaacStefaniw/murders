@@ -96,6 +96,7 @@ stated figure, which is a starting point and not a reading.
 
 | exercise | sets | reps | load | notes |
 | --- | --- | --- | --- | --- |
+| Aero bike | — | **5 min** | — | **the warm-up, and the start of the session** |
 | Bench press | 4 | 8 / 5 / 5 / 3 | **100 / 110 / 115 / 120** | the ramp, no spotter, rack safeties confirmed |
 | Lat pulldown, wide grip | 4 | 15 | 80 | |
 | Incline cable press | 3 | 14 | 80 | superset with ↓ |
@@ -103,7 +104,50 @@ stated figure, which is a starting point and not a reading.
 
 **14 sets, 153 reps, about 12,200 kg of total work** — 10,445 kg of it
 external, the rest being bodyweight on the push-ups at roughly 65% of
-90 kg on the hands.
+90 kg on the hands. Plus five minutes on the bike before the first set.
+
+### Average rest — not recoverable for this session, and never again after it
+
+He asked for his average rest and got a formula with a hole in it and a
+table of five possible answers, because the start time was missing:
+
+> `avg rest = (session minutes − 6.3 work − 1.0 transitions) / 10`
+
+*"Start time should have been recorded above when I noted session
+starting at bench press — sorry, after exercise bike, 5 mins before
+that."*
+
+**He is right that it should have been recorded, and wrong about which
+number was missing — which is my fault for asking for the wrong one.**
+
+`LoggedSet.at` is an ISO timestamp written on every set since the log
+existed, and `WorkoutLog.durationMin` is saved when a session closes.
+Nothing ever read either for timing. So the right measurement was never
+a total duration minus estimated work; **it is the gaps between
+consecutive sets**, and those need no start time at all. The five
+minutes on the bike never enters it, because a warm-up is not rest
+between sets.
+
+`features/training/sessionTiming.ts` now computes it, and the workout
+screen prints it. Two things it does that a mean alone would get wrong:
+
+- **A superset is not rest.** The three incline-to-push-up changes are
+  near-zero by design; counted as rest they drag the average down and
+  make a disciplined session read as rushed.
+- **One interruption moves a mean a long way.** A queue for the rack for
+  eight minutes, across ten gaps, shifts the mean by nearly fifty
+  seconds while the other nine were exactly as intended. The median is
+  reported first, and the mean only when they disagree by more than
+  fifteen seconds — at which point the disagreement is the finding.
+
+**For 10 Nov the number is gone.** It was logged into a chat window, and
+nothing in a chat window carries a timestamp this side of the
+conversation. That is `THE_LOG_GAP` in one concrete instance: not a
+missing feature, a missing capture. The next session logged in the app
+reports its own rest without being asked.
+
+For reference, the programme prescribes **93 s** as a weighted average
+(120 s on the bench, 75 s on the accessories) for a 23-minute session.
 
 ### Food
 
@@ -167,6 +211,102 @@ fullness in an evening that falls apart, never about the bar.
 
 Supplements: **creatine 4 g**, which is inside the 3–5 g/day the ISSN
 position stand describes (`creatine-monohydrate`, **grade A**).
+
+### "I want a balanced diet not just protein"
+
+Correct, and the plan said something worse than narrow — it said
+*"the only number this plan keeps is protein"*, which turned a
+sequencing decision into a nutritional claim. Reworked in
+`ISAAC_NUTRITION_9NOV.md` under **A balanced week**, from the library's
+own grades rather than from preference.
+
+The short version: **fibre is the one lever to add**, because it is the
+only row that is both grade A and currently short. Oily fish is already
+met by the mackerel and the salmon already in the week; the fish-oil
+capsule is ruled out by its own trials (VITAL, ASCEND); the blood tests
+are a GP conversation; and the multivitamin most people reach for when
+they say "balanced" is graded **D**.
+
+### Sauna — Sunday, and 16:30 today
+
+**That is two this week, which is inside the band.** `sauna`, **grade
+C**: *"Two to four sauna sessions a week, ~15–20 minutes at a heat you
+tolerate well."* Nothing to add to the dose.
+
+It is recordable, unlike mood was: `recovery.saunaMinutes` already
+exists in `model/metrics.ts`, in minutes per week.
+
+**Today's case is a different card from Sunday's**, because he lifted at
+lunch. `sauna-recovery-low-heat`, **grade C**: *"Twenty minutes of
+mild-to-moderate heat after a lifting session, for feeling human
+tomorrow. Ten minutes still counts."* And it is already scheduled for
+exactly today — its `days` field is `[2, 5]`, Tuesday and Friday.
+
+Both cards are **C**, and the reason is worth knowing rather than
+glossing: the headline heart finding is *"one Finnish population
+followed for decades, with the headline result resting on 201 men in the
+frequent-use group — a real and carefully collected observation, and a
+single cohort measured once rather than a settled result."* The
+after-lifting benefit is two small crossover trials of infrared cabins:
+less soreness, better next-morning jump. And the card says plainly what
+it does not do: *"heat does not add muscle. The only sauna-type trial
+that measured size over six weeks found no difference."*
+
+#### 16:30 is the right time, and not for a recovery reason
+
+Both protocols anchor at **18:45**. For him 16:30 is better, and the
+argument has nothing to do with heat.
+
+`features/me/journal.ts`, `NO_TRANSITION`: *"Work ends at half four and
+you are home with both boys about ten minutes later. There is no
+decompression in your day for the drink to be competing with — it IS the
+decompression, arriving at the only moment that has none."*
+
+**A 16:30 sauna is that missing transition.** It occupies the exact
+window the drink is cued in, it is performed rather than withheld, and
+it removes him from the threshold instead of asking him to walk through
+it and resist. That is if-then two in a different shape, and the shape
+`trigger-if-then` (**grade A**) says works.
+
+**And it only works on a Tuesday or a Friday**, which is why the
+protocol's own `days: [2, 5]` is right by accident. Pickup is his on
+Monday, Wednesday and Thursday (`pickupDays: [1, 3, 4]`); his partner
+does Tuesday and Friday. Those two evenings are the only ones with a
+gap at half four, and both of them are already lifting days.
+
+#### The one rule to be strict about, and it is not a behaviour rule
+
+`sauna-rehydrate`'s safety line, which is the most consequential
+sentence in any of these cards:
+
+> *"Water, not alcohol: about half of sauna deaths in the Finnish
+> national series involved drink, and that is the one rule worth being
+> strict about."*
+
+This plan already has a drink cued at 16:40 and a sauna now planned at
+16:30, which puts the two closer together than anywhere else in the
+week. **The sequence to never run is sauna then drink** — and it is a
+safety point with a mortality series behind it, not a willpower one.
+
+He also lifted at lunch, so he goes in already down on fluid.
+
+| | |
+| --- | --- |
+| rehydrate | **~0.5 L of water per 20 minutes in the heat** (`sauna-rehydrate`, C) |
+| water | before and after, out at the first dizziness |
+| finish by | **20:30** — `finishBeforeSleepMin: 90` against a 22:00 bed. 16:30 is clear |
+| cold plunge after | **grade E.** *"Enjoy it as a ritual, because that is what the evidence can honestly call it so far"* |
+
+#### And a third wrinkle on the daily weigh-in
+
+Creatine puts about a kilo of water **on**. A sauna takes several
+hundred grams **off**, and tomorrow is a 06:50 reading.
+
+Two protocols, both fine, both moving the scale in opposite directions,
+and **neither of them moving fat.** This is the third time in two days
+that the daily weight number has turned out to be measuring something
+other than what it looks like. The rule stands and is now earning its
+keep: **step on daily, read only the weekly average.**
 
 ### What the dinner swap costs the week
 

@@ -2,8 +2,14 @@
 
 For Isaac. 90 kg, fat loss while keeping muscle, training four times
 plus Monday futsal. **Protein 165–180 g a day, fibre 30 g.** No
-logging, no calorie counting — the only number this plan keeps is
-protein, because it is the one that protects muscle in a deficit.
+logging, no calorie counting.
+
+**Corrected 10 Nov.** This read *"the only number this plan keeps is
+protein"*, and he said plainly: *"I want a balanced diet not just
+protein."* He is right, and the line was wrong in two ways — it ignored
+the 30 g of fibre sitting in the same sentence, and it made a
+sequencing decision sound like a nutritional claim. See **A balanced
+week** below, which is the library's own answer and not mine.
 
 The dinners and the shopping list below are generated from the repo's
 own `DISHES` library and `buildShoppingList`
@@ -288,6 +294,168 @@ Do these in this order. The roast is in the oven for most of it.
 5. **Set next Monday's slow-cooker beef stew out on the bench** so
    Monday morning is one action. Next Monday you walk in from futsal
    to a finished dinner instead of a 10-minute one.
+
+---
+
+## A balanced week — and he was right to push back
+
+*"I want a balanced diet not just protein."*
+
+### Why the plan said protein only, and why that was a bad way to say it
+
+The reasoning was `one-lever-only` — **grade A**, the highest in the
+library, and its own text is blunt about the finding:
+
+> *"When named diets are put head to head in large randomised trials,
+> the differences between the diets come out small. What separates
+> people is whether they kept doing the thing... The useful question is
+> never which diet is best. It is which single change you can still be
+> doing in three months."*
+
+So one lever at a time is the right call. **What was wrong was calling
+it the only number that mattered.** A sequencing decision — this one
+first — got written as a nutritional claim, which is how a reasonable
+simplification turns into advice nobody should follow.
+
+**And the lever is cleared.** 10 Nov came in at **178 g**, inside the
+165–180 band. So the question is no longer whether to add the next one;
+it is which, and the library answers that by grade rather than by
+preference.
+
+### What balance is, by the grade of the evidence behind it
+
+| lever | grade | where he is |
+| --- | --- | --- |
+| **30 g fibre** | **A** | **landing 18–28 g. This is the gap.** |
+| protein 165–180 g | the plan's own | **met, 178 g on 10 Nov** |
+| two servings of oily fish a week | **B** | **already met** — see below |
+| the same food, one step less processed | **B** | partly |
+| water as the default drink | **B** | not asked about |
+| test before supplementing | **B** | not done — a GP conversation |
+| a multivitamin | **D** | **not the answer to this question** |
+
+**Balance here is not more arithmetic.** Every row is food-shaped, and
+the "no calorie counting" line stays exactly as it was — adding a second
+number to track would be the opposite of what `one-lever-only` found.
+
+### Fibre is the gap, and it is the strongest card in the library
+
+`fibre-30`, **evidence level A**, and its own summary of the evidence:
+
+> *"A series of systematic reviews pooled 185 prospective studies
+> alongside 58 controlled trials and found the people eating the most
+> fibre had roughly 15–30% lower rates of dying from any cause, of
+> coronary heart disease, stroke, type 2 diabetes and colorectal cancer
+> than those eating the least, with most of the separation banked
+> between 25 g and 29 g a day."*
+
+The honest caveats are in the card too: the hard outcomes are
+observational and high-fibre eaters differ in many ways at once. What
+the **trials** moved, in weeks, was blood pressure, cholesterol and body
+weight.
+
+And the reason it earns a protocol at all: *"most adults average around
+19 g, and fewer than one in ten reach 30."* His 18–28 g is the normal
+place to be, which is the point.
+
+**From his own shopping list, no new items:**
+
+| add | fibre |
+| --- | --- |
+| the tin of cannellini beans, into a dinner | **~12 g** |
+| the whole avocado instead of half | **+5 g** |
+| potato skins left on, Sunday roast | **+3 g** |
+| a pear or an apple with the afternoon bars | **+3–5 g** |
+
+Any two of those close it. **The card's safety line matters here:**
+*"Build up over a few weeks rather than in a day, and drink water
+alongside — a sudden jump is what causes the bloating people then blame
+fibre for."* So it is one of those a day, not all four tomorrow.
+
+### The omega-3 row is already satisfied, which is worth knowing
+
+`omega-3-fish-first`, **grade B**: two servings a week, and the
+capsules have been tested properly and failed.
+
+> *"VITAL and ASCEND gave fish oil to tens of thousands of people — and
+> did not lower heart disease overall. The one signal was in people who
+> ate almost no fish, which is an argument for the fish."*
+
+His week, as already written: **smoked mackerel Monday and salmon
+Friday** — both oily, which is the kind that carries the EPA and DHA.
+That is the two servings. Tuesday's prawns and Saturday's tinned tuna
+are good food and are not oily fish, so they are a bonus rather than
+the thing.
+
+**No fish-oil capsule, then.** Not as a restriction — the trials are the
+reason.
+
+### The processing row, applied to today without a lecture
+
+`less-processed-same-food`, **grade B**, and it is one of the few
+nutrition questions with a real controlled feeding trial:
+
+> *"When people were given diets matched for calories, sugar, fat, fibre
+> and salt, and allowed to eat as much as they wanted, they ate around
+> five hundred more calories a day on the heavily processed one and
+> gained weight over a fortnight. They were not choosing worse, and the
+> food was not less filling on paper."*
+
+Matched on every macro and still five hundred calories apart. That is
+the whole argument, and the card's own framing of what to do with it:
+*"not a new diet, it is the same thing you were going to buy, one step
+less processed."*
+
+For 10 Nov that touches two things, and neither is a failure: **two
+protein bars** and, if it was shop-bought, **the lasagne**. One step
+less processed is a tub of Greek yoghurt instead of the bars, and a
+lasagne made from the turkey mince instead of a tray. Same food, same
+meal, one step back.
+
+The card also carries the honest limit: *"Less-processed food often
+costs more and takes longer, and if that is the binding constraint then
+this card is not the one for you and there is nothing wrong with that.
+Eating enough matters more than eating ideally."* With two children
+under five and a thirty-minute lunch slot, time is a real constraint and
+the bars exist for a reason.
+
+### Micronutrients: test, do not guess — and not a multivitamin
+
+This is where "balanced" usually turns into a supplement, and the
+library grades that **D**: `multivitamin-what-the-reviews-found`.
+
+The three worth a blood test instead, all **grade B** and all a GP
+conversation rather than an app's: `vitamin-d-test-first`,
+`iron-test-before-you-take`, `b12-who-should-test`. Vitamin D is the
+most likely of the three to come back low for somebody who works
+indoors from eight until half four, and the protocol's whole point is in
+its title — test before you take, because the dose depends on the
+result.
+
+**Nothing here is medical advice and a blood test is not something this
+app can order.** Next GP visit, not a priority to make an appointment
+for.
+
+### What one lever at a time means in practice
+
+The table above is a map, not a to-do list — handing over six rows
+would break the grade-A protocol the whole section rests on.
+
+**The one lever is fibre.** Oily fish is already met, the capsule is
+ruled out by its own trials, the blood tests are a GP conversation, and
+"one step less processed" is a buying habit rather than a daily task.
+Fibre is the only row that is both grade A and currently short.
+
+### What a lower grade looks like, said rather than hidden
+
+`the-cholesterol-plate` — *"Four things on the plate, not one"* — is the
+card closest to what most people mean by a balanced plate, and it is
+graded **C**. `fermented-food-daily` is **C**. `veg-first` is **D**.
+
+They are not wrong and they are not nothing. But a 30 g fibre target
+carries 185 prospective studies and 58 trials behind it, and "four
+things on the plate" does not, and this document should not flatten the
+difference just because the second one sounds more like balance.
 
 ---
 

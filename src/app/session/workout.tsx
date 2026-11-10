@@ -17,6 +17,7 @@ import { syncAppleHealth } from '@/features/health/healthkit';
 import { buildWorkout, type WorkoutSession as StockSession } from '@/features/modalities/gym/program';
 import { applyConstraints } from '@/features/training/constraints';
 import { lastPerformance, makeSet, newLog, suggestNext } from '@/features/training/log';
+import { restLine, sessionTiming } from '@/features/training/sessionTiming';
 import { defaultRepsFrom, SetLogger, topRepsFrom } from '@/features/training/SetLogger';
 import {
   LIFT_STEP,
@@ -525,6 +526,15 @@ export default function WorkoutSession() {
   const setsFor = (name: string) =>
     loggedSets.filter((s) => s.exercise === name).sort((a, b) => a.index - b.index);
 
+  // Rest, from the timestamps every set has always carried.
+  //
+  // Asked for an average rest and given a formula and a table of what it
+  // would be at five different session lengths, because the one input I
+  // thought I needed — a start time — was missing. It was never needed:
+  // the gaps between consecutive sets are the measurement, and they were
+  // in the store the whole time. See features/training/sessionTiming.
+  const timing = sessionTiming(loggedSets);
+
   const addSet = (name: string, restSec: number, reps: number, weightKg?: number) => {
     const current = log ?? newLog(sessionDate, session.title);
     const index = current.sets.filter((s) => s.exercise === name).length + 1;
@@ -721,6 +731,15 @@ export default function WorkoutSession() {
             </AppText>
           ) : null}
         </Card>
+      ) : null}
+
+      {/* Only once there is a second set to measure against, and placed
+          above the list so it reads as this session's own number rather
+          than as a verdict at the end. */}
+      {timing ? (
+        <AppText variant="caption" color="textTertiary" style={styles.note}>
+          {restLine(timing)}
+        </AppText>
       ) : null}
 
       <SectionHeader title="Session" />
