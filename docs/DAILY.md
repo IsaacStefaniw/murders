@@ -297,7 +297,50 @@ He also lifted at lunch, so he goes in already down on fluid.
 | finish by | **20:30** — `finishBeforeSleepMin: 90` against a 22:00 bed. 16:30 is clear |
 | cold plunge after | **grade E.** *"Enjoy it as a ritual, because that is what the evidence can honestly call it so far"* |
 
-#### And a third wrinkle on the daily weigh-in
+##### Three Wim Hof breath holds, in the sauna — 2:00, 2:15, 2:20
+
+Reported live. The progression is the normal one: each round goes longer
+because the hyperventilation before it drives CO₂ lower, and CO₂ is what
+creates the urge to breathe. **That is also precisely what makes doing
+it here dangerous**, so the two facts are the same fact.
+
+**The mechanism, in one line.** Hyperventilating blows off CO₂ without
+meaningfully raising oxygen stores. The urge to breathe is driven by
+CO₂, so the alarm is removed while oxygen keeps falling — and
+consciousness can go **without warning**. That is hypoxic syncope, and it
+is why the Wim Hof Method's own first safety rule is never to practise
+in or near water, and always sitting or lying somewhere a blackout would
+be survivable. People have died doing this in water.
+
+**A sauna is not such a place, and it compounds the risk twice over.**
+Heat causes vasodilation and lowers blood pressure, which independently
+causes fainting — that is why saunas have their own dizziness rule. And
+fainting alone in a hot enclosed room is not a faint: it is prolonged
+contact with hot surfaces and a rising core temperature with nobody to
+end it.
+
+**The two practices give opposite instructions in the same room.** Every
+sauna card in this library says a version of *"out at the first hint of
+dizziness — that is the body being sensible, not you being soft"*
+(`sauna-after-endurance`). Wim Hof breathing works by pushing through
+exactly that signal. There is no way to run both and obey either.
+
+**The library has no Wim Hof protocol**, and that is not an oversight of
+coverage. Of the breathing practices it ships — `Double-inhale sigh`,
+`Box breathing`, `4-7-8`, `Cyclic sighing`, `Wind-down breathing` — not
+one involves hyperventilation or a breath hold. The same curation that
+deliberately left out a daily weigh-in left this out too.
+
+**What this does not say.** Not that the practice is worthless, and not
+that he should stop it. Breath holds on a floor, lying down, away from
+heat and water, carry none of the above. The objection is entirely about
+the room.
+
+Nothing about the sauna changes: it is still the right thing at 16:30
+and still the transition the plan was missing. **The breathing moves out
+of it.**
+
+### And a third wrinkle on the daily weigh-in
 
 Creatine puts about a kilo of water **on**. A sauna takes several
 hundred grams **off**, and tomorrow is a 06:50 reading.
