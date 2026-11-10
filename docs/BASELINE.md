@@ -417,6 +417,78 @@ invisible, which was his original complaint and is still the honest
 answer: a ten-slot instrument cannot see most of a person, and the
 remedy is not to force a number into it.
 
+## "Training should be way bigger than all the bad variables combined"
+
+**He is right, the model already agrees with him, and the reason it is
+not showing is that the measurement is missing.**
+
+The component that carries this is `fitness` — Mandsager 2018, *JAMA
+Network Open*, 122,007 adults on treadmill tests, 13,637 deaths across
+1.1 million person-years, **grade A**. Elite against lowest quintile
+carried about **80% lower all-cause mortality**. It is one of only two
+components in this instrument allowed to pay out without a floor.
+
+Banded against age, because a 30-year-old at 40 ml/kg/min is ordinary
+and a 65-year-old at 40 is exceptional. At 38 the reference is 36.7, so:
+
+| VO₂max at 38 | raw years | after attenuation |
+| --- | --- | --- |
+| 33 or below | 0 or worse | — |
+| **40+** | **−4.12** | **−2.47** |
+| **48+** | **−6.90** | **−4.14** |
+
+| his reading | |
+| --- | --- |
+| no VO₂max (today) | **+1.56** |
+| VO₂max 42 | **−0.91** |
+| VO₂max 48 | **−2.58** |
+
+**At 48 it is −4.14 against vaping's +1.26 and alcohol's +0.30.** That is
+his claim, almost exactly: fitness outweighs every bad variable
+combined, by more than three to one.
+
+**So the model does not disagree with him. It has never seen his
+fitness.** `blocked` on that component reads *"Comes from Apple Health
+after some outdoor walks or runs"*, and that is the single
+highest-value thing available to him — a bigger move than anything else
+on this page, and it costs a few walks with the phone in his pocket.
+
+**What it does not credit is the lifting**, and that distinction is the
+whole of the disagreement. Ruiz 2008's strength thirds are 38.9 / 25.9
+/ 26.6 per 10,000 person-years — flat across the top two. Lifting shows
+up here only where it has raised cardiorespiratory fitness, and futsal
+once a week is more likely to be doing that than the barbell is.
+
+## "I'm not a full time smoker, only part time, mainly when I drink — and vaping is better than cigarettes"
+
+**Both true, and the model already says so.**
+
+| status | RR | raw years |
+| --- | --- | --- |
+| never | 1.0 | 0 |
+| **vaping** | **1.2** | **+2.10** |
+| quit recently | 1.5 | +4.68 |
+| **smoking** | **2.8** | **+11.88** |
+
+He is scored at **vapeOnly**, which is about **one sixth** of a current
+smoker. The instrument has never treated him as a smoker, and there is
+no lighter band short of `never`. Its own caveat is that the vaping
+figure *"follows the American Heart Association's judgement rather than
+a measured outcome"*, because no long-term mortality cohort for vaping
+exists — so if anything that 1.2 is the softest number on the page.
+
+**One thing his own log says differently, recorded because it is data
+and not an opinion.** *"Mainly when I drink"* is the model he has of
+it. `docs/LOG.md` entry 1, Monday 9 November: **zero alcohol, and two
+vaping sessions anyway.** And the five-night run from 5 to 9 November
+is four drinking nights and **five** vaping nights.
+
+That is one more vaping night than drinking nights, on the only week
+with data. It does not make the coupling wrong — four of five nights
+had both — but the one night that separated them went the way that says
+the vape does not need the drink. Worth knowing before the quitting
+order is decided on the assumption that it does.
+
 ## What this reading is not
 
 - **`PROVISIONAL = true`** in `pace.ts`, and its own comment: false only
