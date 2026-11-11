@@ -523,6 +523,49 @@ unwell**, and the branches do not overlap:
 | sore throat, blocked nose, aching | a virus, and two children under five are in daycare |
 | flat, foggy, low energy | the likeliest ordinary reading — see below |
 
+### Answered: not the sodium picture
+
+*"Still 7, just a tiny bit flat, smallest hint of a cold."*
+
+**No headache, no nausea, no confusion, no heaviness.** That closes the
+hyponatraemia branch, and it is closed out loud rather than left hanging
+— it was raised hard enough yesterday to deserve a clear clearance.
+
+What is left is a head cold starting, on a flat day.
+
+### Training on it — the neck rule, stated as the convention it is
+
+| symptoms | |
+| --- | --- |
+| **above the neck** — runny nose, sneezing, mild sore throat | training is generally fine, at reduced intensity |
+| **below the neck** — chest congestion, fever, body aches, productive cough | rest |
+
+Today is above the neck, so the session stands in `autoRegulate`'s
+back-off shape: **keep the squat, drop the accessories.** Its own
+comment is the reason — *"the session someone actually skips is the one
+that got cancelled for them."* The app's line on the conditioning slot
+is blunter and applies to the cardio rather than the lifting: *"skip it
+when unwell."*
+
+**And `readiness.ts` states what it refuses to do**, so nobody waits for
+the app to catch this: *"whether someone is unwell, and it must not
+start to."* It reads HRV and resting heart rate against his own
+baseline. It does not diagnose.
+
+### The sauna, with a cold
+
+**Fine today without a fever.** A small randomised trial (Ernst and
+colleagues, 1990) found regular sauna bathing reduced common-cold
+incidence — small, old, not replicated at scale, so nothing to lean on,
+but twenty years of it is the context and a hint of a cold is a poor
+reason to break it.
+
+**Fever is the hard line**, because heat on top of a raised core
+temperature is not a wash.
+
+Still true, and more so today: **salt around it, and do not run eight
+litres while unwell.**
+
 ### The three ordinary explanations, none of which needs a diagnosis
 
 1. **Day three without alcohol after four consecutive nights.** Malaise,

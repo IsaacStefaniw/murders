@@ -489,6 +489,174 @@ had both — but the one night that separated them went the way that says
 the vape does not need the drink. Worth knowing before the quitting
 order is decided on the assumption that it does.
 
+## "What about a strength test over VO2 max?"
+
+**A strength test would score zero. A VO₂max reading is worth up to
+−4.14 years.** Not a preference — the two literatures report different
+shapes, and the instrument follows each one's own.
+
+### Only two of eleven components can make anybody younger
+
+Worth seeing laid out, because it explains the whole answer:
+
+| component | what it can do |
+| --- | --- |
+| **cardiorespiratory fitness** | **penalise OR pay out** |
+| **Essential 8 composite** | **penalise OR pay out** |
+| grip strength | `Math.max(0, reference − kg)` — **penalty or zero** |
+| gait speed | `Math.max(0, reference − speed)` — **penalty or zero** |
+| ten-second stand | `seconds >= 10 ? 0 : penalty` — **penalty or zero** |
+| nicotine, alcohol | penalty or zero |
+| self-rated health, connection, sleep regularity | penalty or zero |
+| sauna | zero, always (see above) |
+
+**Nine of the eleven can only ever make him older.** That is not
+pessimism in the design, it is what the papers report: PURE measures a
+grip *decrement*, the gait literature measures *slow* walking, and
+`PaceComponent.logHazard` says so outright — *"reading them backwards as
+an unbounded bonus is an extrapolation neither carries."*
+
+Mandsager is different because Mandsager measured the other direction:
+elite versus lowest quintile, **~80% lower all-cause mortality,
+dose-responsive**. That is why fitness can pay and strength cannot.
+
+### So for him specifically
+
+A grip dynamometer costs about $30 and two minutes, and he is obviously
+above the sarcopenia threshold — so it returns **zero**. The ten-second
+stand and the gait test are free and will also return zero, because he
+will pass both.
+
+**They are still worth doing**, for a reason that is not the number:
+they establish a baseline he can be measured against in ten years, when
+these components start being able to move. Today they buy nothing.
+
+**VO₂max is the only test on the list that can pay out today**, and
+Apple Health estimates it from outdoor walks and runs at no cost at all.
+
+---
+
+## "Strength and VO2 should be used as a later predictor in life"
+
+**This is the sharpest thing he has said about the instrument, and it is
+correct.**
+
+He is describing a **trajectory**. The instrument computes a
+**snapshot**. Every component answers *"where do your markers sit
+now"*, and none of them answers *"where will they sit at seventy, given
+this slope and this starting point"*. Those are different models and
+this app only has the first.
+
+The argument he is making is the reserve argument, and its direction is
+not controversial:
+
+- Muscle mass and strength peak in the thirties and decline from there.
+  A higher peak means more distance to the threshold where ordinary
+  things get hard.
+- VO₂max declines through adult life. A higher starting point means the
+  same decline crosses the independence threshold later — the commonly
+  cited figure being around 18 ml/kg/min, below which day-to-day
+  independent function starts to be limited.
+
+**Twenty years of training at 38 is a deposit against that**, and
+nothing in the eleven components reads it as one.
+
+### Why this app does not model it, and what it would take
+
+The arithmetic is trivial and the inputs are not. A projection needs a
+**decline rate**, and the answer is entirely determined by which rate is
+chosen — published figures vary with sex, baseline fitness, and whether
+training continues, and the spread between the plausible ones moves the
+crossing age by decades. Picking one would be inventing the model, which
+is the thing refused for the sauna coefficient and for the lifting
+percentile.
+
+**What would make it real:** a repeated measurement. Two VO₂max readings
+five years apart give him his OWN decline rate, and a trajectory built
+on that is a measurement rather than a textbook constant.
+
+Which is the same conclusion as the section above, arrived at from the
+other direction: **take the VO₂max reading now.** Today it is worth up
+to −4.14 years. In five years it is worth something this instrument
+cannot currently compute at all.
+
+## Correction — I was wrong about body fat, and he caught it
+
+*"How is low body fat % whilst healthy and from exercise correlated as a
+negative? That's just wrong... you can understand it if unhealthy, but
+13% body fat should be a healthy marker."*
+
+**He is right on every part of that, and the correction is mine.**
+
+I reported that *"one NHANES-linked analysis finds a U-shape with lowest
+mortality near 25% in males"* and let it stand as the reading. That was
+a search summary passed on without interrogating the reference class —
+the exact failure `standards.ts` warns about and that I have cited twice
+in two days as the reason not to do something.
+
+### What the papers actually say, now that the hosts are reachable
+
+**The NHANES 20–49 analysis says the opposite of what I implied.**
+Fetched directly:
+
+| | adjusted HR | p |
+| --- | --- | --- |
+| **body fat percentage** | **1.780** (1.282–2.471) | **<.001** |
+| BMI | 1.246 (0.845–1.837) | .268 |
+
+**More body fat, more mortality. Monotonic.** And BMI is not
+significant at all. That paper is an argument for his position: body fat
+predicts and BMI does not. Its own limitations are that it adjusted only
+for age, race and poverty — **no smoking adjustment and no handling of
+reverse causation.**
+
+### And the mechanism behind every U-curve he is objecting to
+
+This is the part that settles it. The apparent danger of leanness is
+built from two things that have nothing to do with being lean:
+
+- **Reverse causation.** Illness causes weight loss. Cancer, COPD, heart
+  failure and frailty make people thin *before* they kill them, so thin
+  looks fatal. The standard fix is excluding the first several years of
+  follow-up.
+- **Smoking.** Smokers are leaner and die more. Adjusting for it as a
+  covariate never fully works, because it cannot capture individual
+  differences in smoking behaviour.
+
+**When studies correct for both, the optimum moves down and the low end
+flattens.** A meta-analysis put the nadir at BMI 23–24 in never-smokers,
+22–23 in healthy never-smokers, and **20–22 with longer follow-up**. One
+analysis restricted to never-smokers that dropped the first five years
+found **no evidence of excess mortality among lean men** once smoking
+and illness-related weight loss were accounted for.
+
+**That is his argument, in the literature's own words.** Thin-from-illness
+and lean-from-twenty-years-of-training are two different exposures that
+share a number, and a crude body-fat percentile cannot tell them apart.
+
+### So: is 13% a healthy marker for him
+
+**Yes.** A trained, non-smoking 38-year-old at 10–13% is not in a risk
+zone, and the curves suggesting otherwise are built on populations where
+leanness is a proxy for illness and tobacco.
+
+**One real floor, well below him.** Sustained very low body fat in men —
+the single figures — carries genuine endocrine costs: suppressed
+testosterone, reduced bone density, the RED-S picture. 10–13% is clear
+of that by a wide margin. The floor exists; he is not near it.
+
+### What this changes in the code, which is nothing
+
+`bmiMisread` was already doing the right thing: it drops his BMI rather
+than scoring it 70, and says why in his own terms — *"BMI cannot tell
+muscle from fat, and on you it is reading the muscle as fat."* **The
+code was right and my narrative to him was wrong.**
+
+What it does not do is let body fat pay out, and that stays: the 1.780
+above has no stated contrast and no smoking adjustment, so there is no
+coefficient here to build a component from. **Not scored, and not
+scored as a negative either — which is what he was objecting to.**
+
 ## What this reading is not
 
 - **`PROVISIONAL = true`** in `pace.ts`, and its own comment: false only
