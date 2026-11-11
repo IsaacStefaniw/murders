@@ -94,6 +94,12 @@ export interface Me {
   /**
    * Body fat percentage, stated rather than measured.
    *
+   * **13, fixed on 11 Nov 2026.** First given as a 10–13% range, and a
+   * range is not a reading — `bmiMisread` takes one number and the
+   * metrics stream stores one number, so a range would have had to be
+   * collapsed somewhere, silently, by whichever caller got there first.
+   * He chose the top of it, which is also the conservative end.
+   *
    * It is here because of what it DISQUALIFIES. At 90 kg and 187 cm his
    * BMI is 25.7, which the published Life's Essential 8 table scores 70
    * and calls overweight. At 13% body fat that table is measuring the

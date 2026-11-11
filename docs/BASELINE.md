@@ -174,7 +174,7 @@ Every night not recorded is a night permanently missing from it.
 ## Recalculated with everything — and it did not move
 
 Asked on 10 Nov to recalculate with all of it: sauna at 90°C for 20–25
-minutes, body fat 10–13%, four sessions a week for twenty years.
+minutes, body fat 13%, four sessions a week for twenty years.
 
 **The reading is still +1.6 years.** Not approximately — identically.
 Run with body fat at 10 and at 13 it returns the same figure, because
@@ -636,13 +636,13 @@ share a number, and a crude body-fat percentile cannot tell them apart.
 
 ### So: is 13% a healthy marker for him
 
-**Yes.** A trained, non-smoking 38-year-old at 10–13% is not in a risk
+**Yes.** A trained, non-smoking 38-year-old at 13% is not in a risk
 zone, and the curves suggesting otherwise are built on populations where
 leanness is a proxy for illness and tobacco.
 
 **One real floor, well below him.** Sustained very low body fat in men —
 the single figures — carries genuine endocrine costs: suppressed
-testosterone, reduced bone density, the RED-S picture. 10–13% is clear
+testosterone, reduced bone density, the RED-S picture. 13% is clear
 of that by a wide margin. The floor exists; he is not near it.
 
 ### What this changes in the code, which is nothing

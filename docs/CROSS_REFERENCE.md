@@ -13,7 +13,7 @@ that is not a tie-break.
 ```
 PERSON
   Male, born 1988 (age 38), 187 cm, 90 kg, BMI 25.7
-  Body fat 10-13% (stated, not DEXA)
+  Body fat 13% (stated 11 Nov 2026, not DEXA)
   Brisbane, Australia. Office job 08:00-16:30. Two children under 5.
 
 TRAINING  (20 years, consistent)
@@ -99,7 +99,7 @@ to years through a Gompertz mortality-rate doubling time of 8 years.
 3. **It does not score body fat.** The literature is conflicting: one
    NHANES-linked analysis finds a U-shape with lowest mortality near
    **25%** in males, and low BMI repeatedly associates with higher
-   mortality. There is no clean coefficient at 10–13%.
+   mortality. There is no clean coefficient at 13%.
 
 ## Note 2 — why a second opinion will be lower, and why that is not a result
 
@@ -108,7 +108,7 @@ because the obvious moves are all available to it:
 
 - count the sauna at face value (−5.9 years)
 - count twenty years of training as a dose-response
-- count 10–13% body fat as straightforwardly protective
+- count 13% body fat as straightforwardly protective
 - count an 8.5-hour night, 178 g of protein, 8 L of water, a 3:20
   breath hold
 

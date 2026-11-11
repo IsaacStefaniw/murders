@@ -50,7 +50,7 @@ measured — all self-reported — and the feature is not in his build.
 | trains 4×/week | **20 years** | activity component already at its 100 ceiling |
 | sauna 3–4×/week, 90 °C, 20–25 min | **20 years** | **nothing** — not a component |
 | breath hold | **3:20** | **nothing** — not a component |
-| body fat | **10–13%** | **removes** a component (BMI misread) |
+| body fat | **13%** | **removes** a component (BMI misread) |
 | four main lifts | see §4 | **nothing** — not components |
 | 8 L water daily | | **nothing** |
 | creatine 4 g | grade **A** protocol | **nothing** |
@@ -79,7 +79,7 @@ not measurements.
 
 | | him | ordinary rule of thumb |
 | --- | --- | --- |
-| body fat, male, 38 | **10–13%** | athletic/fitness range; a typical man his age sits around 22–25% |
+| body fat, male, 38 | **13%** | athletic/fitness range; a typical man his age sits around 22–25% |
 | voluntary breath hold | **3:20** | untrained, no preparation: 30–60 s |
 | sauna frequency | **3–4/week** | the `sauna` card recommends 2–4 |
 
