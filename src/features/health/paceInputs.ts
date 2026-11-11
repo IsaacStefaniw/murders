@@ -25,6 +25,7 @@ import type {
   DailyPlan,
   LifeProfile,
   Routine,
+  WorkoutLog,
 } from '@/types/domain';
 import type { CardioLog } from '@/features/training/cardio';
 import type { NicotineStatus } from '@/features/health/essential8';
@@ -36,6 +37,8 @@ export interface PaceSources {
   plans: Record<string, DailyPlan>;
   routines: Routine[];
   cardioLogs: CardioLog[];
+  /** Sessions that happened. See `activityMinutes` for why this is read. */
+  workoutLogs: WorkoutLog[];
   behaviourIntentions: BehaviourIntention[];
   behaviourEvents: BehaviourEvent[];
   nicotineStatus: NicotineStatus | null;
@@ -99,7 +102,13 @@ export function paceInputsFrom(s: PaceSources): PaceInputs {
         waistToHeight: waist && height ? waist / height : null,
         sex: sex === 'male' || sex === 'female' ? sex : null,
       }) !== null,
-    activityMinutes: activityMinutes(s.plans, s.routines, s.today, s.cardioLogs),
+    activityMinutes: activityMinutes(
+      s.plans,
+      s.routines,
+      s.today,
+      s.cardioLogs,
+      s.workoutLogs,
+    ),
     nicotine:
       s.nicotineStatus ??
       nicotineFromLogs(s.behaviourIntentions, s.behaviourEvents, s.today),

@@ -1830,6 +1830,7 @@ export const useAppStore = create<AppState>()(
               metrics: state.metrics,
               plans: state.plans,
               routines: state.routines,
+              workoutLogs: state.workoutLogs,
               cardioLogs: state.cardioLogs,
               behaviourIntentions: state.behaviourIntentions,
               behaviourEvents: state.behaviourEvents,

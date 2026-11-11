@@ -69,7 +69,13 @@ import type { MetricObservation } from '@/features/model/metrics';
 import { fromIngredients, fromReadings } from '@/features/health/provenance';
 import { BMI_UNDERWEIGHT } from '@/features/health/conditioning';
 import { standingFor } from '@/features/health/standing';
-import type { BehaviourEvent, BehaviourIntention, DailyPlan, Routine } from '@/types/domain';
+import type {
+  BehaviourEvent,
+  BehaviourIntention,
+  DailyPlan,
+  Routine,
+  WorkoutLog,
+} from '@/types/domain';
 import { addDays } from '@/lib/dates';
 
 export type ComponentKey =
@@ -397,6 +403,29 @@ const NOT_MVPA = new Set([
   'pelvic-floor-training',
 ]);
 
+/**
+ * How long a logged session took.
+ *
+ * `durationMin` where the session was finished properly, because that is
+ * what the screen measured. Otherwise the span from the first set to the
+ * last, which understates — it misses the warm-up and the last rest, and
+ * understating is the right direction for a figure nobody confirmed.
+ *
+ * Capped at three hours so a screen left open all afternoon does not
+ * become an afternoon of training, the same guard `workout.tsx` applies
+ * when it writes `durationMin`.
+ */
+export function workoutMinutes(log: WorkoutLog): number {
+  if (log.durationMin != null) return Math.max(0, Math.min(180, log.durationMin));
+  const times = log.sets
+    .map((s) => Date.parse(s.at))
+    .filter((t) => Number.isFinite(t))
+    .sort((a, b) => a - b);
+  if (times.length < 2) return 0;
+  const span = Math.round((times[times.length - 1] - times[0]) / 60000);
+  return Math.max(0, Math.min(180, span));
+}
+
 /** True where this plan item is moderate-to-vigorous physical activity. */
 export function countsAsActivity(
   item: { sessionType?: string; routineId?: string },
@@ -430,10 +459,13 @@ export function activityMinutes(
   routines: Routine[],
   today: string,
   cardioLogs: CardioLog[] = [],
+  workoutLogs: WorkoutLog[] = [],
 ): number | null {
   const from = addDays(today, -6);
   let minutes = 0;
   let watched = false;
+  /** Dates where a completed WORKOUT item has already contributed. */
+  const countedWorkoutDates = new Set<string>();
   for (const [date, plan] of Object.entries(plans)) {
     if (date < from || date > today) continue;
     if (plan.items.length > 0) watched = true;
@@ -443,7 +475,37 @@ export function activityMinutes(
       const [sh, sm] = item.start.split(':').map(Number);
       const [eh, em] = item.end.split(':').map(Number);
       minutes += Math.max(0, eh * 60 + em - (sh * 60 + sm));
+      if (item.sessionType === 'workout') countedWorkoutDates.add(date);
     }
+  }
+
+  /**
+   * ── Sessions that happened and were never ticked ────────────────────
+   *
+   * Isaac, 11 Nov 2026: *"My app is showing 0 minutes of physical
+   * activity."* He trains four times a week and has for twenty years.
+   *
+   * The zero was behaving exactly as designed, and the design had a hole
+   * in it. `plans` records what was PLANNED and then ticked;
+   * `workoutLogs` records what was actually DONE, set by set, each one
+   * timestamped. A session logged in `/session/workout` and left without
+   * pressing finish lives entirely in the second and counted as nothing
+   * in the first — while `features/training/sessionTiming.ts` was busy
+   * computing his real rest intervals from those very timestamps.
+   *
+   * **A logged workout is the strongest evidence of activity this app
+   * holds.** It was the one source this function did not read.
+   *
+   * Deduplicated by date against completed workout items, because
+   * finishing a session properly already books the block. Only a date
+   * with no counted workout item takes its log's minutes, so a tidy week
+   * and a messy one do not score differently for being tidy.
+   */
+  for (const log of workoutLogs) {
+    if (log.date < from || log.date > today) continue;
+    watched = true;
+    if (countedWorkoutDates.has(log.date)) continue;
+    minutes += workoutMinutes(log);
   }
   // A logged cardio session already put a completed block on the day, so
   // its minutes are counted once above. This adds only the SECOND helping
@@ -538,6 +600,8 @@ export interface WeekInputs {
   plans: Record<string, DailyPlan>;
   routines: Routine[];
   cardioLogs?: CardioLog[];
+  /** Sessions that happened, whether or not they were ticked off a plan. */
+  workoutLogs?: WorkoutLog[];
   metrics: MetricObservation[];
   intentions: BehaviourIntention[];
   events: BehaviourEvent[];
@@ -580,7 +644,13 @@ export interface WeekHealth {
 export function weekHealth(input: WeekInputs): WeekHealth {
   const { plans, routines, metrics, intentions, events, today } = input;
 
-  const minutes = activityMinutes(plans, routines, today, input.cardioLogs ?? []);
+  const minutes = activityMinutes(
+    plans,
+    routines,
+    today,
+    input.cardioLogs ?? [],
+    input.workoutLogs ?? [],
+  );
   // The readings, not only the mean: "7.4 hours a night" from one night
   // and from seven are different claims, and the caption made them look
   // the same. See fromReadings.

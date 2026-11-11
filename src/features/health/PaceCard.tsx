@@ -56,6 +56,10 @@ export function PaceCard() {
   const snapshots = useAppStore((s) => s.paceSnapshots);
   const sleepNights = useAppStore((s) => s.sleepNights);
   const weeklyCounts = useAppStore((s) => s.weeklyCounts);
+  // Sessions that happened. activityMinutes reads these, so a week of
+  // training that was logged but never ticked off a plan stops reading
+  // as a week of nothing.
+  const workoutLogs = useAppStore((s) => s.workoutLogs);
   const [shared, setShared] = useState(false);
   const today = todayKey();
 
@@ -67,6 +71,7 @@ export function PaceCard() {
         plans,
         routines,
         cardioLogs,
+        workoutLogs,
         behaviourIntentions: intentions,
         behaviourEvents: events,
         nicotineStatus: stated,
@@ -75,7 +80,7 @@ export function PaceCard() {
         sleepNights,
         today,
       }),
-    [profile, metrics, plans, routines, cardioLogs, intentions, events, stated, answers, weeklyCounts, sleepNights, today],
+    [profile, metrics, plans, routines, cardioLogs, workoutLogs, intentions, events, stated, answers, weeklyCounts, sleepNights, today],
   );
 
   const reading = useMemo(() => readPace(inputs), [inputs]);
