@@ -37,7 +37,7 @@ interface Props {
   suggestedReps?: number;
   /** One line of context: what happened last time, or why the load moved. */
   reference?: string;
-  onAddSet: (reps: number, weightKg?: number) => void;
+  onAddSet: (reps: number, weightKg?: number, rpe?: number) => void;
   onEditSet: (setId: string, patch: Partial<LoggedSet>) => void;
   onRemoveSet: (setId: string) => void;
 }
@@ -67,13 +67,54 @@ export function SetLogger({
     String(lastSet?.weightKg ?? suggestedWeightKg ?? ''),
   );
 
+  /**
+   * ── How hard it was, which is what moves the weight ──────────────
+   *
+   * Isaac's screen, mid-session on 11 Nov 2026: *"Last time: 10/6/7/7 (no
+   * effort noted, so the load stays)."*
+   *
+   * That sentence was true and it was a dead end. `progression.ts`
+   * progresses only when the top set made its reps **and** had something
+   * left — `reserveOf` returns null for a set with no `rpe`, and the
+   * rule treats the condition as unmet rather than met, deliberately,
+   * because *"an absent RPE is not a zero — it is silence."*
+   *
+   * **And this component had no way to record it.** `onAddSet` took reps
+   * and a weight. `makeSet` has always accepted an `rpe` and nothing ever
+   * passed one. So the load could never move, on any lift, for anybody,
+   * and the app said so on screen every session without the sentence
+   * being actionable.
+   *
+   * I wrote the rule, wrote the comment about silence, wired it to the
+   * screen, and never checked the screen could answer it.
+   *
+   * ── Why three words rather than a number ─────────────────────
+   *
+   * "RPE 8" is jargon that drifts between people and within one person
+   * over a year. `reserveLine` already speaks the other language — *"stop
+   * with 1–2 reps left"* — so the control asks the same question in the
+   * same words, and the mapping to a number happens here.
+   *
+   * Staying unanswered is a real option and the default. Silence is
+   * meaningful to the rule, and a control that forced a guess would feed
+   * it worse data than no data.
+   */
+  const [left, setLeft] = useState<number | undefined>();
+
   const complete = sets.length >= prescribedSets;
 
   const add = () => {
     const r = Number(reps);
     if (!Number.isFinite(r) || r <= 0) return;
     const w = Number(weight);
-    onAddSet(r, Number.isFinite(w) && w > 0 ? w : undefined);
+    onAddSet(
+      r,
+      Number.isFinite(w) && w > 0 ? w : undefined,
+      left === undefined ? undefined : 10 - left,
+    );
+    // Cleared so the next set is answered on its own merits. Carrying the
+    // last answer forward would turn one tap into a default.
+    setLeft(undefined);
   };
 
   const numberField = (
@@ -182,11 +223,35 @@ export function SetLogger({
       ) : null}
 
       {open || sets.length > 0 ? (
-        <View style={styles.addRow}>
-          {numberField(weight, setWeight, 'kg', `${exercise} weight`)}
-          {numberField(reps, setReps, 'reps', `${exercise} reps`)}
-          <Chip label={sets.length === 0 ? 'Log set' : 'Log another'} selected onPress={add} />
-        </View>
+        <>
+          <View style={styles.effortRow}>
+            <AppText variant="caption" color="textTertiary">
+              Left in the tank:
+            </AppText>
+            {[
+              { label: '2+', value: 2 },
+              { label: '1', value: 1 },
+              { label: 'none', value: 0 },
+            ].map((o) => (
+              <Chip
+                key={o.label}
+                label={o.label}
+                selected={left === o.value}
+                hint={
+                  o.value === 0
+                    ? 'Taken to the limit. The weight holds — reps at zero reserve are not evidence it is ready to move.'
+                    : 'Enough left that the weight can move next time.'
+                }
+                onPress={() => setLeft(left === o.value ? undefined : o.value)}
+              />
+            ))}
+          </View>
+          <View style={styles.addRow}>
+            {numberField(weight, setWeight, 'kg', `${exercise} weight`)}
+            {numberField(reps, setReps, 'reps', `${exercise} reps`)}
+            <Chip label={sets.length === 0 ? 'Log set' : 'Log another'} selected onPress={add} />
+          </View>
+        </>
       ) : null}
     </View>
   );
@@ -207,5 +272,12 @@ const styles = StyleSheet.create({
   setRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   editRow: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', gap: Spacing.sm },
   addRow: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', gap: Spacing.sm },
+  effortRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
   field: { gap: 2 },
 });

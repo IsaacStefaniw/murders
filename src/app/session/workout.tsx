@@ -535,10 +535,22 @@ export default function WorkoutSession() {
   // in the store the whole time. See features/training/sessionTiming.
   const timing = sessionTiming(loggedSets);
 
-  const addSet = (name: string, restSec: number, reps: number, weightKg?: number) => {
+  const addSet = (
+    name: string,
+    restSec: number,
+    reps: number,
+    weightKg?: number,
+    // Undefined where he did not answer, and that is meaningful rather
+    // than missing: progression.ts holds the load on silence instead of
+    // reading it as a set taken to failure.
+    rpe?: number,
+  ) => {
     const current = log ?? newLog(sessionDate, session.title);
     const index = current.sets.filter((s) => s.exercise === name).length + 1;
-    saveWorkoutLog({ ...current, sets: [...current.sets, makeSet(name, index, reps, weightKg)] });
+    saveWorkoutLog({
+      ...current,
+      sets: [...current.sets, makeSet(name, index, reps, weightKg, rpe)],
+    });
     // A set logged is the previous rest over. Cancel first, unconditionally:
     // the buzz for the set before this one must never arrive after it.
     void cancelRestNotification();
@@ -841,7 +853,7 @@ export default function WorkoutSession() {
                 }
                 suggestedReps={rung?.reps ?? targetReps}
                 reference={reference}
-                onAddSet={(reps, weightKg) => addSet(e.name, e.restSec, reps, weightKg)}
+                onAddSet={(reps, weightKg, rpe) => addSet(e.name, e.restSec, reps, weightKg, rpe)}
                 onEditSet={editSet}
                 onRemoveSet={removeSet}
               />
