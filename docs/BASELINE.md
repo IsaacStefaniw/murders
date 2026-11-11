@@ -657,6 +657,72 @@ above has no stated contrast and no smoking adjustment, so there is no
 coefficient here to build a component from. **Not scored, and not
 scored as a negative either — which is what he was objecting to.**
 
+## How to actually test VO₂max
+
+**He does not need a number. He needs a band.** `fitnessLogHazard` is
+graded by Mandsager's own quintile structure, referenced to age. At 38
+the expected figure is 36.7 ml/kg/min, so:
+
+| VO₂max at 38 | band | worth, after attenuation |
+| --- | --- | --- |
+| **47.7 and above** | top | **−4.14 years** |
+| **40.4 – 47.6** | second | **−2.47 years** |
+| 33.0 – 40.3 | reference | 0 |
+| below 33 | penalty | worse |
+
+**The only boundary that matters for him is 47.7**, and it is worth 1.7
+years. Anywhere in the forties he is already banking −2.47.
+
+### Three routes, cheapest first
+
+**1. Apple Watch — free, automatic, and what the app actually reads.**
+`healthkit.ts` pulls `HKQuantityTypeIdentifierVO2Max` on a 90-day
+window. Apple estimates it from an **outdoor** walk, run or hike with
+GPS and heart rate, roughly twenty minutes at a steady effort. It will
+not come from the lifting or from indoor futsal. Two or three outdoor
+walks and it appears.
+
+**2. Cooper test — free, one effort, a number he can check himself.**
+Twelve minutes, as far as possible, flat measured route or a track.
+
+`VO₂max = (metres − 504.9) / 44.73`
+
+| distance | VO₂max | band |
+| --- | --- | --- |
+| 2,400 m | 42.4 | second |
+| 2,600 m | 46.8 | second |
+| **2,740 m** | **47.7** | **the boundary** |
+| 2,800 m | 51.3 | **top** |
+| 3,000 m | 55.8 | top |
+
+**2,740 metres in twelve minutes is his line.** A man playing weekly
+futsal should be in reach of it.
+
+**3. A laboratory test — the real measurement.** Graded exercise to
+exhaustion with gas analysis. Brisbane has university and private
+sports-physiology labs; budget roughly $150–300.
+
+### Which one, and it depends on what the number is for
+
+**For today's score, the free routes are enough.** The bands are wide
+and a field estimate carries about ±10–15%, which only matters if he
+lands near 47.7. The app's own provenance already says its figure is
+*"Apple's estimate from walks and runs, not a measured treadmill
+test."*
+
+**For the trajectory he asked about, the lab test is the one that earns
+its cost.** A decline rate needs two comparable measurements years
+apart. Two lab tests five years apart is a measurement; two Apple
+estimates five years apart is mostly noise — and the thing he asked for,
+his OWN decline rate rather than a textbook constant, needs the former.
+
+### Not this week
+
+A maximal effort with a head cold is a bad idea, and the neck rule in
+`docs/DAILY.md` says training at reduced intensity rather than testing
+to exhaustion. **Wait until it clears.** The Apple route needs no
+maximal effort at all and can start the moment he feels like a walk.
+
 ## What this reading is not
 
 - **`PROVISIONAL = true`** in `pace.ts`, and its own comment: false only
