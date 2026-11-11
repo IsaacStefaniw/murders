@@ -723,6 +723,77 @@ A maximal effort with a head cold is a bad idea, and the neck rule in
 to exhaustion. **Wait until it clears.** The Apple route needs no
 maximal effort at all and can start the moment he feels like a walk.
 
+## Settled: the lower body really is behind
+
+**11 November 2026, 12:05–12:28.** His first full session logged in the
+app, and it answers a question this file has been carrying open.
+
+| | | |
+| --- | --- | --- |
+| Squat | 60×10 · 80×6 · 90×6 · 90×5 · 90×5 | 2,520 kg |
+| Deadlift | 100×10 · 110×6 · 120×5 · **130×3** | 2,650 kg |
+| | **9 sets, 56 reps, 5,170 kg in 23 minutes** | |
+
+### All three stated maxes are now measured, and all three were right
+
+| lift | he stated | measured today | |
+| --- | --- | --- | --- |
+| Bench | 130 | 120×3 → **127–132** | ✓ |
+| Squat | 110 | 90×6 → **105–108** | ✓ |
+| **Deadlift** | **140** | **130×3 → 138–143** | **✓** |
+
+**Three for three.** Every figure he gave from memory lands inside or on
+its measurement, and the one I "corrected" twice was the one I should
+have left alone.
+
+### So the open question closes, and it closes the way that costs him
+
+This file asked it directly: *"Two readings, and the honest answer is
+that nothing here separates them — the lower body is genuinely behind,
+or the squat and deadlift figures are stated and untested."*
+
+**They are tested now, and the first reading is the right one.**
+
+| ratio | him | ordinary |
+| --- | --- | --- |
+| deadlift / bench | **1.08** | 1.2–1.3 |
+| squat / bench | **0.82** | 1.25–1.3 |
+
+Not a reporting artefact and not my arithmetic. A man who benches
+1.47× bodyweight squats 1.20×, and the usual relationship runs the
+other way by a distance. An ordinary deadlift against his bench would
+sit near 160–170; an ordinary squat near 165.
+
+The ratio multiples remain lifting convention rather than a cited
+dataset — the same caveat `ISAAC_WEEK.md` carries — and the gap is wide
+enough to survive any version of them.
+
+### What that implies, said once
+
+`ISAAC_WEEK.md` concluded in September, from stated numbers, that the
+lower body was *"30–35% behind where it should sit relative to"* the
+pressing. **That conclusion was reached on guesses and has now been
+earned.** It is the clearest training priority in the file, and it was
+the one most open to being an artefact until today.
+
+### And the session itself
+
+**5,170 kg in twenty-three minutes**, which is 225 kg a minute and fits
+inside the thirty the lunch slot allows. Nine heavy barbell sets, on day
+three without alcohol, with a cold starting. He also took the 130×3
+after I suggested stopping at 120×5 — his call, in the room, and it went
+fine.
+
+**The anchors reset from it**, which is the mechanical point of logging:
+
+| lift | anchor | next ramp |
+| --- | --- | --- |
+| Squat | 80 → **90** | **75 / 85 / 85 / 90** |
+| Deadlift | 130 (unchanged) | 110 / 120 / 125 / 130 |
+
+The deadlift does not move because no effort was recorded — the capture
+for that shipped an hour after this session and is not in his build yet.
+
 ## What this reading is not
 
 - **`PROVISIONAL = true`** in `pace.ts`, and its own comment: false only
