@@ -596,6 +596,58 @@ litres while unwell.**
 
 ---
 
+## Saturday 14 November 2026 — back, at lunch
+
+Reported 16 Nov, two days later, which is the whole reason the
+when-picker had to reach past four hours.
+
+| exercise | load | reps | sets | volume |
+| --- | --- | --- | --- | --- |
+| Lat pulldown | 80 kg | 15 | **8** | **9,600 kg** |
+| Bent-over ? — superset | 60 kg | 5 | 5 | 1,500 kg |
+| | | **145 reps** | **13 sets** | **11,100 kg** |
+
+**He wrote "bent over toes".** Recorded as given rather than guessed at.
+Bent-over rows is the obvious reading for a back day at 60 kg and it is
+a guess, and a wrong exercise name is the join key `patterns.ts` and
+`progression.ts` both read. Asked rather than inferred — the same
+correction the Monday weekday needed in `LOG.md`.
+
+### The volume is the finding
+
+**One hundred and twenty reps of lat pulldown in a session**, at 0.89×
+bodyweight. On 10 Nov he did four sets of the same thing; this is
+**double**.
+
+| session | volume | sets | reps |
+| --- | --- | --- | --- |
+| Sat 14 Nov, back | **11,100 kg** | 13 | 145 |
+| Wed 11 Nov, squat + deadlift | 5,170 kg | 9 | 56 |
+
+More than twice the tonnage of the lower-body day, in a week where the
+lower body is the documented gap. Not a criticism of the session — it
+is a strong one — but it is the imbalance written in training rather
+than in numbers: **deadlift 1.08× bench and squat 0.82×**, measured on
+the 11th, against pulling volume that is now the largest in his week.
+
+The honest read: he trains hardest at what he is already best at. That
+is normal, it is what everybody does, and it is also precisely what the
+ratio gap predicts.
+
+### And the thing nobody has asked about yet
+
+**Saturday 14 November was the wedding.** `docs/IF_THENS.md` has it as
+if-then three, the only one of the three with a date on it, and the only
+plan in this project written in advance for a specific named event:
+
+> *"When I get to the wedding, I put the vape in the glovebox before I
+> go in, and the first drink I order is water — one in each hand for the
+> first hour."*
+
+**That is the single most important open question in the whole
+behaviour plan**, and it has been two days. Entry 6 in `LOG.md` is still
+the last thing recorded.
+
 ## When to record the weight
 
 **06:50. Twenty minutes after you wake, after the toilet, before you eat
