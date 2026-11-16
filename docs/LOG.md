@@ -28,8 +28,9 @@ Reported unprompted, in four words: *"I vaped and drank."*
 | `occurredAt` | **unknown.** Assumed Saturday 14 Nov, the wedding — **not confirmed, not recorded as fact** |
 | `trigger` | **the event itself**, if it was the wedding: a planned, dated, social occasion |
 | `context` | unknown |
-| `detail` | **both.** Vape and alcohol, order unstated |
+| `detail` | **both.** Vape and alcohol, order unstated. **The vape went in with him** — the glovebox step never happened |
 | `size` | unknown |
+| `followUp` | **nothing Sunday, nothing Monday.** One night, then stopped |
 
 ### Why three of five fields are blank
 
@@ -83,18 +84,54 @@ drink, which is why if-then three put *water, one in each hand, first
 hour* ahead of the glovebox in sequence even though the glovebox is
 listed first.
 
-### The one question worth asking
+### Answered: the plan never started
 
-Not "how much" — that is the question that makes a log something people
-stop writing in. **How far did the plan get?** The glovebox is a single
-physical act in a car park with a yes or a no attached, and which of
-those it was decides what gets rewritten:
+Asked how far the plan got rather than how much he drank, and he
+answered within the hour: *"vape in with me — but nothing on Sunday or
+today."*
 
-- **The vape stayed in the car and he went back for it** → the plan is
-  sound and the hour is the problem; the back-up branch needs work.
-- **The vape came in with him** → the plan never started, and a plan
-  that does not get executed is not a plan that failed. It is a cue
-  problem, and cues are fixable.
+Two separate findings in nine words, and they point opposite ways.
+
+**One: the glovebox step did not happen.** This is the branch worth
+having, because *a plan that was never executed is not a plan that
+failed.* If-then three had three clauses and **the first one — the only
+physical, binary, pre-commitment clause — was skipped entirely**, which
+means the other two were never tested. Nothing has been learned about
+whether water-in-both-hands works. What has been learned is that the
+car-park cue did not fire.
+
+Why it probably did not, and it is not willpower: **the cue is attached
+to nothing.** *"When I get to the wedding"* is a judgement, not a
+trigger — there is no instant that unambiguously is it. Compare the cue
+that has now worked twice: *"when I walk through the door."* Doors are
+events. Arrivals are a gradient.
+
+The fix is mechanical and goes in `IF_THENS.md`: **re-cue it to the
+engine.** *When I turn the engine off, the vape goes in the glovebox
+before I unclip the seatbelt.* Engine-off is a single instant, it is
+unmissable, it happens before any social contact, and the seatbelt
+gives it an order so it cannot be deferred.
+
+**Two, and it is the larger finding: it stopped.** Nothing Sunday,
+nothing Monday. Set against what this file already holds, that is the
+whole difference:
+
+| run | nights | shape |
+| --- | --- | --- |
+| Entries 2–5, 5–8 Nov | **four consecutive** | a bad week, by his own account |
+| Entry 7, Saturday 14 Nov | **one** | event night, then nothing |
+
+Four nights in a row became one night at a wedding followed by two
+clean days. **That is not a relapse, it is a contained event** — which
+is the actual clinical distinction, and it is the thing every quit
+attempt turns on. The hazard after a lapse is not the lapse; it is the
+three days after it, and those three days are so far clean.
+
+He also volunteered the two clean days without being asked, which is
+worth recording in a file whose own caveat says people under-record
+hardest on the occasions they least want to write down. He reported the
+slip *and* the recovery in the same breath, two days late but unprompted
+both times.
 
 ---
 
