@@ -601,17 +601,23 @@ litres while unwell.**
 Reported 16 Nov, two days later, which is the whole reason the
 when-picker had to reach past four hours.
 
-| exercise | load | reps | sets | volume |
-| --- | --- | --- | --- | --- |
-| Lat pulldown | 80 kg | 15 | **8** | **9,600 kg** |
-| Bent-over ? — superset | 60 kg | 5 | 5 | 1,500 kg |
-| | | **145 reps** | **13 sets** | **11,100 kg** |
+| exercise | load | reps | sets | volume | share |
+| --- | --- | --- | --- | --- | --- |
+| Lat pulldown, wide grip | 80 kg | 15 | **8** | **9,600 kg** | **86%** |
+| Bent-over row — superset | 60 kg | 5 | 5 | 1,500 kg | 14% |
+| | | **145 reps** | **13 sets** | **11,100 kg** | |
 
-**He wrote "bent over toes".** Recorded as given rather than guessed at.
-Bent-over rows is the obvious reading for a back day at 60 kg and it is
-a guess, and a wrong exercise name is the join key `patterns.ts` and
-`progression.ts` both read. Asked rather than inferred — the same
-correction the Monday weekday needed in `LOG.md`.
+**Exercise name confirmed 16 Nov.** He wrote *"bent over toes"*; asked
+rather than guessed, and he answered **"Bent over rows"**. It matters
+because the name is the join key: `programme.ts:553` already carries a
+`Barbell row` slot for a barbell gym, so the confirmed name lands on an
+existing slot instead of minting a new one no screen reads.
+
+One thing that slot does **not** carry: `lift: null`. The row has no
+tracked lift behind it, so these five sets produce no e1RM and feed no
+progression — unlike the squat, bench and deadlift, where every set
+moves next week's ramp. His heaviest pulling work is, programmatically,
+invisible.
 
 ### The volume is the finding
 
@@ -633,6 +639,14 @@ the 11th, against pulling volume that is now the largest in his week.
 The honest read: he trains hardest at what he is already best at. That
 is normal, it is what everybody does, and it is also precisely what the
 ratio gap predicts.
+
+And inside the session the same split repeats. The bent-over row is the
+one movement on Saturday that loads the posterior chain under a hinge —
+the exact position the deadlift ratio says is behind — and it took
+**14% of the session's volume**, five sets of five at 60 kg, against
+eight sets of fifteen on the machine that supports his torso for him.
+Pulldown 80 kg × 15 and row 60 kg × 5 is not a capacity difference; it
+is where the effort went.
 
 ### And the thing nobody has asked about yet
 
