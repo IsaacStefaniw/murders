@@ -19,6 +19,85 @@ fewer.
 
 ---
 
+## Entry 7 — the wedding. Reported Monday 16 November.
+
+Reported unprompted, in four words: *"I vaped and drank."*
+
+| field | value |
+| --- | --- |
+| `occurredAt` | **unknown.** Assumed Saturday 14 Nov, the wedding — **not confirmed, not recorded as fact** |
+| `trigger` | **the event itself**, if it was the wedding: a planned, dated, social occasion |
+| `context` | unknown |
+| `detail` | **both.** Vape and alcohol, order unstated |
+| `size` | unknown |
+
+### Why three of five fields are blank
+
+Because this file has now recorded **four separate times** that I filled
+a field from my own assumption and was corrected — most recently the
+15:21 in entry 6, which I had written as 16:20 for no reason other than
+that a craving in this plan *felt* like it should be near the door.
+
+So the wedding is the obvious reading and it stays an assumption until
+he says so. He reported it two days later with no date attached, and a
+date I invent is worse than a blank.
+
+### What it changes in the numbers: **nothing**
+
+This matters more than it sounds. The markers reading is **+1.6 years —
+age 40 against a chronological 38 — and it was already computed with
+nicotine and alcohol in it.** Both are among the 2 of 11 components
+scoring against him, on his own account of himself:
+
+> *"I'm not a full time smoker only part time mainly when I drink."*
+
+The reading never assumed abstinence, so it does not now have to be
+revised downwards. **No ground was lost on Saturday.** There is no
+streak counter in this app and there is nothing here that resets to
+zero, because nothing was ever counted from zero.
+
+What would move the number is a sustained change in those two
+components, and a Saturday at a wedding does not rule that out. It is
+one event in a file that holds seven.
+
+### What it confirms, which is the useful part
+
+**His own stated mechanism just ran exactly as he described it.** He
+told me on 11 Nov that the vaping is *"mainly when I drink"*, and
+`IF_THENS.md` wrote that into if-then three on 10 Nov, four days before
+the event, in these words:
+
+> *"This is the hole in your event allowance: **every drinking night you
+> allow is also a vaping night**, and the only reliable version of that
+> plan is physical distance."*
+
+That is now observed rather than predicted. It is the second time this
+project has written down a prediction in advance and had it come true —
+the first was the Monday-doorway cue, and the second was the one with a
+date on it.
+
+The consequence is a change of target. **The vape is downstream.**
+Defending against the vape at a wedding, after the drinks, is defending
+at the point the decision has already been made. The lever is the first
+drink, which is why if-then three put *water, one in each hand, first
+hour* ahead of the glovebox in sequence even though the glovebox is
+listed first.
+
+### The one question worth asking
+
+Not "how much" — that is the question that makes a log something people
+stop writing in. **How far did the plan get?** The glovebox is a single
+physical act in a car park with a yes or a no attached, and which of
+those it was decides what gets rewritten:
+
+- **The vape stayed in the car and he went back for it** → the plan is
+  sound and the hour is the problem; the back-up branch needs work.
+- **The vape came in with him** → the plan never started, and a plan
+  that does not get executed is not a plan that failed. It is a cue
+  problem, and cues are fixable.
+
+---
+
 ## Entry 6 — Tuesday 10 November 2026, **15:21 AEST**. An urge, no slip.
 
 Reported live: *"I am already craving a drink / vape need defence
