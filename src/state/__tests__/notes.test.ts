@@ -76,6 +76,39 @@ describe('correcting one', () => {
   });
 });
 
+describe('reaching back past days, which is the whole point', () => {
+  it('takes a timestamp two days old without complaint', () => {
+    // Isaac, 16 Nov: "It's very difficult to log activities past in the
+    // app... I trained on Saturday lunch back routine." The first
+    // when-picker offered Just now through 4 hours ago, so the one thing
+    // he needed to record was the one thing it could not take.
+    const saturdayLunch = '2026-11-14T12:00:00.000Z';
+    s().addNote('Back routine — lat pulldown 80x15x4', saturdayLunch);
+    expect(s().notes[0].at).toBe(saturdayLunch);
+    expect(s().notes[0].source).toBe('backdated');
+  });
+
+  it('keeps each past day separate rather than collapsing them onto today', () => {
+    for (const [day, text] of [
+      ['2026-11-14T12:00:00.000Z', 'Saturday, back'],
+      ['2026-11-11T02:05:00.000Z', 'Wednesday, squat and deadlift'],
+      ['2026-11-09T09:15:00.000Z', 'Monday, futsal'],
+    ] as const) {
+      s().addNote(text, day);
+    }
+    const days = s().notes.map((n) => n.at.slice(0, 10));
+    expect(new Set(days).size).toBe(3);
+    expect(days).toContain('2026-11-14');
+  });
+
+  it('still refuses to call a hand-set past time a stamped one', () => {
+    // patterns.ts reads the hour and nothing else, so a remembered hour
+    // has to be distinguishable from one the clock supplied.
+    s().addNote('Saturday lunch', '2026-11-14T12:00:00.000Z');
+    expect(s().notes[0].source).toBe('backdated');
+  });
+});
+
 describe('several a day, which a Reflection cannot hold', () => {
   it('keeps every entry rather than one per date', () => {
     // The reason this is not a Reflection: that is keyed by date and holds

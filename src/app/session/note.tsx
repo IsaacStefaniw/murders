@@ -60,8 +60,31 @@ export default function NoteCapture() {
   const notes = useAppStore((s) => s.notes);
 
   const [text, setText] = useState('');
-  /** Minutes to subtract from now. Zero is "just now". */
-  const [minutesAgo, setMinutesAgo] = useState(0);
+  /**
+   * ── Days back, not minutes back ─────────────────────────────
+   *
+   * Isaac, 16 Nov 2026: *"It's very difficult to log activities past in
+   * the app... I trained on Saturday lunch back routine."*
+   *
+   * The first version of this offered Just now, 30 minutes, 1, 2 and 4
+   * hours. **Four hours was the whole range.** It was built to catch a
+   * sauna he had finished an hour ago and it could not reach yesterday,
+   * let alone Saturday — so the one thing he actually needed to log, two
+   * days later, was the one thing it could not take.
+   *
+   * A screen for recording what happened that cannot reach last weekend
+   * is a screen for recording what is happening, which is a different and
+   * much less useful thing. Somebody at a bench does not stop to type.
+   * They type on the sofa afterwards, or two days later when asked.
+   *
+   * So: a day, then a time of day. That is the granularity he thinks in —
+   * he wrote *"Saturday lunch"*, not a timestamp — and `patterns.ts`
+   * needs an hour it can read, which a named part of the day supplies
+   * honestly while a typed clock time invites false precision about
+   * something remembered.
+   */
+  const [daysBack, setDaysBack] = useState(0);
+  const [hour, setHour] = useState<number | null>(null);
   /**
    * The clock, read on mount and refreshed on every touch.
    *
@@ -74,27 +97,53 @@ export default function NoteCapture() {
    */
   const [now, setNow] = useState(() => Date.now());
 
-  const stamp = new Date(now - minutesAgo * 60000);
-  const todayKeyOf = (ms: number) => new Date(ms).toDateString();
-  const todays = notes
-    .filter((n) => todayKeyOf(Date.parse(n.at)) === todayKeyOf(now))
+  /** The chosen moment: that day, at that hour, or now where neither moved. */
+  const stampOf = (ms: number, days: number, h: number | null) => {
+    const d = new Date(ms);
+    d.setDate(d.getDate() - days);
+    if (h !== null) d.setHours(h, days === 0 && h === new Date(ms).getHours() ? d.getMinutes() : 0, 0, 0);
+    return d;
+  };
+  const stamp = stampOf(now, daysBack, hour);
+  const untouched = daysBack === 0 && hour === null;
+
+  const dayKeyOf = (ms: number) => new Date(ms).toDateString();
+  const shown = notes
+    .filter((n) => dayKeyOf(Date.parse(n.at)) === dayKeyOf(stamp.getTime()))
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
 
-  // Wrapped so the clock read is unambiguously a handler rather than
-  // render work. Both of these only ever run on a touch.
-  const pick = useCallback((value: number) => {
+  /** Today, Yesterday, then weekday names back a week. */
+  const dayOptions = Array.from({ length: 8 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    return {
+      value: i,
+      label: i === 0 ? 'Today' : i === 1 ? 'Yesterday' : d.toLocaleDateString(undefined, { weekday: 'short' }),
+    };
+  });
+
+  // Wrapped so the clock reads are unambiguously handlers rather than
+  // render work. None of these runs outside a touch.
+  const pickDay = useCallback((value: number) => {
     setNow(Date.now());
-    setMinutesAgo(value);
+    setDaysBack(value);
+  }, []);
+
+  const pickHour = useCallback((value: number) => {
+    setNow(Date.now());
+    setHour((h) => (h === value ? null : value));
   }, []);
 
   const save = useCallback(() => {
     if (!text.trim()) return;
-    const at = Date.now() - minutesAgo * 60000;
-    setNow(Date.now());
-    addNote(text, minutesAgo === 0 ? undefined : new Date(at).toISOString());
+    const ms = Date.now();
+    setNow(ms);
+    const at = stampOf(ms, daysBack, hour);
+    addNote(text, daysBack === 0 && hour === null ? undefined : at.toISOString());
     setText('');
-    setMinutesAgo(0);
-  }, [addNote, minutesAgo, text]);
+    setDaysBack(0);
+    setHour(null);
+  }, [addNote, daysBack, hour, text]);
 
   const clock = (d: Date) =>
     `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -116,39 +165,75 @@ export default function NoteCapture() {
         multiline
       />
 
-      {/* Offered before saving rather than as a correction afterwards,
-          because the minute is the field most often wrong and it is
-          cheapest to fix while the memory is still in the room. */}
-      <SectionHeader title="When" />
+      {/* Day first, then time of day — the order somebody remembers in.
+          "Saturday lunch" is how he described it, so the controls take it
+          in that shape rather than asking for a timestamp. */}
+      <SectionHeader title="Which day" />
+      <View style={styles.row}>
+        {dayOptions.map((o) => (
+          <Chip
+            key={o.value}
+            label={o.label}
+            selected={daysBack === o.value}
+            onPress={() => pickDay(o.value)}
+          />
+        ))}
+      </View>
+
+      <SectionHeader title="Time of day" />
       <View style={styles.row}>
         {[
-          { label: 'Just now', value: 0 },
-          { label: '30 min ago', value: 30 },
-          { label: '1 hr ago', value: 60 },
-          { label: '2 hrs ago', value: 120 },
-          { label: '4 hrs ago', value: 240 },
+          { label: 'Morning', value: 8 },
+          { label: 'Lunch', value: 12 },
+          { label: 'Afternoon', value: 15 },
+          { label: 'Evening', value: 19 },
+          { label: 'Night', value: 22 },
         ].map((o) => (
           <Chip
             key={o.value}
             label={o.label}
-            selected={minutesAgo === o.value}
-            onPress={() => pick(o.value)}
+            selected={hour === o.value}
+            hint="An hour the pattern read can use. Tap the entry afterwards to set it exactly."
+            onPress={() => pickHour(o.value)}
           />
         ))}
       </View>
+
       <AppText variant="caption" color="textTertiary" style={styles.note}>
-        Stamping it {clock(stamp)}.
+        {untouched
+          ? `Stamping it now — ${clock(stamp)} today.`
+          : `Stamping it ${stamp.toLocaleDateString(undefined, { weekday: 'long' })} at ${clock(stamp)}, set by hand.`}
       </AppText>
 
       <View style={styles.footer}>
         <Button title="Log it" onPress={save} disabled={!text.trim()} />
       </View>
 
-      {todays.length > 0 ? (
+      {/* A session has sets in it, and a line of prose does not. Offered
+          only for a past day, because today's Train chip already goes
+          here — and `/session/workout` has always accepted a date, with
+          nothing in the app ever passing one. */}
+      {daysBack > 0 ? (
+        <View style={styles.footer}>
+          <Button
+            title={`Log sets for ${stamp.toLocaleDateString(undefined, { weekday: 'long' })}`}
+            variant="secondary"
+            onPress={() =>
+              router.push(
+                `/session/workout?date=${stamp.getFullYear()}-${String(stamp.getMonth() + 1).padStart(2, '0')}-${String(stamp.getDate()).padStart(2, '0')}` as never,
+              )
+            }
+          />
+        </View>
+      ) : null}
+
+      {shown.length > 0 ? (
         <>
-          <SectionHeader title={`Today — ${todays.length}`} />
+          <SectionHeader
+            title={`${untouched ? 'Today' : stamp.toLocaleDateString(undefined, { weekday: 'long' })} — ${shown.length}`}
+          />
           <View style={styles.stack}>
-            {todays.map((n) => (
+            {shown.map((n) => (
               <View key={n.id} style={styles.entry}>
                 <AppText variant="label" color="accent">
                   {clock(new Date(n.at))}
