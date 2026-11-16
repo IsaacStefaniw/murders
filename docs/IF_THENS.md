@@ -329,6 +329,77 @@ ask for, I hold it, thank them, and put it down on the nearest flat
 surface.* Performed, not withheld, and it skips the conversation
 entirely.
 
+### What happened, 14 Nov — and the one thing it changed
+
+Reported 16 Nov: *"I vaped and drank... vape in with me."*
+
+**The glovebox clause was skipped.** So this plan was never executed —
+it was not tried and beaten. The other two clauses were never reached,
+and nothing is yet known about whether water-in-both-hands works.
+
+The reason is in rule 1 at the top of this file, and it is the rule I
+broke writing it: **"name a real situation, not a vague day."**
+
+> *"When I get to the wedding"* is not a situation. It is a judgement.
+> There is no instant that unambiguously **is** arriving somewhere —
+> the car park, the walk up, the door, the first handshake. Every one of
+> them is arguably still "before".
+
+Compare the two cues in this file that have worked: *"when I walk
+through the door"* and *"when the urge lands at my desk."* A door is an
+event. A desk is a place you are at or not. **Arriving is a gradient,
+and a gradient cannot fire a plan.**
+
+---
+
+## Four — the next event, with the cue moved to an instant
+
+Event two of November is still ahead. Same idea as three, same three
+clauses, with the first one re-cued to something that happens at a
+single identifiable moment and before any social contact:
+
+> **When I turn the engine off, the vape goes in the glovebox before I
+> unclip my seatbelt. Then the first two drinks I hold are water, one
+> in each hand.**
+
+Why each part:
+
+- **Engine off is an instant.** Unmissable, happens exactly once, and
+  there is no version of the evening in which it is ambiguous whether
+  it has happened. The judgement is gone.
+- **"Before I unclip my seatbelt"** gives it an order, so it cannot be
+  deferred to "in a minute". It is sequenced against something that is
+  going to happen anyway, within about four seconds.
+- **It is still a thing done**, not withheld: an object moves from one
+  place to another.
+- **The drinks clause is unchanged** because it has never been tested.
+  It is not known to be wrong.
+
+**Back-up branch, for arriving in a taxi or with somebody else
+driving** — the gap that sank the first version, since no engine goes
+off:
+
+> *When I put my phone in my pocket to walk in, the vape goes in the
+> same pocket as my keys and stays there until the keys come out.*
+
+### The finding that matters more than any of this
+
+**Nothing on Sunday, nothing on Monday.**
+
+| run | nights |
+| --- | --- |
+| 5–8 Nov | **four consecutive** |
+| 14 Nov | **one**, then two clean days |
+
+Four nights became one night and a stop. In the literature on this the
+dangerous thing is never the lapse — it is the seventy-two hours after
+it, when one night becomes the new baseline. Those hours have now
+passed clean, and he reported both halves unprompted.
+
+So this file is not being rewritten because a plan failed. It is being
+rewritten because **a cue was wrong, and the person it was written for
+recovered anyway.**
+
 ---
 
 ## How to actually use these
